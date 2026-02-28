@@ -5,46 +5,36 @@
 See: .planning/PROJECT.md (updated 2026-02-28)
 
 **Core value:** Posts go from Obsidian vault to live site with one script and a git push.
-**Current focus:** Phase 1 — Foundation
+**Current focus:** Complete — all phases done
 
 ## Current Position
 
-Phase: 1 of 3 (Foundation)
-Plan: Not started
-Status: Ready to plan
-Last activity: 2026-02-28 — Project initialized
+Phase: 3 of 3 (RSS & Scripts)
+Plan: Complete
+Status: All phases complete
+Last activity: 2026-02-28 — Full site build complete
 
-Progress: ░░░░░░░░░░ 0%
-
-## Performance Metrics
-
-**Velocity:**
-- Total plans completed: 0
-- Average duration: —
-- Total execution time: 0 hours
-
-**By Phase:**
-
-| Phase | Plans | Total | Avg/Plan |
-|-------|-------|-------|----------|
-| — | — | — | — |
+Progress: ██████████ 100%
 
 ## Accumulated Context
 
 ### Decisions
 
-(None yet)
+- Ported design system from PostLiterate book site (~/Documents/PostLiterate)
+- Used custom CSS grid instead of Bootstrap — cleaner for content-focused layout
+- Swapped Alegreya fonts for Outfit/Literata/Sono per spec
+- Kept dark mode toggle from book site
 
 ### Deferred Issues
 
-None yet.
+None.
 
 ### Blockers/Concerns
 
-None yet.
+None.
 
 ## Session Continuity
 
 Last session: 2026-02-28
-Stopped at: Project initialization complete
+Stopped at: Site build complete, ready for GitHub push + Vercel connect
 Resume file: None
