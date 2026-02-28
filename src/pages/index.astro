@@ -1,0 +1,41 @@
+---
+import Base from '../layouts/Base.astro';
+import { getCollection } from 'astro:content';
+
+const posts = await getCollection('blog', ({ data }) => data.status === 'published');
+const sortedPosts = posts.sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+---
+
+<Base title="PostLiterate" description="Writing about orality, literacy, and AI.">
+  <div class="page-container">
+    <main class="main-column">
+      <header class="article-header">
+        <h1 class="article-title">PostLiterate</h1>
+      </header>
+
+      {sortedPosts.length === 0 ? (
+        <p style="color: var(--text-secondary); font-style: italic;">No posts yet.</p>
+      ) : (
+        <ul class="post-list">
+          {sortedPosts.map((post) => (
+            <li class="post-item">
+              <a href={`/blog/${post.id.replace(/\.mdx?$/, '')}`} class="post-link">
+                <div class="post-title">{post.data.title}</div>
+                <div class="post-date">
+                  {post.data.date.toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric',
+                  })}
+                </div>
+                {post.data.description && (
+                  <div class="post-description">{post.data.description}</div>
+                )}
+              </a>
+            </li>
+          ))}
+        </ul>
+      )}
+    </main>
+  </div>
+</Base>

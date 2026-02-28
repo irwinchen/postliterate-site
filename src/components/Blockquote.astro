@@ -1,0 +1,20 @@
+---
+/**
+ * Blockquote Component
+ *
+ * Usage in MDX:
+ * import Blockquote from '../../components/Blockquote.astro';
+ * <Blockquote attribution="Marshall McLuhan">The medium is the message.</Blockquote>
+ */
+
+interface Props {
+  attribution?: string;
+}
+
+const { attribution } = Astro.props;
+---
+
+<blockquote class="blockquote">
+  <slot />
+  {attribution && <div class="blockquote-attribution">{attribution}</div>}
+</blockquote>

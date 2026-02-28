@@ -1,0 +1,24 @@
+---
+/**
+ * Figure Component
+ *
+ * Usage in MDX:
+ * import Figure from '../../components/Figure.astro';
+ * <Figure caption="Description of the image">
+ *   <img src="/images/example.jpg" alt="Alt text" />
+ * </Figure>
+ */
+
+interface Props {
+  caption?: string;
+}
+
+const { caption } = Astro.props;
+---
+
+<figure class="figure">
+  <div class="figure-content">
+    <slot />
+  </div>
+  {caption && <figcaption class="figure-caption">{caption}</figcaption>}
+</figure>
