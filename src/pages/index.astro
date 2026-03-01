@@ -4,21 +4,32 @@ import { getCollection } from 'astro:content';
 
 const posts = await getCollection('blog', ({ data }) => data.status === 'published');
 const sortedPosts = posts.sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+const allTags = [...new Set(sortedPosts.flatMap((post) => post.data.tags ?? []))].sort();
 ---
 
-<Base title="PostLiterate" description="Writing about orality, literacy, and AI.">
+<Base title="Post-Literate" description="Writing about orality, literacy, and AI.">
   <div class="page-container">
     <main class="main-column">
       <header class="article-header">
-        <h1 class="article-title">PostLiterate</h1>
+        <h1 class="article-title">Post-Literate</h1>
+        <p class="subtitle">Notes on reading and orality in the age of AI</p>
+
       </header>
+
+      {allTags.length > 0 && (
+        <div class="tag-bar">
+          {allTags.map((tag) => (
+            <a href={`/blog/tag/${tag}`} class="tag tag-filter" data-tag={tag}>{tag}</a>
+          ))}
+        </div>
+      )}
 
       {sortedPosts.length === 0 ? (
         <p style="color: var(--text-secondary); font-style: italic;">No posts yet.</p>
       ) : (
         <ul class="post-list">
           {sortedPosts.map((post) => (
-            <li class="post-item">
+            <li class="post-item" data-tags={(post.data.tags ?? []).join(',')}>
               <a href={`/blog/${post.id.replace(/\.mdx?$/, '')}`} class="post-link">
                 <div class="post-title">{post.data.title}</div>
                 <div class="post-date">
@@ -38,4 +49,34 @@ const sortedPosts = posts.sort((a, b) => b.data.date.valueOf() - a.data.date.val
       )}
     </main>
   </div>
+
+  <script is:inline>
+    (function () {
+      let activeTag = null;
+      const filters = document.querySelectorAll('.tag-filter');
+      const items = document.querySelectorAll('.post-item[data-tags]');
+
+      filters.forEach(function (btn) {
+        btn.addEventListener('click', function (e) {
+          e.preventDefault();
+          const tag = btn.getAttribute('data-tag');
+
+          if (activeTag === tag) {
+            activeTag = null;
+            filters.forEach(function (f) { f.classList.remove('active'); });
+            items.forEach(function (item) { item.style.display = ''; });
+          } else {
+            activeTag = tag;
+            filters.forEach(function (f) {
+              f.classList.toggle('active', f.getAttribute('data-tag') === tag);
+            });
+            items.forEach(function (item) {
+              var tags = item.getAttribute('data-tags').split(',');
+              item.style.display = tags.indexOf(tag) !== -1 ? '' : 'none';
+            });
+          }
+        });
+      });
+    })();
+  </script>
 </Base>

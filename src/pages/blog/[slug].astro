@@ -32,7 +32,7 @@ const { Content } = await render(post);
           {post.data.tags && post.data.tags.length > 0 && (
             <div class="article-tags">
               {post.data.tags.map((tag: string) => (
-                <span class="tag">{tag}</span>
+                <a href={`/blog/tag/${tag}`} class="tag">{tag}</a>
               ))}
             </div>
           )}

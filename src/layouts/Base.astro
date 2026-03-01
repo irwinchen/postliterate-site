@@ -4,7 +4,7 @@ interface Props {
   description?: string;
 }
 
-const { title, description = "PostLiterate" } = Astro.props;
+const { title, description = "Post-Literate" } = Astro.props;
 ---
 
 <!doctype html>
@@ -24,7 +24,7 @@ const { title, description = "PostLiterate" } = Astro.props;
       rel="stylesheet"
     />
 
-    <title>{title} | PostLiterate</title>
+    <title>{title} | Post-Literate</title>
 
     <!-- Theme initialization (prevent flash) -->
     <script is:inline>
@@ -36,7 +36,10 @@ const { title, description = "PostLiterate" } = Astro.props;
   </head>
   <body>
     <header class="site-header">
-      <a href="/" class="site-header-content">PostLiterate</a>
+      <nav class="site-nav">
+        <a href="/" class="site-header-content">Post-Literate</a>
+        <a href="/about" class="site-nav-link">About</a>
+      </nav>
       <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme">
         <svg class="icon-sun" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <circle cx="12" cy="12" r="5"></circle>
