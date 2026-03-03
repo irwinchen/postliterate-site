@@ -109,7 +109,6 @@ body {
     font-weight: 500;
     color: var(--text);
     text-decoration: none;
-    opacity: 0;
     transition: opacity 0.3s ease;
     border-bottom: none;
 }
@@ -124,7 +123,6 @@ body {
     font-weight: 500;
     color: var(--text-secondary);
     text-decoration: none;
-    opacity: 0;
     transition: opacity 0.3s ease, color 0.2s ease;
     border-bottom: none;
 }
@@ -134,8 +132,14 @@ body {
     border-bottom: none;
 }
 
-.site-header:hover .site-header-content,
-.site-header:hover .site-nav-link {
+/* Hide nav in Deep Reading mode, reveal on hover */
+.fr-active .site-header-content,
+.fr-active .site-nav-link {
+    opacity: 0;
+}
+
+.fr-active .site-header:hover .site-header-content,
+.fr-active .site-header:hover .site-nav-link {
     opacity: 1;
 }
 
@@ -161,11 +165,15 @@ body {
     font-size: var(--text-meta);
     font-weight: 500;
     color: var(--text);
-    opacity: 0;
     transition: opacity 0.3s ease;
 }
 
-.site-footer:hover .site-footer-content {
+/* Hide footer in Deep Reading mode, reveal on hover */
+.fr-active .site-footer-content {
+    opacity: 0;
+}
+
+.fr-active .site-footer:hover .site-footer-content {
     opacity: 1;
 }
 
