@@ -269,8 +269,21 @@ body {
 }
 
 .settings-row-centered {
-    justify-content: center;
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
     gap: 12px;
+}
+
+.settings-row-centered .settings-label:first-child {
+    justify-self: end;
+}
+
+.settings-row-centered .settings-label:last-child {
+    justify-self: start;
+}
+
+.settings-row-centered .settings-switch {
+    justify-self: center;
 }
 
 .settings-row + .settings-row {
@@ -283,6 +296,15 @@ body {
     font-weight: 500;
     color: var(--text);
     user-select: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.settings-label svg {
+    width: 16px;
+    height: 16px;
+    stroke-width: 1.5;
 }
 
 .settings-switch {
@@ -297,24 +319,34 @@ body {
     transition: background 0.2s ease, border-color 0.2s ease;
 }
 
-.settings-switch[aria-checked="true"] {
-    background: var(--accent);
-    border-color: var(--accent);
-}
-
 .settings-switch-thumb {
     position: absolute;
     top: 2px;
     left: 2px;
     width: 16px;
     height: 16px;
-    background: var(--background);
+    background: var(--accent);
     transition: transform 0.2s ease;
     pointer-events: none;
 }
 
 .settings-switch[aria-checked="true"] .settings-switch-thumb {
     transform: translateX(18px);
+}
+
+/* Dim the unselected label */
+.settings-row-centered .settings-label {
+    transition: opacity 0.2s ease;
+}
+
+/* When off (left active): dim the right label */
+.settings-row-centered:has(.settings-switch[aria-checked="false"]) .settings-label:last-child {
+    opacity: 0.4;
+}
+
+/* When on (right active): dim the left label */
+.settings-row-centered:has(.settings-switch[aria-checked="true"]) .settings-label:first-child {
+    opacity: 0.4;
 }
 
 /* Focus reading */

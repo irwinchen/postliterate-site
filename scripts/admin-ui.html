@@ -7,6 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700&family=Literata:ital,wght@0,400;0,600;1,400&family=Sono:wght@400;600&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -78,6 +79,9 @@
       cursor: pointer;
       text-transform: uppercase;
       letter-spacing: 0.05em;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
     }
 
     .dev-server-btn:hover {
@@ -128,7 +132,9 @@
     }
 
     .badge {
-      display: inline-block;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
       font-family: 'Sono', monospace;
       font-size: 0.7rem;
       font-weight: 400;
@@ -136,6 +142,12 @@
       letter-spacing: 0.02em;
       padding: 0;
       border: none;
+    }
+
+    .badge svg {
+      width: 12px;
+      height: 12px;
+      stroke-width: 2;
     }
 
     .badge-published {
@@ -174,6 +186,15 @@
       text-transform: uppercase;
       letter-spacing: 0.04em;
       white-space: nowrap;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+    }
+
+    .btn svg, .dev-server-btn svg {
+      width: 14px;
+      height: 14px;
+      stroke-width: 2;
     }
 
     .btn:hover {
@@ -316,8 +337,8 @@
     <h2 id="modalTitle"></h2>
     <p id="modalBody"></p>
     <div class="modal-actions">
-      <button class="btn" onclick="closeModal()">Cancel</button>
-      <button class="btn btn-accent" id="modalConfirm">Confirm</button>
+      <button class="btn" onclick="closeModal()"><i data-lucide="x"></i> Cancel</button>
+      <button class="btn btn-accent" id="modalConfirm"><i data-lucide="check"></i> Confirm</button>
     </div>
   </div>
 </div>
@@ -367,12 +388,13 @@
     if (status.running) {
       dot.className = 'status-dot running';
       label.textContent = 'Running :' + status.port;
-      toggle.textContent = 'Stop';
+      toggle.innerHTML = '<i data-lucide="square"></i> Stop';
     } else {
       dot.className = 'status-dot';
       label.textContent = 'Stopped';
-      toggle.textContent = 'Start';
+      toggle.innerHTML = '<i data-lucide="play"></i> Start';
     }
+    lucide.createIcons();
   }
 
   async function toggleDevServer() {
@@ -432,15 +454,16 @@
 
     for (const p of posts) {
       const badgeClass = p.status === 'published' ? 'badge-published' : p.status === 'draft' ? 'badge-draft' : 'badge-unknown';
+      const badgeIcon = p.status === 'published' ? 'circle-check' : p.status === 'draft' ? 'pencil' : 'circle-help';
 
       let actions = '';
       if (p.status === 'published' && p.location === 'content') {
-        actions += `<button class="btn" onclick="viewPost('${p.slug}')">View</button>`;
-        actions += `<button class="btn btn-accent" onclick="confirmUnpublish('${p.slug}', '${p.title.replace(/'/g, "\\'")}')">Unpublish</button>`;
+        actions += `<button class="btn" onclick="viewPost('${p.slug}')"><i data-lucide="external-link"></i> View</button>`;
+        actions += `<button class="btn btn-accent" onclick="confirmUnpublish('${p.slug}', '${p.title.replace(/'/g, "\\'")}')"><i data-lucide="eye-off"></i> Unpublish</button>`;
       }
       if (p.status === 'draft' || p.status === 'unknown') {
-        actions += `<button class="btn" onclick="previewPost('${p.slug}')">Preview</button>`;
-        actions += `<button class="btn btn-accent" onclick="confirmPublish('${p.slug}', '${p.title.replace(/'/g, "\\'")}')">Publish</button>`;
+        actions += `<button class="btn" onclick="previewPost('${p.slug}')"><i data-lucide="eye"></i> Preview</button>`;
+        actions += `<button class="btn btn-accent" onclick="confirmPublish('${p.slug}', '${p.title.replace(/'/g, "\\'")}')"><i data-lucide="rocket"></i> Publish</button>`;
       }
 
       const dateStr = p.date ? `<div class="post-date">${p.date}</div>` : '';
@@ -451,7 +474,7 @@
             <div class="post-title">${escapeHtml(p.title)}</div>
             ${dateStr}
           </td>
-          <td><span class="badge ${badgeClass}">${p.status}</span></td>
+          <td><span class="badge ${badgeClass}"><i data-lucide="${badgeIcon}"></i> ${p.status}</span></td>
           <td><span class="location">${p.location}</span></td>
           <td><div class="actions">${actions}</div></td>
         </tr>
@@ -462,11 +485,12 @@
         </tbody>
       </table>
       <div class="footer-actions">
-        <button class="btn" onclick="cleanDrafts()">Clean Synced Drafts</button>
+        <button class="btn" onclick="cleanDrafts()"><i data-lucide="trash-2"></i> Clean Synced Drafts</button>
       </div>
     `;
 
     document.getElementById('content').innerHTML = html;
+    lucide.createIcons();
   }
 
   function escapeHtml(str) {
@@ -577,6 +601,7 @@
   }
 
   // ── Init ────────────────────────────────────
+  lucide.createIcons();
   fetchPosts();
   fetchDevStatus();
   pollTimer = setInterval(() => {

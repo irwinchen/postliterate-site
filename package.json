@@ -17,6 +17,7 @@
   "dependencies": {
     "@astrojs/mdx": "^4.3.13",
     "@astrojs/rss": "^4.0.15",
+    "@lucide/astro": "^0.576.0",
     "astro": "^5.17.1"
   }
 }
