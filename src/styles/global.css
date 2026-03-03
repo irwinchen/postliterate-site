@@ -386,20 +386,21 @@ body {
     width: 48px;
     height: 48px;
     border-radius: 50%;
-    border: 1px solid var(--border-subtle);
-    background: color-mix(in srgb, var(--background) 70%, transparent);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
+    border: none;
+    background: transparent;
     cursor: pointer;
     color: var(--text-secondary);
-    transition: border-color 0.2s ease, color 0.2s ease;
+    transition: color 0.2s ease;
     padding: 0;
     z-index: 1999;
 }
 
-.fr-advance:hover {
-    border-color: var(--accent);
-    color: var(--accent);
+.fr-progress-ring {
+    transition: stroke-dashoffset 0.4s ease;
+}
+
+.fr-advance:hover path {
+    stroke: var(--accent);
 }
 
 /* Page container */

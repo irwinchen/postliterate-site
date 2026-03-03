@@ -169,9 +169,18 @@ const { title, description = "Post-Literate" } = Astro.props;
         var advanceBtn = document.createElement('button');
         advanceBtn.className = 'fr-advance';
         advanceBtn.setAttribute('aria-label', 'Show next section');
-        advanceBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>';
+        advanceBtn.innerHTML = '<svg width="48" height="48" viewBox="0 0 48 48"><circle cx="24" cy="24" r="20" fill="none" stroke="var(--border-subtle)" stroke-width="4" opacity="0.3"/><circle class="fr-progress-ring" cx="24" cy="24" r="20" fill="none" stroke="var(--accent)" stroke-width="4" stroke-linecap="round" stroke-dasharray="125.66" stroke-dashoffset="125.66" transform="rotate(-90 24 24)"/><path d="M18 21l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
         advanceBtn.style.display = 'none';
         content.parentNode.insertBefore(advanceBtn, content.nextSibling);
+
+        var circumference = 2 * Math.PI * 20;
+        var progressRing = advanceBtn.querySelector('.fr-progress-ring');
+
+        function updateProgress() {
+          if (!progressRing) return;
+          var progress = visibleCount / elements.length;
+          progressRing.style.strokeDashoffset = circumference * (1 - progress);
+        }
 
         function enableFocusReading() {
           enabled = true;
@@ -186,6 +195,7 @@ const { title, description = "Post-Literate" } = Astro.props;
           }
           content.style.paddingBottom = '50vh';
           advanceBtn.style.display = elements.length > 1 ? '' : 'none';
+          updateProgress();
         }
 
         function disableFocusReading() {
@@ -224,6 +234,7 @@ const { title, description = "Post-Literate" } = Astro.props;
           smoothScroll(scrollFrom, scrollTo, 600);
 
           visibleCount++;
+          updateProgress();
           if (visibleCount >= elements.length) {
             advanceBtn.style.display = 'none';
           }
