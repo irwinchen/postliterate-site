@@ -6,7 +6,13 @@
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
-    "astro": "astro"
+    "astro": "astro",
+    "blog": "node scripts/blog.mjs",
+    "blog:list": "node scripts/blog.mjs list",
+    "blog:preview": "node scripts/blog.mjs preview",
+    "blog:publish": "node scripts/blog.mjs publish",
+    "blog:clean": "node scripts/blog.mjs clean",
+    "admin": "node scripts/admin.mjs"
   },
   "dependencies": {
     "@astrojs/mdx": "^4.3.13",

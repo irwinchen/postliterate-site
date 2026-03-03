@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Post-Literate Admin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700&family=Literata:ital,wght@0,400;0,600;1,400&family=Sono:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #F3EFE1;
+      --fg: #1a1a1a;
+      --accent: #E53E33;
+      --blue: #3B6DB4;
+      --green: #549E44;
+      --border: #1a1a1a;
+      --muted: #6b6b6b;
+    }
+
+    body {
+      font-family: 'Literata', Georgia, serif;
+      background: var(--bg);
+      color: var(--fg);
+      line-height: 1.5;
+      min-height: 100vh;
+    }
+
+    /* ── Header ──────────────────────────────── */
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1rem 2rem;
+      border-bottom: 2px solid var(--border);
+    }
+
+    header h1 {
+      font-family: 'Outfit', system-ui, sans-serif;
+      font-weight: 700;
+      font-size: 1.25rem;
+      letter-spacing: -0.02em;
+    }
+
+    header h1 span {
+      color: var(--accent);
+    }
+
+    .dev-server-status {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      font-family: 'Sono', monospace;
+      font-size: 0.85rem;
+    }
+
+    .status-dot {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      background: var(--muted);
+    }
+
+    .status-dot.running {
+      background: var(--green);
+    }
+
+    .dev-server-btn {
+      font-family: 'Outfit', system-ui, sans-serif;
+      font-size: 0.8rem;
+      font-weight: 600;
+      padding: 0.3rem 0.75rem;
+      border: 1.5px solid var(--border);
+      background: transparent;
+      color: var(--fg);
+      cursor: pointer;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .dev-server-btn:hover {
+      background: var(--fg);
+      color: var(--bg);
+    }
+
+    /* ── Main ────────────────────────────────── */
+    main {
+      padding: 2rem;
+      max-width: 960px;
+      margin: 0 auto;
+    }
+
+    /* ── Table ───────────────────────────────── */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.95rem;
+    }
+
+    thead th {
+      font-family: 'Outfit', system-ui, sans-serif;
+      font-weight: 600;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      text-align: left;
+      padding: 0.75rem 0.5rem;
+      border-bottom: 2px solid var(--border);
+      color: var(--muted);
+    }
+
+    tbody td {
+      padding: 0.65rem 0.5rem;
+      border-bottom: 1px solid #ccc;
+      vertical-align: middle;
+    }
+
+    .post-title {
+      font-weight: 600;
+    }
+
+    .post-date {
+      font-family: 'Sono', monospace;
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    .badge {
+      display: inline-block;
+      font-family: 'Sono', monospace;
+      font-size: 0.7rem;
+      font-weight: 400;
+      text-transform: lowercase;
+      letter-spacing: 0.02em;
+      padding: 0;
+      border: none;
+    }
+
+    .badge-published {
+      color: var(--green);
+    }
+
+    .badge-draft {
+      color: var(--blue);
+    }
+
+    .badge-unknown {
+      color: var(--muted);
+    }
+
+    .location {
+      font-family: 'Sono', monospace;
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    /* ── Buttons ─────────────────────────────── */
+    .actions {
+      display: flex;
+      gap: 0.4rem;
+    }
+
+    .btn {
+      font-family: 'Outfit', system-ui, sans-serif;
+      font-size: 0.75rem;
+      font-weight: 600;
+      padding: 0.3rem 0.65rem;
+      border: 1.5px solid var(--border);
+      background: transparent;
+      color: var(--fg);
+      cursor: pointer;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      white-space: nowrap;
+    }
+
+    .btn:hover {
+      background: var(--fg);
+      color: var(--bg);
+    }
+
+    .btn-accent {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .btn-accent:hover {
+      background: var(--accent);
+      color: var(--bg);
+    }
+
+    .btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    .btn:disabled:hover {
+      background: transparent;
+      color: var(--fg);
+    }
+
+    /* ── Footer actions ──────────────────────── */
+    .footer-actions {
+      margin-top: 1.5rem;
+      padding-top: 1rem;
+      border-top: 1px solid #ccc;
+    }
+
+    /* ── Status bar ──────────────────────────── */
+    .status-bar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: 0.6rem 2rem;
+      border-top: 2px solid var(--border);
+      background: var(--bg);
+      font-family: 'Sono', monospace;
+      font-size: 0.8rem;
+      color: var(--muted);
+      min-height: 2.2rem;
+    }
+
+    .status-bar.success {
+      color: var(--green);
+    }
+
+    .status-bar.error {
+      color: var(--accent);
+    }
+
+    /* ── Empty state ─────────────────────────── */
+    .empty {
+      text-align: center;
+      padding: 3rem;
+      color: var(--muted);
+      font-style: italic;
+    }
+
+    /* ── Loading ──────────────────────────────── */
+    .loading {
+      text-align: center;
+      padding: 3rem;
+      color: var(--muted);
+      font-family: 'Sono', monospace;
+      font-size: 0.85rem;
+    }
+
+    /* ── Confirm dialog ──────────────────────── */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.4);
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal-overlay.active {
+      display: flex;
+    }
+
+    .modal {
+      background: var(--bg);
+      border: 2px solid var(--border);
+      padding: 2rem;
+      max-width: 440px;
+      width: 90%;
+    }
+
+    .modal h2 {
+      font-family: 'Outfit', system-ui, sans-serif;
+      font-size: 1.1rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .modal p {
+      font-size: 0.9rem;
+      margin-bottom: 1.25rem;
+      color: var(--muted);
+    }
+
+    .modal-actions {
+      display: flex;
+      gap: 0.5rem;
+      justify-content: flex-end;
+    }
+
+    /* bottom padding so table doesn't hide behind status bar */
+    main { padding-bottom: 4rem; }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>Post-Literate <span>Admin</span></h1>
+  <div class="dev-server-status">
+    <span>Dev Server:</span>
+    <span class="status-dot" id="devDot"></span>
+    <span id="devLabel">checking...</span>
+    <button class="dev-server-btn" id="devToggle" onclick="toggleDevServer()">...</button>
+  </div>
+</header>
+
+<main>
+  <div id="content">
+    <div class="loading">Loading posts...</div>
+  </div>
+</main>
+
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <h2 id="modalTitle"></h2>
+    <p id="modalBody"></p>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-accent" id="modalConfirm">Confirm</button>
+    </div>
+  </div>
+</div>
+
+<div class="status-bar" id="statusBar"></div>
+
+<script>
+  const API = '';
+  let pollTimer = null;
+
+  // ── Status bar ──────────────────────────────
+  function setStatus(msg, type = '') {
+    const bar = document.getElementById('statusBar');
+    bar.textContent = msg;
+    bar.className = 'status-bar' + (type ? ' ' + type : '');
+  }
+
+  // ── Modal ───────────────────────────────────
+  function showModal(title, body, onConfirm) {
+    document.getElementById('modalTitle').textContent = title;
+    document.getElementById('modalBody').textContent = body;
+    document.getElementById('modal').classList.add('active');
+    const btn = document.getElementById('modalConfirm');
+    btn.onclick = () => { closeModal(); onConfirm(); };
+  }
+
+  function closeModal() {
+    document.getElementById('modal').classList.remove('active');
+  }
+
+  // ── Dev server ──────────────────────────────
+  async function fetchDevStatus() {
+    try {
+      const res = await fetch(API + '/api/dev-server');
+      const data = await res.json();
+      updateDevUI(data);
+    } catch {
+      updateDevUI({ running: false });
+    }
+  }
+
+  function updateDevUI(status) {
+    const dot = document.getElementById('devDot');
+    const label = document.getElementById('devLabel');
+    const toggle = document.getElementById('devToggle');
+
+    if (status.running) {
+      dot.className = 'status-dot running';
+      label.textContent = 'Running :' + status.port;
+      toggle.textContent = 'Stop';
+    } else {
+      dot.className = 'status-dot';
+      label.textContent = 'Stopped';
+      toggle.textContent = 'Start';
+    }
+  }
+
+  async function toggleDevServer() {
+    const dot = document.getElementById('devDot');
+    const isRunning = dot.classList.contains('running');
+
+    const endpoint = isRunning ? '/api/dev-server/stop' : '/api/dev-server/start';
+    setStatus(isRunning ? 'Stopping dev server...' : 'Starting dev server...');
+
+    try {
+      const res = await fetch(API + endpoint, { method: 'POST' });
+      const data = await res.json();
+      updateDevUI(data);
+      setStatus(data.running ? 'Dev server started on :' + data.port : 'Dev server stopped', 'success');
+    } catch (err) {
+      setStatus('Failed to toggle dev server: ' + err.message, 'error');
+    }
+  }
+
+  // ── Posts ───────────────────────────────────
+  async function fetchPosts() {
+    try {
+      const res = await fetch(API + '/api/posts');
+      const data = await res.json();
+      renderPosts(data.posts);
+    } catch (err) {
+      document.getElementById('content').innerHTML = '<div class="empty">Failed to load posts.</div>';
+    }
+  }
+
+  function renderPosts(posts) {
+    if (!posts || posts.length === 0) {
+      document.getElementById('content').innerHTML = '<div class="empty">No posts found in vault.</div>';
+      return;
+    }
+
+    // Sort: drafts first, then by date descending
+    posts.sort((a, b) => {
+      if (a.status === 'draft' && b.status !== 'draft') return -1;
+      if (a.status !== 'draft' && b.status === 'draft') return 1;
+      if (a.date && b.date) return b.date.localeCompare(a.date);
+      return 0;
+    });
+
+    let html = `
+      <table>
+        <thead>
+          <tr>
+            <th>Title</th>
+            <th>Status</th>
+            <th>Location</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+    `;
+
+    for (const p of posts) {
+      const badgeClass = p.status === 'published' ? 'badge-published' : p.status === 'draft' ? 'badge-draft' : 'badge-unknown';
+
+      let actions = '';
+      if (p.status === 'published' && p.location === 'content') {
+        actions += `<button class="btn" onclick="viewPost('${p.slug}')">View</button>`;
+        actions += `<button class="btn btn-accent" onclick="confirmUnpublish('${p.slug}', '${p.title.replace(/'/g, "\\'")}')">Unpublish</button>`;
+      }
+      if (p.status === 'draft' || p.status === 'unknown') {
+        actions += `<button class="btn" onclick="previewPost('${p.slug}')">Preview</button>`;
+        actions += `<button class="btn btn-accent" onclick="confirmPublish('${p.slug}', '${p.title.replace(/'/g, "\\'")}')">Publish</button>`;
+      }
+
+      const dateStr = p.date ? `<div class="post-date">${p.date}</div>` : '';
+
+      html += `
+        <tr>
+          <td>
+            <div class="post-title">${escapeHtml(p.title)}</div>
+            ${dateStr}
+          </td>
+          <td><span class="badge ${badgeClass}">${p.status}</span></td>
+          <td><span class="location">${p.location}</span></td>
+          <td><div class="actions">${actions}</div></td>
+        </tr>
+      `;
+    }
+
+    html += `
+        </tbody>
+      </table>
+      <div class="footer-actions">
+        <button class="btn" onclick="cleanDrafts()">Clean Synced Drafts</button>
+      </div>
+    `;
+
+    document.getElementById('content').innerHTML = html;
+  }
+
+  function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
+  // ── Actions ─────────────────────────────────
+  async function previewPost(slug) {
+    setStatus('Syncing and previewing ' + slug + '...');
+    // Open window immediately in the click handler to avoid popup blocker
+    const preview = window.open('about:blank', '_blank');
+    try {
+      const res = await fetch(API + '/api/preview', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ slug }),
+      });
+      const data = await res.json();
+
+      if (data.previewUrl && preview) {
+        const delay = data.devServer?.running ? 500 : 3000;
+        setTimeout(() => { preview.location.href = data.previewUrl; }, delay);
+      }
+
+      updateDevUI(data.devServer);
+      setStatus('Synced ' + slug + ' — opening preview', 'success');
+      fetchPosts();
+    } catch (err) {
+      if (preview) preview.close();
+      setStatus('Preview failed: ' + err.message, 'error');
+    }
+  }
+
+  function confirmPublish(slug, title) {
+    showModal(
+      'Publish "' + title + '"?',
+      'This will commit and push to production. The post will be live in ~30 seconds.',
+      () => doPublish(slug)
+    );
+  }
+
+  async function doPublish(slug) {
+    setStatus('Publishing ' + slug + '...');
+    try {
+      const res = await fetch(API + '/api/publish', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ slug }),
+      });
+      const data = await res.json();
+
+      if (data.published) {
+        setStatus('Published "' + slug + '" — live in ~30s', 'success');
+      } else {
+        setStatus('Publish failed: ' + (data.error || 'unknown error'), 'error');
+      }
+      fetchPosts();
+    } catch (err) {
+      setStatus('Publish failed: ' + err.message, 'error');
+    }
+  }
+
+  function confirmUnpublish(slug, title) {
+    showModal(
+      'Unpublish "' + title + '"?',
+      'This will remove the post from production. The vault copy is untouched.',
+      () => doUnpublish(slug)
+    );
+  }
+
+  async function doUnpublish(slug) {
+    setStatus('Unpublishing ' + slug + '...');
+    try {
+      const res = await fetch(API + '/api/unpublish', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ slug }),
+      });
+      const data = await res.json();
+
+      if (data.unpublished) {
+        setStatus('Unpublished "' + slug + '" — removed on next build', 'success');
+      } else {
+        setStatus('Unpublish failed: ' + (data.error || 'unknown error'), 'error');
+      }
+      fetchPosts();
+    } catch (err) {
+      setStatus('Unpublish failed: ' + err.message, 'error');
+    }
+  }
+
+  function viewPost(slug) {
+    window.open('https://postliterate.org/blog/' + slug, '_blank');
+  }
+
+  async function cleanDrafts() {
+    setStatus('Cleaning synced drafts...');
+    try {
+      const res = await fetch(API + '/api/clean', { method: 'POST' });
+      const data = await res.json();
+      setStatus('Cleaned ' + data.cleaned + ' synced draft(s)', 'success');
+      fetchPosts();
+    } catch (err) {
+      setStatus('Clean failed: ' + err.message, 'error');
+    }
+  }
+
+  // ── Init ────────────────────────────────────
+  fetchPosts();
+  fetchDevStatus();
+  pollTimer = setInterval(() => {
+    fetchPosts();
+    fetchDevStatus();
+  }, 10000);
+</script>
+
+</body>
+</html>
