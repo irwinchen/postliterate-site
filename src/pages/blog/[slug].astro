@@ -16,7 +16,7 @@ const { Content } = await render(post);
 
 <Base title={post.data.title} description={post.data.description}>
   <div class="page-container">
-    <main class="main-column">
+    <main class="main-column has-margin-notes">
       <article>
         <header class="article-header">
           <h1 class="article-title">{post.data.title}</h1>
@@ -38,10 +38,136 @@ const { Content } = await render(post);
           )}
         </header>
 
-        <div class="article-content">
+        <div class="article-content" data-deep-reading>
           <Content />
         </div>
       </article>
+
+      <aside class="margin-column loading" id="margin-column">
+        <!-- Margin notes collected here by MarginNote component -->
+      </aside>
     </main>
   </div>
 </Base>
+
+<script>
+  // MARGIN NOTES POSITIONING
+  function positionMarginNotes() {
+    const marginColumn = document.querySelector('.margin-column');
+    if (!marginColumn || window.innerWidth <= 640) return;
+
+    const notes = marginColumn.querySelectorAll('.margin-note');
+    const marginRect = marginColumn.getBoundingClientRect();
+
+    let lastNoteBottom = 0;
+
+    notes.forEach(note => {
+      const noteEl = note as HTMLElement;
+      const targetId = noteEl.dataset.for;
+      const targetAnchor = document.querySelector(`.note-anchor[data-note-id="${targetId}"]`);
+
+      if (targetAnchor) {
+        const anchorRect = targetAnchor.getBoundingClientRect();
+        const relativeTop = anchorRect.top - marginRect.top + marginColumn.scrollTop;
+
+        let targetY = relativeTop;
+
+        if (targetY < lastNoteBottom + 10) {
+          targetY = lastNoteBottom + 15;
+        }
+
+        noteEl.style.top = `${targetY}px`;
+        lastNoteBottom = targetY + noteEl.offsetHeight;
+
+        noteEl.dataset.anchorId = targetId;
+        noteEl.dataset.yPos = String(targetY);
+      }
+    });
+
+    marginColumn.classList.remove('loading');
+    marginColumn.classList.add('loaded');
+  }
+
+  // DESKTOP HOVER INTERACTIONS
+  function initDesktopHover() {
+    if (window.innerWidth <= 640) return;
+
+    const notes = document.querySelectorAll('.margin-note');
+    notes.forEach(note => {
+      note.addEventListener('mouseenter', () => {
+        const noteEl = note as HTMLElement;
+        const anchorId = noteEl.dataset.for;
+        const anchor = document.querySelector(`.note-anchor[data-note-id="${anchorId}"]`);
+        if (anchor) anchor.classList.add('highlighted');
+      });
+
+      note.addEventListener('mouseleave', () => {
+        const noteEl = note as HTMLElement;
+        const anchorId = noteEl.dataset.for;
+        const anchor = document.querySelector(`.note-anchor[data-note-id="${anchorId}"]`);
+        if (anchor) anchor.classList.remove('highlighted');
+      });
+    });
+
+    const anchors = document.querySelectorAll('.note-anchor');
+    anchors.forEach(anchor => {
+      anchor.addEventListener('mouseenter', () => {
+        const anchorEl = anchor as HTMLElement;
+        const noteId = anchorEl.dataset.noteId;
+        const note = document.querySelector(`.margin-note[data-for="${noteId}"]`);
+        if (note) note.classList.add('hovered');
+      });
+
+      anchor.addEventListener('mouseleave', () => {
+        const anchorEl = anchor as HTMLElement;
+        const noteId = anchorEl.dataset.noteId;
+        const note = document.querySelector(`.margin-note[data-for="${noteId}"]`);
+        if (note) note.classList.remove('hovered');
+      });
+    });
+  }
+
+  // MOBILE TAP INTERACTIONS
+  function initMobileTap() {
+    if (window.innerWidth > 640) return;
+
+    const anchors = document.querySelectorAll('.note-anchor');
+    anchors.forEach(anchor => {
+      anchor.addEventListener('click', (e) => {
+        e.stopPropagation();
+        anchor.classList.toggle('active');
+      });
+    });
+
+    document.addEventListener('click', (e) => {
+      const target = e.target as HTMLElement;
+      if (!target.classList.contains('note-anchor')) {
+        document.querySelectorAll('.note-anchor.active').forEach(a => {
+          a.classList.remove('active');
+        });
+      }
+    });
+  }
+
+  // INITIALIZATION
+  document.addEventListener('DOMContentLoaded', () => {
+    initDesktopHover();
+    initMobileTap();
+  });
+
+  window.addEventListener('load', positionMarginNotes);
+  window.addEventListener('resize', () => {
+    requestAnimationFrame(positionMarginNotes);
+  });
+
+  if (document.fonts) {
+    document.fonts.ready.then(positionMarginNotes);
+  }
+
+  // Reposition when Deep Reading mode changes
+  document.addEventListener('focusReadingChanged', () => {
+    requestAnimationFrame(() => {
+      setTimeout(positionMarginNotes, 350);
+    });
+  });
+</script>

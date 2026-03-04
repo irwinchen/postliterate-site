@@ -98,7 +98,7 @@ const { title, description = "Post-Literate" } = Astro.props;
 
         // Show focus reading toggle on blog post pages
         var focusRow = document.getElementById('focus-reading-setting');
-        if (focusRow && document.querySelector('.article-content')) {
+        if (focusRow && document.querySelector('[data-deep-reading]')) {
           focusRow.removeAttribute('hidden');
         }
 
@@ -159,7 +159,7 @@ const { title, description = "Post-Literate" } = Astro.props;
 
     <script is:inline>
       (function initFocusReader() {
-        var content = document.querySelector('.article-content');
+        var content = document.querySelector('[data-deep-reading]');
         if (!content) return;
 
         var elements = Array.prototype.slice.call(content.children);
