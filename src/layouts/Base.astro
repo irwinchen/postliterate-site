@@ -46,6 +46,8 @@ const { title, description = "Post-Literate" } = Astro.props;
       <nav class="site-nav">
         <a href="/" class="site-header-content">Post-Literate</a>
         <a href="/about" class="site-nav-link">About</a>
+        <a href="/colophon" class="site-nav-link">Colophon</a>
+        <a href="/rss.xml" class="site-nav-link">RSS</a>
       </nav>
       <button class="settings-toggle" aria-label="Settings" aria-expanded="false">
         <Settings size={20} stroke-width={1.5} />
@@ -182,6 +184,15 @@ const { title, description = "Post-Literate" } = Astro.props;
           progressRing.style.strokeDashoffset = circumference * (1 - progress);
         }
 
+        function pulseRing() {
+          if (!progressRing) return;
+          progressRing.style.transition = 'none';
+          progressRing.style.strokeDashoffset = circumference;
+          progressRing.getBoundingClientRect();
+          progressRing.style.transition = 'stroke-dashoffset 0.4s ease';
+          updateProgress();
+        }
+
         function enableFocusReading() {
           enabled = true;
           document.body.classList.add('fr-active');
@@ -196,7 +207,7 @@ const { title, description = "Post-Literate" } = Astro.props;
           }
           content.style.paddingBottom = '50vh';
           advanceBtn.style.display = elements.length > 1 ? '' : 'none';
-          updateProgress();
+          setTimeout(pulseRing, 500);
         }
 
         function disableFocusReading() {
