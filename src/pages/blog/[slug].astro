@@ -136,24 +136,62 @@ const wordCount = (post.body ?? '')
     });
   }
 
-  // MOBILE TAP INTERACTIONS
-  function initMobileTap() {
-    if (window.innerWidth > 640) return;
-
+  // TAP INTERACTIONS (mobile inline notes + tablet/touch margin notes)
+  function initTap() {
     const anchors = document.querySelectorAll('.note-anchor');
+    const isNarrow = window.innerWidth <= 640;
+
     anchors.forEach(anchor => {
       anchor.addEventListener('click', (e) => {
         e.stopPropagation();
-        anchor.classList.toggle('active');
+        if (isNarrow) {
+          // Mobile: toggle inline note
+          anchor.classList.toggle('active');
+        } else {
+          // Desktop/tablet: toggle linked margin note
+          const anchorEl = anchor as HTMLElement;
+          const noteId = anchorEl.dataset.noteId;
+          const note = document.querySelector(`.margin-note[data-for="${noteId}"]`);
+          if (note) {
+            const wasActive = note.classList.contains('touch-active');
+            // Close all first
+            document.querySelectorAll('.margin-note.touch-active').forEach(n => n.classList.remove('touch-active'));
+            document.querySelectorAll('.note-anchor.highlighted').forEach(a => a.classList.remove('highlighted'));
+            if (!wasActive) {
+              note.classList.add('touch-active');
+              anchor.classList.add('highlighted');
+            }
+          }
+        }
       });
     });
 
+    if (!isNarrow) {
+      const notes = document.querySelectorAll('.margin-note');
+      notes.forEach(note => {
+        note.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const noteEl = note as HTMLElement;
+          const wasActive = noteEl.classList.contains('touch-active');
+          document.querySelectorAll('.margin-note.touch-active').forEach(n => n.classList.remove('touch-active'));
+          document.querySelectorAll('.note-anchor.highlighted').forEach(a => a.classList.remove('highlighted'));
+          if (!wasActive) {
+            noteEl.classList.add('touch-active');
+            const anchorId = noteEl.dataset.for;
+            const anchor = document.querySelector(`.note-anchor[data-note-id="${anchorId}"]`);
+            if (anchor) anchor.classList.add('highlighted');
+          }
+        });
+      });
+    }
+
+    // Tap outside to dismiss
     document.addEventListener('click', (e) => {
       const target = e.target as HTMLElement;
-      if (!target.classList.contains('note-anchor')) {
-        document.querySelectorAll('.note-anchor.active').forEach(a => {
-          a.classList.remove('active');
-        });
+      if (!target.closest('.note-anchor') && !target.closest('.margin-note')) {
+        document.querySelectorAll('.note-anchor.active').forEach(a => a.classList.remove('active'));
+        document.querySelectorAll('.note-anchor.highlighted').forEach(a => a.classList.remove('highlighted'));
+        document.querySelectorAll('.margin-note.touch-active').forEach(n => n.classList.remove('touch-active'));
       }
     });
   }
@@ -161,7 +199,7 @@ const wordCount = (post.body ?? '')
   // INITIALIZATION
   document.addEventListener('DOMContentLoaded', () => {
     initDesktopHover();
-    initMobileTap();
+    initTap();
   });
 
   window.addEventListener('load', positionMarginNotes);

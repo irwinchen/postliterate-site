@@ -548,7 +548,8 @@ body {
 /* Hover state - expand and overlay */
 @media (hover: hover) {
     .margin-note:hover,
-    .margin-note.hovered {
+    .margin-note.hovered,
+    .margin-note.touch-active {
         border-inline-start-color: var(--accent);
         background: var(--background);
         box-shadow: 0 2px 8px var(--shadow-note);
@@ -558,7 +559,8 @@ body {
     }
 
     .margin-note:hover::after,
-    .margin-note.hovered::after {
+    .margin-note.hovered::after,
+    .margin-note.touch-active::after {
         opacity: 0;
     }
 }
@@ -575,7 +577,8 @@ body {
 
 @media (hover: hover) {
     .margin-column.loaded .margin-note:hover,
-    .margin-column.loaded .margin-note.hovered {
+    .margin-column.loaded .margin-note.hovered,
+    .margin-column.loaded .margin-note.touch-active {
         opacity: 1;
     }
 }
