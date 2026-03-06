@@ -23,6 +23,7 @@ import {
   cleanSyncedDrafts,
   publishPost,
   unpublishPost,
+  deletePost,
   readServerPid,
   writeServerPid,
   removeServerPid,
@@ -182,6 +183,18 @@ async function handleRequest(req, res) {
       return;
     }
 
+    // POST /api/delete — delete a draft from vault
+    if (method === 'POST' && path === '/api/delete') {
+      const body = await readBody(req);
+      if (!body.slug) {
+        json(res, { error: 'slug is required' }, 400);
+        return;
+      }
+      const result = deletePost(body.slug);
+      json(res, result, result.deleted ? 200 : 500);
+      return;
+    }
+
     // POST /api/clean — remove synced drafts
     if (method === 'POST' && path === '/api/clean') {
       const count = cleanSyncedDrafts();
@@ -207,6 +220,18 @@ async function handleRequest(req, res) {
       return;
     }
 
+    // GET /api/project-status — return activity dashboard data
+    if (method === 'GET' && path === '/api/project-status') {
+      try {
+        const dataPath = join(ROOT, 'public/admin/project-status/data.json');
+        const content = readFileSync(dataPath, 'utf8');
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(content);
+      } catch {
+        json(res, { error: 'No project status data available' }, 404);
+      }
+      return;
+    }
     // 404
     json(res, { error: 'Not found' }, 404);
   } catch (err) {

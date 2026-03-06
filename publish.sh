@@ -25,6 +25,9 @@ DEST="./src/content/blog/$SLUG.mdx"
 cp "$FILE" "$DEST"
 sed -i '' 's/status: draft/status: published/' "$DEST"
 
+# Transform ==highlighted==[^N] footnotes into <MarginNote> components
+node scripts/transform-margin-notes.mjs "$DEST"
+
 git add . && git commit -m "publish: $SLUG" && git push origin main
 
 echo "Published. Live in ~30s at postliterate.org/blog/$SLUG"

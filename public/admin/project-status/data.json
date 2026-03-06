@@ -1,0 +1,196 @@
+{
+  "generated_at": "2026-03-05T14:32:00Z",
+  "scope": {
+    "past_days": 3,
+    "workflow": "blog-first",
+    "projects_included": ["PostLiterate Vault", "postliterate-site"],
+    "projects_excluded": ["Virgil iOS app"]
+  },
+  "metrics": {
+    "blog_posts_published_this_period": 1,
+    "blog_velocity_per_week": 1.0,
+    "blog_velocity_target": 1.5,
+    "on_target": true,
+    "daily_notes_blog_ready": 3,
+    "blog_drafts_pending": 1
+  },
+  "blog_opportunities": [
+    {
+      "id": "blog-opp-no-stupid-questions",
+      "title": "No Stupid Questions",
+      "source_vault_note": "vault-daily-20260304",
+      "concept": "The underexamined upside of LLMs — the ability to ask questions without shame. Counterargument to book's thesis.",
+      "status": "ready",
+      "notes": null,
+      "word_estimate": 800,
+      "tags": ["LLMs", "curiosity", "democratization", "synthetic orality"],
+      "related_posts": []
+    },
+    {
+      "id": "blog-opp-vibe-writing",
+      "title": "Vibe Writing",
+      "source_vault_note": "vault-daily-20260304",
+      "concept": "Why vibe-coding is celebrated but vibe-writing called AI slop. Uses tracing paper metaphor. Explores authorship when friction is optional.",
+      "status": "ready",
+      "notes": null,
+      "word_estimate": 1500,
+      "tags": ["authorship", "vibe-writing", "RLHF", "sycophancy", "editing", "AI slop"],
+      "related_posts": []
+    },
+    {
+      "id": "blog-opp-serious-writers",
+      "title": "Where Do the Serious Writers Go?",
+      "source_vault_note": "vault-daily-20260304",
+      "concept": "Literary talent migrating to video, podcasts, games instead of text. What does this mean for cognitive culture?",
+      "status": "ready",
+      "notes": null,
+      "word_estimate": 900,
+      "tags": ["literary culture", "prestige", "print", "video essay", "future of writing"],
+      "related_posts": []
+    },
+    {
+      "id": "blog-opp-phaedrus-pattern",
+      "title": "The Phaedrus Pattern",
+      "source_vault_note": "vault-daily-20260303",
+      "concept": "Every new writing technology triggers anxiety, each time something real is at stake. Pattern: remove friction, wait, find what was lost.",
+      "status": "in-progress",
+      "notes": null,
+      "word_estimate": 1200,
+      "tags": ["handwriting", "pattern", "cognition", "de-skilling"],
+      "related_posts": []
+    },
+    {
+      "id": "blog-opp-humans-read-computers-count",
+      "title": "Humans Read, Computers Count",
+      "source_vault_note": "vault-daily-20260303",
+      "concept": "How LLMs process tokens vs human embodied reading. PDFs as concrete hook.",
+      "status": "backlog",
+      "notes": "Needs synthesis — material diffused across daily note",
+      "word_estimate": 1000,
+      "tags": ["tokenization", "LLMs", "embodied cognition", "reading"],
+      "related_posts": []
+    }
+  ],
+  "blog_status": [
+    {
+      "id": "blog-published-armored",
+      "title": "Books are texts armored for a different kind of battle",
+      "date_published": "2026-03-03",
+      "status": "published",
+      "notes": null,
+      "social_companion": "missing"
+    },
+    {
+      "id": "blog-draft-deep-reading",
+      "title": "Deep Reading is Fighting Dopamine",
+      "date_published": null,
+      "status": "draft",
+      "notes": "Active draft, tied to Deep Reading feature work",
+      "social_companion": null
+    }
+  ],
+  "vault_activity": [
+    {
+      "id": "vault-daily-20260304",
+      "type": "daily_note",
+      "title": "Daily note — LLMs, vibe-writing, serious writers",
+      "date": "2026-03-04",
+      "blog_ready": true,
+      "status": "pending",
+      "notes": null
+    },
+    {
+      "id": "vault-daily-20260303",
+      "type": "daily_note",
+      "title": "Daily note — technology fears, corpus quality, LLM discernment",
+      "date": "2026-03-03",
+      "blog_ready": true,
+      "status": "pending",
+      "notes": null
+    },
+    {
+      "id": "vault-daily-20260302",
+      "type": "daily_note",
+      "title": "Daily note — task list / admin",
+      "date": "2026-03-02",
+      "blog_ready": false,
+      "status": "pending",
+      "notes": null
+    }
+  ],
+  "website_activity": [
+    {
+      "id": "site-commit-0631a6e",
+      "type": "commit",
+      "title": "fix: scope Deep Reading to blog posts only",
+      "date": "2026-03-04T14:39:51-05:00",
+      "status": "pending",
+      "notes": null
+    },
+    {
+      "id": "site-commit-c19ae5e",
+      "type": "commit",
+      "title": "feat: modernize CSS, add colophon/RSS nav, animate progress ring on enable",
+      "date": "2026-03-04T12:47:06-05:00",
+      "status": "pending",
+      "notes": null
+    },
+    {
+      "id": "site-commit-95a87e9",
+      "type": "commit",
+      "title": "feat: only hide header/footer nav on hover in Deep Reading mode",
+      "date": "2026-03-03T14:35:38-05:00",
+      "status": "pending",
+      "notes": null
+    },
+    {
+      "id": "site-commit-9dc9167",
+      "type": "commit",
+      "title": "feat: add copyright year to site footer",
+      "date": "2026-03-03T14:00:43-05:00",
+      "status": "pending",
+      "notes": null
+    },
+    {
+      "id": "site-commit-0a0a9a0",
+      "type": "commit",
+      "title": "publish: armored-for-a-different-kind-of-battle",
+      "date": "2026-03-03T13:23:30-05:00",
+      "status": "pending",
+      "notes": null
+    },
+    {
+      "id": "site-commit-e1923ed",
+      "type": "commit",
+      "title": "feat: add progress ring to Deep Reading advance button",
+      "date": "2026-03-03T13:21:52-05:00",
+      "status": "pending",
+      "notes": null
+    },
+    {
+      "id": "site-commit-9e6c3c7",
+      "type": "commit",
+      "title": "feat: add Lucide icons and redesign settings panel toggles",
+      "date": "2026-03-03T12:31:28-05:00",
+      "status": "pending",
+      "notes": null
+    },
+    {
+      "id": "site-commit-49919c1",
+      "type": "commit",
+      "title": "feat: add blog admin dashboard, CLI tooling, and unpublish support",
+      "date": "2026-03-03T11:35:17-05:00",
+      "status": "pending",
+      "notes": null
+    }
+  ],
+  "blockers": [
+    {
+      "id": "blocker-social-companions",
+      "title": "Missing social companions for published blog posts",
+      "description": "Published posts lack Mastodon/Bluesky companion versions for social distribution",
+      "severity": "low",
+      "related_items": ["blog-published-armored"]
+    }
+  ]
+}

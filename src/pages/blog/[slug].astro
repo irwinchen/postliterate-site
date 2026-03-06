@@ -1,6 +1,7 @@
 ---
 import Base from '../../layouts/Base.astro';
 import { getCollection, render } from 'astro:content';
+import { smartQuotes } from '../../utils';
 
 export async function getStaticPaths() {
   const posts = await getCollection('blog');
@@ -12,6 +13,13 @@ export async function getStaticPaths() {
 
 const { post } = Astro.props;
 const { Content } = await render(post);
+
+const wordCount = (post.body ?? '')
+  .replace(/^import\s.*$/gm, '')
+  .replace(/<[^>]+>/g, ' ')
+  .replace(/[#*_~`>|[\]()]/g, '')
+  .split(/\s+/)
+  .filter((w: string) => w.length > 0).length;
 ---
 
 <Base title={post.data.title} description={post.data.description}>
@@ -19,7 +27,7 @@ const { Content } = await render(post);
     <main class="main-column has-margin-notes">
       <article>
         <header class="article-header">
-          <h1 class="article-title">{post.data.title}</h1>
+          <h1 class="article-title">{smartQuotes(post.data.title)}</h1>
           <div class="article-metadata">
             <span class="article-date">
               {post.data.date.toLocaleDateString('en-US', {
@@ -28,6 +36,7 @@ const { Content } = await render(post);
                 day: 'numeric',
               })}
             </span>
+            <span>{wordCount.toLocaleString()} words</span>
           </div>
           {post.data.tags && post.data.tags.length > 0 && (
             <div class="article-tags">

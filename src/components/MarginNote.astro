@@ -1,0 +1,43 @@
+---
+/**
+ * MarginNote Component
+ *
+ * Renders a Tufte-style margin note with anchor text in the main column
+ * and the note content in the margin (desktop) or inline expandable (mobile).
+ *
+ * Usage in MDX:
+ * <MarginNote id="1" note="The note content goes here with <a href='url'>links</a>.">
+ *   anchor text that appears in the main content
+ * </MarginNote>
+ */
+
+interface Props {
+  id: string;
+  note: string;
+}
+
+const { id, note } = Astro.props;
+const noteId = `note${id}`;
+---
+
+<span class="note-anchor" data-note-id={noteId}><slot /></span><span class="mobile-note" set:html={note} /><script define:vars={{ noteId, note }}>
+  if (typeof window !== 'undefined') {
+    const moveNote = () => {
+      const marginColumn = document.getElementById('margin-column');
+      if (!marginColumn) return;
+      if (marginColumn.querySelector(`[data-for="${noteId}"]`)) return;
+
+      const marginNote = document.createElement('div');
+      marginNote.className = 'margin-note';
+      marginNote.dataset.for = noteId;
+      marginNote.innerHTML = note;
+      marginColumn.appendChild(marginNote);
+    };
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', moveNote);
+    } else {
+      moveNote();
+    }
+  }
+</script>

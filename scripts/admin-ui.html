@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" style="scroll-behavior: smooth;">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,6 +8,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700&family=Literata:ital,wght@0,400;0,600;1,400&family=Sono:wght@400;600&display=swap" rel="stylesheet">
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.1" integrity="sha384-jb8JQMbMoBUzgWatfe6COACi2ljcDdZQ2OxczGA3bGNeWe+6DChMTBJemed7ZnvJ" crossorigin="anonymous"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -26,7 +27,7 @@
       background: var(--bg);
       color: var(--fg);
       line-height: 1.5;
-      min-height: 100vh;
+      min-height: 100dvh;
     }
 
     /* ── Header ──────────────────────────────── */
@@ -35,7 +36,7 @@
       align-items: center;
       justify-content: space-between;
       padding: 1rem 2rem;
-      border-bottom: 2px solid var(--border);
+      border-block-end: 2px solid var(--border);
     }
 
     header h1 {
@@ -89,11 +90,102 @@
       color: var(--bg);
     }
 
+    /* ── Section nav ─────────────────────────── */
+    .section-nav {
+      display: flex;
+      gap: 0;
+      border-block-end: 2px solid var(--border);
+      position: sticky;
+      inset-block-start: 0;
+      background: var(--bg);
+      z-index: 10;
+      padding-inline: 2rem;
+    }
+
+    .section-nav a {
+      font-family: 'Outfit', system-ui, sans-serif;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      text-decoration: none;
+      padding: 0.6rem 1rem;
+      border-block-end: 2px solid transparent;
+      margin-block-end: -2px;
+      transition: color 0.15s, border-color 0.15s;
+    }
+
+    .section-nav a:hover,
+    .section-nav a.active {
+      color: var(--fg);
+      border-block-end-color: var(--accent);
+    }
+
     /* ── Main ────────────────────────────────── */
     main {
       padding: 2rem;
-      max-width: 960px;
-      margin: 0 auto;
+      padding-block-end: 4rem;
+      max-width: 1100px;
+      margin-inline: auto;
+    }
+
+    /* ── Sections ────────────────────────────── */
+    .dashboard-section {
+      padding-block-end: 2rem;
+      margin-block-end: 2rem;
+      border-block-end: 1px solid #ccc;
+    }
+
+    .dashboard-section:last-child {
+      border-block-end: none;
+    }
+
+    .section-heading {
+      font-family: 'Outfit', system-ui, sans-serif;
+      font-weight: 600;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      margin-block-end: 0;
+    }
+
+    .section-toggle {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 0;
+      margin-block-end: 1rem;
+      color: inherit;
+    }
+
+    .section-toggle svg {
+      width: 16px;
+      height: 16px;
+      color: var(--muted);
+      transition: transform 0.2s ease;
+    }
+
+    .dashboard-section.collapsed .section-toggle svg {
+      transform: rotate(-90deg);
+    }
+
+    .dashboard-section.collapsed .section-body {
+      display: none;
+    }
+
+    .dashboard-section.collapsed {
+      padding-block-end: 1rem;
+      margin-block-end: 1rem;
+    }
+
+    .dashboard-section.collapsed .section-toggle {
+      margin-block-end: 0;
     }
 
     /* ── Table ───────────────────────────────── */
@@ -109,15 +201,15 @@
       font-size: 0.75rem;
       text-transform: uppercase;
       letter-spacing: 0.08em;
-      text-align: left;
+      text-align: start;
       padding: 0.75rem 0.5rem;
-      border-bottom: 2px solid var(--border);
+      border-block-end: 2px solid var(--border);
       color: var(--muted);
     }
 
     tbody td {
       padding: 0.65rem 0.5rem;
-      border-bottom: 1px solid #ccc;
+      border-block-end: 1px solid #ccc;
       vertical-align: middle;
     }
 
@@ -150,17 +242,16 @@
       stroke-width: 2;
     }
 
-    .badge-published {
-      color: var(--green);
-    }
-
-    .badge-draft {
-      color: var(--blue);
-    }
-
-    .badge-unknown {
-      color: var(--muted);
-    }
+    .badge-published { color: var(--green); }
+    .badge-draft { color: var(--blue); }
+    .badge-unknown { color: var(--muted); }
+    .badge-changed { color: var(--accent); }
+    .badge-ready { color: var(--green); }
+    .badge-in-progress { color: var(--blue); }
+    .badge-backlog { color: var(--muted); }
+    .badge-high { color: var(--accent); }
+    .badge-medium { color: #d48800; }
+    .badge-low { color: var(--blue); }
 
     .location {
       font-family: 'Sono', monospace;
@@ -189,6 +280,7 @@
       display: inline-flex;
       align-items: center;
       gap: 0.3rem;
+      text-decoration: none;
     }
 
     .btn svg, .dev-server-btn svg {
@@ -224,19 +316,130 @@
 
     /* ── Footer actions ──────────────────────── */
     .footer-actions {
-      margin-top: 1.5rem;
-      padding-top: 1rem;
-      border-top: 1px solid #ccc;
+      margin-block-start: 1.5rem;
+      padding-block-start: 1rem;
+      border-block-start: 1px solid #ccc;
+    }
+
+    /* ── KPI row ─────────────────────────────── */
+    .kpi-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1rem;
+      margin-block-end: 1.5rem;
+    }
+
+    .kpi-card {
+      border: 1.5px solid var(--border);
+      padding: 1rem;
+      background: transparent;
+    }
+
+    .kpi-label {
+      font-family: 'Outfit', system-ui, sans-serif;
+      font-weight: 600;
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      margin-block-end: 0.25rem;
+    }
+
+    .kpi-value {
+      font-family: 'Literata', Georgia, serif;
+      font-size: 2rem;
+      font-weight: 700;
+      line-height: 1.1;
+      margin-block-end: 0.25rem;
+    }
+
+    .kpi-metric {
+      font-family: 'Sono', monospace;
+      font-size: 0.75rem;
+      color: var(--muted);
+    }
+
+    .kpi-metric.good { color: var(--green); }
+    .kpi-metric.warning { color: #d48800; }
+
+    /* ── Chart row ───────────────────────────── */
+    .chart-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      margin-block-end: 1.5rem;
+    }
+
+    .chart-container {
+      border: 1.5px solid var(--border);
+      padding: 1rem;
+      background: transparent;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .chart-container .section-heading {
+      margin-block-end: 0.75rem;
+    }
+
+    .chart-container canvas {
+      flex: 1;
+      max-height: 220px;
+    }
+
+    /* ── Blocker list ────────────────────────── */
+    .blocker-list {
+      margin-block-start: 1.5rem;
+    }
+
+    .blocker-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      padding: 0.5rem 0;
+      border-block-end: 1px solid #ccc;
+    }
+
+    .blocker-item:last-child {
+      border-block-end: none;
+    }
+
+    .blocker-title {
+      font-weight: 600;
+      font-size: 0.9rem;
+    }
+
+    .blocker-desc {
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+
+    /* ── Concept text ────────────────────────── */
+    .concept-text {
+      font-size: 0.85rem;
+      color: var(--muted);
+      max-width: 400px;
+    }
+
+    .word-est {
+      font-family: 'Sono', monospace;
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    .tags {
+      font-family: 'Sono', monospace;
+      font-size: 0.7rem;
+      color: var(--muted);
     }
 
     /* ── Status bar ──────────────────────────── */
     .status-bar {
       position: fixed;
-      bottom: 0;
-      left: 0;
-      right: 0;
+      inset-block-end: 0;
+      inset-inline: 0;
       padding: 0.6rem 2rem;
-      border-top: 2px solid var(--border);
+      border-block-start: 2px solid var(--border);
       background: var(--bg);
       font-family: 'Sono', monospace;
       font-size: 0.8rem;
@@ -244,13 +447,8 @@
       min-height: 2.2rem;
     }
 
-    .status-bar.success {
-      color: var(--green);
-    }
-
-    .status-bar.error {
-      color: var(--accent);
-    }
+    .status-bar.success { color: var(--green); }
+    .status-bar.error { color: var(--accent); }
 
     /* ── Empty state ─────────────────────────── */
     .empty {
@@ -295,12 +493,12 @@
     .modal h2 {
       font-family: 'Outfit', system-ui, sans-serif;
       font-size: 1.1rem;
-      margin-bottom: 0.75rem;
+      margin-block-end: 0.75rem;
     }
 
     .modal p {
       font-size: 0.9rem;
-      margin-bottom: 1.25rem;
+      margin-block-end: 1.25rem;
       color: var(--muted);
     }
 
@@ -310,8 +508,15 @@
       justify-content: flex-end;
     }
 
-    /* bottom padding so table doesn't hide behind status bar */
-    main { padding-bottom: 4rem; }
+    /* ── Responsive ──────────────────────────── */
+    @media (max-width: 768px) {
+      .kpi-row { grid-template-columns: repeat(2, 1fr); }
+      .chart-row { grid-template-columns: 1fr; }
+      .section-nav {
+        overflow-x: auto;
+        scrollbar-width: none;
+      }
+    }
   </style>
 </head>
 <body>
@@ -326,10 +531,55 @@
   </div>
 </header>
 
+<nav class="section-nav">
+  <a href="#posts-section">Posts</a>
+  <a href="#pipeline-section">Pipeline</a>
+  <a href="#opportunities-section">Opportunities</a>
+  <a href="#activity-section">Activity</a>
+</nav>
+
 <main>
-  <div id="content">
-    <div class="loading">Loading posts...</div>
-  </div>
+  <section class="dashboard-section" id="posts-section">
+    <button class="section-toggle" onclick="toggleSection('posts-section')">
+      <h2 class="section-heading">Posts</h2>
+      <i data-lucide="chevron-down"></i>
+    </button>
+    <div class="section-body">
+      <div id="content">
+        <div class="loading">Loading posts...</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="dashboard-section" id="pipeline-section">
+    <button class="section-toggle" onclick="toggleSection('pipeline-section')">
+      <h2 class="section-heading">Pipeline</h2>
+      <i data-lucide="chevron-down"></i>
+    </button>
+    <div class="section-body" id="pipeline-body">
+      <div class="loading">Loading activity data...</div>
+    </div>
+  </section>
+
+  <section class="dashboard-section" id="opportunities-section">
+    <button class="section-toggle" onclick="toggleSection('opportunities-section')">
+      <h2 class="section-heading">Blog Opportunities</h2>
+      <i data-lucide="chevron-down"></i>
+    </button>
+    <div class="section-body" id="opportunities-body">
+      <div class="loading">Loading activity data...</div>
+    </div>
+  </section>
+
+  <section class="dashboard-section" id="activity-section">
+    <button class="section-toggle" onclick="toggleSection('activity-section')">
+      <h2 class="section-heading">Activity Log</h2>
+      <i data-lucide="chevron-down"></i>
+    </button>
+    <div class="section-body" id="activity-body">
+      <div class="loading">Loading activity data...</div>
+    </div>
+  </section>
 </main>
 
 <div class="modal-overlay" id="modal">
@@ -348,6 +598,9 @@
 <script>
   const API = '';
   let pollTimer = null;
+  let opportunitiesChart = null;
+  let velocityChart = null;
+  let currentPosts = [];
 
   // ── Status bar ──────────────────────────────
   function setStatus(msg, type = '') {
@@ -368,6 +621,26 @@
   function closeModal() {
     document.getElementById('modal').classList.remove('active');
   }
+
+  // ── Accordion ────────────────────────────────
+  function toggleSection(id) {
+    const section = document.getElementById(id);
+    section.classList.toggle('collapsed');
+    const collapsed = JSON.parse(localStorage.getItem('adminCollapsed') || '{}');
+    collapsed[id] = section.classList.contains('collapsed');
+    localStorage.setItem('adminCollapsed', JSON.stringify(collapsed));
+    lucide.createIcons();
+  }
+
+  (function restoreCollapsed() {
+    const collapsed = JSON.parse(localStorage.getItem('adminCollapsed') || '{}');
+    for (const [id, isCollapsed] of Object.entries(collapsed)) {
+      if (isCollapsed) {
+        const el = document.getElementById(id);
+        if (el) el.classList.add('collapsed');
+      }
+    }
+  })();
 
   // ── Dev server ──────────────────────────────
   async function fetchDevStatus() {
@@ -425,19 +698,33 @@
     }
   }
 
+  function postAction(action, idx) {
+    const p = currentPosts[idx];
+    if (!p) return;
+    switch (action) {
+      case 'view': return viewPost(p.slug);
+      case 'preview': return previewPost(p.slug);
+      case 'republish': return confirmRepublish(p.slug, p.title);
+      case 'publish': return confirmPublish(p.slug, p.title);
+      case 'delete': return confirmDelete(p.slug, p.title);
+      case 'deleteDraft': return confirmDeleteDraft(p.slug, p.title);
+    }
+  }
+
   function renderPosts(posts) {
     if (!posts || posts.length === 0) {
       document.getElementById('content').innerHTML = '<div class="empty">No posts found in vault.</div>';
       return;
     }
 
-    // Sort: drafts first, then by date descending
     posts.sort((a, b) => {
       if (a.status === 'draft' && b.status !== 'draft') return -1;
       if (a.status !== 'draft' && b.status === 'draft') return 1;
       if (a.date && b.date) return b.date.localeCompare(a.date);
       return 0;
     });
+
+    currentPosts = posts;
 
     let html = `
       <table>
@@ -452,21 +739,26 @@
         <tbody>
     `;
 
-    for (const p of posts) {
+    for (let i = 0; i < posts.length; i++) {
+      const p = posts[i];
       const badgeClass = p.status === 'published' ? 'badge-published' : p.status === 'draft' ? 'badge-draft' : 'badge-unknown';
       const badgeIcon = p.status === 'published' ? 'circle-check' : p.status === 'draft' ? 'pencil' : 'circle-help';
 
       let actions = '';
       if (p.status === 'published' && p.location === 'content') {
-        actions += `<button class="btn" onclick="viewPost('${p.slug}')"><i data-lucide="external-link"></i> View</button>`;
-        actions += `<button class="btn btn-accent" onclick="confirmUnpublish('${p.slug}', '${p.title.replace(/'/g, "\\'")}')"><i data-lucide="eye-off"></i> Unpublish</button>`;
-      }
-      if (p.status === 'draft' || p.status === 'unknown') {
-        actions += `<button class="btn" onclick="previewPost('${p.slug}')"><i data-lucide="eye"></i> Preview</button>`;
-        actions += `<button class="btn btn-accent" onclick="confirmPublish('${p.slug}', '${p.title.replace(/'/g, "\\'")}')"><i data-lucide="rocket"></i> Publish</button>`;
+        actions += `<button class="btn" onclick="postAction('view',${i})"><i data-lucide="external-link"></i> View</button>`;
+        if (p.needsRepublish) {
+          actions += `<button class="btn btn-accent" onclick="postAction('republish',${i})"><i data-lucide="refresh-cw"></i> Republish</button>`;
+        }
+        actions += `<button class="btn btn-accent" onclick="postAction('delete',${i})"><i data-lucide="trash-2"></i> Delete</button>`;
+      } else {
+        actions += `<button class="btn" onclick="postAction('preview',${i})"><i data-lucide="eye"></i> Preview</button>`;
+        actions += `<button class="btn btn-accent" onclick="postAction('publish',${i})"><i data-lucide="rocket"></i> Publish</button>`;
+        actions += `<button class="btn btn-accent" onclick="postAction('deleteDraft',${i})"><i data-lucide="trash-2"></i> Delete</button>`;
       }
 
       const dateStr = p.date ? `<div class="post-date">${p.date}</div>` : '';
+      const changedBadge = p.needsRepublish ? ' <span class="badge badge-changed"><i data-lucide="alert-circle"></i> changed</span>' : '';
 
       html += `
         <tr>
@@ -474,7 +766,7 @@
             <div class="post-title">${escapeHtml(p.title)}</div>
             ${dateStr}
           </td>
-          <td><span class="badge ${badgeClass}"><i data-lucide="${badgeIcon}"></i> ${p.status}</span></td>
+          <td><span class="badge ${badgeClass}"><i data-lucide="${badgeIcon}"></i> ${p.status}</span>${changedBadge}</td>
           <td><span class="location">${p.location}</span></td>
           <td><div class="actions">${actions}</div></td>
         </tr>
@@ -502,8 +794,6 @@
   // ── Actions ─────────────────────────────────
   async function previewPost(slug) {
     setStatus('Syncing and previewing ' + slug + '...');
-    // Open window immediately in the click handler to avoid popup blocker
-    const preview = window.open('about:blank', '_blank');
     try {
       const res = await fetch(API + '/api/preview', {
         method: 'POST',
@@ -512,16 +802,18 @@
       });
       const data = await res.json();
 
-      if (data.previewUrl && preview) {
-        const delay = data.devServer?.running ? 500 : 3000;
-        setTimeout(() => { preview.location.href = data.previewUrl; }, delay);
-      }
-
       updateDevUI(data.devServer);
-      setStatus('Synced ' + slug + ' — opening preview', 'success');
+
+      if (data.previewUrl) {
+        const bar = document.getElementById('statusBar');
+        bar.className = 'status-bar success';
+        bar.innerHTML = 'Synced ' + escapeHtml(slug) + ' — <a href="' + data.previewUrl + '" target="_blank" style="color:inherit;text-decoration:underline;">' + data.previewUrl + '</a>';
+        window.open(data.previewUrl, '_blank');
+      } else {
+        setStatus('Synced ' + slug, 'success');
+      }
       fetchPosts();
     } catch (err) {
-      if (preview) preview.close();
       setStatus('Preview failed: ' + err.message, 'error');
     }
   }
@@ -584,6 +876,51 @@
     }
   }
 
+  function confirmRepublish(slug, title) {
+    showModal(
+      'Republish "' + title + '"?',
+      'The vault copy has changed since last publish. This will update production with the latest version.',
+      () => doPublish(slug)
+    );
+  }
+
+  function confirmDelete(slug, title) {
+    showModal(
+      'Delete "' + title + '"?',
+      'This will remove the post from production. The vault copy is untouched.',
+      () => doUnpublish(slug)
+    );
+  }
+
+  function confirmDeleteDraft(slug, title) {
+    showModal(
+      'Delete draft "' + title + '"?',
+      'This will permanently delete the file from your vault. This cannot be undone.',
+      () => doDeleteDraft(slug)
+    );
+  }
+
+  async function doDeleteDraft(slug) {
+    setStatus('Deleting draft ' + slug + '...');
+    try {
+      const res = await fetch(API + '/api/delete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ slug }),
+      });
+      const data = await res.json();
+
+      if (data.deleted) {
+        setStatus('Deleted draft "' + slug + '"', 'success');
+      } else {
+        setStatus('Delete failed: ' + (data.error || 'unknown error'), 'error');
+      }
+      fetchPosts();
+    } catch (err) {
+      setStatus('Delete failed: ' + err.message, 'error');
+    }
+  }
+
   function viewPost(slug) {
     window.open('https://postliterate.org/blog/' + slug, '_blank');
   }
@@ -600,10 +937,296 @@
     }
   }
 
+  // ── Project status ──────────────────────────
+  async function fetchProjectStatus() {
+    try {
+      const res = await fetch(API + '/api/project-status');
+      if (!res.ok) throw new Error('not available');
+      const data = await res.json();
+      renderPipeline(data);
+      renderOpportunities(data);
+      renderActivity(data);
+    } catch {
+      renderPipelineEmpty();
+    }
+  }
+
+  function renderPipelineEmpty() {
+    document.getElementById('pipeline-body').innerHTML =
+      '<div class="empty">No activity data yet. Data is generated by scheduled scans (5am & 1pm).</div>';
+    document.getElementById('opportunities-body').innerHTML =
+      '<div class="empty">No activity data yet.</div>';
+    document.getElementById('activity-body').innerHTML =
+      '<div class="empty">No activity data yet.</div>';
+  }
+
+  // ── Pipeline: KPIs + Charts ─────────────────
+  function renderPipeline(data) {
+    const m = data.metrics || {};
+    const blockerCount = (data.blockers || []).filter(b => b.severity !== 'low').length;
+
+    const kpis = [
+      { label: 'Blog Velocity', value: m.blog_velocity_per_week || 0, metric: m.on_target ? 'On target' : 'Below target', status: m.on_target ? 'good' : 'warning' },
+      { label: 'Opportunities', value: m.daily_notes_blog_ready || 0, metric: 'Ready concepts', status: 'good' },
+      { label: 'Published', value: m.blog_posts_published_this_period || 0, metric: 'Last ' + (data.scope?.past_days || '?') + ' days', status: '' },
+      { label: 'Blockers', value: blockerCount, metric: blockerCount > 0 ? 'Preventing publication' : 'Pipeline clear', status: blockerCount > 0 ? 'warning' : 'good' },
+    ];
+
+    const updated = data.generated_at ? new Date(data.generated_at).toLocaleString() : 'unknown';
+
+    let html = `<div class="kpi-metric" style="margin-block-end: 0.75rem;">Updated ${updated}</div>`;
+    html += '<div class="kpi-row">';
+    for (const kpi of kpis) {
+      html += `
+        <div class="kpi-card">
+          <div class="kpi-label">${kpi.label}</div>
+          <div class="kpi-value">${kpi.value}</div>
+          <div class="kpi-metric ${kpi.status}">${kpi.metric}</div>
+        </div>
+      `;
+    }
+    html += '</div>';
+
+    html += `
+      <div class="chart-row">
+        <div class="chart-container">
+          <div class="section-heading">Readiness</div>
+          <canvas id="opportunities-chart"></canvas>
+        </div>
+        <div class="chart-container">
+          <div class="section-heading">Velocity (7 days)</div>
+          <canvas id="velocity-chart"></canvas>
+        </div>
+      </div>
+    `;
+
+    document.getElementById('pipeline-body').innerHTML = html;
+    renderCharts(data);
+  }
+
+  function renderCharts(data) {
+    if (opportunitiesChart) opportunitiesChart.destroy();
+    if (velocityChart) velocityChart.destroy();
+
+    const opportunities = data.blog_opportunities || [];
+    const published = (data.blog_status || []).filter(b => b.status === 'published');
+
+    // Readiness bar chart
+    if (opportunities.length > 0) {
+      const scores = opportunities.map(o => {
+        if (o.status === 'ready') return 95;
+        if (o.status === 'in-progress') return 65;
+        return 35;
+      });
+
+      opportunitiesChart = new Chart(document.getElementById('opportunities-chart'), {
+        type: 'bar',
+        data: {
+          labels: opportunities.map(o => o.title.length > 18 ? o.title.substring(0, 18) + '...' : o.title),
+          datasets: [{
+            data: scores,
+            backgroundColor: '#3B6DB4',
+            borderWidth: 0,
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            y: { beginAtZero: true, max: 100, grid: { color: '#ccc' } },
+            x: { grid: { display: false } }
+          }
+        }
+      });
+    }
+
+    // Velocity line chart
+    const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const publishedData = new Array(7).fill(0);
+    published.forEach(post => {
+      if (post.date_published) {
+        const dayOfWeek = new Date(post.date_published).getDay();
+        publishedData[dayOfWeek]++;
+      }
+    });
+
+    velocityChart = new Chart(document.getElementById('velocity-chart'), {
+      type: 'line',
+      data: {
+        labels: days,
+        datasets: [{
+          data: publishedData,
+          borderColor: '#E53E33',
+          backgroundColor: '#E53E3320',
+          borderWidth: 2,
+          fill: true,
+          tension: 0.4,
+          pointRadius: 4,
+          pointBackgroundColor: '#E53E33',
+          pointBorderColor: '#F3EFE1',
+          pointBorderWidth: 2
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          y: { beginAtZero: true, ticks: { stepSize: 1 }, grid: { color: '#ccc' } },
+          x: { grid: { display: false } }
+        }
+      }
+    });
+  }
+
+  // ── Obsidian URI helper ─────────────────────
+  function obsidianUrl(sourceVaultNote) {
+    if (!sourceVaultNote) return null;
+    const dateStr = sourceVaultNote.replace('vault-daily-', '');
+    if (dateStr.length !== 8) return null;
+    const yyyy = dateStr.substring(0, 4);
+    const mm = dateStr.substring(4, 6);
+    const dd = dateStr.substring(6, 8);
+    const file = `06_Meta/Daily/${mm}-${dd}-${yyyy}.md`;
+    return `obsidian://open?vault=PostLiterate&file=${encodeURIComponent(file)}`;
+  }
+
+  // ── Opportunities + Blockers ────────────────
+  function renderOpportunities(data) {
+    const opps = data.blog_opportunities || [];
+    const blockers = data.blockers || [];
+
+    let html = '';
+
+    if (opps.length === 0) {
+      html += '<div class="empty">No blog opportunities identified. Check vault daily notes.</div>';
+    } else {
+      html += `
+        <table>
+          <thead>
+            <tr>
+              <th>Title</th>
+              <th>Concept</th>
+              <th>Status</th>
+              <th>Est.</th>
+              <th>Source</th>
+            </tr>
+          </thead>
+          <tbody>
+      `;
+
+      for (const opp of opps) {
+        const badgeClass = 'badge-' + (opp.status || 'backlog');
+        const vaultUrl = obsidianUrl(opp.source_vault_note);
+        const vaultLink = vaultUrl
+          ? `<a class="btn" href="${vaultUrl}"><i data-lucide="book-open"></i> Vault</a>`
+          : '<span class="location">—</span>';
+
+        html += `
+          <tr>
+            <td><div class="post-title">${escapeHtml(opp.title)}</div></td>
+            <td><div class="concept-text">${escapeHtml(opp.concept || '')}</div></td>
+            <td><span class="badge ${badgeClass}">${opp.status || 'backlog'}</span></td>
+            <td><span class="word-est">${opp.word_estimate ? '~' + opp.word_estimate + 'w' : '—'}</span></td>
+            <td>${vaultLink}</td>
+          </tr>
+        `;
+      }
+
+      html += '</tbody></table>';
+    }
+
+    // Blockers
+    if (blockers.length > 0) {
+      html += '<div class="blocker-list"><h2 class="section-heading" style="margin-block-start: 1.5rem;">Blockers</h2>';
+      for (const b of blockers) {
+        const badgeClass = 'badge-' + (b.severity || 'low');
+        html += `
+          <div class="blocker-item">
+            <div>
+              <div class="blocker-title">${escapeHtml(b.title)}</div>
+              <div class="blocker-desc">${escapeHtml(b.description || '')}</div>
+            </div>
+            <span class="badge ${badgeClass}">${b.severity || 'low'}</span>
+          </div>
+        `;
+      }
+      html += '</div>';
+    }
+
+    document.getElementById('opportunities-body').innerHTML = html;
+    lucide.createIcons();
+  }
+
+  // ── Activity log ────────────────────────────
+  function renderActivity(data) {
+    const activities = [
+      ...(data.vault_activity || []).map(a => ({ ...a, project: 'vault' })),
+      ...(data.website_activity || []).map(a => ({ ...a, project: 'website' })),
+    ].sort((a, b) => new Date(b.date) - new Date(a.date));
+
+    let html = '';
+
+    if (activities.length === 0) {
+      html += '<div class="empty">No recent activity.</div>';
+    } else {
+      html += `
+        <table>
+          <thead>
+            <tr>
+              <th>Project</th>
+              <th>Activity</th>
+              <th>Date</th>
+            </tr>
+          </thead>
+          <tbody>
+      `;
+
+      for (const a of activities) {
+        const projectBadge = a.project === 'vault'
+          ? '<span class="badge badge-draft">vault</span>'
+          : '<span class="badge badge-changed">site</span>';
+        const title = a.title || a.type || '—';
+        const date = a.date ? new Date(a.date).toLocaleDateString() : '—';
+
+        html += `
+          <tr>
+            <td>${projectBadge}</td>
+            <td>${escapeHtml(title)}</td>
+            <td><span class="post-date">${date}</span></td>
+          </tr>
+        `;
+      }
+
+      html += '</tbody></table>';
+    }
+
+    document.getElementById('activity-body').innerHTML = html;
+    lucide.createIcons();
+  }
+
+  // ── Section nav active state ────────────────
+  const navLinks = document.querySelectorAll('.section-nav a');
+  const sections = document.querySelectorAll('.dashboard-section');
+
+  const navObserver = new IntersectionObserver((entries) => {
+    for (const entry of entries) {
+      if (entry.isIntersecting) {
+        navLinks.forEach(link => {
+          link.classList.toggle('active', link.getAttribute('href') === '#' + entry.target.id);
+        });
+      }
+    }
+  }, { rootMargin: '-80px 0px -60% 0px' });
+
+  sections.forEach(s => navObserver.observe(s));
+
   // ── Init ────────────────────────────────────
   lucide.createIcons();
   fetchPosts();
   fetchDevStatus();
+  fetchProjectStatus();
   pollTimer = setInterval(() => {
     fetchPosts();
     fetchDevStatus();

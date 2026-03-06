@@ -6,7 +6,7 @@
  *  - No console.log() — return data, let callers format output
  */
 
-import { existsSync, readFileSync, writeFileSync, unlinkSync, readdirSync } from 'node:fs';
+import { existsSync, readFileSync, writeFileSync, unlinkSync, readdirSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import { execSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
@@ -160,7 +160,16 @@ export function listPosts() {
     if (isSynced) location = 'synced';
     else if (inContent) location = 'content';
 
-    posts.push({ slug: p.slug, title, date, description, status, tags, location, inVault: true, inContent, isSynced });
+    let needsRepublish = false;
+    if (status === 'published' && inContent && !isSynced) {
+      try {
+        const vaultMtime = statSync(p.path).mtimeMs;
+        const contentMtime = statSync(join(CONTENT_DIR, `${p.slug}.mdx`)).mtimeMs;
+        needsRepublish = vaultMtime > contentMtime;
+      } catch { /* ignore stat errors */ }
+    }
+
+    posts.push({ slug: p.slug, title, date, description, status, tags, location, inVault: true, inContent, isSynced, needsRepublish });
   }
 
   // Also include content-dir posts that aren't in the vault
@@ -179,6 +188,29 @@ export function listPosts() {
   }
 
   return posts;
+}
+
+/**
+ * Delete a draft: remove from vault (and clean any synced copy from content dir).
+ * Returns { slug, deleted: true } on success, or { slug, deleted: false, error } on failure.
+ */
+export function deletePost(slug) {
+  const vault = getVaultPosts().find((p) => p.slug === slug);
+  if (!vault) {
+    return { slug, deleted: false, error: `Post not found in vault: ${slug}` };
+  }
+
+  // Clean synced copy if present
+  const synced = join(CONTENT_DIR, `${slug}.mdx`);
+  if (existsSync(synced)) {
+    const content = readFileSync(synced, 'utf8');
+    if (content.includes(SYNC_MARKER)) {
+      unlinkSync(synced);
+    }
+  }
+
+  unlinkSync(vault.path);
+  return { slug, deleted: true };
 }
 
 /**
@@ -216,11 +248,14 @@ export function publishPost(slug) {
 
   const dest = join(CONTENT_DIR, `${slug}.mdx`);
 
-  // Remove any synced draft version first
+  // Detect republish (file already exists as published, not a synced draft)
+  let isRepublish = false;
   if (existsSync(dest)) {
     const existing = readFileSync(dest, 'utf8');
     if (existing.includes(SYNC_MARKER)) {
       unlinkSync(dest);
+    } else {
+      isRepublish = true;
     }
   }
 
@@ -230,9 +265,10 @@ export function publishPost(slug) {
   writeFileSync(dest, content);
 
   // Git add, commit, push
+  const commitMsg = isRepublish ? `republish: ${slug}` : `publish: ${slug}`;
   try {
     execSync(`git add "${dest}"`, { cwd: ROOT, stdio: 'pipe' });
-    execSync(`git commit -m "publish: ${slug}"`, { cwd: ROOT, stdio: 'pipe' });
+    execSync(`git commit -m "${commitMsg}"`, { cwd: ROOT, stdio: 'pipe' });
     execSync(`git push origin main`, { cwd: ROOT, stdio: 'pipe' });
     return { slug, published: true };
   } catch (err) {

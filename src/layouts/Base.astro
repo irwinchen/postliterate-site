@@ -175,6 +175,27 @@ const { title, description = "Post-Literate" } = Astro.props;
         advanceBtn.style.display = 'none';
         content.parentNode.insertBefore(advanceBtn, content.nextSibling);
 
+        var fullscreenBtn = document.createElement('button');
+        fullscreenBtn.className = 'fr-fullscreen';
+        fullscreenBtn.setAttribute('aria-label', 'Toggle fullscreen');
+        var expandIcon = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M21 8V5a2 2 0 0 0-2-2h-3"/><path d="M3 16v3a2 2 0 0 0 2 2h3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/></svg>';
+        var collapseIcon = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 14h6v6"/><path d="M20 10h-6V4"/><path d="M14 10l7-7"/><path d="M3 21l7-7"/></svg>';
+        fullscreenBtn.innerHTML = expandIcon;
+        fullscreenBtn.style.display = 'none';
+        content.parentNode.insertBefore(fullscreenBtn, content.nextSibling);
+
+        fullscreenBtn.addEventListener('click', function() {
+          if (document.fullscreenElement) {
+            document.exitFullscreen();
+          } else {
+            document.documentElement.requestFullscreen();
+          }
+        });
+
+        document.addEventListener('fullscreenchange', function() {
+          fullscreenBtn.innerHTML = document.fullscreenElement ? collapseIcon : expandIcon;
+        });
+
         var circumference = 2 * Math.PI * 20;
         var progressRing = advanceBtn.querySelector('.fr-progress-ring');
 
@@ -207,6 +228,7 @@ const { title, description = "Post-Literate" } = Astro.props;
           }
           content.style.paddingBottom = '50vh';
           advanceBtn.style.display = elements.length > 1 ? '' : 'none';
+          fullscreenBtn.style.display = '';
           setTimeout(pulseRing, 500);
         }
 
@@ -219,6 +241,8 @@ const { title, description = "Post-Literate" } = Astro.props;
           }
           content.style.paddingBottom = '';
           advanceBtn.style.display = 'none';
+          fullscreenBtn.style.display = 'none';
+          if (document.fullscreenElement) document.exitFullscreen();
         }
 
         function advanceContent() {
