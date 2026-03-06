@@ -84,13 +84,70 @@ export function getFrontmatter(content, key) {
   return match ? match[1].trim().replace(/^["']|["']$/g, '') : null;
 }
 
+/**
+ * Transform Obsidian ==highlight==[^id] + footnote definitions into MarginNote components.
+ * Pure string-in → string-out; no file I/O.
+ */
+export function transformMarginNotes(content) {
+  // Collect footnote definitions
+  const footnotes = new Map();
+  const defPattern = /^\[\^(\w+)\]:\s*(.+)$/gm;
+  let m;
+  while ((m = defPattern.exec(content)) !== null) {
+    let body = m[2];
+    const after = content.slice(m.index + m[0].length);
+    const cont = after.match(/^(\n {2,}.+)+/);
+    if (cont) body += cont[0].replace(/\n {2,}/g, ' ');
+    footnotes.set(m[1], body.trim());
+  }
+
+  // If no highlight+footnote pairs, return unchanged
+  if (!/==([^=]+?)==\[\^(\w+)\]/.test(content)) return content;
+
+  const mdToHtml = (t) => t
+    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, "<a href='$2'>$1</a>")
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/__(.+?)__/g, '<strong>$1</strong>')
+    .replace(/\*(.+?)\*/g, '<em>$1</em>')
+    .replace(/_(.+?)_/g, '<em>$1</em>')
+    .replace(/`(.+?)`/g, '<code>$1</code>');
+  const escapeAttr = (t) => t.replace(/"/g, '&quot;');
+
+  const used = new Set();
+  content = content.replace(/==([^=]+?)==\[\^(\w+)\]/g, (_, anchor, id) => {
+    const note = footnotes.get(id);
+    if (!note) return `${anchor}[^${id}]`;
+    used.add(id);
+    return `<MarginNote id="${id}" note="${escapeAttr(mdToHtml(note))}">${anchor}</MarginNote>`;
+  });
+
+  // Remove used footnote definitions
+  for (const id of used) {
+    content = content.replace(new RegExp(`^\\[\\^${id}\\]:\\s*.+(\\n {2,}.+)*\\n?`, 'gm'), '');
+  }
+  content = content.replace(/\n{3,}/g, '\n\n');
+
+  // Add import after frontmatter if not present
+  if (!content.includes("import MarginNote")) {
+    const fmClose = content.indexOf('---', content.indexOf('---') + 3);
+    if (fmClose !== -1) {
+      content = content.slice(0, fmClose + 3) +
+        "\nimport MarginNote from '../../components/MarginNote.astro';" +
+        content.slice(fmClose + 3);
+    }
+  }
+
+  return content;
+}
+
 /** Copy a vault post to content dir as .mdx with the sync marker after frontmatter. */
 export function syncPost(slug) {
   const vault = getVaultPosts().find((p) => p.slug === slug);
   if (!vault) {
     throw new Error(`Post not found in vault: ${slug}`);
   }
-  const content = readFileSync(vault.path, 'utf8');
+  let content = readFileSync(vault.path, 'utf8');
+  content = transformMarginNotes(content);
   const marked = content.replace(/^(---\n[\s\S]*?\n---)/m, `$1\n${SYNC_MARKER}`);
   const dest = join(CONTENT_DIR, `${slug}.mdx`);
   writeFileSync(dest, marked);
@@ -259,8 +316,9 @@ export function publishPost(slug) {
     }
   }
 
-  // Copy from vault and set status to published
+  // Copy from vault, transform margin notes, set status to published
   let content = readFileSync(vault.path, 'utf8');
+  content = transformMarginNotes(content);
   content = content.replace(/^status:\s*draft$/m, 'status: published');
   writeFileSync(dest, content);
 
