@@ -6,7 +6,7 @@
  *  - No console.log() — return data, let callers format output
  */
 
-import { existsSync, readFileSync, writeFileSync, unlinkSync, readdirSync, statSync } from 'node:fs';
+import { existsSync, readFileSync, writeFileSync, unlinkSync, readdirSync, statSync, mkdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { execSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
@@ -17,6 +17,7 @@ export const VAULT_DIR = join(process.env.HOME, 'vaults/PostLiterate/07_Blog');
 export const CONTENT_DIR = join(ROOT, 'src/content/blog');
 export const SYNC_MARKER = '{/* synced-draft */}';
 export const PID_FILE = join(ROOT, '.dev-server.pid');
+export const HISTORY_DIR = join(ROOT, 'src/data/history');
 
 // ── PID file helpers ─────────────────────────────────────────────────
 
@@ -294,6 +295,105 @@ export function unpublishPost(slug) {
 }
 
 /**
+ * Strip MDX content down to plain readable prose text.
+ * Removes frontmatter, imports, JSX tags (keeps children text), HTML comments,
+ * markdown formatting, heading markers, blockquote markers, callout syntax.
+ */
+export function stripToProseText(mdxContent) {
+  let text = mdxContent;
+  // Remove frontmatter
+  text = text.replace(/^---\n[\s\S]*?\n---\n?/, '');
+  // Remove import statements
+  text = text.replace(/^import\s.*$/gm, '');
+  // Remove HTML comments
+  text = text.replace(/<!--[\s\S]*?-->/g, '');
+  // Remove JSX comments
+  text = text.replace(/\{\/\*[\s\S]*?\*\/\}/g, '');
+  // Remove self-closing JSX/HTML tags (<Component /> or <br />)
+  text = text.replace(/<[A-Za-z][^>]*\/>/g, '');
+  // Remove opening and closing JSX/HTML tags (keep children text)
+  text = text.replace(/<\/?[A-Za-z][^>]*>/g, '');
+  // Remove markdown image syntax ![alt](url)
+  text = text.replace(/!\[[^\]]*\]\([^)]*\)/g, '');
+  // Convert markdown links [text](url) to just text
+  text = text.replace(/\[([^\]]*)\]\([^)]*\)/g, '$1');
+  // Remove heading markers
+  text = text.replace(/^#{1,6}\s+/gm, '');
+  // Remove blockquote markers
+  text = text.replace(/^>\s*/gm, '');
+  // Remove callout syntax [!type]
+  text = text.replace(/\[![^\]]*\]/g, '');
+  // Remove bold/italic markers
+  text = text.replace(/\*{1,3}([^*]+)\*{1,3}/g, '$1');
+  text = text.replace(/_{1,3}([^_]+)_{1,3}/g, '$1');
+  // Remove inline code backticks
+  text = text.replace(/`([^`]+)`/g, '$1');
+  // Remove horizontal rules
+  text = text.replace(/^[-*_]{3,}\s*$/gm, '');
+  // Collapse whitespace
+  text = text.replace(/\n{2,}/g, '\n');
+  return text.trim();
+}
+
+/**
+ * LCS-based word diff. Splits on whitespace boundaries to preserve spacing as tokens.
+ * Returns array of { type: 'context'|'del'|'add', text } segments, consecutive same-type merged.
+ * Early exit if texts are identical.
+ */
+export function computeWordDiff(oldText, newText) {
+  if (oldText === newText) return [{ type: 'context', text: oldText }];
+
+  // Split preserving whitespace as separate tokens
+  const tokenize = (s) => s.split(/(\s+)/).filter(Boolean);
+  const oldTokens = tokenize(oldText);
+  const newTokens = tokenize(newText);
+
+  // LCS dynamic programming
+  const m = oldTokens.length;
+  const n = newTokens.length;
+  const dp = Array.from({ length: m + 1 }, () => new Uint16Array(n + 1));
+
+  for (let i = 1; i <= m; i++) {
+    for (let j = 1; j <= n; j++) {
+      if (oldTokens[i - 1] === newTokens[j - 1]) {
+        dp[i][j] = dp[i - 1][j - 1] + 1;
+      } else {
+        dp[i][j] = Math.max(dp[i - 1][j], dp[i][j - 1]);
+      }
+    }
+  }
+
+  // Backtrack to build diff
+  const raw = [];
+  let i = m, j = n;
+  while (i > 0 || j > 0) {
+    if (i > 0 && j > 0 && oldTokens[i - 1] === newTokens[j - 1]) {
+      raw.push({ type: 'context', text: oldTokens[i - 1] });
+      i--; j--;
+    } else if (j > 0 && (i === 0 || dp[i][j - 1] >= dp[i - 1][j])) {
+      raw.push({ type: 'add', text: newTokens[j - 1] });
+      j--;
+    } else {
+      raw.push({ type: 'del', text: oldTokens[i - 1] });
+      i--;
+    }
+  }
+  raw.reverse();
+
+  // Merge consecutive same-type segments
+  const merged = [];
+  for (const seg of raw) {
+    if (merged.length > 0 && merged[merged.length - 1].type === seg.type) {
+      merged[merged.length - 1].text += seg.text;
+    } else {
+      merged.push({ ...seg });
+    }
+  }
+
+  return merged;
+}
+
+/**
  * Publish a post: copy from vault, set status to published, git add/commit/push.
  * Returns { slug, published: true } on success, or { slug, published: false, error } on failure.
  */
@@ -304,15 +404,18 @@ export function publishPost(slug) {
   }
 
   const dest = join(CONTENT_DIR, `${slug}.mdx`);
+  const historyPath = join(HISTORY_DIR, `${slug}.json`);
 
   // Detect republish (file already exists as published, not a synced draft)
   let isRepublish = false;
+  let oldProseText = null;
   if (existsSync(dest)) {
     const existing = readFileSync(dest, 'utf8');
     if (existing.includes(SYNC_MARKER)) {
       unlinkSync(dest);
     } else {
       isRepublish = true;
+      oldProseText = stripToProseText(existing);
     }
   }
 
@@ -322,10 +425,38 @@ export function publishPost(slug) {
   content = content.replace(/^status:\s*draft$/m, 'status: published');
   writeFileSync(dest, content);
 
+  // Build / update edit history
+  mkdirSync(HISTORY_DIR, { recursive: true });
+
+  if (isRepublish && oldProseText !== null) {
+    const newProseText = stripToProseText(content);
+    const diff = computeWordDiff(oldProseText, newProseText);
+    const hasChanges = diff.some((s) => s.type !== 'context');
+
+    if (hasChanges) {
+      let history = { slug, edits: [] };
+      if (existsSync(historyPath)) {
+        history = JSON.parse(readFileSync(historyPath, 'utf8'));
+      }
+      history.edits.push({
+        date: new Date().toISOString(),
+        diff,
+      });
+      writeFileSync(historyPath, JSON.stringify(history, null, 2) + '\n');
+    }
+  } else if (!isRepublish) {
+    // First publish — create initial history entry
+    const history = {
+      slug,
+      edits: [{ date: new Date().toISOString(), summary: 'Initial publication', diff: null }],
+    };
+    writeFileSync(historyPath, JSON.stringify(history, null, 2) + '\n');
+  }
+
   // Git add, commit, push
   const commitMsg = isRepublish ? `republish: ${slug}` : `publish: ${slug}`;
   try {
-    execSync(`git add "${dest}"`, { cwd: ROOT, stdio: 'pipe' });
+    execSync(`git add "${dest}" "${historyPath}"`, { cwd: ROOT, stdio: 'pipe' });
     execSync(`git commit -m "${commitMsg}"`, { cwd: ROOT, stdio: 'pipe' });
     execSync(`git push origin main`, { cwd: ROOT, stdio: 'pipe' });
     return { slug, published: true };

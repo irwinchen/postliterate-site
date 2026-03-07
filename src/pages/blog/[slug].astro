@@ -1,7 +1,9 @@
 ---
 import Base from '../../layouts/Base.astro';
 import { getCollection, render } from 'astro:content';
-import { smartQuotes } from '../../utils';
+import { smartQuotes, truncateDiffContext } from '../../utils';
+import { existsSync, readFileSync } from 'node:fs';
+import { join } from 'node:path';
 
 export async function getStaticPaths() {
   const posts = await getCollection('blog');
@@ -14,12 +16,30 @@ export async function getStaticPaths() {
 const { post } = Astro.props;
 const { Content } = await render(post);
 
+const slug = post.id.replace(/\.mdx?$/, '');
+
 const wordCount = (post.body ?? '')
   .replace(/^import\s.*$/gm, '')
   .replace(/<[^>]+>/g, ' ')
   .replace(/[#*_~`>|[\]()]/g, '')
   .split(/\s+/)
   .filter((w: string) => w.length > 0).length;
+
+// Edit history
+const historyPath = join(process.cwd(), 'src/data/history', `${slug}.json`);
+let history: { slug: string; edits: Array<{ date: string; summary?: string; diff: Array<{ type: string; text: string }> | null }> } | null = null;
+if (existsSync(historyPath)) {
+  history = JSON.parse(readFileSync(historyPath, 'utf8'));
+}
+const hasEdits = (history?.edits?.length ?? 0) > 1;
+
+// Pre-compute truncated diffs in frontmatter to avoid TS generics in template
+type DiffSeg = { type: 'context' | 'del' | 'add'; text: string };
+type TruncatedSeg = { type: string; text: string };
+const truncatedDiffs: TruncatedSeg[][] = (history?.edits ?? []).map((edit) => {
+  if (!edit.diff) return [];
+  return truncateDiffContext(edit.diff as DiffSeg[]);
+});
 ---
 
 <Base title={post.data.title} description={post.data.description}>
@@ -50,6 +70,46 @@ const wordCount = (post.body ?? '')
         <div class="article-content" data-deep-reading>
           <Content />
         </div>
+
+        {hasEdits && history && (
+          <section class="edit-history">
+            <details>
+              <summary>Edit history &middot; {history.edits.length} revisions</summary>
+              <ol class="edit-list">
+                {history.edits.map((edit, i) => {
+                  const dateStr = new Date(edit.date).toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric',
+                  });
+                  if (i === 0) {
+                    return (
+                      <li class="edit-entry">
+                        <span class="edit-date">{dateStr}</span>
+                        <span class="edit-label">{edit.summary ?? 'Initial publication'}</span>
+                      </li>
+                    );
+                  }
+                  return (
+                    <li class="edit-entry">
+                      <details>
+                        <summary class="edit-date">{dateStr}</summary>
+                        <div class="edit-diff">
+                          {truncatedDiffs[i].map((seg) => {
+                            if (seg.type === 'del') return <del class="diff-del">{seg.text}</del>;
+                            if (seg.type === 'add') return <ins class="diff-add">{seg.text}</ins>;
+                            if (seg.type === 'ellipsis') return <span class="diff-ellipsis">{seg.text}</span>;
+                            return <span class="diff-context">{seg.text}</span>;
+                          })}
+                        </div>
+                      </details>
+                    </li>
+                  );
+                })}
+              </ol>
+            </details>
+          </section>
+        )}
       </article>
 
       <aside class="margin-column loading" id="margin-column">

@@ -603,6 +603,127 @@ body {
     }
 }
 
+/* --- EDIT HISTORY --- */
+
+.edit-history {
+    border-block-start: 1px solid var(--border-subtle);
+    margin-block-start: calc(var(--line-height) * 3);
+    padding-block-start: calc(var(--line-height) * 1.5);
+    font-family: 'Outfit', sans-serif;
+    font-size: var(--text-meta);
+    color: var(--text-secondary);
+
+    > details > summary {
+        list-style: none;
+        cursor: pointer;
+        font-weight: 600;
+        color: var(--text);
+        display: flex;
+        align-items: center;
+        gap: 0.5em;
+
+        &::before {
+            content: "\25B8";
+            display: inline-block;
+            transition: transform 0.2s ease;
+        }
+
+        &::-webkit-details-marker {
+            display: none;
+        }
+    }
+
+    > details[open] > summary::before {
+        transform: rotate(90deg);
+    }
+}
+
+.edit-list {
+    list-style: none;
+    padding-inline-start: 0;
+    margin-block-start: calc(var(--line-height) * 0.75);
+}
+
+.edit-entry {
+    border-inline-start: 2px solid var(--border-subtle);
+    padding-inline-start: calc(var(--base-unit) * 1);
+    padding-block: calc(var(--line-height) * 0.25);
+    margin-block: 0;
+
+    & + .edit-entry {
+        margin-block-start: calc(var(--line-height) * 0.5);
+    }
+}
+
+.edit-date {
+    font-style: italic;
+    color: var(--text-tertiary);
+}
+
+.edit-label {
+    margin-inline-start: 0.75em;
+    color: var(--text-secondary);
+}
+
+.edit-entry > details > summary {
+    list-style: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.5em;
+
+    &::before {
+        content: "\25B8";
+        display: inline-block;
+        font-size: 0.75em;
+        transition: transform 0.2s ease;
+    }
+
+    &::-webkit-details-marker {
+        display: none;
+    }
+}
+
+.edit-entry > details[open] > summary::before {
+    transform: rotate(90deg);
+}
+
+.edit-diff {
+    margin-block-start: calc(var(--line-height) * 0.5);
+    font-family: 'Literata', serif;
+    font-size: var(--text-caption);
+    line-height: 1.6;
+    color: var(--text);
+    white-space: pre-wrap;
+    overflow-wrap: break-word;
+}
+
+.diff-del {
+    text-decoration: line-through;
+    color: light-dark(#b91c1c, #f87171);
+    background: light-dark(rgba(185, 28, 28, 0.08), rgba(248, 113, 113, 0.12));
+}
+
+.diff-add {
+    text-decoration: none;
+    color: light-dark(#15803d, #4ade80);
+    background: light-dark(rgba(21, 128, 61, 0.08), rgba(74, 222, 128, 0.12));
+}
+
+.diff-context {
+    color: var(--text);
+}
+
+.diff-ellipsis {
+    color: var(--text-tertiary);
+    font-style: italic;
+}
+
+/* Hide edit history in Deep Reading mode */
+.fr-active .edit-history {
+    display: none;
+}
+
 /* --- TYPOGRAPHY --- */
 
 .article-header {
