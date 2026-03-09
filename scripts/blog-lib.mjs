@@ -6,7 +6,7 @@
  *  - No console.log() — return data, let callers format output
  */
 
-import { existsSync, readFileSync, writeFileSync, unlinkSync, readdirSync, statSync, mkdirSync } from 'node:fs';
+import { existsSync, readFileSync, writeFileSync, unlinkSync, readdirSync, statSync, mkdirSync, copyFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { execSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
@@ -14,10 +14,13 @@ import { fileURLToPath } from 'node:url';
 const __dirname = fileURLToPath(new URL('.', import.meta.url));
 export const ROOT = join(__dirname, '..');
 export const VAULT_DIR = join(process.env.HOME, 'vaults/PostLiterate/07_Blog');
+const VAULT_ROOT = join(process.env.HOME, 'vaults/PostLiterate');
+const PUBLIC_IMAGES = join(ROOT, 'public/images');
 export const CONTENT_DIR = join(ROOT, 'src/content/blog');
 export const SYNC_MARKER = '{/* synced-draft */}';
 export const PID_FILE = join(ROOT, '.dev-server.pid');
 export const HISTORY_DIR = join(ROOT, 'src/data/history');
+export const DATA_PATH = join(ROOT, 'public/admin/project-status/data.json');
 
 // ── PID file helpers ─────────────────────────────────────────────────
 
@@ -146,6 +149,42 @@ export function transformMarginNotes(content) {
   return content;
 }
 
+/**
+ * Find a file anywhere in the vault by name.
+ * Obsidian resolves ![[filename]] by searching the entire vault.
+ */
+function findInVault(filename) {
+  function search(dir) {
+    for (const entry of readdirSync(dir, { withFileTypes: true })) {
+      if (entry.name.startsWith('.')) continue;
+      const full = join(dir, entry.name);
+      if (entry.isFile() && entry.name === filename) return full;
+      if (entry.isDirectory()) {
+        const found = search(full);
+        if (found) return found;
+      }
+    }
+    return null;
+  }
+  return search(VAULT_ROOT);
+}
+
+/**
+ * Transform Obsidian image embeds (![[filename]]) to standard markdown.
+ * Finds images anywhere in the vault and copies them to public/images/.
+ */
+function transformImageEmbeds(content) {
+  return content.replace(/!\[\[([^\]]+\.(png|jpg|jpeg|gif|webp|svg))\]\]/gi, (_, filename) => {
+    const safeName = filename.replace(/\s+/g, '-');
+    const src = findInVault(filename);
+    if (src) {
+      if (!existsSync(PUBLIC_IMAGES)) mkdirSync(PUBLIC_IMAGES, { recursive: true });
+      copyFileSync(src, join(PUBLIC_IMAGES, safeName));
+    }
+    return `![](/images/${safeName})`;
+  });
+}
+
 /** Copy a vault post to content dir as .mdx with the sync marker after frontmatter. */
 export function syncPost(slug) {
   const vault = getVaultPosts().find((p) => p.slug === slug);
@@ -154,6 +193,7 @@ export function syncPost(slug) {
   }
   let content = readFileSync(vault.path, 'utf8');
   content = transformMarginNotes(content);
+  content = transformImageEmbeds(content);
   const marked = content.replace(/^(---\n[\s\S]*?\n---)/m, `$1\n${SYNC_MARKER}`);
   const dest = join(CONTENT_DIR, `${slug}.mdx`);
   writeFileSync(dest, marked);
@@ -468,4 +508,142 @@ export function publishPost(slug) {
   } catch (err) {
     return { slug, published: false, error: 'Git operation failed. File has been copied but not committed.' };
   }
+}
+
+/**
+ * Generate project status data for the admin dashboard.
+ * Auto-computes metrics, blog_status, website_activity, and social blockers.
+ * Preserves hand-curated data (blog_opportunities, vault_activity, scope) from existing file.
+ * Writes result to DATA_PATH.
+ */
+export function generateProjectStatus() {
+  // Read existing data (for hand-curated sections)
+  let existing = {};
+  try {
+    existing = JSON.parse(readFileSync(DATA_PATH, 'utf8'));
+  } catch { /* file missing or invalid — start fresh */ }
+
+  // --- Website activity from git log ---
+  let gitCommits = [];
+  try {
+    const log = execSync('git log -20 --format="%h|%s|%aI" --no-merges', { cwd: ROOT, encoding: 'utf8' });
+    gitCommits = log.trim().split('\n').filter(Boolean).map((line) => {
+      const [hash, subject, date] = line.split('|');
+      return { hash, subject, date };
+    });
+  } catch { /* git not available */ }
+
+  // Preserve status field from old website_activity entries
+  const oldActivityMap = new Map();
+  if (existing.website_activity) {
+    for (const entry of existing.website_activity) {
+      oldActivityMap.set(entry.id, entry.status);
+    }
+  }
+
+  const websiteActivity = gitCommits.map((c) => {
+    const id = `site-commit-${c.hash}`;
+    return {
+      id,
+      type: 'commit',
+      title: c.subject,
+      date: c.date,
+      status: oldActivityMap.get(id) || 'pending',
+      notes: null,
+    };
+  });
+
+  // --- Velocity: count publish commits in past 7 days ---
+  let publishCommits = [];
+  try {
+    const log = execSync('git log --since="7 days ago" --format="%h|%s" --no-merges', { cwd: ROOT, encoding: 'utf8' });
+    publishCommits = log.trim().split('\n').filter(Boolean).filter((line) => /\|publish:/.test(line));
+  } catch { /* git not available */ }
+
+  const publishedSlugs = new Set(publishCommits.map((line) => line.split('|')[1].replace('publish: ', '').trim()));
+  const velocity = publishedSlugs.size;
+
+  // --- Blog status + drafts from listPosts ---
+  const posts = listPosts();
+  const publishedPosts = posts.filter((p) => p.status === 'published');
+  const draftPosts = posts.filter((p) => p.status === 'draft');
+
+  const blogStatus = posts
+    .filter((p) => p.status === 'published' || p.status === 'draft')
+    .map((p) => {
+      // Check for social frontmatter
+      let socialCompanion = null;
+      if (p.status === 'published') {
+        try {
+          const contentPath = join(CONTENT_DIR, `${p.slug}.mdx`);
+          if (existsSync(contentPath)) {
+            const content = readFileSync(contentPath, 'utf8');
+            const social = getFrontmatter(content, 'social');
+            socialCompanion = social ? 'present' : 'missing';
+          }
+        } catch { /* ignore read errors */ }
+      }
+
+      return {
+        id: `blog-${p.status}-${urlSlug(p.slug)}`,
+        title: p.title,
+        date_published: p.date || null,
+        status: p.status,
+        notes: null,
+        social_companion: socialCompanion,
+      };
+    });
+
+  // --- Auto-detect social blocker ---
+  const postsWithoutSocial = blogStatus.filter((b) => b.status === 'published' && b.social_companion === 'missing');
+  const autoBlockers = [];
+  if (postsWithoutSocial.length > 0) {
+    autoBlockers.push({
+      id: 'blocker-social-companions',
+      title: 'Missing social companions for published blog posts',
+      description: 'Published posts lack Mastodon/Bluesky companion versions for social distribution',
+      severity: 'low',
+      related_items: postsWithoutSocial.map((b) => b.id),
+    });
+  }
+
+  // Preserve non-auto-generated blockers from existing
+  const manualBlockers = (existing.blockers || []).filter((b) => b.id !== 'blocker-social-companions');
+
+  // --- Metrics ---
+  const blogOpportunities = existing.blog_opportunities || [];
+  const readyCount = blogOpportunities.filter((o) => o.status === 'ready').length;
+  const velocityTarget = existing.metrics?.blog_velocity_target ?? 1.5;
+
+  const metrics = {
+    blog_posts_published_this_period: velocity,
+    blog_velocity_per_week: velocity,
+    blog_velocity_target: velocityTarget,
+    on_target: velocity >= velocityTarget,
+    daily_notes_blog_ready: readyCount,
+    blog_drafts_pending: draftPosts.length,
+  };
+
+  // --- Merge and write ---
+  const result = {
+    generated_at: new Date().toISOString(),
+    scope: existing.scope || {
+      past_days: 7,
+      workflow: 'blog-first',
+      projects_included: ['PostLiterate Vault', 'postliterate-site'],
+      projects_excluded: ['Virgil iOS app'],
+    },
+    metrics,
+    blog_opportunities: blogOpportunities,
+    blog_status: blogStatus,
+    vault_activity: existing.vault_activity || [],
+    website_activity: websiteActivity,
+    blockers: [...autoBlockers, ...manualBlockers],
+  };
+
+  const dir = join(ROOT, 'public/admin/project-status');
+  mkdirSync(dir, { recursive: true });
+  writeFileSync(DATA_PATH, JSON.stringify(result, null, 2) + '\n');
+
+  return result;
 }

@@ -1,18 +1,23 @@
 {
-  "generated_at": "2026-03-05T14:32:00Z",
+  "generated_at": "2026-03-09T23:09:25.552Z",
   "scope": {
     "past_days": 3,
     "workflow": "blog-first",
-    "projects_included": ["PostLiterate Vault", "postliterate-site"],
-    "projects_excluded": ["Virgil iOS app"]
+    "projects_included": [
+      "PostLiterate Vault",
+      "postliterate-site"
+    ],
+    "projects_excluded": [
+      "Virgil iOS app"
+    ]
   },
   "metrics": {
-    "blog_posts_published_this_period": 1,
-    "blog_velocity_per_week": 1.0,
+    "blog_posts_published_this_period": 4,
+    "blog_velocity_per_week": 4,
     "blog_velocity_target": 1.5,
     "on_target": true,
     "daily_notes_blog_ready": 3,
-    "blog_drafts_pending": 1
+    "blog_drafts_pending": 6
   },
   "blog_opportunities": [
     {
@@ -23,7 +28,12 @@
       "status": "ready",
       "notes": null,
       "word_estimate": 800,
-      "tags": ["LLMs", "curiosity", "democratization", "synthetic orality"],
+      "tags": [
+        "LLMs",
+        "curiosity",
+        "democratization",
+        "synthetic orality"
+      ],
       "related_posts": []
     },
     {
@@ -34,7 +44,14 @@
       "status": "ready",
       "notes": null,
       "word_estimate": 1500,
-      "tags": ["authorship", "vibe-writing", "RLHF", "sycophancy", "editing", "AI slop"],
+      "tags": [
+        "authorship",
+        "vibe-writing",
+        "RLHF",
+        "sycophancy",
+        "editing",
+        "AI slop"
+      ],
       "related_posts": []
     },
     {
@@ -45,7 +62,13 @@
       "status": "ready",
       "notes": null,
       "word_estimate": 900,
-      "tags": ["literary culture", "prestige", "print", "video essay", "future of writing"],
+      "tags": [
+        "literary culture",
+        "prestige",
+        "print",
+        "video essay",
+        "future of writing"
+      ],
       "related_posts": []
     },
     {
@@ -56,7 +79,12 @@
       "status": "in-progress",
       "notes": null,
       "word_estimate": 1200,
-      "tags": ["handwriting", "pattern", "cognition", "de-skilling"],
+      "tags": [
+        "handwriting",
+        "pattern",
+        "cognition",
+        "de-skilling"
+      ],
       "related_posts": []
     },
     {
@@ -67,25 +95,86 @@
       "status": "backlog",
       "notes": "Needs synthesis — material diffused across daily note",
       "word_estimate": 1000,
-      "tags": ["tokenization", "LLMs", "embodied cognition", "reading"],
+      "tags": [
+        "tokenization",
+        "LLMs",
+        "embodied cognition",
+        "reading"
+      ],
       "related_posts": []
     }
   ],
   "blog_status": [
     {
-      "id": "blog-published-armored",
-      "title": "Books are texts armored for a different kind of battle",
-      "date_published": "2026-03-03",
+      "id": "blog-draft-deep-reading-vs.-dopamine",
+      "title": "Deep Reading vs. Dopamine",
+      "date_published": "2026-03-04",
+      "status": "draft",
+      "notes": null,
+      "social_companion": null
+    },
+    {
+      "id": "blog-published-how-im-using-ai",
+      "title": "How I'm Using AI",
+      "date_published": "2026-03-05",
       "status": "published",
       "notes": null,
       "social_companion": "missing"
     },
     {
-      "id": "blog-draft-deep-reading",
-      "title": "Deep Reading is Fighting Dopamine",
-      "date_published": null,
+      "id": "blog-published-vibe-coding-vs-vibe-writing",
+      "title": "Vibe-coding vs Vibe-writing",
+      "date_published": "2026-03-06",
+      "status": "published",
+      "notes": null,
+      "social_companion": "missing"
+    },
+    {
+      "id": "blog-published-why-are-you-talking-to-it-like-its-a-person",
+      "title": "Why Are You Talking to It Like It's a Person?",
+      "date_published": "2026-03-09",
+      "status": "published",
+      "notes": null,
+      "social_companion": "missing"
+    },
+    {
+      "id": "blog-draft-armored-for-a-different-kind-of-battle",
+      "title": "Books are texts armored for battle",
+      "date_published": "2026-03-02",
       "status": "draft",
-      "notes": "Active draft, tied to Deep Reading feature work",
+      "notes": null,
+      "social_companion": null
+    },
+    {
+      "id": "blog-draft-my-path-to-ai",
+      "title": "My Path to AI",
+      "date_published": "2026-03-07",
+      "status": "draft",
+      "notes": null,
+      "social_companion": null
+    },
+    {
+      "id": "blog-draft-the-ethical-lines-are-blurry-right-now",
+      "title": "The Ethical Lines Are Blurry Right Now",
+      "date_published": "2026-03-07",
+      "status": "draft",
+      "notes": null,
+      "social_companion": null
+    },
+    {
+      "id": "blog-draft-the-skeptics-window",
+      "title": "The Skeptic's Window",
+      "date_published": "2026-03-07",
+      "status": "draft",
+      "notes": null,
+      "social_companion": null
+    },
+    {
+      "id": "blog-draft-deep-reading-is-fighting-dopamine",
+      "title": "Deep reading is fighting dopamine",
+      "date_published": "2026-03-04",
+      "status": "draft",
+      "notes": null,
       "social_companion": null
     }
   ],
@@ -120,6 +209,134 @@
   ],
   "website_activity": [
     {
+      "id": "site-commit-486c6d2",
+      "type": "commit",
+      "title": "clean up post URL slugs: lowercase, hyphens, strip punctuation",
+      "date": "2026-03-09T15:50:29-04:00",
+      "status": "pending",
+      "notes": null
+    },
+    {
+      "id": "site-commit-3642ae7",
+      "type": "commit",
+      "title": "publish: Why Are You Talking to It Like Its a Person",
+      "date": "2026-03-09T15:42:33-04:00",
+      "status": "pending",
+      "notes": null
+    },
+    {
+      "id": "site-commit-9a1ed89",
+      "type": "commit",
+      "title": "seed edit history for existing published posts",
+      "date": "2026-03-07T15:47:23-05:00",
+      "status": "pending",
+      "notes": null
+    },
+    {
+      "id": "site-commit-a0721b1",
+      "type": "commit",
+      "title": "republish: How I'm Using AI",
+      "date": "2026-03-07T15:37:40-05:00",
+      "status": "pending",
+      "notes": null
+    },
+    {
+      "id": "site-commit-0cfbe92",
+      "type": "commit",
+      "title": "republish: Vibe-coding vs Vibe-writing",
+      "date": "2026-03-07T11:14:56-05:00",
+      "status": "pending",
+      "notes": null
+    },
+    {
+      "id": "site-commit-40789ec",
+      "type": "commit",
+      "title": "add blog post edit history with inline word diff",
+      "date": "2026-03-06T21:26:06-05:00",
+      "status": "pending",
+      "notes": null
+    },
+    {
+      "id": "site-commit-463ebc7",
+      "type": "commit",
+      "title": "republish: Vibe-coding vs Vibe-writing",
+      "date": "2026-03-06T21:25:36-05:00",
+      "status": "pending",
+      "notes": null
+    },
+    {
+      "id": "site-commit-35e218f",
+      "type": "commit",
+      "title": "republish: Vibe-coding vs Vibe-writing",
+      "date": "2026-03-06T20:57:12-05:00",
+      "status": "pending",
+      "notes": null
+    },
+    {
+      "id": "site-commit-81c1f78",
+      "type": "commit",
+      "title": "fix: add touch/tap support for margin notes on iPad/tablet",
+      "date": "2026-03-06T17:54:10-05:00",
+      "status": "pending",
+      "notes": null
+    },
+    {
+      "id": "site-commit-cf114fb",
+      "type": "commit",
+      "title": "unpublish: armored-for-a-different-kind-of-battle",
+      "date": "2026-03-06T14:04:50-05:00",
+      "status": "pending",
+      "notes": null
+    },
+    {
+      "id": "site-commit-3e18338",
+      "type": "commit",
+      "title": "republish: Vibe-coding vs Vibe-writing",
+      "date": "2026-03-06T13:42:54-05:00",
+      "status": "pending",
+      "notes": null
+    },
+    {
+      "id": "site-commit-1a0d577",
+      "type": "commit",
+      "title": "fix: margin note markdown-to-HTML conversion, remove homepage tag bar",
+      "date": "2026-03-06T13:34:02-05:00",
+      "status": "pending",
+      "notes": null
+    },
+    {
+      "id": "site-commit-4f6b51f",
+      "type": "commit",
+      "title": "publish: Vibe-coding vs Vibe-writing",
+      "date": "2026-03-06T13:24:45-05:00",
+      "status": "pending",
+      "notes": null
+    },
+    {
+      "id": "site-commit-2303104",
+      "type": "commit",
+      "title": "republish: How I'm Using AI",
+      "date": "2026-03-06T09:00:01-05:00",
+      "status": "pending",
+      "notes": null
+    },
+    {
+      "id": "site-commit-6db7dc9",
+      "type": "commit",
+      "title": "feat: margin notes, callouts, admin dashboard, fullscreen, smart quotes",
+      "date": "2026-03-06T08:53:03-05:00",
+      "status": "pending",
+      "notes": null
+    },
+    {
+      "id": "site-commit-f7c529b",
+      "type": "commit",
+      "title": "publish: How I'm Using AI",
+      "date": "2026-03-05T21:30:09-05:00",
+      "status": "pending",
+      "notes": null
+    },
+    {
       "id": "site-commit-0631a6e",
       "type": "commit",
       "title": "fix: scope Deep Reading to blog posts only",
@@ -150,38 +367,6 @@
       "date": "2026-03-03T14:00:43-05:00",
       "status": "pending",
       "notes": null
-    },
-    {
-      "id": "site-commit-0a0a9a0",
-      "type": "commit",
-      "title": "publish: armored-for-a-different-kind-of-battle",
-      "date": "2026-03-03T13:23:30-05:00",
-      "status": "pending",
-      "notes": null
-    },
-    {
-      "id": "site-commit-e1923ed",
-      "type": "commit",
-      "title": "feat: add progress ring to Deep Reading advance button",
-      "date": "2026-03-03T13:21:52-05:00",
-      "status": "pending",
-      "notes": null
-    },
-    {
-      "id": "site-commit-9e6c3c7",
-      "type": "commit",
-      "title": "feat: add Lucide icons and redesign settings panel toggles",
-      "date": "2026-03-03T12:31:28-05:00",
-      "status": "pending",
-      "notes": null
-    },
-    {
-      "id": "site-commit-49919c1",
-      "type": "commit",
-      "title": "feat: add blog admin dashboard, CLI tooling, and unpublish support",
-      "date": "2026-03-03T11:35:17-05:00",
-      "status": "pending",
-      "notes": null
     }
   ],
   "blockers": [
@@ -190,7 +375,11 @@
       "title": "Missing social companions for published blog posts",
       "description": "Published posts lack Mastodon/Bluesky companion versions for social distribution",
       "severity": "low",
-      "related_items": ["blog-published-armored"]
+      "related_items": [
+        "blog-published-how-im-using-ai",
+        "blog-published-vibe-coding-vs-vibe-writing",
+        "blog-published-why-are-you-talking-to-it-like-its-a-person"
+      ]
     }
   ]
 }

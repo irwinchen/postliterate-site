@@ -29,6 +29,7 @@ import {
   removeServerPid,
   isProcessAlive,
   urlSlug,
+  generateProjectStatus,
 } from './blog-lib.mjs';
 
 const __dirname = fileURLToPath(new URL('.', import.meta.url));
@@ -168,6 +169,9 @@ async function handleRequest(req, res) {
         return;
       }
       const result = publishPost(body.slug);
+      if (result.published) {
+        try { generateProjectStatus(); } catch { /* non-fatal */ }
+      }
       json(res, result, result.published ? 200 : 500);
       return;
     }
@@ -180,6 +184,9 @@ async function handleRequest(req, res) {
         return;
       }
       const result = unpublishPost(body.slug);
+      if (result.unpublished) {
+        try { generateProjectStatus(); } catch { /* non-fatal */ }
+      }
       json(res, result, result.unpublished ? 200 : 500);
       return;
     }
@@ -245,6 +252,14 @@ async function handleRequest(req, res) {
 const server = createServer(handleRequest);
 
 server.listen(PORT, () => {
+  // Refresh dashboard data on startup
+  try {
+    generateProjectStatus();
+    console.log('  Dashboard data refreshed.');
+  } catch (err) {
+    console.log(`  Warning: could not refresh dashboard data — ${err.message}`);
+  }
+
   console.log(`\n  Blog admin running at http://localhost:${PORT}\n`);
   // Open browser
   spawn('open', [`http://localhost:${PORT}`], { stdio: 'ignore' });
