@@ -922,7 +922,7 @@
   }
 
   function viewPost(slug) {
-    window.open('https://postliterate.org/blog/' + slug, '_blank');
+    window.open('https://postliterate.org/blog/' + slug.replace(/["'"'\u201C\u201D\u2018\u2019?]/g, '').replace(/\s+/g, '-').toLowerCase(), '_blank');
   }
 
   async function cleanDrafts() {

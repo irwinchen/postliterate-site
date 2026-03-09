@@ -27,6 +27,7 @@ import {
   writeServerPid,
   removeServerPid,
   isProcessAlive,
+  urlSlug,
 } from './blog-lib.mjs';
 
 // ── Commands ─────────────────────────────────────────────────────────
@@ -116,7 +117,7 @@ async function cmdPreview(slug) {
     writeServerPid(devServer.pid, port);
   }
 
-  const url = `http://localhost:${port}/blog/${slug}`;
+  const url = `http://localhost:${port}/blog/${urlSlug(slug)}`;
 
   // Wait a moment for the server to start, then open browser
   setTimeout(() => {
@@ -168,7 +169,7 @@ function cmdPublish(slug) {
     process.exit(1);
   }
 
-  console.log(`\nPublished. Live in ~30s at postliterate.org/blog/${slug}`);
+  console.log(`\nPublished. Live in ~30s at postliterate.org/blog/${urlSlug(slug)}`);
 }
 
 function cmdUnpublish(slug) {

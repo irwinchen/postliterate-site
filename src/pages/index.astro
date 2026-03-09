@@ -1,7 +1,7 @@
 ---
 import Base from '../layouts/Base.astro';
 import { getCollection } from 'astro:content';
-import { smartQuotes } from '../utils';
+import { postSlug, smartQuotes } from '../utils';
 
 const posts = await getCollection('blog', ({ data }) => data.status === 'published');
 const sortedPosts = posts.sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
@@ -31,7 +31,7 @@ function countWords(body: string | undefined) {
         <ul class="post-list">
           {sortedPosts.map((post) => (
             <li class="post-item" data-tags={(post.data.tags ?? []).join(',')}>
-              <a href={`/blog/${post.id.replace(/\.mdx?$/, '')}`} class="post-link">
+              <a href={`/blog/${postSlug(post.id)}`} class="post-link">
                 <div class="post-title">{smartQuotes(post.data.title)}</div>
                 <div class="post-date">
                   {post.data.date.toLocaleDateString('en-US', {

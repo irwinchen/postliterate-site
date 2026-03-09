@@ -28,6 +28,7 @@ import {
   writeServerPid,
   removeServerPid,
   isProcessAlive,
+  urlSlug,
 } from './blog-lib.mjs';
 
 const __dirname = fileURLToPath(new URL('.', import.meta.url));
@@ -152,7 +153,7 @@ async function handleRequest(req, res) {
       const devStatus = startDevServer();
       const previewSlug = slug || synced[0];
       const previewUrl = previewSlug
-        ? `http://localhost:${devStatus.port}/blog/${previewSlug}`
+        ? `http://localhost:${devStatus.port}/blog/${urlSlug(previewSlug)}`
         : `http://localhost:${devStatus.port}`;
 
       json(res, { synced, previewUrl, devServer: devStatus });

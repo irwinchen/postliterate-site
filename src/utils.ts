@@ -1,3 +1,12 @@
+/** Derive a URL slug from a content collection post ID. */
+export function postSlug(id: string): string {
+  return id
+    .replace(/\.mdx?$/, '')
+    .replace(/["'"'"?]/g, '')
+    .replace(/\s+/g, '-')
+    .toLowerCase();
+}
+
 /** Replace straight quotes/apostrophes with typographic (curly) equivalents. */
 export function smartQuotes(s: string): string {
   return s

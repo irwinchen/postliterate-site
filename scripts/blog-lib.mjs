@@ -47,6 +47,11 @@ export function removeServerPid() {
   if (existsSync(PID_FILE)) unlinkSync(PID_FILE);
 }
 
+/** Convert a slug to a URL-friendly form (lowercase, hyphens, no punctuation). */
+export function urlSlug(slug) {
+  return slug.replace(/["'"'\u201C\u201D\u2018\u2019?]/g, '').replace(/\s+/g, '-').toLowerCase();
+}
+
 // ── Core helpers ─────────────────────────────────────────────────────
 
 /** Return list of { slug, filename, path } for every .md/.mdx in the vault. */

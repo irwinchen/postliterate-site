@@ -1,14 +1,14 @@
 ---
 import Base from '../../layouts/Base.astro';
 import { getCollection, render } from 'astro:content';
-import { smartQuotes, truncateDiffContext } from '../../utils';
+import { postSlug, smartQuotes, truncateDiffContext } from '../../utils';
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 export async function getStaticPaths() {
   const posts = await getCollection('blog');
   return posts.map((post) => ({
-    params: { slug: post.id.replace(/\.mdx?$/, '') },
+    params: { slug: postSlug(post.id) },
     props: { post },
   }));
 }
@@ -16,7 +16,7 @@ export async function getStaticPaths() {
 const { post } = Astro.props;
 const { Content } = await render(post);
 
-const slug = post.id.replace(/\.mdx?$/, '');
+const slug = postSlug(post.id);
 
 const wordCount = (post.body ?? '')
   .replace(/^import\s.*$/gm, '')
