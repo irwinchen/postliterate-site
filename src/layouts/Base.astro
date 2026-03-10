@@ -157,6 +157,70 @@ const { title, description = "Post-Literate" } = Astro.props;
       })();
     </script>
 
+    <!-- Lightbox overlay -->
+    <div class="lightbox" id="lightbox" aria-hidden="true">
+      <div class="lightbox-backdrop"></div>
+      <button class="lightbox-close" aria-label="Close">
+        <X size={20} />
+      </button>
+      <div class="lightbox-content">
+        <img id="lightbox-img" src="" alt="" />
+        <div class="lightbox-caption" id="lightbox-caption"></div>
+      </div>
+    </div>
+
+    <script is:inline>
+      (function initLightbox() {
+        var lightbox = document.getElementById('lightbox');
+        var lbImg = document.getElementById('lightbox-img');
+        var lbCaption = document.getElementById('lightbox-caption');
+        var closeBtn = lightbox.querySelector('.lightbox-close');
+        var backdrop = lightbox.querySelector('.lightbox-backdrop');
+
+        function open(src, alt, caption) {
+          lbImg.src = src;
+          lbImg.alt = alt || '';
+          if (caption) {
+            lbCaption.textContent = caption;
+            lbCaption.style.display = '';
+          } else {
+            lbCaption.textContent = '';
+            lbCaption.style.display = 'none';
+          }
+          lightbox.classList.add('active');
+          lightbox.setAttribute('aria-hidden', 'false');
+          document.body.style.overflow = 'hidden';
+        }
+
+        function close() {
+          lightbox.classList.remove('active');
+          lightbox.setAttribute('aria-hidden', 'true');
+          document.body.style.overflow = '';
+        }
+
+        // Click on figure content to open
+        document.addEventListener('click', function(e) {
+          var figContent = e.target.closest('[data-lightbox] .figure-content');
+          if (!figContent) return;
+          var media = figContent.querySelector('img, video');
+          if (!media) return;
+          // Don't lightbox videos — let them play natively
+          if (media.tagName === 'VIDEO') return;
+          var figure = figContent.closest('[data-lightbox]');
+          var caption = figure ? figure.querySelector('.figure-caption') : null;
+          open(media.src || media.currentSrc, media.alt, caption ? caption.textContent : null);
+        });
+
+        closeBtn.addEventListener('click', close);
+        backdrop.addEventListener('click', close);
+        document.addEventListener('keydown', function(e) {
+          if (e.key === 'Escape' && lightbox.classList.contains('active')) {
+            close();
+          }
+        });
+      })();
+    </script>
+
     <script is:inline>
       (function initFocusReader() {
         var content = document.querySelector('[data-deep-reading]');

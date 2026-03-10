@@ -459,6 +459,7 @@ body {
 
     article {
         grid-column: 1;
+        min-width: 0;
     }
 }
 
@@ -829,6 +830,11 @@ body {
 }
 
 /* Article content rhythm */
+.article-content {
+    min-width: 0;
+    max-width: 100%;
+}
+
 .article-content > * + * {
     margin-block-start: var(--line-height);
 }
@@ -893,9 +899,12 @@ pre {
     border: 1px solid var(--border-subtle);
     padding: calc(var(--base-unit) * 1.5);
     overflow-x: auto;
+    max-width: 100%;
     font-family: 'Sono', monospace;
     font-size: var(--text-caption);
     line-height: 1.6;
+    white-space: pre-wrap;
+    overflow-wrap: break-word;
 
     code {
         background: none;
@@ -972,6 +981,89 @@ tbody tr:hover {
     line-height: 1.5;
     color: var(--text-secondary);
     margin-block-start: calc(var(--line-height) * 0.5);
+}
+
+/* Lightbox */
+.figure[data-lightbox] .figure-content {
+    cursor: zoom-in;
+}
+
+.lightbox {
+    position: fixed;
+    inset: 0;
+    z-index: 5000;
+    display: grid;
+    place-items: center;
+    padding: clamp(24px, 5vw, 64px);
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.25s ease, visibility 0.25s ease;
+
+    &.active {
+        opacity: 1;
+        visibility: visible;
+    }
+}
+
+.lightbox-backdrop {
+    position: absolute;
+    inset: 0;
+    background: light-dark(rgba(243, 239, 225, 0.92), rgba(20, 20, 20, 0.94));
+    backdrop-filter: blur(8px);
+}
+
+.lightbox-content {
+    position: relative;
+    display: grid;
+    place-items: center;
+    max-width: 100%;
+    max-height: 100%;
+    transform: scale(0.92);
+    transition: transform 0.25s cubic-bezier(0.2, 0, 0, 1);
+
+    .active & {
+        transform: scale(1);
+    }
+
+    img,
+    video {
+        display: block;
+        max-width: 100%;
+        max-height: calc(100dvh - clamp(96px, 12vw, 176px));
+        width: auto;
+        height: auto;
+        object-fit: contain;
+    }
+}
+
+.lightbox-caption {
+    font-family: 'Outfit', sans-serif;
+    font-size: var(--text-caption);
+    line-height: 1.5;
+    color: var(--text-secondary);
+    text-align: center;
+    margin-block-start: calc(var(--line-height) * 0.75);
+    max-width: 60ch;
+}
+
+.lightbox-close {
+    position: absolute;
+    inset-block-start: clamp(12px, 2vw, 24px);
+    inset-inline-end: clamp(12px, 2vw, 24px);
+    z-index: 5001;
+    width: 40px;
+    height: 40px;
+    display: grid;
+    place-items: center;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    color: var(--text-secondary);
+    transition: color 0.15s ease;
+
+    &:hover {
+        color: var(--accent);
+    }
 }
 
 /* Blockquotes */

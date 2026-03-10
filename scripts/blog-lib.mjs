@@ -22,6 +22,9 @@ export const PID_FILE = join(ROOT, '.dev-server.pid');
 export const HISTORY_DIR = join(ROOT, 'src/data/history');
 export const DATA_PATH = join(ROOT, 'public/admin/project-status/data.json');
 
+/** Escape a string for use inside an HTML/JSX attribute (double-quoted). */
+const escapeAttr = (t) => t.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
 // ── PID file helpers ─────────────────────────────────────────────────
 
 export function isProcessAlive(pid) {
@@ -120,7 +123,7 @@ export function transformMarginNotes(content) {
     .replace(/\*(.+?)\*/g, '<em>$1</em>')
     .replace(/_(.+?)_/g, '<em>$1</em>')
     .replace(/`(.+?)`/g, '<code>$1</code>');
-  const escapeAttr = (t) => t.replace(/"/g, '&quot;');
+
 
   const used = new Set();
   content = content.replace(/==([^=]+?)==\[\^(\w+)\]/g, (_, anchor, id) => {
@@ -170,19 +173,44 @@ function findInVault(filename) {
 }
 
 /**
- * Transform Obsidian image embeds (![[filename]]) to standard markdown.
+ * Transform Obsidian image embeds (![[filename]]) to Figure components.
  * Finds images anywhere in the vault and copies them to public/images/.
  */
 function transformImageEmbeds(content) {
-  return content.replace(/!\[\[([^\]]+\.(png|jpg|jpeg|gif|webp|svg))\]\]/gi, (_, filename) => {
+  let needsImport = false;
+
+  // Obsidian embeds: ![[filename.ext]] or ![[filename.ext|caption]]
+  content = content.replace(/!\[\[([^\]|]+\.(png|jpg|jpeg|gif|webp|svg))(?:\|([^\]]*))?\]\]/gi, (_, filename, _ext, caption) => {
     const safeName = filename.replace(/\s+/g, '-');
     const src = findInVault(filename);
     if (src) {
       if (!existsSync(PUBLIC_IMAGES)) mkdirSync(PUBLIC_IMAGES, { recursive: true });
       copyFileSync(src, join(PUBLIC_IMAGES, safeName));
     }
-    return `![](/images/${safeName})`;
+    needsImport = true;
+    const captionAttr = caption ? ` caption="${escapeAttr(caption)}"` : '';
+    return `<Figure${captionAttr}>\n  <img src="/images/${safeName}" alt="" />\n</Figure>`;
   });
+
+  // Standard markdown images: ![alt](src) or ![alt](src "caption")
+  content = content.replace(/^!\[([^\]]*)\]\((\S+?)(?:\s+"([^"]*)")?\)\s*$/gm, (_, alt, src, title) => {
+    needsImport = true;
+    const attrs = alt ? ` alt="${escapeAttr(alt)}"` : ' alt=""';
+    const captionAttr = title ? ` caption="${escapeAttr(title)}"` : '';
+    return `<Figure${captionAttr}>\n  <img src="${escapeAttr(src)}"${attrs} />\n</Figure>`;
+  });
+
+  // Add Figure import after frontmatter if needed
+  if (needsImport && !content.includes("import Figure")) {
+    const fmClose = content.indexOf('---', content.indexOf('---') + 3);
+    if (fmClose !== -1) {
+      content = content.slice(0, fmClose + 3) +
+        "\nimport Figure from '../../components/Figure.astro';" +
+        content.slice(fmClose + 3);
+    }
+  }
+
+  return content;
 }
 
 /** Copy a vault post to content dir as .mdx with the sync marker after frontmatter. */
@@ -464,9 +492,10 @@ export function publishPost(slug) {
     }
   }
 
-  // Copy from vault, transform margin notes, set status to published
+  // Copy from vault, transform margin notes + images, set status to published
   let content = readFileSync(vault.path, 'utf8');
   content = transformMarginNotes(content);
+  content = transformImageEmbeds(content);
   content = content.replace(/^status:\s*draft$/m, 'status: published');
   writeFileSync(dest, content);
 
