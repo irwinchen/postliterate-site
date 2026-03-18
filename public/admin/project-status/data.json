@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-03-09T23:09:25.552Z",
+  "generated_at": "2026-03-18T18:21:15.079Z",
   "scope": {
     "past_days": 3,
     "workflow": "blog-first",
@@ -12,12 +12,12 @@
     ]
   },
   "metrics": {
-    "blog_posts_published_this_period": 4,
-    "blog_velocity_per_week": 4,
+    "blog_posts_published_this_period": 3,
+    "blog_velocity_per_week": 3,
     "blog_velocity_target": 1.5,
     "on_target": true,
     "daily_notes_blog_ready": 3,
-    "blog_drafts_pending": 6
+    "blog_drafts_pending": 3
   },
   "blog_opportunities": [
     {
@@ -122,6 +122,14 @@
       "social_companion": "missing"
     },
     {
+      "id": "blog-published-notes-from-self",
+      "title": "Notes from Self",
+      "date_published": "2026-03-16",
+      "status": "published",
+      "notes": null,
+      "social_companion": "missing"
+    },
+    {
       "id": "blog-published-vibe-coding-vs-vibe-writing",
       "title": "Vibe-coding vs Vibe-writing",
       "date_published": "2026-03-06",
@@ -146,28 +154,28 @@
       "social_companion": null
     },
     {
-      "id": "blog-draft-my-path-to-ai",
+      "id": "blog-published-my-path-to-ai",
       "title": "My Path to AI",
       "date_published": "2026-03-07",
-      "status": "draft",
+      "status": "published",
       "notes": null,
-      "social_companion": null
+      "social_companion": "missing"
     },
     {
-      "id": "blog-draft-the-ethical-lines-are-blurry-right-now",
+      "id": "blog-published-the-ethical-lines-are-blurry-right-now",
       "title": "The Ethical Lines Are Blurry Right Now",
       "date_published": "2026-03-07",
-      "status": "draft",
+      "status": "published",
       "notes": null,
-      "social_companion": null
+      "social_companion": "missing"
     },
     {
-      "id": "blog-draft-the-skeptics-window",
+      "id": "blog-published-the-skeptics-window",
       "title": "The Skeptic's Window",
       "date_published": "2026-03-07",
-      "status": "draft",
+      "status": "published",
       "notes": null,
-      "social_companion": null
+      "social_companion": "missing"
     },
     {
       "id": "blog-draft-deep-reading-is-fighting-dopamine",
@@ -208,6 +216,70 @@
     }
   ],
   "website_activity": [
+    {
+      "id": "site-commit-1fe522d",
+      "type": "commit",
+      "title": "publish: Notes from Self",
+      "date": "2026-03-18T14:21:14-04:00",
+      "status": "pending",
+      "notes": null
+    },
+    {
+      "id": "site-commit-0098ce6",
+      "type": "commit",
+      "title": "publish: the-skeptics-window",
+      "date": "2026-03-16T12:12:38-04:00",
+      "status": "pending",
+      "notes": null
+    },
+    {
+      "id": "site-commit-000bb1e",
+      "type": "commit",
+      "title": "republish: my-path-to-ai",
+      "date": "2026-03-14T21:24:23-04:00",
+      "status": "pending",
+      "notes": null
+    },
+    {
+      "id": "site-commit-50ecb1d",
+      "type": "commit",
+      "title": "publish: the-ethical-lines-are-blurry-right-now",
+      "date": "2026-03-14T21:09:44-04:00",
+      "status": "pending",
+      "notes": null
+    },
+    {
+      "id": "site-commit-068c4ac",
+      "type": "commit",
+      "title": "republish: my-path-to-ai",
+      "date": "2026-03-14T21:09:25-04:00",
+      "status": "pending",
+      "notes": null
+    },
+    {
+      "id": "site-commit-28eb68f",
+      "type": "commit",
+      "title": "feat: add figure lightbox and auto-wrap images in Figure components",
+      "date": "2026-03-10T11:12:29-04:00",
+      "status": "pending",
+      "notes": null
+    },
+    {
+      "id": "site-commit-a61a135",
+      "type": "commit",
+      "title": "publish: my-path-to-ai",
+      "date": "2026-03-09T20:11:09-04:00",
+      "status": "pending",
+      "notes": null
+    },
+    {
+      "id": "site-commit-66eb4f0",
+      "type": "commit",
+      "title": "feat: auto-refresh admin dashboard data on startup",
+      "date": "2026-03-09T19:11:00-04:00",
+      "status": "pending",
+      "notes": null
+    },
     {
       "id": "site-commit-486c6d2",
       "type": "commit",
@@ -303,70 +375,6 @@
       "date": "2026-03-06T13:34:02-05:00",
       "status": "pending",
       "notes": null
-    },
-    {
-      "id": "site-commit-4f6b51f",
-      "type": "commit",
-      "title": "publish: Vibe-coding vs Vibe-writing",
-      "date": "2026-03-06T13:24:45-05:00",
-      "status": "pending",
-      "notes": null
-    },
-    {
-      "id": "site-commit-2303104",
-      "type": "commit",
-      "title": "republish: How I'm Using AI",
-      "date": "2026-03-06T09:00:01-05:00",
-      "status": "pending",
-      "notes": null
-    },
-    {
-      "id": "site-commit-6db7dc9",
-      "type": "commit",
-      "title": "feat: margin notes, callouts, admin dashboard, fullscreen, smart quotes",
-      "date": "2026-03-06T08:53:03-05:00",
-      "status": "pending",
-      "notes": null
-    },
-    {
-      "id": "site-commit-f7c529b",
-      "type": "commit",
-      "title": "publish: How I'm Using AI",
-      "date": "2026-03-05T21:30:09-05:00",
-      "status": "pending",
-      "notes": null
-    },
-    {
-      "id": "site-commit-0631a6e",
-      "type": "commit",
-      "title": "fix: scope Deep Reading to blog posts only",
-      "date": "2026-03-04T14:39:51-05:00",
-      "status": "pending",
-      "notes": null
-    },
-    {
-      "id": "site-commit-c19ae5e",
-      "type": "commit",
-      "title": "feat: modernize CSS, add colophon/RSS nav, animate progress ring on enable",
-      "date": "2026-03-04T12:47:06-05:00",
-      "status": "pending",
-      "notes": null
-    },
-    {
-      "id": "site-commit-95a87e9",
-      "type": "commit",
-      "title": "feat: only hide header/footer nav on hover in Deep Reading mode",
-      "date": "2026-03-03T14:35:38-05:00",
-      "status": "pending",
-      "notes": null
-    },
-    {
-      "id": "site-commit-9dc9167",
-      "type": "commit",
-      "title": "feat: add copyright year to site footer",
-      "date": "2026-03-03T14:00:43-05:00",
-      "status": "pending",
-      "notes": null
     }
   ],
   "blockers": [
@@ -377,8 +385,12 @@
       "severity": "low",
       "related_items": [
         "blog-published-how-im-using-ai",
+        "blog-published-notes-from-self",
         "blog-published-vibe-coding-vs-vibe-writing",
-        "blog-published-why-are-you-talking-to-it-like-its-a-person"
+        "blog-published-why-are-you-talking-to-it-like-its-a-person",
+        "blog-published-my-path-to-ai",
+        "blog-published-the-ethical-lines-are-blurry-right-now",
+        "blog-published-the-skeptics-window"
       ]
     }
   ]

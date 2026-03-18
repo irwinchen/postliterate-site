@@ -1,0 +1,142 @@
+---
+interface BlueskyPost {
+  uri: string;
+  cid: string;
+  author: {
+    handle: string;
+    displayName?: string;
+    avatar?: string;
+  };
+  record: {
+    text: string;
+    createdAt: string;
+    facets?: Array<{
+      index: { byteStart: number; byteEnd: number };
+      features: Array<{ $type: string; uri?: string; tag?: string }>;
+    }>;
+  };
+  likeCount?: number;
+  repostCount?: number;
+  replyCount?: number;
+  embed?: {
+    $type: string;
+    images?: Array<{ thumb: string; alt: string }>;
+    external?: { uri: string; title: string; description: string; thumb?: string };
+  };
+}
+
+interface Props {
+  handle: string;
+  limit?: number;
+}
+
+const { handle, limit = 10 } = Astro.props;
+
+let posts: BlueskyPost[] = [];
+try {
+  const res = await fetch(
+    `https://public.api.bsky.app/xrpc/app.bsky.feed.getAuthorFeed?actor=${handle}&limit=${limit}&filter=posts_no_replies`
+  );
+  if (res.ok) {
+    const data = await res.json();
+    posts = data.feed
+      ?.map((item: { post: BlueskyPost }) => item.post)
+      .filter((p: BlueskyPost) => p.author.handle === handle) ?? [];
+  }
+} catch (e) {
+  // Silently fail — feed is decorative
+}
+
+function extractRkey(uri: string) {
+  return uri.split('/').pop();
+}
+
+function formatDate(iso: string) {
+  const d = new Date(iso);
+  const now = new Date();
+  const diffMs = now.getTime() - d.getTime();
+  const diffH = Math.floor(diffMs / (1000 * 60 * 60));
+  const diffD = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+  if (diffH < 1) return 'just now';
+  if (diffH < 24) return `${diffH}h`;
+  if (diffD < 7) return `${diffD}d`;
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+}
+
+/**
+ * Apply facets (links, mentions, tags) to post text.
+ * Bluesky facets use byte offsets, so we convert to bytes first.
+ */
+function renderText(text: string, facets?: BlueskyPost['record']['facets']): string {
+  if (!facets || facets.length === 0) return escapeHtml(text);
+
+  const encoder = new TextEncoder();
+  const decoder = new TextDecoder();
+  const bytes = encoder.encode(text);
+
+  // Sort facets by byteStart
+  const sorted = [...facets].sort((a, b) => a.index.byteStart - b.index.byteStart);
+
+  let result = '';
+  let cursor = 0;
+
+  for (const facet of sorted) {
+    const { byteStart, byteEnd } = facet.index;
+    // Text before this facet
+    result += escapeHtml(decoder.decode(bytes.slice(cursor, byteStart)));
+
+    const facetText = escapeHtml(decoder.decode(bytes.slice(byteStart, byteEnd)));
+    const link = facet.features.find(f => f.$type === 'app.bsky.richtext.facet#link');
+    const mention = facet.features.find(f => f.$type === 'app.bsky.richtext.facet#mention');
+    const tag = facet.features.find(f => f.$type === 'app.bsky.richtext.facet#tag');
+
+    if (link?.uri) {
+      result += `<a href="${escapeAttr(link.uri)}" target="_blank" rel="noopener">${facetText}</a>`;
+    } else if (mention) {
+      result += `<span class="bsky-mention">${facetText}</span>`;
+    } else if (tag) {
+      result += `<span class="bsky-tag">${facetText}</span>`;
+    } else {
+      result += facetText;
+    }
+    cursor = byteEnd;
+  }
+
+  // Remaining text
+  result += escapeHtml(decoder.decode(bytes.slice(cursor)));
+  return result;
+}
+
+function escapeHtml(s: string) {
+  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+function escapeAttr(s: string) {
+  return s.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+---
+
+{posts.length > 0 && (
+  <aside class="bsky-feed">
+    <h2 class="bsky-feed-title">
+      <a href={`https://bsky.app/profile/${handle}`} target="_blank" rel="noopener" aria-label="Bluesky">
+        <svg width="22" height="20" viewBox="0 0 568 501" fill="currentColor" aria-hidden="true">
+          <path d="M123.121 33.664C188.241 82.553 258.281 181.68 284 234.873c25.719-53.192 95.759-152.32 160.879-201.21C491.866-1.611 568-28.906 568 57.947c0 17.346-9.945 145.713-15.778 166.555-20.275 72.453-94.155 90.933-159.875 79.748C507.222 323.8 536.444 388.56 473.333 453.32c-119.86 122.992-172.272-30.859-185.702-70.281-2.462-7.227-3.614-10.608-3.631-7.733-.017-2.875-1.169.506-3.631 7.733-13.43 39.422-65.842 193.273-185.702 70.281-63.111-64.76-33.889-129.52 80.986-149.071-65.72 11.185-139.6-7.295-159.875-79.748C10.045 203.659.1 75.291.1 57.946.1-28.906 76.18-1.612 123.121 33.664Z"/>
+        </svg>
+      </a>
+    </h2>
+    <ul class="bsky-posts">
+      {posts.map((post) => (
+        <li
+          class="bsky-post"
+          data-href={`https://bsky.app/profile/${post.author.handle}/post/${extractRkey(post.uri)}`}
+        >
+          <p class="bsky-post-text" set:html={renderText(post.record.text, post.record.facets)} />
+          <time class="bsky-post-time" datetime={post.record.createdAt}>
+            {formatDate(post.record.createdAt)}
+          </time>
+        </li>
+      ))}
+    </ul>
+  </aside>
+)}

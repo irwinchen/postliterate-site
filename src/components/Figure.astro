@@ -7,16 +7,28 @@
  * <Figure caption="Description of the image">
  *   <img src="/images/example.jpg" alt="Alt text" />
  * </Figure>
+ *
+ * Split layout (image left, text right):
+ * <Figure layout="split" caption="Longer transcription or description text...">
+ *   <img src="/images/example.jpg" alt="Alt text" />
+ * </Figure>
  */
 
 interface Props {
   caption?: string;
+  layout?: 'default' | 'split';
 }
 
-const { caption } = Astro.props;
+let { caption, layout = 'default' } = Astro.props;
+// Support "split:" prefix in caption as shorthand for layout="split"
+if (caption && /^split:\s*/i.test(caption)) {
+  caption = caption.replace(/^split:\s*/i, '');
+  layout = 'split';
+}
+const isSplit = layout === 'split';
 ---
 
-<figure class="figure" data-lightbox>
+<figure class:list={['figure', { 'figure-split': isSplit }]} data-lightbox>
   <div class="figure-content">
     <slot />
   </div>

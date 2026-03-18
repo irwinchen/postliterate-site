@@ -139,13 +139,14 @@ export function transformMarginNotes(content) {
   }
   content = content.replace(/\n{3,}/g, '\n\n');
 
-  // Add import after frontmatter if not present
+  // Add import after frontmatter if not present (with blank line before content)
   if (!content.includes("import MarginNote")) {
     const fmClose = content.indexOf('---', content.indexOf('---') + 3);
     if (fmClose !== -1) {
+      const after = content.slice(fmClose + 3);
       content = content.slice(0, fmClose + 3) +
-        "\nimport MarginNote from '../../components/MarginNote.astro';" +
-        content.slice(fmClose + 3);
+        "\nimport MarginNote from '../../components/MarginNote.astro';\n" +
+        after.replace(/^\n?/, '\n');
     }
   }
 
@@ -188,25 +189,36 @@ function transformImageEmbeds(content) {
       copyFileSync(src, join(PUBLIC_IMAGES, safeName));
     }
     needsImport = true;
+    let layoutAttr = '';
+    if (caption && /^split:\s*/i.test(caption)) {
+      caption = caption.replace(/^split:\s*/i, '');
+      layoutAttr = ' layout="split"';
+    }
     const captionAttr = caption ? ` caption="${escapeAttr(caption)}"` : '';
-    return `<Figure${captionAttr}>\n  <img src="/images/${safeName}" alt="" />\n</Figure>`;
+    return `<Figure${layoutAttr}${captionAttr}>\n  <img src="/images/${safeName}" alt="" />\n</Figure>`;
   });
 
   // Standard markdown images: ![alt](src) or ![alt](src "caption")
   content = content.replace(/^!\[([^\]]*)\]\((\S+?)(?:\s+"([^"]*)")?\)\s*$/gm, (_, alt, src, title) => {
     needsImport = true;
     const attrs = alt ? ` alt="${escapeAttr(alt)}"` : ' alt=""';
+    let layoutAttr = '';
+    if (title && /^split:\s*/i.test(title)) {
+      title = title.replace(/^split:\s*/i, '');
+      layoutAttr = ' layout="split"';
+    }
     const captionAttr = title ? ` caption="${escapeAttr(title)}"` : '';
-    return `<Figure${captionAttr}>\n  <img src="${escapeAttr(src)}"${attrs} />\n</Figure>`;
+    return `<Figure${layoutAttr}${captionAttr}>\n  <img src="${escapeAttr(src)}"${attrs} />\n</Figure>`;
   });
 
-  // Add Figure import after frontmatter if needed
+  // Add Figure import after frontmatter if needed (with blank line before content)
   if (needsImport && !content.includes("import Figure")) {
     const fmClose = content.indexOf('---', content.indexOf('---') + 3);
     if (fmClose !== -1) {
+      const after = content.slice(fmClose + 3);
       content = content.slice(0, fmClose + 3) +
-        "\nimport Figure from '../../components/Figure.astro';" +
-        content.slice(fmClose + 3);
+        "\nimport Figure from '../../components/Figure.astro';\n" +
+        after.replace(/^\n?/, '\n');
     }
   }
 
@@ -222,7 +234,9 @@ export function syncPost(slug) {
   let content = readFileSync(vault.path, 'utf8');
   content = transformMarginNotes(content);
   content = transformImageEmbeds(content);
-  const marked = content.replace(/^(---\n[\s\S]*?\n---)/m, `$1\n${SYNC_MARKER}`);
+  let marked = content.replace(/^(---\n[\s\S]*?\n---)/m, `$1\n${SYNC_MARKER}`);
+  // Ensure a blank line between the last import and body content (MDX requirement)
+  marked = marked.replace(/(^import .+;)\n(?!\n|import )/m, '$1\n\n');
   const dest = join(CONTENT_DIR, `${slug}.mdx`);
   writeFileSync(dest, marked);
   return dest;
