@@ -611,9 +611,9 @@ body {
     margin-block-start: calc(var(--line-height) * 2);
 
     img {
-        width: 1em;
-        height: 1em;
-        opacity: 0.35;
+        width: 1.4em;
+        height: 1.4em;
+        opacity: 0.5;
     }
 }
 
