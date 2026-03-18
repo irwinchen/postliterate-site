@@ -364,6 +364,12 @@ body {
     animation: fr-reveal 0.8s ease-in-out forwards;
 }
 
+/* Cap tall elements in deep reading mode so they don't exceed the viewport */
+.fr-active .article-content > * {
+    max-height: 85dvh;
+    overflow-y: auto;
+}
+
 @keyframes fr-reveal {
     from {
         clip-path: inset(0 0 100% 0);
