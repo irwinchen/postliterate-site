@@ -361,7 +361,6 @@ body {
 }
 
 .fr-revealing {
-    display: block;
     animation: fr-reveal 0.8s ease-in-out forwards;
 }
 
@@ -1019,7 +1018,7 @@ tbody tr:hover {
 }
 
 /* Split figure: image left, caption right */
-.figure-split:not(.fr-hidden) {
+.figure-split {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: clamp(16px, 2vw, 32px);
