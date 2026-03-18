@@ -617,6 +617,14 @@ body {
     }
 }
 
+.fr-active .end-mark {
+    display: none;
+}
+
+.fr-active .end-mark.fr-revealed {
+    display: flex;
+}
+
 /* --- EDIT HISTORY --- */
 
 .edit-history {
