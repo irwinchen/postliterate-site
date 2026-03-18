@@ -604,6 +604,19 @@ body {
     }
 }
 
+/* End mark (Virgil icon) */
+.end-mark {
+    display: flex;
+    justify-content: center;
+    margin-block-start: calc(var(--line-height) * 2);
+
+    img {
+        width: 1em;
+        height: 1em;
+        opacity: 0.35;
+    }
+}
+
 /* --- EDIT HISTORY --- */
 
 .edit-history {
