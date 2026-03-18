@@ -69,6 +69,21 @@ function countWords(body: string | undefined) {
       });
     })();
 
+    (function initBskyToggle() {
+      var container = document.querySelector('.page-container.has-sidebar');
+      var btn = document.querySelector('.bsky-toggle');
+      if (!container || !btn) return;
+      if (localStorage.getItem('bskyHidden') === 'true') {
+        container.classList.add('sidebar-hidden');
+        btn.setAttribute('aria-label', 'Show Bluesky feed');
+      }
+      btn.addEventListener('click', function() {
+        var hidden = container.classList.toggle('sidebar-hidden');
+        localStorage.setItem('bskyHidden', hidden ? 'true' : 'false');
+        btn.setAttribute('aria-label', hidden ? 'Show Bluesky feed' : 'Hide Bluesky feed');
+      });
+    })();
+
     (function initBskyLinks() {
       document.querySelectorAll('.bsky-post[data-href]').forEach(function(post) {
         post.addEventListener('click', function(e) {

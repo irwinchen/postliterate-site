@@ -1219,6 +1219,46 @@ tbody tr:hover {
     padding-inline-start: clamp(20px, 3vw, 40px);
     border-inline-start: 1px solid var(--border-subtle);
     overflow-y: auto;
+    transition: opacity 0.2s ease, visibility 0.2s ease;
+}
+
+/* Collapsed sidebar */
+.page-container.sidebar-hidden {
+    grid-template-columns:
+        minmax(var(--min-side-margin), 1fr)
+        minmax(0, var(--content-width))
+        auto
+        minmax(var(--min-side-margin), 1fr);
+}
+
+.sidebar-hidden .bsky-feed {
+    overflow: hidden;
+}
+
+.sidebar-hidden .bsky-posts {
+    opacity: 0;
+    visibility: hidden;
+    height: 0;
+    overflow: hidden;
+    transition: opacity 0.2s ease, visibility 0.2s ease;
+}
+
+.sidebar-hidden .bsky-feed-title {
+    opacity: 0;
+    visibility: hidden;
+    width: 0;
+    overflow: hidden;
+}
+
+.sidebar-hidden .bsky-toggle {
+    transform: rotate(180deg);
+}
+
+.bsky-feed-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-block-end: calc(var(--line-height) * 1);
 }
 
 .bsky-feed-title {
@@ -1227,7 +1267,7 @@ tbody tr:hover {
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.08em;
-    margin-block-end: calc(var(--line-height) * 1);
+    margin: 0;
 
     a {
         color: var(--text-secondary);
@@ -1242,9 +1282,26 @@ tbody tr:hover {
     }
 }
 
+.bsky-toggle {
+    width: 28px;
+    height: 28px;
+    display: grid;
+    place-items: center;
+    background: transparent;
+    border: none;
+    color: var(--text-tertiary);
+    padding: 0;
+    transition: color 0.2s ease, transform 0.2s ease;
+
+    &:hover {
+        color: var(--accent);
+    }
+}
+
 .bsky-posts {
     list-style: none;
     padding: 0;
+    transition: opacity 0.2s ease, visibility 0.2s ease;
 }
 
 .bsky-post {
