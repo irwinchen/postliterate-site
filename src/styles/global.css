@@ -363,12 +363,12 @@ body {
 .fr-revealing {
     animation: fr-reveal 1.2s cubic-bezier(0.25, 0.1, 0.25, 1) forwards;
     mask-image: linear-gradient(
-        155deg,
-        #000 40%,
-        rgba(0, 0, 0, 0.4) 50%,
-        transparent 60%
+        176deg,
+        #000 0%,
+        rgba(0, 0, 0, 0.3) 6%,
+        transparent 12%
     );
-    mask-size: 300% 300%;
+    mask-size: 100% 500%;
 }
 
 /* Cap tall elements in deep reading mode so they don't exceed the viewport */
@@ -379,10 +379,10 @@ body {
 
 @keyframes fr-reveal {
     from {
-        mask-position: 100% 100%;
+        mask-position: 0 100%;
         opacity: 0;
     }
-    10% {
+    5% {
         opacity: 1;
     }
     to {
