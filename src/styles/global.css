@@ -983,7 +983,7 @@ tbody tr:hover {
 }
 
 /* Split figure: image left, caption right */
-.figure-split {
+.figure-split:not(.fr-hidden) {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: clamp(16px, 2vw, 32px);
