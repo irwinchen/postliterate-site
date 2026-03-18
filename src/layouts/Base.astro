@@ -324,58 +324,68 @@ const { title, description = "Post-Literate" } = Astro.props;
           el.classList.remove('fr-hidden');
           el.classList.add('fr-revealing');
 
-          // Line-by-line typewriter reveal via clip-path polygon
-          var style = getComputedStyle(el);
-          var lh = parseFloat(style.lineHeight);
-          if (isNaN(lh)) lh = parseFloat(style.fontSize) * 1.4;
-          var totalH = el.scrollHeight;
-          var lines = Math.max(1, Math.round(totalH / lh));
-          var perLine = 1.5 / lines;
-          if (perLine < 0.12) perLine = 0.12;
-          var totalDur = perLine * lines * 1000;
-          var line = 0;
-          var lineStart = performance.now();
-
-          // Clip polygon: full width for revealed lines, animated edge for current line
-          el.style.clipPath = 'polygon(0 0, 0 0, 0 ' + lh + 'px, 0 ' + lh + 'px)';
-
-          function frame(now) {
-            if (cleaned) return;
-            var t = Math.min((now - lineStart) / (perLine * 1000), 1);
-            var x = (t * 100) + '%';
-            var top = (line * lh) + 'px';
-            var bottom = Math.min((line + 1) * lh, totalH) + 'px';
-
-            if (line === 0) {
-              el.style.clipPath = 'polygon(0 0, ' + x + ' 0, ' + x + ' ' + bottom + ', 0 ' + bottom + ')';
-            } else {
-              el.style.clipPath = 'polygon(0 0, 100% 0, 100% ' + top + ', ' + x + ' ' + top + ', ' + x + ' ' + bottom + ', 0 ' + bottom + ')';
-            }
-
-            if (t < 1) {
-              requestAnimationFrame(frame);
-            } else {
-              line++;
-              if (line < lines) {
-                lineStart = performance.now();
-                requestAnimationFrame(frame);
-              } else {
-                cleanup();
-              }
-            }
-          }
-
-          requestAnimationFrame(frame);
-
+          var isFigure = el.classList.contains('figure');
           var cleaned = false;
           function cleanup() {
             if (cleaned) return;
             cleaned = true;
             el.classList.remove('fr-revealing');
             el.style.clipPath = '';
+            el.style.opacity = '';
+            el.style.transition = '';
           }
 
-          setTimeout(cleanup, totalDur + 200);
+          if (isFigure) {
+            // Simple fade-in for figures
+            el.style.opacity = '0';
+            el.style.transition = 'opacity 0.6s ease';
+            void el.offsetWidth;
+            el.style.opacity = '1';
+            setTimeout(cleanup, 700);
+          } else {
+            // Line-by-line typewriter reveal via clip-path polygon
+            var style = getComputedStyle(el);
+            var lh = parseFloat(style.lineHeight);
+            if (isNaN(lh)) lh = parseFloat(style.fontSize) * 1.4;
+            var totalH = el.scrollHeight;
+            var lines = Math.max(1, Math.round(totalH / lh));
+            var perLine = 1.5 / lines;
+            if (perLine < 0.12) perLine = 0.12;
+            var totalDur = perLine * lines * 1000;
+            var line = 0;
+            var lineStart = performance.now();
+
+            el.style.clipPath = 'polygon(0 0, 0 0, 0 ' + lh + 'px, 0 ' + lh + 'px)';
+
+            function frame(now) {
+              if (cleaned) return;
+              var t = Math.min((now - lineStart) / (perLine * 1000), 1);
+              var x = (t * 100) + '%';
+              var top = (line * lh) + 'px';
+              var bottom = Math.min((line + 1) * lh, totalH) + 'px';
+
+              if (line === 0) {
+                el.style.clipPath = 'polygon(0 0, ' + x + ' 0, ' + x + ' ' + bottom + ', 0 ' + bottom + ')';
+              } else {
+                el.style.clipPath = 'polygon(0 0, 100% 0, 100% ' + top + ', ' + x + ' ' + top + ', ' + x + ' ' + bottom + ', 0 ' + bottom + ')';
+              }
+
+              if (t < 1) {
+                requestAnimationFrame(frame);
+              } else {
+                line++;
+                if (line < lines) {
+                  lineStart = performance.now();
+                  requestAnimationFrame(frame);
+                } else {
+                  cleanup();
+                }
+              }
+            }
+
+            requestAnimationFrame(frame);
+            setTimeout(cleanup, totalDur + 200);
+          }
 
           var rect = el.getBoundingClientRect();
           var scrollFrom = window.pageYOffset || document.documentElement.scrollTop;

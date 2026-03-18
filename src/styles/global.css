@@ -352,7 +352,7 @@ body {
 
 /* Focus reading */
 .fr-hidden {
-    display: none;
+    display: none !important;
 }
 
 .fr-visible {
