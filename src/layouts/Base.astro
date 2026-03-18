@@ -336,7 +336,7 @@ const { title, description = "Post-Literate" } = Astro.props;
 
           var rect = el.getBoundingClientRect();
           var scrollFrom = window.pageYOffset || document.documentElement.scrollTop;
-          var scrollTo = scrollFrom + rect.top - window.innerHeight * 0.33;
+          var scrollTo = scrollFrom + rect.top - 80;
           smoothScroll(scrollFrom, scrollTo, 600);
 
           visibleCount++;
