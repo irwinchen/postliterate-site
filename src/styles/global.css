@@ -1222,14 +1222,7 @@ tbody tr:hover {
     transition: opacity 0.2s ease, visibility 0.2s ease;
 }
 
-/* Collapsed sidebar */
-.page-container.sidebar-hidden {
-    grid-template-columns:
-        minmax(var(--min-side-margin), 1fr)
-        minmax(0, var(--content-width))
-        auto
-        minmax(var(--min-side-margin), 1fr);
-}
+/* Collapsed sidebar — keep grid columns unchanged so main column doesn't shift */
 
 .sidebar-hidden .bsky-feed {
     overflow: hidden;
