@@ -226,7 +226,10 @@ const { title, description = "Post-Literate" } = Astro.props;
         var content = document.querySelector('[data-deep-reading]');
         if (!content) return;
 
-        var elements = Array.prototype.slice.call(content.children);
+        var elements = Array.prototype.slice.call(content.children).filter(function(el) {
+          return !el.classList.contains('end-mark');
+        });
+        var endMark = content.querySelector('.end-mark');
         if (elements.length === 0) return;
 
         var visibleCount = 0;
@@ -290,6 +293,7 @@ const { title, description = "Post-Literate" } = Astro.props;
               elements[i].classList.add('fr-hidden');
             }
           }
+          if (endMark) endMark.classList.add('fr-hidden');
           content.style.paddingBottom = '50vh';
           advanceBtn.style.display = elements.length > 1 ? '' : 'none';
           fullscreenBtn.style.display = '';
@@ -303,6 +307,7 @@ const { title, description = "Post-Literate" } = Astro.props;
           for (var i = 0; i < elements.length; i++) {
             elements[i].classList.remove('fr-hidden', 'fr-revealing', 'fr-visible');
           }
+          if (endMark) endMark.classList.remove('fr-hidden');
           content.style.paddingBottom = '';
           advanceBtn.style.display = 'none';
           fullscreenBtn.style.display = 'none';
@@ -338,6 +343,10 @@ const { title, description = "Post-Literate" } = Astro.props;
           updateProgress();
           if (visibleCount >= elements.length) {
             advanceBtn.style.display = 'none';
+            if (endMark) {
+              endMark.classList.remove('fr-hidden');
+              endMark.classList.add('fr-revealing');
+            }
           }
         }
 
