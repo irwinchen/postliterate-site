@@ -610,10 +610,25 @@ body {
     justify-content: center;
     margin-block-start: calc(var(--line-height) * 2);
 
+    a {
+        display: grid;
+        place-items: center;
+        border-block-end: none;
+
+        &:hover {
+            border-block-end: none;
+        }
+    }
+
     img {
         width: 1.5em;
         height: 1.5em;
         opacity: 1;
+        transition: opacity 0.2s ease;
+    }
+
+    a:hover img {
+        opacity: 0.6;
     }
 }
 
