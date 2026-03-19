@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="popup">
+    <div class="popup-header">
+      <h1 class="popup-title">PostLiterate</h1>
+      <span class="popup-subtitle">Deep Reader</span>
+    </div>
+
+    <button id="start-reading" class="btn-primary">
+      Start Reading
+    </button>
+
+    <div class="settings">
+      <div class="setting-row">
+        <label class="setting-label">Style</label>
+        <div class="setting-options" id="style-options">
+          <button class="setting-btn active" data-value="deep-reader">Deep Reader</button>
+          <button class="setting-btn" data-value="original">Original</button>
+        </div>
+      </div>
+
+      <div class="setting-row">
+        <label class="setting-label">Theme</label>
+        <div class="setting-options" id="theme-options">
+          <button class="setting-btn active" data-value="auto">Auto</button>
+          <button class="setting-btn" data-value="light">Light</button>
+          <button class="setting-btn" data-value="dark">Dark</button>
+        </div>
+      </div>
+
+      <div class="setting-row">
+        <label class="setting-label">Speed</label>
+        <div class="setting-options" id="speed-options">
+          <button class="setting-btn active" data-value="normal">Normal</button>
+          <button class="setting-btn" data-value="fast">Fast</button>
+          <button class="setting-btn" data-value="instant">Instant</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="popup-footer">
+      <span class="shortcut-hint">Alt+R to toggle</span>
+    </div>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

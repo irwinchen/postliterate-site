@@ -1,0 +1,516 @@
+/* PostLiterate Reader — Extension Styles
+   Subset of PostLiterate's global.css for the Shadow DOM reading overlay.
+   All styles scoped within the shadow root — no host page conflicts. */
+
+/* ================================================================
+   RESET (shadow root scope)
+   ================================================================ */
+
+*,
+*::before,
+*::after {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* ================================================================
+   DESIGN TOKENS
+   ================================================================ */
+
+:host {
+    color-scheme: light;
+
+    /* Proportions */
+    --phi: 1.618;
+
+    /* Responsive base unit */
+    --base-unit: clamp(16px, 2.5vw, 20px);
+    --line-height: calc(var(--base-unit) * 1.7);
+
+    /* Layout */
+    --content-width: 65ch;
+
+    /* Colors — light-dark() eliminates duplicate dark mode declarations */
+    --background: light-dark(#F3EFE1, #1a1a1a);
+    --text: light-dark(#2C2C2C, #c8c8c8);
+    --text-secondary: light-dark(#666, #a0a0a0);
+    --text-tertiary: light-dark(#999, #707070);
+    --accent: light-dark(#E53E33, #ff6b5e);
+    --accent-blue: light-dark(#3B6DB4, #6b9fd4);
+    --accent-green: light-dark(#549E44, #7bc46a);
+    --border-subtle: light-dark(rgba(0, 0, 0, 0.1), rgba(255, 255, 255, 0.1));
+    --bg-subtle: light-dark(rgba(0, 0, 0, 0.02), rgba(255, 255, 255, 0.03));
+    --bg-highlight: light-dark(rgba(229, 62, 51, 0.05), rgba(255, 107, 94, 0.08));
+    --bg-pullquote: light-dark(rgba(229, 62, 51, 0.05), rgba(255, 107, 94, 0.08));
+
+    /* Responsive text sizes */
+    --text-base: clamp(17.6px, 1.24rem + 0.275vw, 22px);
+    --text-h1: clamp(28px, 2rem + 1vw, 48px);
+    --text-h2: clamp(22px, 1.5rem + 0.5vw, 32px);
+    --text-h3: clamp(18px, 1.125rem + 0.25vw, 24px);
+    --text-meta: clamp(14px, 0.875rem, 16px);
+    --text-caption: clamp(13px, 0.8rem, 15px);
+}
+
+:host([data-theme="dark"]) {
+    color-scheme: dark;
+}
+
+/* ================================================================
+   ROOT CONTAINER
+   ================================================================ */
+
+.pl-reader-root {
+    position: fixed;
+    inset: 0;
+    z-index: 2147483647;
+    background-color: var(--background);
+    color: var(--text);
+    font-family: 'Literata', serif;
+    font-size: var(--text-base);
+    line-height: var(--line-height);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* ================================================================
+   TOOLBAR
+   ================================================================ */
+
+.pl-toolbar {
+    position: sticky;
+    inset-block-start: 0;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 24px;
+    background: var(--background);
+    border-block-end: 1px solid var(--border-subtle);
+    font-family: 'Outfit', sans-serif;
+    font-size: var(--text-meta);
+}
+
+.pl-toolbar-title {
+    flex: 1;
+    min-width: 0;
+    font-weight: 500;
+    color: var(--text);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.pl-toolbar-btn {
+    display: grid;
+    place-items: center;
+    width: 32px;
+    height: 32px;
+    border: 1px solid var(--border-subtle);
+    background: none;
+    cursor: pointer;
+    color: var(--text-secondary);
+    padding: 0;
+
+    &:hover {
+        color: var(--accent);
+        border-color: var(--accent);
+    }
+
+    &:focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: 2px;
+    }
+}
+
+.pl-toolbar-style {
+    font-family: 'Outfit', sans-serif;
+    font-size: var(--text-caption);
+    padding: 4px 10px;
+    border: 1px solid var(--border-subtle);
+    background: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+
+    &:hover {
+        color: var(--accent);
+        border-color: var(--accent);
+    }
+
+    &.active {
+        color: var(--accent);
+        border-color: var(--accent);
+        background: var(--bg-highlight);
+    }
+}
+
+/* ================================================================
+   CONTENT AREA
+   ================================================================ */
+
+.pl-content-area {
+    max-width: var(--content-width);
+    margin-inline: auto;
+    padding: calc(var(--line-height) * 3) 24px calc(50vh);
+}
+
+.pl-article-header {
+    margin-block-end: calc(var(--line-height) * 2);
+    padding-block-end: calc(var(--line-height) * 1);
+    border-block-end: 1px solid var(--border-subtle);
+}
+
+.pl-article-title {
+    font-family: 'Outfit', sans-serif;
+    font-size: var(--text-h1);
+    line-height: 1.2;
+    font-weight: 600;
+    text-wrap: balance;
+    margin-block-end: calc(var(--line-height) * 0.5);
+}
+
+.pl-article-byline {
+    font-family: 'Outfit', sans-serif;
+    font-size: var(--text-meta);
+    color: var(--text-secondary);
+}
+
+/* ================================================================
+   ARTICLE CONTENT — BLOCK ELEMENTS
+   ================================================================ */
+
+.pl-article-content > * + * {
+    margin-block-start: var(--line-height);
+}
+
+.pl-article-content > * {
+    max-height: 85dvh;
+    overflow-y: hidden;
+    scroll-margin-block-start: calc(var(--line-height) * 3 + 49px);
+
+    &:hover {
+        overflow-y: auto;
+    }
+}
+
+/* Headings */
+h1, h2, h3 {
+    font-family: 'Outfit', sans-serif;
+    text-wrap: balance;
+}
+
+h1 {
+    font-size: var(--text-h1);
+    line-height: 1.2;
+    font-weight: 600;
+    margin-block-start: calc(var(--line-height) * 2);
+    margin-block-end: calc(var(--line-height) * 1.5);
+}
+
+h2 {
+    font-size: var(--text-h2);
+    line-height: 1.3;
+    font-weight: 500;
+    margin-block-start: calc(var(--line-height) * 3);
+    margin-block-end: var(--line-height);
+}
+
+h3 {
+    font-size: var(--text-h3);
+    line-height: 1.3;
+    font-weight: 500;
+    margin-block-start: calc(var(--line-height) * 2);
+    margin-block-end: calc(var(--line-height) * 0.5);
+}
+
+h4, h5, h6 {
+    font-family: 'Outfit', sans-serif;
+    font-weight: 500;
+    text-wrap: balance;
+}
+
+/* Paragraphs */
+p {
+    text-align: start;
+    hyphens: manual;
+    text-wrap: pretty;
+}
+
+/* Links */
+a {
+    color: var(--accent);
+    text-decoration: none;
+    border-block-end: 1px solid transparent;
+    transition: border-color 0.2s ease;
+
+    &:hover {
+        border-block-end-color: var(--accent);
+    }
+}
+
+/* Code */
+code {
+    font-family: 'Sono', monospace;
+    font-size: 0.9em;
+    background: var(--bg-subtle);
+    padding: 0.1em 0.4em;
+    border: 1px solid var(--border-subtle);
+}
+
+pre {
+    background: var(--bg-subtle);
+    border: 1px solid var(--border-subtle);
+    padding: calc(var(--base-unit) * 1.5);
+    overflow-x: auto;
+    max-width: 100%;
+    font-family: 'Sono', monospace;
+    font-size: var(--text-caption);
+    line-height: 1.6;
+    white-space: pre-wrap;
+    overflow-wrap: break-word;
+
+    code {
+        background: none;
+        border: none;
+        padding: 0;
+        font-size: inherit;
+    }
+}
+
+/* Lists */
+ul, ol {
+    padding-inline-start: 1.5em;
+
+    li + li {
+        margin-block-start: calc(var(--line-height) * 0.3);
+    }
+}
+
+/* Figures */
+figure {
+    margin-block: calc(var(--line-height) * 2);
+    max-width: 100%;
+
+    img, video {
+        display: block;
+        width: 100%;
+        height: auto;
+    }
+
+    figcaption {
+        font-family: 'Outfit', sans-serif;
+        font-size: var(--text-caption);
+        line-height: 1.5;
+        color: var(--text-secondary);
+        margin-block-start: calc(var(--line-height) * 0.25);
+    }
+}
+
+/* Blockquotes */
+blockquote {
+    margin-block: calc(var(--line-height) * 2);
+    padding-inline-start: calc(var(--base-unit) * 2);
+    border-inline-start: 3px solid var(--accent);
+    font-style: italic;
+    color: var(--text-secondary);
+
+    p + p {
+        margin-block-start: var(--line-height);
+    }
+}
+
+/* Tables */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--text-caption);
+    margin-block: calc(var(--line-height) * 2);
+
+    th, td {
+        padding: calc(var(--base-unit) * 0.5) calc(var(--base-unit) * 0.75);
+        border: 1px solid var(--border-subtle);
+        text-align: start;
+    }
+
+    th {
+        font-family: 'Outfit', sans-serif;
+        font-weight: 500;
+        background: var(--bg-subtle);
+    }
+}
+
+/* Horizontal rule */
+hr {
+    border: none;
+    border-block-start: 1px solid var(--border-subtle);
+    margin-block: calc(var(--line-height) * 2);
+}
+
+/* ================================================================
+   FOCUS READING STATES
+   ================================================================ */
+
+.fr-hidden {
+    display: none !important;
+}
+
+.fr-visible {
+    color: var(--text-secondary);
+    transition: color 0.6s ease;
+}
+
+.fr-revealing {
+    will-change: clip-path;
+}
+
+/* ================================================================
+   ADVANCE BUTTON + PROGRESS RING
+   ================================================================ */
+
+.fr-advance {
+    position: fixed;
+    inset-block-end: 80px;
+    inset-inline-start: 50%;
+    transform: translateX(-50%);
+    display: grid;
+    place-items: center;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    border: none;
+    background: var(--background);
+    cursor: pointer;
+    color: var(--text-secondary);
+    transition: color 0.2s ease, background-color 0.3s ease;
+    padding: 0;
+    z-index: 10;
+
+    &:hover path {
+        stroke: var(--accent);
+    }
+
+    &:focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: 2px;
+    }
+}
+
+.fr-progress-ring {
+    transition: stroke-dashoffset 0.4s ease;
+}
+
+/* ================================================================
+   FULLSCREEN BUTTON
+   ================================================================ */
+
+.fr-fullscreen {
+    position: fixed;
+    inset-block-end: 80px;
+    inset-inline-end: 24px;
+    display: grid;
+    place-items: center;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    border: none;
+    background: var(--background);
+    cursor: pointer;
+    color: var(--text-secondary);
+    transition: color 0.2s ease, background-color 0.3s ease;
+    padding: 0;
+    z-index: 10;
+
+    &:hover {
+        color: var(--accent);
+    }
+
+    &:focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: 2px;
+    }
+}
+
+/* ================================================================
+   LLM QUALITY BANNER
+   ================================================================ */
+
+.pl-quality-banner {
+    position: sticky;
+    inset-block-start: 49px; /* below toolbar */
+    z-index: 9;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 24px;
+    background: var(--bg-highlight);
+    border-block-end: 1px solid var(--border-subtle);
+    font-family: 'Outfit', sans-serif;
+    font-size: var(--text-caption);
+    color: var(--text-secondary);
+}
+
+.pl-quality-banner button {
+    font-family: 'Outfit', sans-serif;
+    font-size: var(--text-caption);
+    padding: 2px 8px;
+    border: 1px solid var(--accent);
+    background: none;
+    color: var(--accent);
+    cursor: pointer;
+
+    &:hover {
+        background: var(--bg-highlight);
+    }
+}
+
+/* ================================================================
+   ORIGINAL STYLE MODE
+   Swaps PostLiterate typography for captured page styles.
+   ================================================================ */
+
+:host([data-style="original"]) {
+    .pl-reader-root {
+        font-family: var(--original-font-body, 'Literata', serif);
+        font-size: var(--original-size-body, var(--text-base));
+        line-height: var(--original-lh-body, var(--line-height));
+        color: var(--original-color-text, var(--text));
+        background-color: var(--original-color-bg, var(--background));
+    }
+
+    h1, h2, h3, h4, h5, h6 {
+        font-family: var(--original-font-heading, 'Outfit', sans-serif);
+    }
+
+    a {
+        color: var(--original-color-link, var(--accent));
+    }
+
+    code, pre {
+        font-family: var(--original-font-mono, 'Sono', monospace);
+    }
+}
+
+/* ================================================================
+   KEYBOARD FOCUS
+   ================================================================ */
+
+:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+}
+
+/* ================================================================
+   RESPONSIVE
+   ================================================================ */
+
+@media (max-width: 640px) {
+    .pl-toolbar {
+        padding: 8px 16px;
+    }
+
+    .pl-content-area {
+        padding-inline: 16px;
+    }
+}
