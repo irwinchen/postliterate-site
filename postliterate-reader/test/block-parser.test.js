@@ -143,4 +143,74 @@ describe('parseBlocks', () => {
     expect(blocks[0].textContent).toBe('Real content');
     expect(blocks[1].textContent).toBe('More content');
   });
+
+  it('filters out promotional headings like "You might also like"', () => {
+    const html = '<p>Real content</p><h2>You might also like</h2><ul><li><a href="/a">Article A</a></li></ul><p>More content</p>';
+    const blocks = parseBlocks(html);
+    expect(blocks).toHaveLength(2);
+    expect(blocks[0].textContent).toBe('Real content');
+    expect(blocks[1].textContent).toBe('More content');
+  });
+
+  it('filters out "Recommended" and "Trending" promotional headings', () => {
+    const html = '<p>Content</p><h3>Recommended</h3><h3>Trending</h3><h2>What to Read Next</h2>';
+    const blocks = parseBlocks(html);
+    expect(blocks).toHaveLength(1);
+    expect(blocks[0].textContent).toBe('Content');
+  });
+
+  it('filters out link-heavy lists (nav/promo lists)', () => {
+    const html = `
+      <ul>
+        <li>Real item with text content that is substantial</li>
+        <li>Another real item</li>
+      </ul>
+      <ul>
+        <li><a href="/a">Link only</a></li>
+        <li><a href="/b">Another link</a></li>
+        <li><a href="/c">Third link</a></li>
+      </ul>
+      <p>Real content</p>
+    `;
+    const blocks = parseBlocks(html);
+    expect(blocks).toHaveLength(2);
+    expect(blocks[0].tagName).toBe('UL');
+    expect(blocks[0].textContent).toContain('Real item');
+    expect(blocks[1].textContent).toBe('Real content');
+  });
+
+  it('keeps lists where links are mixed with substantial text', () => {
+    const html = `
+      <ul>
+        <li>This point references <a href="/x">a source</a> with more explanation after</li>
+        <li>Another detailed point with <a href="/y">citation</a></li>
+      </ul>
+    `;
+    const blocks = parseBlocks(html);
+    expect(blocks).toHaveLength(1);
+    expect(blocks[0].tagName).toBe('UL');
+  });
+
+  it('filters out NYTimes-style image credit artifacts', () => {
+    const html = '<p>Real content</p><p>Credit...The New York Times</p><p>By Someone for The Times</p>';
+    const blocks = parseBlocks(html);
+    expect(blocks).toHaveLength(1);
+    expect(blocks[0].textContent).toBe('Real content');
+  });
+
+  it('filters out figures with only tiny/tracking images', () => {
+    const html = '<figure><img src="pixel.gif" width="1" height="1"></figure><figure><img src="photo.jpg" alt="A real photo"></figure><p>Content</p>';
+    const blocks = parseBlocks(html);
+    expect(blocks).toHaveLength(2);
+    expect(blocks[0].tagName).toBe('FIGURE');
+    expect(blocks[0].querySelector('img').alt).toBe('A real photo');
+    expect(blocks[1].textContent).toBe('Content');
+  });
+
+  it('filters out figures with no real image src', () => {
+    const html = '<figure><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"></figure><p>Content</p>';
+    const blocks = parseBlocks(html);
+    expect(blocks).toHaveLength(1);
+    expect(blocks[0].textContent).toBe('Content');
+  });
 });

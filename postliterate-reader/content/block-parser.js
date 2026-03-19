@@ -56,6 +56,22 @@ const ARTIFACT_PATTERNS = [
   /^Skip\s*Advertisement$/i,
   /^Guest Essay$/i,
   /^Supported by$/i,
+  // Promotional / navigational headings
+  /^You might also like/i,
+  /^You may also like/i,
+  /^Recommended$/i,
+  /^Trending$/i,
+  /^What to read next$/i,
+  /^Popular$/i,
+  /^Don.t miss/i,
+  /^Editor.s picks?$/i,
+  /^Latest stories$/i,
+  /^Read more$/i,
+  /^More stories/i,
+  /^Follow .+ on/i,
+  // NYTimes-specific credits
+  /^Credit\b/i,
+  /^By .+ for The (?:New York )?Times$/i,
 ];
 
 /**
@@ -65,6 +81,53 @@ function isArtifact(el) {
   const text = el.textContent.trim();
   if (!text) return false;
   return ARTIFACT_PATTERNS.some((pattern) => pattern.test(text));
+}
+
+/**
+ * Check if a list (UL/OL) is a navigational/promotional link list.
+ * A list is link-heavy if most of its items are predominantly links
+ * with little surrounding text.
+ */
+function isLinkList(el) {
+  if (el.tagName !== 'UL' && el.tagName !== 'OL') return false;
+  const items = el.querySelectorAll(':scope > li');
+  if (items.length === 0) return false;
+
+  let linkOnlyCount = 0;
+  for (const li of items) {
+    const linkText = Array.from(li.querySelectorAll('a'))
+      .reduce((sum, a) => sum + a.textContent.trim().length, 0);
+    const totalText = li.textContent.trim().length;
+    // If link text is >80% of the item's text, it's a link-only item
+    if (totalText > 0 && linkText / totalText > 0.8) {
+      linkOnlyCount++;
+    }
+  }
+
+  // If >60% of items are link-only, it's a nav/promo list
+  return linkOnlyCount / items.length > 0.6;
+}
+
+/**
+ * Check if a figure contains only tracking pixels or empty/placeholder images.
+ */
+function isJunkFigure(el) {
+  if (el.tagName !== 'FIGURE') return false;
+  const imgs = el.querySelectorAll('img');
+  if (imgs.length === 0) return false;
+
+  for (const img of imgs) {
+    const src = img.getAttribute('src') || '';
+    const width = parseInt(img.getAttribute('width'), 10);
+    const height = parseInt(img.getAttribute('height'), 10);
+
+    // Tracking pixel: explicit 1x1 dimensions
+    if (width <= 1 && height <= 1) return true;
+
+    // Base64 placeholder (tiny transparent GIF, etc.)
+    if (src.startsWith('data:image/') && src.length < 200) return true;
+  }
+  return false;
 }
 
 /**
@@ -105,7 +168,7 @@ export function parseBlocks(html) {
   const blocks = [];
   collectBlocks(container, blocks);
 
-  return blocks.filter((el) => !isEmpty(el) && !isArtifact(el));
+  return blocks.filter((el) => !isEmpty(el) && !isArtifact(el) && !isLinkList(el) && !isJunkFigure(el));
 }
 
 /**
