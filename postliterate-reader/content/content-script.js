@@ -93,7 +93,7 @@ async function init(settings = {}) {
 
   // Fetch the extension CSS
   const cssUrl = chrome.runtime.getURL('content/styles.css');
-  const cssResponse = await fetch(cssUrl);
+  const cssResponse = await fetch(cssUrl, { cache: 'no-store' });
   const cssText = await cssResponse.text();
 
   // Resolve font URLs in CSS

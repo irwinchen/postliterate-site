@@ -8,21 +8,44 @@ import { parseBlocks } from './block-parser.js';
 import { createReadingState } from './reading-state.js';
 import { createProgressRingSVG, updateProgressRing } from './progress-ring.js';
 
+const GEAR_ICON = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>`;
+const CLOSE_ICON = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>`;
+const FULLSCREEN_EXPAND = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>`;
+
+/**
+ * Build a toggle button group for settings.
+ */
+function createOptionGroup(label, options, currentValue, onChange) {
+  const row = document.createElement('div');
+  row.className = 'pl-settings-row';
+
+  const labelEl = document.createElement('span');
+  labelEl.className = 'pl-settings-label';
+  labelEl.textContent = label;
+  row.appendChild(labelEl);
+
+  const group = document.createElement('div');
+  group.className = 'pl-settings-group';
+
+  for (const opt of options) {
+    const btn = document.createElement('button');
+    btn.className = 'pl-settings-option' + (opt.value === currentValue ? ' active' : '');
+    btn.textContent = opt.label;
+    btn.dataset.value = opt.value;
+    btn.addEventListener('click', () => {
+      group.querySelectorAll('.pl-settings-option').forEach((b) => b.classList.remove('active'));
+      btn.classList.add('active');
+      onChange(opt.value);
+    });
+    group.appendChild(btn);
+  }
+
+  row.appendChild(group);
+  return row;
+}
+
 /**
  * Create and mount the PostLiterate reading overlay.
- *
- * @param {Object} params
- * @param {string} params.title - Article title
- * @param {string} params.byline - Author/site info
- * @param {string} params.contentHtml - Article HTML from Readability
- * @param {string} params.cssText - CSS text for the shadow root
- * @param {Object} [params.settings] - User settings
- * @param {'light'|'dark'|'auto'} [params.settings.theme='auto']
- * @param {'deep-reader'|'original'} [params.settings.style='deep-reader']
- * @param {'normal'|'fast'|'instant'} [params.settings.speed='normal']
- * @param {number} [params.settings.startAt=1] - Resume position
- * @param {Object} [params.originalStyles] - Captured original page styles
- * @returns {{ destroy: () => void, getProgress: () => number }}
  */
 export function createReadingOverlay({
   title,
@@ -32,7 +55,7 @@ export function createReadingOverlay({
   settings = {},
   originalStyles = null,
 }) {
-  const {
+  let {
     theme = 'auto',
     style = 'deep-reader',
     speed = 'normal',
@@ -45,10 +68,12 @@ export function createReadingOverlay({
   host.style.cssText = 'all: initial; position: fixed; inset: 0; z-index: 2147483647;';
 
   // Apply theme
-  const resolvedTheme = theme === 'auto'
-    ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
-    : theme;
-  host.setAttribute('data-theme', resolvedTheme);
+  function resolveTheme(t) {
+    return t === 'auto'
+      ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+      : t;
+  }
+  host.setAttribute('data-theme', resolveTheme(theme));
 
   // Apply style mode
   if (style === 'original') {
@@ -63,18 +88,20 @@ export function createReadingOverlay({
   styleEl.textContent = cssText;
   shadow.appendChild(styleEl);
 
-  // Apply original styles as custom properties if available
-  if (originalStyles && style === 'original') {
-    const props = [];
-    for (const [key, value] of Object.entries(originalStyles)) {
-      props.push(`--original-${key}: ${value}`);
-    }
-    host.style.cssText += props.join('; ') + ';';
+  // Always inject original styles as custom properties (so toggle works anytime)
+  if (originalStyles) {
+    const origStyleEl = document.createElement('style');
+    const props = Object.entries(originalStyles)
+      .map(([key, value]) => `--original-${key}: ${value}`)
+      .join('; ');
+    origStyleEl.textContent = `:host { ${props}; }`;
+    shadow.appendChild(origStyleEl);
   }
 
   // Build DOM structure
   const root = document.createElement('div');
   root.className = 'pl-reader-root';
+  root.style.colorScheme = resolveTheme(theme);
 
   // — Toolbar
   const toolbar = document.createElement('div');
@@ -84,17 +111,81 @@ export function createReadingOverlay({
   titleEl.className = 'pl-toolbar-title';
   titleEl.textContent = title || 'Reading';
 
-  const styleBtn = document.createElement('button');
-  styleBtn.className = 'pl-toolbar-style' + (style === 'deep-reader' ? ' active' : '');
-  styleBtn.textContent = style === 'deep-reader' ? 'Deep Reader' : 'Original';
-  styleBtn.title = 'Toggle reading style';
+  // Gear button (settings)
+  const gearBtn = document.createElement('button');
+  gearBtn.className = 'pl-toolbar-btn';
+  gearBtn.title = 'Settings';
+  gearBtn.innerHTML = GEAR_ICON;
 
   const closeBtn = document.createElement('button');
   closeBtn.className = 'pl-toolbar-btn';
   closeBtn.title = 'Close reader';
-  closeBtn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>`;
+  closeBtn.innerHTML = CLOSE_ICON;
 
-  toolbar.append(titleEl, styleBtn, closeBtn);
+  toolbar.append(titleEl, gearBtn, closeBtn);
+
+  // — Settings panel (hidden by default, absolute inside sticky toolbar)
+  const settingsPanel = document.createElement('div');
+  settingsPanel.className = 'pl-settings-panel';
+  Object.assign(settingsPanel.style, {
+    display: 'none',
+    position: 'absolute',
+    insetBlockStart: '100%',
+    insetInlineEnd: '0',
+    width: '260px',
+    zIndex: '20',
+  });
+  toolbar.appendChild(settingsPanel);
+
+  const styleGroup = createOptionGroup('Style', [
+    { label: 'Deep Reader', value: 'deep-reader' },
+    { label: 'Original', value: 'original' },
+  ], style, (val) => {
+    style = val;
+    if (val === 'original') {
+      host.setAttribute('data-style', 'original');
+    } else {
+      host.removeAttribute('data-style');
+    }
+    if (typeof chrome !== 'undefined' && chrome.storage) {
+      chrome.storage.local.set({ style: val });
+    }
+  });
+
+  const themeGroup = createOptionGroup('Theme', [
+    { label: 'Auto', value: 'auto' },
+    { label: 'Light', value: 'light' },
+    { label: 'Dark', value: 'dark' },
+  ], theme, (val) => {
+    theme = val;
+    const resolved = resolveTheme(val);
+    host.setAttribute('data-theme', resolved);
+    root.style.colorScheme = resolved;
+    if (typeof chrome !== 'undefined' && chrome.storage) {
+      chrome.storage.local.set({ theme: val });
+    }
+  });
+
+  const speedGroup = createOptionGroup('Speed', [
+    { label: 'Normal', value: 'normal' },
+    { label: 'Fast', value: 'fast' },
+    { label: 'Instant', value: 'instant' },
+  ], speed, (val) => {
+    speed = val;
+    if (typeof chrome !== 'undefined' && chrome.storage) {
+      chrome.storage.local.set({ speed: val });
+    }
+  });
+
+  settingsPanel.append(styleGroup, themeGroup, speedGroup);
+
+  // Toggle settings panel
+  let settingsOpen = false;
+  gearBtn.addEventListener('click', () => {
+    settingsOpen = !settingsOpen;
+    settingsPanel.style.display = settingsOpen ? 'flex' : 'none';
+    gearBtn.classList.toggle('active', settingsOpen);
+  });
 
   // — Content area
   const contentArea = document.createElement('div');
@@ -137,7 +228,7 @@ export function createReadingOverlay({
   const fullscreenBtn = document.createElement('button');
   fullscreenBtn.className = 'fr-fullscreen';
   fullscreenBtn.setAttribute('aria-label', 'Toggle fullscreen');
-  fullscreenBtn.innerHTML = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>`;
+  fullscreenBtn.innerHTML = FULLSCREEN_EXPAND;
 
   root.append(toolbar, contentArea, advanceBtn, fullscreenBtn);
   shadow.appendChild(root);
@@ -166,7 +257,6 @@ export function createReadingOverlay({
   // — Event handlers
   function handleAdvance() {
     state.advance();
-    // Scroll the newly revealed block into view
     const idx = state.visibleCount - 1;
     if (idx >= 0 && idx < blocks.length) {
       blocks[idx].scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -184,27 +274,19 @@ export function createReadingOverlay({
       handleAdvance();
     } else if (e.key === 'Escape') {
       e.preventDefault();
-      destroy();
+      if (settingsOpen) {
+        settingsOpen = false;
+        settingsPanel.style.display = 'none';
+        gearBtn.classList.remove('active');
+      } else {
+        destroy();
+      }
     }
   }
 
   document.addEventListener('keydown', handleKeydown);
 
   closeBtn.addEventListener('click', destroy);
-
-  // Style toggle
-  styleBtn.addEventListener('click', () => {
-    const currentStyle = host.getAttribute('data-style');
-    if (currentStyle === 'original') {
-      host.removeAttribute('data-style');
-      styleBtn.textContent = 'Deep Reader';
-      styleBtn.classList.add('active');
-    } else {
-      host.setAttribute('data-style', 'original');
-      styleBtn.textContent = 'Original';
-      styleBtn.classList.remove('active');
-    }
-  });
 
   // Fullscreen toggle
   fullscreenBtn.addEventListener('click', () => {

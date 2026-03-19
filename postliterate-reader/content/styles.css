@@ -19,8 +19,6 @@
    ================================================================ */
 
 :host {
-    color-scheme: light;
-
     /* Proportions */
     --phi: 1.618;
 
@@ -31,7 +29,18 @@
     /* Layout */
     --content-width: 65ch;
 
-    /* Colors — light-dark() eliminates duplicate dark mode declarations */
+    /* Responsive text sizes */
+    --text-base: clamp(17.6px, 1.24rem + 0.275vw, 22px);
+    --text-h1: clamp(28px, 2rem + 1vw, 48px);
+    --text-h2: clamp(22px, 1.5rem + 0.5vw, 32px);
+    --text-h3: clamp(18px, 1.125rem + 0.25vw, 24px);
+    --text-meta: clamp(14px, 0.875rem, 16px);
+    --text-caption: clamp(13px, 0.8rem, 15px);
+}
+
+/* color-scheme + light-dark() must live on the same element to resolve correctly */
+.pl-reader-root {
+    color-scheme: light;
     --background: light-dark(#F3EFE1, #1a1a1a);
     --text: light-dark(#2C2C2C, #c8c8c8);
     --text-secondary: light-dark(#666, #a0a0a0);
@@ -43,17 +52,9 @@
     --bg-subtle: light-dark(rgba(0, 0, 0, 0.02), rgba(255, 255, 255, 0.03));
     --bg-highlight: light-dark(rgba(229, 62, 51, 0.05), rgba(255, 107, 94, 0.08));
     --bg-pullquote: light-dark(rgba(229, 62, 51, 0.05), rgba(255, 107, 94, 0.08));
-
-    /* Responsive text sizes */
-    --text-base: clamp(17.6px, 1.24rem + 0.275vw, 22px);
-    --text-h1: clamp(28px, 2rem + 1vw, 48px);
-    --text-h2: clamp(22px, 1.5rem + 0.5vw, 32px);
-    --text-h3: clamp(18px, 1.125rem + 0.25vw, 24px);
-    --text-meta: clamp(14px, 0.875rem, 16px);
-    --text-caption: clamp(13px, 0.8rem, 15px);
 }
 
-:host([data-theme="dark"]) {
+:host([data-theme="dark"]) .pl-reader-root {
     color-scheme: dark;
 }
 
@@ -125,14 +126,61 @@
     }
 }
 
-.pl-toolbar-style {
-    font-family: 'Outfit', sans-serif;
-    font-size: var(--text-caption);
-    padding: 4px 10px;
+.pl-toolbar-btn.active {
+    color: var(--accent);
+    border-color: var(--accent);
+    background: var(--bg-highlight);
+}
+
+/* ================================================================
+   SETTINGS PANEL
+   ================================================================ */
+
+.pl-settings-panel {
+    position: sticky;
+    inset-block-start: 49px;
+    margin-inline-start: auto;
+    z-index: 20;
+    padding: 12px 16px;
+    background: var(--background);
     border: 1px solid var(--border-subtle);
-    background: none;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    font-family: 'Outfit', sans-serif;
+    width: 260px;
+    box-shadow: 0 4px 12px light-dark(rgba(0,0,0,0.08), rgba(0,0,0,0.3));
+}
+
+.pl-settings-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.pl-settings-label {
+    font-size: var(--text-caption);
     color: var(--text-secondary);
+    min-width: 44px;
+    flex-shrink: 0;
+}
+
+.pl-settings-group {
+    display: flex;
+    gap: 4px;
+    flex: 1;
+}
+
+.pl-settings-option {
+    flex: 1;
+    padding: 4px 8px;
+    font-family: 'Outfit', sans-serif;
+    font-size: 12px;
+    color: var(--text-secondary);
+    background: none;
+    border: 1px solid var(--border-subtle);
     cursor: pointer;
+    transition: color 0.15s ease, border-color 0.15s ease;
 
     &:hover {
         color: var(--accent);
@@ -143,6 +191,12 @@
         color: var(--accent);
         border-color: var(--accent);
         background: var(--bg-highlight);
+        font-weight: 500;
+    }
+
+    &:focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: 1px;
     }
 }
 
