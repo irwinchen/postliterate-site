@@ -213,4 +213,11 @@ describe('parseBlocks', () => {
     expect(blocks).toHaveLength(1);
     expect(blocks[0].textContent).toBe('Content');
   });
+
+  it('keeps figures that contain both a tracking pixel and a real image', () => {
+    const html = '<figure><img src="pixel.gif" width="1" height="1"><img src="photo.jpg" alt="Real"></figure><p>Content</p>';
+    const blocks = parseBlocks(html);
+    expect(blocks).toHaveLength(2);
+    expect(blocks[0].tagName).toBe('FIGURE');
+  });
 });

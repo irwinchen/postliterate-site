@@ -50,7 +50,6 @@ const ARTIFACT_PATTERNS = [
   /^Subscribe to /i,
   /^Newsletter$/i,
   /^Image$/i,
-  /^Credit\.{0,3}$/i,
   /^Photo$/i,
   /^Photograph:/i,
   /^Skip\s*Advertisement$/i,
@@ -121,13 +120,14 @@ function isJunkFigure(el) {
     const width = parseInt(img.getAttribute('width'), 10);
     const height = parseInt(img.getAttribute('height'), 10);
 
-    // Tracking pixel: explicit 1x1 dimensions
-    if (width <= 1 && height <= 1) return true;
+    const isTrackingPixel = !isNaN(width) && !isNaN(height) && width <= 1 && height <= 1;
+    const isBase64Placeholder = src.startsWith('data:image/') && src.length < 200;
 
-    // Base64 placeholder (tiny transparent GIF, etc.)
-    if (src.startsWith('data:image/') && src.length < 200) return true;
+    // If ANY image is real, keep the figure
+    if (!isTrackingPixel && !isBase64Placeholder) return false;
   }
-  return false;
+  // All images are junk
+  return true;
 }
 
 /**
