@@ -47,6 +47,27 @@
           "text": "We were left to pick up the pieces. Our bruised egos went searching for consolation. We looked at Go as the next battlefield, but we were also beginning to think about the other last bastions of humanity. Would it be Art? Music? Then only a few years later, the unthinkable happened. Lee Sedol lost to AlphaGo, and that was when I really started looking into what it was this machine was doing, what it was doing differently, how was it operating, that it could outthink, outplan, outmaneuver the best of the best. \nWhen the DeepMind team took the AlphaZero engine and gave it the rules of chess and told it to go play itself and learn on its own, until it came to its own understanding of the game, this was around the time when Kai was also playing tournaments, really studying the game himself. It turns out chess was the perfect way for me to understand what was going on technically (at a certain remove), not down to the math level but really the principles that were at play. \nThis is where I really formed my mental model of how LLMs and neural networks worked to create this…thing, this being, this simulation, this model."
         }
       ]
+    },
+    {
+      "date": "2026-03-22T23:56:59.536Z",
+      "diff": [
+        {
+          "type": "context",
+          "text": "I started out on this journey into AI back when my son, Kai, was playing chess, around 2020. But maybe it was earlier than that, when Garry Kasparov played Deep Blue for the first time in 1996. I remember being completely fascinated by the idea that a computer might be able to surpass a human in reasoning. What was so dramatic was that the first time they played we (Garry, the humans) were so confident in our superiority, and then he proved it by actually winning that first match.\nBut what it turned out to be was hubris, and it was really an indication of the speed and power of the technology at the time, factors that were improvable in short order. What I remember believing then as I still do now is that it was just a matter of time. Not if, but when. I "
+        },
+        {
+          "type": "del",
+          "text": "wasn’t"
+        },
+        {
+          "type": "add",
+          "text": "wasn't"
+        },
+        {
+          "type": "context",
+          "text": " sure if it would come in my lifetime, and when Deep Blue won convincingly the very next year, it felt like a watershed moment. \n  \nWe were left to pick up the pieces. Our bruised egos went searching for consolation. We looked at Go as the next battlefield, but we were also beginning to think about the other last bastions of humanity. Would it be Art? Music? Then only a few years later, the unthinkable happened. Lee Sedol lost to AlphaGo, and that was when I really started looking into what it was this machine was doing, what it was doing differently, how was it operating, that it could outthink, outplan, outmaneuver the best of the best. \nWhen the DeepMind team took the AlphaZero engine and gave it the rules of chess and told it to go play itself and learn on its own, until it came to its own understanding of the game, this was around the time when Kai was also playing tournaments, really studying the game himself. It turns out chess was the perfect way for me to understand what was going on technically (at a certain remove), not down to the math level but really the principles that were at play. \nThis is where I really formed my mental model of how LLMs and neural networks worked to create this…thing, this being, this simulation, this model."
+        }
+      ]
     }
   ]
 }
