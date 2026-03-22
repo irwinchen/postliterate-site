@@ -5,6 +5,171 @@
       "date": "2026-03-18T18:21:14.008Z",
       "summary": "Initial publication",
       "diff": null
+    },
+    {
+      "date": "2026-03-22T23:57:03.740Z",
+      "diff": [
+        {
+          "type": "context",
+          "text": "I am emerging from the fog of my own memory.\nToday I went on an unplanned expedition. I had a thought to find a transcription of Thelonious Monk's solo version of "
+        },
+        {
+          "type": "del",
+          "text": "“'Round"
+        },
+        {
+          "type": "add",
+          "text": "\"'Round"
+        },
+        {
+          "type": "context",
+          "text": " "
+        },
+        {
+          "type": "del",
+          "text": "Midnight“"
+        },
+        {
+          "type": "add",
+          "text": "Midnight\""
+        },
+        {
+          "type": "context",
+          "text": " that I had done for my sophomore year Music Theory final. That mission turned into an archeological dig through boxes of old letters, photos, and journals from high school up until the late 2000s.\n"
+        },
+        {
+          "type": "del",
+          "text": "“Didn’t"
+        },
+        {
+          "type": "add",
+          "text": "\"Didn't"
+        },
+        {
+          "type": "context",
+          "text": " you clean all that out last "
+        },
+        {
+          "type": "del",
+          "text": "summer?“"
+        },
+        {
+          "type": "add",
+          "text": "summer?\""
+        },
+        {
+          "type": "context",
+          "text": " Aya asked after seeing me knee-deep in papers and cardboard. All these missives from old flames and friends, souvenirs from adventures past, notebooks with work notes and ideas for projects, what do you do with all of these artifacts? "
+        },
+        {
+          "type": "del",
+          "text": "I’ve"
+        },
+        {
+          "type": "add",
+          "text": "I've"
+        },
+        {
+          "type": "context",
+          "text": " gone through archives of great literary figures, imposed order on them, but it seems pretentious to do that with my own papers.\nThe reality is "
+        },
+        {
+          "type": "del",
+          "text": "I’m"
+        },
+        {
+          "type": "add",
+          "text": "I'm"
+        },
+        {
+          "type": "context",
+          "text": " past the middle of my life. My memory is fading. I watch my mother struggling with dementia, and I know my brain is next. "
+        },
+        {
+          "type": "del",
+          "text": "It’s"
+        },
+        {
+          "type": "add",
+          "text": "It's"
+        },
+        {
+          "type": "context",
+          "text": " already begun. It "
+        },
+        {
+          "type": "del",
+          "text": "doesn’t"
+        },
+        {
+          "type": "add",
+          "text": "doesn't"
+        },
+        {
+          "type": "context",
+          "text": " help that I have a notoriously bad memory to begin with. I "
+        },
+        {
+          "type": "del",
+          "text": "can’t"
+        },
+        {
+          "type": "add",
+          "text": "can't"
+        },
+        {
+          "type": "context",
+          "text": " remember the years of significant events in my own life. Did I graduate in 2004 or 1994? Years feel like arbitrary numbers.\n  \nI start by adding post-its to each journal cover with the year. Now I can look back and see what I was thinking about by year. I'm the subject of my own investigation.\nMy current self is impressed at how prodigiously my former selves wrote (and in longhand!) back then. It was all we had. I even found three barf bags that I must have grabbed in desperation to write on in the middle of a flight. I "
+        },
+        {
+          "type": "del",
+          "text": "can’t"
+        },
+        {
+          "type": "add",
+          "text": "can't"
+        },
+        {
+          "type": "context",
+          "text": " pinpoint the exact date, but "
+        },
+        {
+          "type": "del",
+          "text": "I’m"
+        },
+        {
+          "type": "add",
+          "text": "I'm"
+        },
+        {
+          "type": "context",
+          "text": " estimating based on the overly florid script and where they were found in the strata of stuff, they were from around 1995, probably on the plane over to Amsterdam for my Fulbright year in the Netherlands. One barf bag was covered with notes on "
+        },
+        {
+          "type": "del",
+          "text": "Hofstadter’s"
+        },
+        {
+          "type": "add",
+          "text": "Hofstadter's"
+        },
+        {
+          "type": "context",
+          "text": " Gödel Escher Bach. The other two were filled with thoughts about writing that still torment me today. \n  \nSometimes I don't remember thinking these thoughts, just as when I look at old code I've written. A different person did write them. I can remember that time, but not with the clarity of mind that I think I have today. When I wrote back then, I was working things out — much as "
+        },
+        {
+          "type": "del",
+          "text": "I’m"
+        },
+        {
+          "type": "add",
+          "text": "I'm"
+        },
+        {
+          "type": "context",
+          "text": " doing now. But I like to think I have more experience accumulated, more lessons learned to apply. \n  \nAll this to say: We take for granted this technology of writing. With it, we can commune with an earlier version of ourselves by deciphering the marks we made before."
+        }
+      ]
     }
   ]
 }
