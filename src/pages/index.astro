@@ -2,7 +2,6 @@
 import Base from '../layouts/Base.astro';
 import { getCollection } from 'astro:content';
 import { postSlug, smartQuotes } from '../utils';
-import BlueskyFeed from '../components/BlueskyFeed.astro';
 
 const posts = await getCollection('blog', ({ data }) => data.status === 'published');
 const sortedPosts = posts.sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
@@ -18,7 +17,7 @@ function countWords(body: string | undefined) {
 ---
 
 <Base title="Post-Literate" description="Writing about orality, literacy, and AI.">
-  <div class="page-container has-sidebar">
+  <div class="page-container">
     <main class="main-column">
       <header class="article-header">
         <h1 class="article-title">Post-Literate</h1>
@@ -52,45 +51,5 @@ function countWords(body: string | undefined) {
         </ul>
       )}
     </main>
-    <BlueskyFeed handle="tmonkey718.bsky.social" limit={10} />
   </div>
-
-  <script is:inline>
-    (function initScrollFade() {
-      var timers = new WeakMap();
-      document.querySelectorAll('.has-sidebar .main-column, .has-sidebar .bsky-feed').forEach(function(el) {
-        el.addEventListener('scroll', function() {
-          el.classList.add('is-scrolling');
-          clearTimeout(timers.get(el));
-          timers.set(el, setTimeout(function() {
-            el.classList.remove('is-scrolling');
-          }, 1200));
-        }, { passive: true });
-      });
-    })();
-
-    (function initBskyToggle() {
-      var container = document.querySelector('.page-container.has-sidebar');
-      var btn = document.querySelector('.bsky-toggle');
-      if (!container || !btn) return;
-      if (localStorage.getItem('bskyHidden') === 'true') {
-        container.classList.add('sidebar-hidden');
-        btn.setAttribute('aria-label', 'Show Bluesky feed');
-      }
-      btn.addEventListener('click', function() {
-        var hidden = container.classList.toggle('sidebar-hidden');
-        localStorage.setItem('bskyHidden', hidden ? 'true' : 'false');
-        btn.setAttribute('aria-label', hidden ? 'Show Bluesky feed' : 'Hide Bluesky feed');
-      });
-    })();
-
-    (function initBskyLinks() {
-      document.querySelectorAll('.bsky-post[data-href]').forEach(function(post) {
-        post.addEventListener('click', function(e) {
-          if (e.target.closest('a')) return;
-          window.open(post.dataset.href, '_blank', 'noopener');
-        });
-      });
-    })();
-  </script>
 </Base>

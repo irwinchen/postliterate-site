@@ -44,7 +44,7 @@ Posts go from Obsidian vault to live site with one script and a git push. The pi
 
 - Posts live in Obsidian vault at `~/vaults/PostLiterate/07_Blog/` as `.mdx` files
 - Posts are copied (not symlinked) to `src/content/blog/` at publish time — symlinks break on Vercel
-- The `social` frontmatter field stores companion Mastodon/Bluesky post text
+- The `social` frontmatter field stores companion Mastodon post text
 - Full spec: `~/vaults/PostLiterate/06_Meta/Blog-Publishing-Pipeline.md`
 
 ## Constraints

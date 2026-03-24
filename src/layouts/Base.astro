@@ -1,5 +1,6 @@
 ---
 import { Settings, X, Sun, Moon, Compass, BookOpen } from '@lucide/astro';
+import Analytics from '@vercel/analytics/astro';
 
 interface Props {
   title: string;
@@ -27,6 +28,7 @@ const { title, description = "Post-Literate" } = Astro.props;
     />
 
     <title>{title} | Post-Literate</title>
+    <Analytics />
 
     <!-- Theme initialization (prevent flash) -->
     <script is:inline>

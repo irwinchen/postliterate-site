@@ -536,6 +536,7 @@
   <a href="#pipeline-section">Pipeline</a>
   <a href="#opportunities-section">Opportunities</a>
   <a href="#activity-section">Activity</a>
+  <a href="#analytics-section">Analytics</a>
 </nav>
 
 <main>
@@ -578,6 +579,25 @@
     </button>
     <div class="section-body" id="activity-body">
       <div class="loading">Loading activity data...</div>
+    </div>
+  </section>
+
+  <section class="dashboard-section" id="analytics-section">
+    <button class="section-toggle" onclick="toggleSection('analytics-section')">
+      <h2 class="section-heading">Analytics</h2>
+      <i data-lucide="chevron-down"></i>
+    </button>
+    <div class="section-body" id="analytics-body">
+      <p style="color: var(--muted); margin-block-end: 1em;">
+        Traffic data is tracked via Vercel Web Analytics (privacy-friendly, no cookies).
+      </p>
+      <a href="https://vercel.com/dashboard" target="_blank" rel="noopener"
+         style="display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px;
+                background: var(--fg); color: var(--bg); font-family: 'Outfit', sans-serif;
+                font-size: 14px; font-weight: 600; text-decoration: none; border: none;">
+        <svg width="16" height="16" viewBox="0 0 76 65" fill="currentColor"><path d="M37.5274 0L75.0548 65H0L37.5274 0Z"/></svg>
+        Open Vercel Analytics
+      </a>
     </div>
   </section>
 </main>

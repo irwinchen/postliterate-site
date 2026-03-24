@@ -10,6 +10,7 @@ import { existsSync, readFileSync, writeFileSync, unlinkSync, readdirSync, statS
 import { join } from 'node:path';
 import { execSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
+import { createHash } from 'node:crypto';
 
 const __dirname = fileURLToPath(new URL('.', import.meta.url));
 export const ROOT = join(__dirname, '..');
@@ -308,10 +309,12 @@ export function listPosts() {
     let needsRepublish = false;
     if (status === 'published' && inContent && !isSynced) {
       try {
-        const vaultMtime = statSync(p.path).mtimeMs;
-        const contentMtime = statSync(join(CONTENT_DIR, `${p.slug}.mdx`)).mtimeMs;
-        needsRepublish = vaultMtime > contentMtime;
-      } catch { /* ignore stat errors */ }
+        const vaultSource = readFileSync(p.path, 'utf8');
+        const vaultHash = createHash('sha256').update(vaultSource).digest('hex').slice(0, 12);
+        const pubContent = readFileSync(join(CONTENT_DIR, `${p.slug}.mdx`), 'utf8');
+        const storedHash = getFrontmatter(pubContent, 'source_hash');
+        needsRepublish = !storedHash || storedHash !== vaultHash;
+      } catch { /* ignore read errors */ }
     }
 
     posts.push({ slug: p.slug, title, date, description, status, tags, location, inVault: true, inContent, isSynced, needsRepublish });
@@ -507,10 +510,18 @@ export function publishPost(slug) {
   }
 
   // Copy from vault, transform margin notes + images, set status to published
-  let content = readFileSync(vault.path, 'utf8');
+  const vaultSource = readFileSync(vault.path, 'utf8');
+  const sourceHash = createHash('sha256').update(vaultSource).digest('hex').slice(0, 12);
+  let content = vaultSource;
   content = transformMarginNotes(content);
   content = transformImageEmbeds(content);
   content = content.replace(/^status:\s*draft$/m, 'status: published');
+  // Insert source_hash into frontmatter (update if exists, insert if not)
+  if (/^source_hash:\s*.+$/m.test(content)) {
+    content = content.replace(/^source_hash:\s*.+$/m, `source_hash: ${sourceHash}`);
+  } else {
+    content = content.replace(/^(---\n)/, `$1source_hash: ${sourceHash}\n`);
+  }
   writeFileSync(dest, content);
 
   // Build / update edit history
@@ -644,7 +655,7 @@ export function generateProjectStatus() {
     autoBlockers.push({
       id: 'blocker-social-companions',
       title: 'Missing social companions for published blog posts',
-      description: 'Published posts lack Mastodon/Bluesky companion versions for social distribution',
+      description: 'Published posts lack Mastodon companion versions for social distribution',
       severity: 'low',
       related_items: postsWithoutSocial.map((b) => b.id),
     });
