@@ -9,6 +9,7 @@ const blog = defineCollection({
     status: z.enum(['draft', 'published']),
     tags: z.array(z.string()).optional(),
     social: z.string().optional(),
+    bsky_post: z.string().optional(),
   }),
 });
 

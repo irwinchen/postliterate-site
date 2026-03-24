@@ -115,6 +115,18 @@ const truncatedDiffs: TruncatedSeg[][] = (history?.edits ?? []).map((edit) => {
             </details>
           </section>
         )}
+
+        {post.data.bsky_post && (
+          <section class="bsky-comments" data-bsky-post={post.data.bsky_post}>
+            <h2 class="bsky-comments-title">Comments</h2>
+            <p class="bsky-comments-cta">
+              Reply on <a href={post.data.bsky_post} target="_blank" rel="noopener">Bluesky</a> to join the conversation.
+            </p>
+            <div class="bsky-comments-thread" aria-live="polite">
+              <p class="bsky-comments-loading">Loading comments&hellip;</p>
+            </div>
+          </section>
+        )}
       </article>
 
       <aside class="margin-column loading" id="margin-column">
@@ -282,4 +294,74 @@ const truncatedDiffs: TruncatedSeg[][] = (history?.edits ?? []).map((edit) => {
       setTimeout(positionMarginNotes, 350);
     });
   });
+</script>
+
+<script>
+  import {
+    parseBskyUrl,
+    buildAtUri,
+    flattenThread,
+    renderCommentsSection,
+  } from '../../lib/bsky-comments.js';
+
+  const BSKY_API = 'https://public.api.bsky.app/xrpc';
+  const CACHE_TTL = 60_000;
+
+  async function loadComments() {
+    const section = document.querySelector('.bsky-comments');
+    if (!section) return;
+
+    const bskyUrl = (section as HTMLElement).dataset.bskyPost;
+    if (!bskyUrl) return;
+
+    const threadEl = section.querySelector('.bsky-comments-thread');
+    if (!threadEl) return;
+
+    const parsed = parseBskyUrl(bskyUrl);
+    if (!parsed) {
+      threadEl.innerHTML = '<p class="bsky-comments-error">Invalid Bluesky URL.</p>';
+      return;
+    }
+
+    // Check sessionStorage cache
+    const cacheKey = `bsky:${parsed.rkey}`;
+    const cached = sessionStorage.getItem(cacheKey);
+    if (cached) {
+      try {
+        const { html, ts } = JSON.parse(cached);
+        if (Date.now() - ts < CACHE_TTL) {
+          threadEl.innerHTML = html;
+          return;
+        }
+      } catch { /* ignore bad cache */ }
+    }
+
+    try {
+      // Resolve handle to DID
+      let did = parsed.handle;
+      if (!did.startsWith('did:')) {
+        const res = await fetch(`${BSKY_API}/com.atproto.identity.resolveHandle?handle=${encodeURIComponent(parsed.handle)}`);
+        if (!res.ok) throw new Error('Failed to resolve handle');
+        const data = await res.json();
+        did = data.did;
+      }
+
+      // Fetch thread
+      const uri = buildAtUri(did, parsed.rkey);
+      const threadRes = await fetch(`${BSKY_API}/app.bsky.feed.getPostThread?uri=${encodeURIComponent(uri)}&depth=6`);
+      if (!threadRes.ok) throw new Error('Failed to fetch thread');
+      const threadData = await threadRes.json();
+
+      const comments = flattenThread(threadData);
+      const html = renderCommentsSection(comments);
+      threadEl.innerHTML = html;
+
+      // Cache result
+      sessionStorage.setItem(cacheKey, JSON.stringify({ html, ts: Date.now() }));
+    } catch {
+      threadEl.innerHTML = `<p class="bsky-comments-error">Couldn't load comments. <a href="${bskyUrl}" target="_blank" rel="noopener">View on Bluesky</a></p>`;
+    }
+  }
+
+  loadComments();
 </script>

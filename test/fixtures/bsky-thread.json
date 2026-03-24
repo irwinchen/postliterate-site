@@ -1,0 +1,94 @@
+{
+  "thread": {
+    "$type": "app.bsky.feed.defs#threadViewPost",
+    "post": {
+      "uri": "at://did:plc:abc123/app.bsky.feed.post/root1",
+      "author": {
+        "did": "did:plc:abc123",
+        "handle": "author.bsky.social",
+        "displayName": "Original Author",
+        "avatar": "https://cdn.bsky.app/img/avatar/plain/did:plc:abc123/avatar.jpg"
+      },
+      "record": {
+        "text": "Check out my new blog post!",
+        "createdAt": "2026-03-20T12:00:00.000Z"
+      },
+      "likeCount": 10,
+      "repostCount": 2,
+      "replyCount": 3
+    },
+    "replies": [
+      {
+        "$type": "app.bsky.feed.defs#threadViewPost",
+        "post": {
+          "uri": "at://did:plc:user1/app.bsky.feed.post/reply1",
+          "author": {
+            "did": "did:plc:user1",
+            "handle": "alice.bsky.social",
+            "displayName": "Alice",
+            "avatar": "https://cdn.bsky.app/img/avatar/plain/did:plc:user1/avatar.jpg"
+          },
+          "record": {
+            "text": "Great post! Really enjoyed reading it.",
+            "createdAt": "2026-03-20T13:00:00.000Z"
+          },
+          "likeCount": 5,
+          "repostCount": 0,
+          "replyCount": 1
+        },
+        "replies": [
+          {
+            "$type": "app.bsky.feed.defs#threadViewPost",
+            "post": {
+              "uri": "at://did:plc:user3/app.bsky.feed.post/reply3",
+              "author": {
+                "did": "did:plc:user3",
+                "handle": "charlie.bsky.social",
+                "displayName": "Charlie",
+                "avatar": "https://cdn.bsky.app/img/avatar/plain/did:plc:user3/avatar.jpg"
+              },
+              "record": {
+                "text": "Agreed, Alice!",
+                "createdAt": "2026-03-20T14:00:00.000Z"
+              },
+              "likeCount": 1,
+              "repostCount": 0,
+              "replyCount": 0
+            },
+            "replies": []
+          }
+        ]
+      },
+      {
+        "$type": "app.bsky.feed.defs#threadViewPost",
+        "post": {
+          "uri": "at://did:plc:user2/app.bsky.feed.post/reply2",
+          "author": {
+            "did": "did:plc:user2",
+            "handle": "bob.bsky.social",
+            "displayName": "Bob",
+            "avatar": "https://cdn.bsky.app/img/avatar/plain/did:plc:user2/avatar.jpg"
+          },
+          "record": {
+            "text": "Interesting perspective.",
+            "createdAt": "2026-03-20T13:30:00.000Z"
+          },
+          "likeCount": 8,
+          "repostCount": 1,
+          "replyCount": 0
+        },
+        "replies": []
+      },
+      {
+        "$type": "app.bsky.feed.defs#blockedPost",
+        "uri": "at://did:plc:blocked/app.bsky.feed.post/blocked1",
+        "blocked": true
+      },
+      {
+        "$type": "app.bsky.feed.defs#notFoundPost",
+        "uri": "at://did:plc:deleted/app.bsky.feed.post/deleted1",
+        "notFound": true
+      }
+    ]
+  }
+}
