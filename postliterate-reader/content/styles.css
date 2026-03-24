@@ -68,7 +68,7 @@
     z-index: 2147483647;
     background-color: var(--background);
     color: var(--text);
-    font-family: 'Literata', serif;
+    font-family: var(--font-body-override, var(--original-font-body, 'Literata', serif));
     font-size: var(--text-base);
     line-height: var(--line-height);
     overflow-y: auto;
@@ -246,7 +246,7 @@
 }
 
 .pl-article-title {
-    font-family: 'Outfit', sans-serif;
+    font-family: var(--font-heading-override, var(--original-font-heading, 'Outfit', sans-serif));
     font-size: var(--text-h1);
     line-height: 1.2;
     font-weight: 600;
@@ -280,7 +280,7 @@
 
 /* Headings */
 h1, h2, h3 {
-    font-family: 'Outfit', sans-serif;
+    font-family: var(--font-heading-override, var(--original-font-heading, 'Outfit', sans-serif));
     text-wrap: balance;
 }
 
@@ -309,7 +309,7 @@ h3 {
 }
 
 h4, h5, h6 {
-    font-family: 'Outfit', sans-serif;
+    font-family: var(--font-heading-override, var(--original-font-heading, 'Outfit', sans-serif));
     font-weight: 500;
     text-wrap: balance;
 }
@@ -335,7 +335,7 @@ a {
 
 /* Code */
 code {
-    font-family: 'Sono', monospace;
+    font-family: var(--font-code-override, var(--original-font-mono, 'Sono', monospace));
     font-size: 0.9em;
     background: var(--bg-subtle);
     padding: 0.1em 0.4em;
@@ -348,7 +348,7 @@ pre {
     padding: calc(var(--base-unit) * 1.5);
     overflow-x: auto;
     max-width: 100%;
-    font-family: 'Sono', monospace;
+    font-family: var(--font-code-override, var(--original-font-mono, 'Sono', monospace));
     font-size: var(--text-caption);
     line-height: 1.6;
     white-space: pre-wrap;
@@ -552,28 +552,6 @@ hr {
    ORIGINAL STYLE MODE
    Swaps PostLiterate typography for captured page styles.
    ================================================================ */
-
-:host([data-style="original"]) {
-    .pl-reader-root {
-        font-family: var(--original-font-body, 'Literata', serif);
-        font-size: var(--original-size-body, var(--text-base));
-        line-height: var(--original-lh-body, var(--line-height));
-        color: var(--original-color-text, var(--text));
-        background-color: var(--original-color-bg, var(--background));
-    }
-
-    h1, h2, h3, h4, h5, h6 {
-        font-family: var(--original-font-heading, 'Outfit', sans-serif);
-    }
-
-    a {
-        color: var(--original-color-link, var(--accent));
-    }
-
-    code, pre {
-        font-family: var(--original-font-mono, 'Sono', monospace);
-    }
-}
 
 /* ================================================================
    KEYBOARD FOCUS

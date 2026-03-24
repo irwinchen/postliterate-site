@@ -9,40 +9,67 @@ import { createReadingOverlay } from './reading-ui.js';
 import { tagElements, collectSurvivingIds, matchByTextFingerprint } from './element-tagger.js';
 
 /**
+ * Find the first matching element from an array of selectors (tried in priority order).
+ * Unlike comma-separated selectors, this checks each selector individually
+ * so we prefer article content over random page elements.
+ */
+function findBestElement(selectorList) {
+  for (const sel of selectorList) {
+    const el = document.querySelector(sel);
+    if (el) return el;
+  }
+  return null;
+}
+
+/**
  * Snapshot computed styles from the original page before extraction.
- * Used for "Original Style" rendering mode.
+ * Selectors are ordered by specificity — article content first, then generic fallbacks.
  */
 function snapshotOriginalStyles() {
   const styles = {};
-  const selectors = [
-    { key: 'font-body', sel: 'article p, main p, .post p, p' },
-    { key: 'font-heading', sel: 'article h2, main h2, .post h2, h2' },
-    { key: 'font-mono', sel: 'code, pre code' },
-    { key: 'color-text', sel: 'article, main, .post, body' },
-    { key: 'color-bg', sel: 'body' },
-    { key: 'color-link', sel: 'a' },
-    { key: 'size-body', sel: 'article p, main p, .post p, p' },
-    { key: 'lh-body', sel: 'article p, main p, .post p, p' },
-  ];
 
-  for (const { key, sel } of selectors) {
-    const el = document.querySelector(sel);
-    if (!el) continue;
-    const cs = getComputedStyle(el);
+  // Body text — prefer article content paragraphs, fall back to body
+  const bodyEl = findBestElement([
+    'article p', '[role="article"] p', 'main p',
+    '.post-content p', '.article-body p', '.story-body p',
+    '.entry-content p', '.post p', 'p', 'body',
+  ]);
+  if (bodyEl) {
+    const cs = getComputedStyle(bodyEl);
+    styles['font-body'] = cs.fontFamily;
+    styles['size-body'] = cs.fontSize;
+    styles['lh-body'] = cs.lineHeight;
+  }
 
-    if (key.startsWith('font-')) {
-      styles[key] = cs.fontFamily;
-    } else if (key.startsWith('color-')) {
-      if (key === 'color-bg') {
-        styles[key] = cs.backgroundColor;
-      } else {
-        styles[key] = cs.color;
-      }
-    } else if (key.startsWith('size-')) {
-      styles[key] = cs.fontSize;
-    } else if (key.startsWith('lh-')) {
-      styles[key] = cs.lineHeight;
-    }
+  // Headings
+  const headingEl = findBestElement([
+    'article h1', 'article h2', '[role="article"] h2',
+    'main h1', 'main h2', '.post h2', 'h1', 'h2',
+  ]);
+  if (headingEl) {
+    styles['font-heading'] = getComputedStyle(headingEl).fontFamily;
+  }
+
+  // Code
+  const codeEl = findBestElement(['article code', 'main code', 'pre code', 'code']);
+  if (codeEl) {
+    styles['font-mono'] = getComputedStyle(codeEl).fontFamily;
+  }
+
+  // Colors
+  const textEl = findBestElement(['article', '[role="article"]', 'main', '.post', 'body']);
+  if (textEl) {
+    styles['color-text'] = getComputedStyle(textEl).color;
+  }
+
+  const bgEl = document.querySelector('body');
+  if (bgEl) {
+    styles['color-bg'] = getComputedStyle(bgEl).backgroundColor;
+  }
+
+  const linkEl = findBestElement(['article a', 'main a', 'a']);
+  if (linkEl) {
+    styles['color-link'] = getComputedStyle(linkEl).color;
   }
 
   return styles;
@@ -200,55 +227,40 @@ async function init(settings = {}) {
   const cssResponse = await fetch(cssUrl, { cache: 'no-store' });
   const cssText = await cssResponse.text();
 
-  // Resolve font URLs in CSS
-  const fontsUrl = chrome.runtime.getURL('fonts/');
-  const resolvedCss = cssText + `
-    @font-face {
-      font-family: 'Outfit';
-      src: url('${fontsUrl}outfit-400.woff2') format('woff2');
-      font-weight: 400;
-      font-display: swap;
-    }
-    @font-face {
-      font-family: 'Outfit';
-      src: url('${fontsUrl}outfit-500.woff2') format('woff2');
-      font-weight: 500;
-      font-display: swap;
-    }
-    @font-face {
-      font-family: 'Outfit';
-      src: url('${fontsUrl}outfit-600.woff2') format('woff2');
-      font-weight: 600;
-      font-display: swap;
-    }
-    @font-face {
-      font-family: 'Literata';
-      src: url('${fontsUrl}literata-400.woff2') format('woff2');
-      font-weight: 400;
-      font-style: normal;
-      font-display: swap;
-    }
-    @font-face {
-      font-family: 'Literata';
-      src: url('${fontsUrl}literata-400i.woff2') format('woff2');
-      font-weight: 400;
-      font-style: italic;
-      font-display: swap;
-    }
-    @font-face {
-      font-family: 'Literata';
-      src: url('${fontsUrl}literata-500.woff2') format('woff2');
-      font-weight: 500;
-      font-style: normal;
-      font-display: swap;
-    }
-    @font-face {
-      font-family: 'Sono';
-      src: url('${fontsUrl}sono-400.woff2') format('woff2');
-      font-weight: 400;
-      font-display: swap;
-    }
-  `;
+  // Inject @font-face in document scope (shadow DOM doesn't reliably load fonts)
+  if (!document.getElementById('pl-fonts')) {
+    const fontsUrl = chrome.runtime.getURL('fonts/');
+
+    // Collect the page's own @font-face rules so they're available in shadow DOM
+    let pageFontFaces = '';
+    try {
+      for (const sheet of document.styleSheets) {
+        try {
+          for (const rule of sheet.cssRules) {
+            if (rule instanceof CSSFontFaceRule) {
+              pageFontFaces += rule.cssText + '\n';
+            }
+          }
+        } catch { /* CORS-restricted stylesheet — skip */ }
+      }
+    } catch { /* no stylesheets — skip */ }
+
+    const fontStyle = document.createElement('style');
+    fontStyle.id = 'pl-fonts';
+    fontStyle.textContent = `
+      ${pageFontFaces}
+      @font-face { font-family: 'Outfit'; src: url('${fontsUrl}outfit-400.woff2') format('woff2'); font-weight: 400; font-display: swap; }
+      @font-face { font-family: 'Outfit'; src: url('${fontsUrl}outfit-500.woff2') format('woff2'); font-weight: 500; font-display: swap; }
+      @font-face { font-family: 'Outfit'; src: url('${fontsUrl}outfit-600.woff2') format('woff2'); font-weight: 600; font-display: swap; }
+      @font-face { font-family: 'Literata'; src: url('${fontsUrl}literata-400.woff2') format('woff2'); font-weight: 400; font-style: normal; font-display: swap; }
+      @font-face { font-family: 'Literata'; src: url('${fontsUrl}literata-400i.woff2') format('woff2'); font-weight: 400; font-style: italic; font-display: swap; }
+      @font-face { font-family: 'Literata'; src: url('${fontsUrl}literata-500.woff2') format('woff2'); font-weight: 500; font-style: normal; font-display: swap; }
+      @font-face { font-family: 'Sono'; src: url('${fontsUrl}sono-400.woff2') format('woff2'); font-weight: 400; font-display: swap; }
+    `;
+    document.head.appendChild(fontStyle);
+  }
+
+  const resolvedCss = cssText;
 
   // Gather publication metadata
   const faviconUrl = getFaviconUrl();

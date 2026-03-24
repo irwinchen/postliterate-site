@@ -4,8 +4,10 @@
 
 const DEFAULTS = {
   theme: 'auto',
-  style: 'deep-reader',
   speed: 'normal',
+  fontBody: 'original',
+  fontHeading: 'original',
+  fontCode: 'original',
 };
 
 // Current settings (loaded from storage)
@@ -121,7 +123,6 @@ async function init() {
   settings = { ...DEFAULTS, ...stored };
 
   // Initialize option groups
-  initOptionGroup('style-options', 'style');
   initOptionGroup('theme-options', 'theme');
   initOptionGroup('speed-options', 'speed');
 

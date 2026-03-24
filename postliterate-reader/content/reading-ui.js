@@ -63,8 +63,10 @@ export function createReadingOverlay({
 }) {
   let {
     theme = 'auto',
-    style = 'deep-reader',
     speed = 'normal',
+    fontBody = 'original',
+    fontHeading = 'original',
+    fontCode = 'original',
     startAt = 1,
   } = settings;
 
@@ -81,11 +83,6 @@ export function createReadingOverlay({
   }
   host.setAttribute('data-theme', resolveTheme(theme));
 
-  // Apply style mode
-  if (style === 'original') {
-    host.setAttribute('data-style', 'original');
-  }
-
   // Attach shadow root
   const shadow = host.attachShadow({ mode: 'open' });
 
@@ -94,7 +91,7 @@ export function createReadingOverlay({
   styleEl.textContent = cssText;
   shadow.appendChild(styleEl);
 
-  // Always inject original styles as custom properties (so toggle works anytime)
+  // Inject original page styles as custom properties
   if (originalStyles) {
     const origStyleEl = document.createElement('style');
     const props = Object.entries(originalStyles)
@@ -103,6 +100,44 @@ export function createReadingOverlay({
     origStyleEl.textContent = `:host { ${props}; }`;
     shadow.appendChild(origStyleEl);
   }
+
+  // Font override custom properties (applied when user selects non-"original" fonts)
+  const FONT_MAP = {
+    body: {
+      original: null,
+      literata: "'Literata', serif",
+      'system-sans': "system-ui, -apple-system, sans-serif",
+      'system-serif': "Georgia, 'Times New Roman', serif",
+    },
+    heading: {
+      original: null,
+      outfit: "'Outfit', sans-serif",
+      'system-sans': "system-ui, -apple-system, sans-serif",
+      'system-serif': "Georgia, 'Times New Roman', serif",
+    },
+    code: {
+      original: null,
+      sono: "'Sono', monospace",
+      'system-mono': "ui-monospace, 'Cascadia Code', 'Fira Code', monospace",
+    },
+  };
+
+  const fontOverrideEl = document.createElement('style');
+  shadow.appendChild(fontOverrideEl);
+
+  function applyFontOverrides() {
+    const overrides = [];
+    const bodyVal = FONT_MAP.body[fontBody];
+    const headingVal = FONT_MAP.heading[fontHeading];
+    const codeVal = FONT_MAP.code[fontCode];
+    if (bodyVal) overrides.push(`--font-body-override: ${bodyVal}`);
+    if (headingVal) overrides.push(`--font-heading-override: ${headingVal}`);
+    if (codeVal) overrides.push(`--font-code-override: ${codeVal}`);
+    fontOverrideEl.textContent = overrides.length
+      ? `:host { ${overrides.join('; ')}; }`
+      : '';
+  }
+  applyFontOverrides();
 
   // Build DOM structure
   const root = document.createElement('div');
@@ -153,18 +188,41 @@ export function createReadingOverlay({
   });
   toolbar.appendChild(settingsPanel);
 
-  const styleGroup = createOptionGroup('Style', [
-    { label: 'Deep Reader', value: 'deep-reader' },
+  const fontBodyGroup = createOptionGroup('Body Font', [
     { label: 'Original', value: 'original' },
-  ], style, (val) => {
-    style = val;
-    if (val === 'original') {
-      host.setAttribute('data-style', 'original');
-    } else {
-      host.removeAttribute('data-style');
-    }
+    { label: 'Literata', value: 'literata' },
+    { label: 'System Sans', value: 'system-sans' },
+    { label: 'System Serif', value: 'system-serif' },
+  ], fontBody, (val) => {
+    fontBody = val;
+    applyFontOverrides();
     if (typeof chrome !== 'undefined' && chrome.storage) {
-      chrome.storage.local.set({ style: val });
+      chrome.storage.local.set({ fontBody: val });
+    }
+  });
+
+  const fontHeadingGroup = createOptionGroup('Heading Font', [
+    { label: 'Original', value: 'original' },
+    { label: 'Outfit', value: 'outfit' },
+    { label: 'System Sans', value: 'system-sans' },
+    { label: 'System Serif', value: 'system-serif' },
+  ], fontHeading, (val) => {
+    fontHeading = val;
+    applyFontOverrides();
+    if (typeof chrome !== 'undefined' && chrome.storage) {
+      chrome.storage.local.set({ fontHeading: val });
+    }
+  });
+
+  const fontCodeGroup = createOptionGroup('Code Font', [
+    { label: 'Original', value: 'original' },
+    { label: 'Sono', value: 'sono' },
+    { label: 'System Mono', value: 'system-mono' },
+  ], fontCode, (val) => {
+    fontCode = val;
+    applyFontOverrides();
+    if (typeof chrome !== 'undefined' && chrome.storage) {
+      chrome.storage.local.set({ fontCode: val });
     }
   });
 
@@ -193,7 +251,7 @@ export function createReadingOverlay({
     }
   });
 
-  settingsPanel.append(styleGroup, themeGroup, speedGroup);
+  settingsPanel.append(fontBodyGroup, fontHeadingGroup, fontCodeGroup, themeGroup, speedGroup);
 
   // Toggle settings panel
   let settingsOpen = false;
