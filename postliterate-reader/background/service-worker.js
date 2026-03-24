@@ -86,7 +86,23 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         sendResponse({ success: false, reason: 'no-active-tab' });
       }
     })();
-    return true; // async response
+    return true;
+  }
+
+  if (message.action === 'edit-first-from-popup') {
+    (async () => {
+      const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+      if (tab?.id) {
+        const response = await toggleReader(tab.id, {
+          ...(message.settings || {}),
+          editFirst: true,
+        });
+        sendResponse(response);
+      } else {
+        sendResponse({ success: false, reason: 'no-active-tab' });
+      }
+    })();
+    return true;
   }
 });
 

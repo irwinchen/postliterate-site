@@ -7,9 +7,11 @@
 import { parseBlocks } from './block-parser.js';
 import { createReadingState } from './reading-state.js';
 import { createProgressRingSVG, updateProgressRing } from './progress-ring.js';
+import { createEditOverlay } from './edit-mode-ui.js';
 
 const GEAR_ICON = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>`;
 const CLOSE_ICON = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>`;
+const EDIT_ICON = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>`;
 const FULLSCREEN_EXPAND = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>`;
 
 /**
@@ -50,10 +52,14 @@ function createOptionGroup(label, options, currentValue, onChange) {
 export function createReadingOverlay({
   title,
   byline,
+  siteName = '',
+  faviconUrl = '',
+  publishDate = '',
   contentHtml,
   cssText,
   settings = {},
   originalStyles = null,
+  selectedIds = null,
 }) {
   let {
     theme = 'auto',
@@ -111,6 +117,16 @@ export function createReadingOverlay({
   titleEl.className = 'pl-toolbar-title';
   titleEl.textContent = title || 'Reading';
 
+  // Edit button (refine extraction)
+  const editBtn = document.createElement('button');
+  editBtn.className = 'pl-toolbar-btn';
+  editBtn.title = 'Edit selection';
+  editBtn.innerHTML = EDIT_ICON;
+  // Only show if we have selectedIds for mapping back to originals
+  if (!selectedIds || selectedIds.size === 0) {
+    editBtn.style.display = 'none';
+  }
+
   // Gear button (settings)
   const gearBtn = document.createElement('button');
   gearBtn.className = 'pl-toolbar-btn';
@@ -122,7 +138,7 @@ export function createReadingOverlay({
   closeBtn.title = 'Close reader';
   closeBtn.innerHTML = CLOSE_ICON;
 
-  toolbar.append(titleEl, gearBtn, closeBtn);
+  toolbar.append(titleEl, editBtn, gearBtn, closeBtn);
 
   // — Settings panel (hidden by default, absolute inside sticky toolbar)
   const settingsPanel = document.createElement('div');
@@ -194,6 +210,47 @@ export function createReadingOverlay({
   // Article header
   const header = document.createElement('div');
   header.className = 'pl-article-header';
+
+  // Publication info row: favicon + site name + date
+  if (siteName || faviconUrl || publishDate) {
+    const pubRow = document.createElement('div');
+    pubRow.className = 'pl-article-pub';
+
+    if (faviconUrl) {
+      const favicon = document.createElement('img');
+      favicon.className = 'pl-article-favicon';
+      favicon.src = faviconUrl;
+      favicon.alt = '';
+      favicon.width = 16;
+      favicon.height = 16;
+      // Hide broken favicons gracefully
+      favicon.onerror = () => { favicon.style.display = 'none'; };
+      pubRow.appendChild(favicon);
+    }
+
+    if (siteName) {
+      const siteEl = document.createElement('span');
+      siteEl.className = 'pl-article-site';
+      siteEl.textContent = siteName;
+      pubRow.appendChild(siteEl);
+    }
+
+    if (publishDate) {
+      if (siteName) {
+        const sep = document.createElement('span');
+        sep.className = 'pl-article-sep';
+        sep.textContent = '\u00B7';
+        pubRow.appendChild(sep);
+      }
+      const dateEl = document.createElement('span');
+      dateEl.className = 'pl-article-date';
+      dateEl.textContent = publishDate;
+      pubRow.appendChild(dateEl);
+    }
+
+    header.appendChild(pubRow);
+  }
+
   const h1 = document.createElement('h1');
   h1.className = 'pl-article-title';
   h1.textContent = title || '';
@@ -297,6 +354,259 @@ export function createReadingOverlay({
     }
   });
 
+  // — Edit mode: enter/exit
+  let editOverlay = null;
+
+  // Defined at outer scope so exitEditMode can remove it
+  function blockNavigation(e) {
+    if (e.target.closest('a[href]')) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+  }
+
+  editBtn.addEventListener('click', () => {
+    if (!selectedIds || selectedIds.size === 0) return;
+
+    // Hide the reading overlay
+    host.style.display = 'none';
+    document.body.style.overflow = '';
+
+    // Disable all links to prevent accidental navigation
+    document.addEventListener('click', blockNavigation, true);
+
+    // Inject edit mode CSS into the page (not shadow DOM)
+    let editStyleEl = document.getElementById('pl-edit-styles');
+    if (!editStyleEl) {
+      editStyleEl = document.createElement('style');
+      editStyleEl.id = 'pl-edit-styles';
+      editStyleEl.textContent = `
+        a[href] {
+          pointer-events: none !important;
+          cursor: default !important;
+        }
+        .pl-edit-selected {
+          outline: 2px solid #E53E33 !important;
+          outline-offset: 2px !important;
+          position: relative !important;
+          z-index: 2147483641 !important;
+        }
+        .pl-edit-hover-controls {
+          position: absolute;
+          inset-block-start: 2px;
+          inset-inline-end: 2px;
+          display: flex;
+          gap: 4px;
+          z-index: 2147483645;
+          pointer-events: auto;
+        }
+        .pl-edit-hover-controls button {
+          width: 28px;
+          height: 28px;
+          border: 1px solid #666;
+          background: #1a1a1a;
+          color: #fff;
+          font-size: 16px;
+          line-height: 1;
+          cursor: pointer;
+          display: grid;
+          place-items: center;
+          padding: 0;
+        }
+        .pl-edit-hover-controls button:hover {
+          background: #E53E33;
+          border-color: #E53E33;
+        }
+      `;
+      document.head.appendChild(editStyleEl);
+    }
+
+    // Create the edit overlay
+    editOverlay = createEditOverlay({
+      page: document.body,
+      selectedIds,
+      onConfirm: (newBlocks) => {
+        // Replace reading content with new blocks
+        articleContent.innerHTML = '';
+        for (const block of newBlocks) {
+          articleContent.appendChild(block);
+        }
+
+        // Reinitialize reading state
+        const newState = createReadingState(newBlocks, {
+          speed,
+          startAt: 1,
+          onProgress: ({ progress, isComplete }) => {
+            updateProgressRing(progressSVG, progress);
+            if (isComplete) advanceBtn.style.display = 'none';
+          },
+          onComplete: () => { advanceBtn.style.display = 'none'; },
+        });
+
+        // Update advance handler to use new state
+        advanceBtn.style.display = '';
+        updateProgressRing(progressSVG, newState.progress);
+
+        // Swap the state reference used by keyboard/button handlers
+        Object.assign(state, {
+          advance: newState.advance.bind(newState),
+          get progress() { return newState.progress; },
+          get visibleCount() { return newState.visibleCount; },
+          get isComplete() { return newState.isComplete; },
+        });
+
+        // Exit edit mode, show reader
+        exitEditMode();
+      },
+      onCancel: () => {
+        exitEditMode();
+      },
+    });
+
+    // Set up hover controls on tagged elements
+    setupHoverControls(editOverlay);
+  });
+
+  function exitEditMode() {
+    if (editOverlay) {
+      editOverlay.destroy();
+      editOverlay = null;
+    }
+    document.removeEventListener('click', blockNavigation, true);
+    const editStyleEl = document.getElementById('pl-edit-styles');
+    if (editStyleEl) editStyleEl.remove();
+    host.style.display = '';
+    document.body.style.overflow = 'hidden';
+  }
+
+  /**
+   * Set up mouseover/mouseout handlers for hover controls on tagged elements.
+   */
+  function setupHoverControls(overlay) {
+    let currentControls = null;
+    let currentTarget = null;
+
+    function removeControls() {
+      if (currentControls) {
+        currentControls.remove();
+        currentControls = null;
+        currentTarget = null;
+      }
+    }
+
+    function createControls(el) {
+      removeControls();
+      const controls = document.createElement('div');
+      controls.className = 'pl-edit-hover-controls';
+
+      if (overlay.mode.isSelected(el)) {
+        // Selected: pencil + X
+        const pencilBtn = document.createElement('button');
+        pencilBtn.textContent = '\u270F';
+        pencilBtn.title = 'Reclassify';
+        pencilBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          showTagPicker(el, overlay, controls);
+        });
+
+        const removeBtn = document.createElement('button');
+        removeBtn.textContent = '\u2715';
+        removeBtn.title = 'Remove';
+        removeBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          overlay.removeElement(el);
+          removeControls();
+        });
+
+        controls.append(pencilBtn, removeBtn);
+      } else {
+        // Unselected: + button
+        const addBtn = document.createElement('button');
+        addBtn.textContent = '+';
+        addBtn.title = 'Add';
+        addBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          overlay.addElement(el);
+          removeControls();
+        });
+
+        controls.appendChild(addBtn);
+      }
+
+      el.style.position = el.style.position || 'relative';
+      el.appendChild(controls);
+      currentControls = controls;
+      currentTarget = el;
+    }
+
+    document.body.addEventListener('mouseover', (e) => {
+      const el = e.target.closest('[data-pl-id]');
+      if (!el || el === currentTarget) return;
+      // Don't attach to the edit toolbar or scrim
+      if (el.closest('.pl-edit-toolbar, .pl-edit-scrim')) return;
+      createControls(el);
+    });
+
+    document.body.addEventListener('mouseout', (e) => {
+      const el = e.target.closest('[data-pl-id]');
+      if (!el) return;
+      // Check if we're moving to a child (don't remove controls)
+      if (el.contains(e.relatedTarget)) return;
+      if (el === currentTarget) {
+        removeControls();
+      }
+    });
+  }
+
+  /**
+   * Show a tag picker dropdown for reclassifying an element.
+   */
+  function showTagPicker(el, overlay, controlsContainer) {
+    const existing = controlsContainer.querySelector('.pl-tag-picker');
+    if (existing) { existing.remove(); return; }
+
+    const picker = document.createElement('div');
+    picker.className = 'pl-tag-picker';
+    Object.assign(picker.style, {
+      position: 'absolute',
+      insetBlockStart: '100%',
+      insetInlineEnd: '0',
+      display: 'flex',
+      flexDirection: 'column',
+      background: '#1a1a1a',
+      border: '1px solid #666',
+      zIndex: '2147483646',
+      minWidth: '120px',
+    });
+
+    const tags = ['P', 'H2', 'H3', 'BLOCKQUOTE', 'FIGURE', 'PRE', 'UL', 'OL'];
+    for (const tag of tags) {
+      const btn = document.createElement('button');
+      btn.textContent = tag;
+      Object.assign(btn.style, {
+        padding: '4px 12px',
+        background: 'transparent',
+        color: '#fff',
+        border: 'none',
+        borderBlockEnd: '1px solid #333',
+        fontFamily: 'Outfit, system-ui, sans-serif',
+        fontSize: '12px',
+        cursor: 'pointer',
+        textAlign: 'start',
+      });
+      btn.addEventListener('mouseover', () => { btn.style.background = '#333'; });
+      btn.addEventListener('mouseout', () => { btn.style.background = 'transparent'; });
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        overlay.mode.reclassify(el, tag);
+        picker.remove();
+      });
+      picker.appendChild(btn);
+    }
+
+    controlsContainer.appendChild(picker);
+  }
+
   // Listen for system theme changes
   const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
   function handleThemeChange(e) {
@@ -324,8 +634,14 @@ export function createReadingOverlay({
     host.remove();
   }
 
+  // — Public method to programmatically enter edit mode
+  function enterEditMode() {
+    editBtn.click();
+  }
+
   return {
     destroy,
+    enterEditMode,
     getProgress: () => state.progress,
     getVisibleCount: () => state.visibleCount,
   };

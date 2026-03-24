@@ -6,6 +6,7 @@
  */
 
 import { createReadingOverlay } from './reading-ui.js';
+import { tagElements, collectSurvivingIds, matchByTextFingerprint } from './element-tagger.js';
 
 /**
  * Snapshot computed styles from the original page before extraction.
@@ -49,6 +50,10 @@ function snapshotOriginalStyles() {
 
 /**
  * Extract article content using Readability.js.
+ * Pre-tags elements so we can map Readability output back to originals.
+ *
+ * Returns { article, selectedIds } where selectedIds is the set of
+ * data-pl-id values that Readability kept.
  */
 function extractArticle() {
   // ReadabilityLib is injected as an IIFE global
@@ -56,13 +61,112 @@ function extractArticle() {
 
   // Check if page looks like it has readable content
   if (!isProbablyReaderable(document)) {
-    return null;
+    return { article: null, selectedIds: new Set() };
   }
 
-  // Clone the document to avoid mutating the original page
+  // Pre-tag every element in the original page
+  tagElements(document.body);
+
+  // Clone the document (clone inherits data-pl-id attributes)
   const clone = document.cloneNode(true);
   const reader = new Readability(clone);
-  return reader.parse();
+  const article = reader.parse();
+
+  // Collect which original elements survived Readability's extraction
+  let selectedIds = new Set();
+  if (article && article.content) {
+    selectedIds = collectSurvivingIds(article.content);
+
+    // For extracted blocks without data-pl-id (Readability-created wrappers),
+    // fall back to text fingerprint matching
+    const container = document.createElement('div');
+    container.innerHTML = article.content;
+    const alreadyFound = new Set();
+    for (const el of container.querySelectorAll(':scope > *')) {
+      if (!el.hasAttribute('data-pl-id')) {
+        const text = el.textContent.trim();
+        if (text) {
+          const match = matchByTextFingerprint(text, document.body, alreadyFound);
+          if (match) {
+            const id = match.getAttribute('data-pl-id');
+            if (id) selectedIds.add(id);
+            alreadyFound.add(match);
+          }
+        }
+      }
+    }
+  }
+
+  return { article, selectedIds };
+}
+
+/**
+ * Get the site's favicon URL.
+ */
+function getFaviconUrl() {
+  // Try explicit link tags in order of preference
+  const selectors = [
+    'link[rel="icon"][type="image/svg+xml"]',
+    'link[rel="apple-touch-icon"]',
+    'link[rel="icon"][sizes="32x32"]',
+    'link[rel="icon"][sizes="16x16"]',
+    'link[rel="icon"]',
+    'link[rel="shortcut icon"]',
+  ];
+  for (const sel of selectors) {
+    const link = document.querySelector(sel);
+    if (link?.href) return link.href;
+  }
+  // Fallback to /favicon.ico
+  return new URL('/favicon.ico', window.location.origin).href;
+}
+
+/**
+ * Extract publication date from page metadata.
+ */
+function getPublicationDate() {
+  // Try meta tags (most common patterns)
+  const metaSelectors = [
+    'meta[property="article:published_time"]',
+    'meta[name="date"]',
+    'meta[name="publish-date"]',
+    'meta[name="DC.date"]',
+    'meta[property="og:article:published_time"]',
+    'meta[name="article.published"]',
+    'time[datetime]',
+  ];
+  for (const sel of metaSelectors) {
+    const el = document.querySelector(sel);
+    const value = el?.getAttribute('content') || el?.getAttribute('datetime');
+    if (value) {
+      const date = new Date(value);
+      if (!isNaN(date)) {
+        return date.toLocaleDateString('en-US', {
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric',
+        });
+      }
+    }
+  }
+  // Try JSON-LD
+  for (const script of document.querySelectorAll('script[type="application/ld+json"]')) {
+    try {
+      const data = JSON.parse(script.textContent);
+      const dateStr = data.datePublished || data.dateCreated;
+      if (dateStr) {
+        const date = new Date(dateStr);
+        if (!isNaN(date)) {
+          return date.toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+          });
+        }
+      }
+    } catch { /* ignore malformed JSON-LD */ }
+  }
+  return null;
 }
 
 /**
@@ -81,7 +185,7 @@ async function init(settings = {}) {
   const originalStyles = snapshotOriginalStyles();
 
   // Extract article
-  const article = extractArticle();
+  const { article, selectedIds } = extractArticle();
 
   if (!article || !article.content) {
     return {
@@ -146,15 +250,29 @@ async function init(settings = {}) {
     }
   `;
 
+  // Gather publication metadata
+  const faviconUrl = getFaviconUrl();
+  const siteName = article.siteName || '';
+  const publishDate = getPublicationDate();
+
   // Create the reading overlay
   const overlay = createReadingOverlay({
     title: article.title,
-    byline: article.byline || article.siteName || '',
+    byline: article.byline || '',
+    siteName,
+    faviconUrl,
+    publishDate,
     contentHtml: article.content,
     cssText: resolvedCss,
     settings,
     originalStyles,
+    selectedIds,
   });
+
+  // If editFirst flag is set, go straight into edit mode
+  if (settings.editFirst && selectedIds.size > 0) {
+    overlay.enterEditMode();
+  }
 
   return {
     success: true,

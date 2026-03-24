@@ -77,6 +77,42 @@ async function startReading() {
 }
 
 /**
+ * Edit extraction before reading — goes straight to edit mode.
+ */
+async function editFirst() {
+  const btn = document.getElementById('edit-first');
+  btn.textContent = 'Loading...';
+  btn.disabled = true;
+
+  try {
+    const response = await chrome.runtime.sendMessage({
+      action: 'edit-first-from-popup',
+      settings,
+    });
+
+    if (response && response.success) {
+      window.close();
+    } else if (response && response.reason === 'extraction-failed') {
+      btn.textContent = 'Could not extract content';
+      setTimeout(() => {
+        btn.textContent = 'Edit First';
+        btn.disabled = false;
+      }, 2000);
+    } else {
+      btn.textContent = 'Edit First';
+      btn.disabled = false;
+    }
+  } catch (error) {
+    console.error('Failed to start edit mode:', error);
+    btn.textContent = 'Error — try again';
+    setTimeout(() => {
+      btn.textContent = 'Edit First';
+      btn.disabled = false;
+    }, 2000);
+  }
+}
+
+/**
  * Initialize popup.
  */
 async function init() {
@@ -91,6 +127,9 @@ async function init() {
 
   // Start Reading button
   document.getElementById('start-reading').addEventListener('click', startReading);
+
+  // Edit First button
+  document.getElementById('edit-first').addEventListener('click', editFirst);
 }
 
 init();

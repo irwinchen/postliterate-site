@@ -216,6 +216,35 @@
     border-block-end: 1px solid var(--border-subtle);
 }
 
+.pl-article-pub {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-block-end: calc(var(--line-height) * 0.5);
+    font-family: 'Outfit', sans-serif;
+    font-size: var(--text-meta);
+    color: var(--text-secondary);
+}
+
+.pl-article-favicon {
+    width: 16px;
+    height: 16px;
+    object-fit: contain;
+    flex-shrink: 0;
+}
+
+.pl-article-site {
+    font-weight: 500;
+}
+
+.pl-article-sep {
+    opacity: 0.4;
+}
+
+.pl-article-date {
+    opacity: 0.7;
+}
+
 .pl-article-title {
     font-family: 'Outfit', sans-serif;
     font-size: var(--text-h1);
