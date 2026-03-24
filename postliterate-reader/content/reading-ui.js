@@ -267,7 +267,7 @@ export function createReadingOverlay({
   const articleContent = document.createElement('div');
   articleContent.className = 'pl-article-content';
 
-  const blocks = parseBlocks(contentHtml);
+  let blocks = parseBlocks(contentHtml);
   for (const block of blocks) {
     articleContent.appendChild(block);
   }
@@ -291,7 +291,7 @@ export function createReadingOverlay({
   shadow.appendChild(root);
 
   // Initialize reading state
-  const state = createReadingState(blocks, {
+  let state = createReadingState(blocks, {
     speed,
     startAt,
     onProgress: ({ progress, isComplete }) => {
@@ -425,15 +425,26 @@ export function createReadingOverlay({
     editOverlay = createEditOverlay({
       page: document.body,
       selectedIds,
-      onConfirm: (newBlocks) => {
-        // Replace reading content with new blocks
+      onConfirm: (assembledElements) => {
+        // Wrap assembled elements in a container and run through parseBlocks
+        // for consistent filtering, visibility states, etc.
+        const tempContainer = document.createElement('div');
+        for (const el of assembledElements) {
+          tempContainer.appendChild(el);
+        }
+        const newBlocks = parseBlocks(tempContainer.innerHTML);
+
+        // Replace reading content
         articleContent.innerHTML = '';
         for (const block of newBlocks) {
           articleContent.appendChild(block);
         }
 
+        // Reassign blocks so handleAdvance uses the new array
+        blocks = newBlocks;
+
         // Reinitialize reading state
-        const newState = createReadingState(newBlocks, {
+        state = createReadingState(blocks, {
           speed,
           startAt: 1,
           onProgress: ({ progress, isComplete }) => {
@@ -443,17 +454,8 @@ export function createReadingOverlay({
           onComplete: () => { advanceBtn.style.display = 'none'; },
         });
 
-        // Update advance handler to use new state
         advanceBtn.style.display = '';
-        updateProgressRing(progressSVG, newState.progress);
-
-        // Swap the state reference used by keyboard/button handlers
-        Object.assign(state, {
-          advance: newState.advance.bind(newState),
-          get progress() { return newState.progress; },
-          get visibleCount() { return newState.visibleCount; },
-          get isComplete() { return newState.isComplete; },
-        });
+        updateProgressRing(progressSVG, state.progress);
 
         // Exit edit mode, show reader
         exitEditMode();

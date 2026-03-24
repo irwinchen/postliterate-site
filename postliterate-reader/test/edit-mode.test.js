@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { EditMode } from '../content/edit-mode.js';
+import { parseBlocks } from '../content/block-parser.js';
 
 describe('EditMode', () => {
   let page;
@@ -204,6 +205,98 @@ describe('EditMode', () => {
       // Second block should now be a blockquote
       expect(blocks[1].tagName).toBe('BLOCKQUOTE');
       expect(blocks[1].textContent).toBe('First paragraph.');
+    });
+
+    it('strips unsafe attributes from assembled blocks', () => {
+      // Add tracking attributes to an element
+      const p = page.querySelector('[data-pl-id="1"]');
+      p.setAttribute('class', 'article-text tracked');
+      p.setAttribute('onclick', 'trackClick()');
+      p.setAttribute('data-analytics', 'true');
+
+      const mode = new EditMode(page, selectedIds);
+      const blocks = mode.assemble();
+      const assembled = blocks.find((b) => b.textContent === 'First paragraph.');
+      expect(assembled.hasAttribute('class')).toBe(false);
+      expect(assembled.hasAttribute('onclick')).toBe(false);
+      expect(assembled.hasAttribute('data-analytics')).toBe(false);
+    });
+
+    it('returns empty array when nothing is selected', () => {
+      const mode = new EditMode(page, new Set());
+      expect(mode.assemble()).toHaveLength(0);
+    });
+  });
+
+  describe('assemble → parseBlocks round-trip', () => {
+    it('assembled content survives parseBlocks pipeline', () => {
+      const mode = new EditMode(page, selectedIds);
+      const assembled = mode.assemble();
+
+      // Serialize to HTML, run through parseBlocks (same as onConfirm handler)
+      const container = document.createElement('div');
+      for (const el of assembled) container.appendChild(el);
+      const parsed = parseBlocks(container.innerHTML);
+
+      // parseBlocks should produce valid blocks matching our assembled content
+      expect(parsed.length).toBeGreaterThanOrEqual(5);
+      expect(parsed[0].textContent).toBe('Article Title');
+    });
+
+    it('reclassified elements survive parseBlocks pipeline', () => {
+      const mode = new EditMode(page, selectedIds);
+      const p = page.querySelector('[data-pl-id="1"]');
+      mode.reclassify(p, 'BLOCKQUOTE');
+      const assembled = mode.assemble();
+
+      const container = document.createElement('div');
+      for (const el of assembled) container.appendChild(el);
+      const parsed = parseBlocks(container.innerHTML);
+
+      const bq = parsed.find((b) => b.tagName === 'BLOCKQUOTE' && b.textContent === 'First paragraph.');
+      expect(bq).toBeDefined();
+    });
+
+    it('img→figure wrap survives parseBlocks pipeline', () => {
+      const mode = new EditMode(page, selectedIds);
+      const img = page.querySelector('[data-pl-id="5"]');
+      mode.add(img);
+      const assembled = mode.assemble();
+
+      const container = document.createElement('div');
+      for (const el of assembled) container.appendChild(el);
+      const parsed = parseBlocks(container.innerHTML);
+
+      const fig = parsed.find((b) => b.tagName === 'FIGURE');
+      expect(fig).toBeDefined();
+      expect(fig.querySelector('img')).not.toBeNull();
+    });
+
+    it('user-removed blocks are absent after round-trip', () => {
+      const mode = new EditMode(page, selectedIds);
+      mode.remove(page.querySelector('[data-pl-id="2"]')); // Remove "Second paragraph."
+      const assembled = mode.assemble();
+
+      const container = document.createElement('div');
+      for (const el of assembled) container.appendChild(el);
+      const parsed = parseBlocks(container.innerHTML);
+
+      const hasSecond = parsed.some((b) => b.textContent === 'Second paragraph.');
+      expect(hasSecond).toBe(false);
+    });
+
+    it('user-added blocks appear after round-trip', () => {
+      const mode = new EditMode(page, selectedIds);
+      const ad = page.querySelector('[data-pl-id="3"]'); // "Buy stuff!" - not in original selection
+      mode.add(ad);
+      const assembled = mode.assemble();
+
+      const container = document.createElement('div');
+      for (const el of assembled) container.appendChild(el);
+      const parsed = parseBlocks(container.innerHTML);
+
+      const hasAd = parsed.some((b) => b.textContent.includes('Buy stuff!'));
+      expect(hasAd).toBe(true);
     });
   });
 });
