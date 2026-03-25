@@ -22,17 +22,70 @@ function findBestElement(selectorList) {
 }
 
 /**
+ * Find the most common font-family among multiple paragraph elements.
+ * Samples paragraphs with substantial text (>80 chars) to skip subheads/captions.
+ * Returns a representative element with that font for size/line-height measurement.
+ */
+function findBodyFontElement(selectorList) {
+  const MIN_TEXT_LENGTH = 80;
+  for (const sel of selectorList) {
+    const els = document.querySelectorAll(sel);
+    if (els.length === 0) continue;
+
+    const fontCounts = new Map();
+    let longestEl = null;
+    let longestLen = 0;
+
+    for (const el of els) {
+      const textLen = el.textContent.trim().length;
+      if (textLen > longestLen) {
+        longestLen = textLen;
+        longestEl = el;
+      }
+      if (textLen < MIN_TEXT_LENGTH) continue;
+      const font = getComputedStyle(el).fontFamily;
+      fontCounts.set(font, (fontCounts.get(font) || 0) + 1);
+    }
+
+    // Return the most common font among substantial paragraphs
+    if (fontCounts.size > 0) {
+      let bestFont = null;
+      let bestCount = 0;
+      for (const [font, count] of fontCounts) {
+        if (count > bestCount) {
+          bestFont = font;
+          bestCount = count;
+        }
+      }
+      // Find a representative element with this font
+      for (const el of els) {
+        if (el.textContent.trim().length >= MIN_TEXT_LENGTH &&
+            getComputedStyle(el).fontFamily === bestFont) {
+          return el;
+        }
+      }
+    }
+
+    // Fallback: longest paragraph in this selector group
+    if (longestEl) return longestEl;
+  }
+  return document.querySelector('body');
+}
+
+/**
  * Snapshot computed styles from the original page before extraction.
  * Selectors are ordered by specificity — article content first, then generic fallbacks.
  */
 function snapshotOriginalStyles() {
   const styles = {};
 
-  // Body text — prefer article content paragraphs, fall back to body
-  const bodyEl = findBestElement([
-    'article p', '[role="article"] p', 'main p',
-    '.post-content p', '.article-body p', '.story-body p',
-    '.entry-content p', '.post p', 'p', 'body',
+  // Body text — sample multiple paragraphs, pick the most common font
+  // (avoids mistaking subhead/summary fonts for body text)
+  const bodyEl = findBodyFontElement([
+    'article p, [role="article"] p',
+    'main p',
+    '.post-content p, .article-body p, .story-body p, .entry-content p',
+    'p',
   ]);
   if (bodyEl) {
     const cs = getComputedStyle(bodyEl);
@@ -41,10 +94,10 @@ function snapshotOriginalStyles() {
     styles['lh-body'] = cs.lineHeight;
   }
 
-  // Headings
+  // Headings — prefer h1 (article title)
   const headingEl = findBestElement([
-    'article h1', 'article h2', '[role="article"] h2',
-    'main h1', 'main h2', '.post h2', 'h1', 'h2',
+    'article h1', '[role="article"] h1', 'main h1', 'h1',
+    'article h2', 'main h2', 'h2',
   ]);
   if (headingEl) {
     styles['font-heading'] = getComputedStyle(headingEl).fontFamily;
