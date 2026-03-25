@@ -289,9 +289,9 @@ export function createReadingOverlay({
     { label: 'Slow', value: 'slow' },
     { label: 'Medium', value: 'medium' },
     { label: 'Fast', value: 'fast' },
-    { label: 'Instant', value: 'instant' },
   ], speed, (val) => {
     speed = val;
+    applyReadingMode();
     if (typeof chrome !== 'undefined' && chrome.storage) {
       chrome.storage.local.set({ speed: val });
     }
