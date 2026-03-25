@@ -49,25 +49,11 @@ export class EditMode {
   remove(el) {
     this.selectedElements.delete(el);
 
-    // Track the removed element's ID so it gets stripped from clones during assembly
+    // Track the removed element's ID so it gets stripped from clones during assembly.
+    // This handles both directly selected elements and elements nested inside
+    // a selected ancestor — assemble() strips removed IDs from clones.
     const id = el.getAttribute('data-pl-id');
     if (id) this._removedIds.add(id);
-
-    // If a selected ancestor contains this element, explode the ancestor:
-    // remove it and add its direct block-level children (except the removed one)
-    let parent = el.parentElement;
-    while (parent) {
-      if (this.selectedElements.has(parent)) {
-        this.selectedElements.delete(parent);
-        for (const child of parent.children) {
-          if (child !== el && child.getAttribute('data-pl-id')) {
-            this.selectedElements.add(child);
-          }
-        }
-        break;
-      }
-      parent = parent.parentElement;
-    }
   }
 
   add(el) {

@@ -251,8 +251,8 @@ describe('EditMode', () => {
       const aside = newPage.querySelector('[data-pl-id="104"]');
       mode.remove(aside);
 
-      // After ancestor explosion, section is removed, div[101] is re-added
-      // The aside should NOT appear in assembled output
+      // The aside is nested inside the selected section — assemble() should
+      // strip it from the clone via _removedIds
       const blocks = mode.assemble();
       const allText = blocks.map((b) => b.textContent).join(' ');
       expect(allText).toContain('Article text.');
