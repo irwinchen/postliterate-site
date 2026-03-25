@@ -226,6 +226,68 @@ describe('EditMode', () => {
       const mode = new EditMode(page, new Set());
       expect(mode.assemble()).toHaveLength(0);
     });
+
+    it('strips deeply nested removed elements from assembled clones', () => {
+      // Simulate: Readability selected a container that wraps article + sidebar
+      document.body.innerHTML = `
+        <section data-pl-id="100">
+          <div data-pl-id="101">
+            <p data-pl-id="102">Article text.</p>
+            <p data-pl-id="103">More article text.</p>
+            <aside data-pl-id="104">
+              <h3 data-pl-id="105">Recommended Reading</h3>
+              <ul data-pl-id="106"><li><a href="#">Link</a></li></ul>
+            </aside>
+            <p data-pl-id="107">Final paragraph.</p>
+          </div>
+        </section>
+      `;
+      const newPage = document.body;
+      // Readability selected the outer section
+      const mode = new EditMode(newPage, new Set(['100']));
+      expect(mode.selectedElements.size).toBe(1);
+
+      // User removes the aside (Recommended Reading)
+      const aside = newPage.querySelector('[data-pl-id="104"]');
+      mode.remove(aside);
+
+      // After ancestor explosion, section is removed, div[101] is re-added
+      // The aside should NOT appear in assembled output
+      const blocks = mode.assemble();
+      const allText = blocks.map((b) => b.textContent).join(' ');
+      expect(allText).toContain('Article text.');
+      expect(allText).toContain('Final paragraph.');
+      expect(allText).not.toContain('Recommended Reading');
+      expect(allText).not.toContain('Link');
+    });
+
+    it('strips removed elements even when nested multiple levels deep', () => {
+      document.body.innerHTML = `
+        <article data-pl-id="200">
+          <div data-pl-id="201">
+            <div data-pl-id="202">
+              <p data-pl-id="203">Keep this.</p>
+              <div data-pl-id="204" class="inline-promo">
+                <a data-pl-id="205" href="#">Promoted link</a>
+              </div>
+              <p data-pl-id="206">Keep this too.</p>
+            </div>
+          </div>
+        </article>
+      `;
+      const newPage = document.body;
+      const mode = new EditMode(newPage, new Set(['200']));
+
+      // Remove the inline promo
+      const promo = newPage.querySelector('[data-pl-id="204"]');
+      mode.remove(promo);
+
+      const blocks = mode.assemble();
+      const allText = blocks.map((b) => b.textContent).join(' ');
+      expect(allText).toContain('Keep this.');
+      expect(allText).toContain('Keep this too.');
+      expect(allText).not.toContain('Promoted link');
+    });
   });
 
   describe('assemble → parseBlocks round-trip', () => {

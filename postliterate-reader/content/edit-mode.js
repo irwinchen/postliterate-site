@@ -32,6 +32,7 @@ export class EditMode {
     this._page = page;
     this._originalIds = new Set(selectedIds);
     this._tagOverrides = new Map();
+    this._removedIds = new Set();
 
     // Resolve IDs to DOM elements
     this.selectedElements = new Set();
@@ -47,10 +48,32 @@ export class EditMode {
 
   remove(el) {
     this.selectedElements.delete(el);
+
+    // Track the removed element's ID so it gets stripped from clones during assembly
+    const id = el.getAttribute('data-pl-id');
+    if (id) this._removedIds.add(id);
+
+    // If a selected ancestor contains this element, explode the ancestor:
+    // remove it and add its direct block-level children (except the removed one)
+    let parent = el.parentElement;
+    while (parent) {
+      if (this.selectedElements.has(parent)) {
+        this.selectedElements.delete(parent);
+        for (const child of parent.children) {
+          if (child !== el && child.getAttribute('data-pl-id')) {
+            this.selectedElements.add(child);
+          }
+        }
+        break;
+      }
+      parent = parent.parentElement;
+    }
   }
 
   add(el) {
     this.selectedElements.add(el);
+    const id = el.getAttribute('data-pl-id');
+    if (id) this._removedIds.delete(id);
   }
 
   inferTag(el) {
@@ -68,6 +91,7 @@ export class EditMode {
   reset() {
     this.selectedElements.clear();
     this._tagOverrides.clear();
+    this._removedIds.clear();
     for (const id of this._originalIds) {
       const el = this._page.querySelector(`[data-pl-id="${id}"]`);
       if (el) this.selectedElements.add(el);
@@ -79,29 +103,61 @@ export class EditMode {
   }
 
   /**
+   * Return the current selection as a set of data-pl-id values.
+   */
+  getSelectedIds() {
+    const ids = new Set();
+    for (const el of this.selectedElements) {
+      const id = el.getAttribute('data-pl-id');
+      if (id) ids.add(id);
+    }
+    return ids;
+  }
+
+  /**
    * Assemble the final block list: clone selected elements in DOM order,
    * apply cleanup, respect tag overrides.
+   * Filters out elements whose ancestor is also selected (avoids duplicates).
    */
   assemble() {
     if (this.selectedElements.size === 0) return [];
 
-    const sorted = Array.from(this.selectedElements).sort((a, b) => {
+    // Filter: skip any element that has an ancestor also in the selected set
+    const leafElements = Array.from(this.selectedElements).filter((el) => {
+      let parent = el.parentElement;
+      while (parent) {
+        if (this.selectedElements.has(parent)) return false;
+        parent = parent.parentElement;
+      }
+      return true;
+    });
+
+    const sorted = leafElements.sort((a, b) => {
       const pos = a.compareDocumentPosition(b);
       return pos & Node.DOCUMENT_POSITION_FOLLOWING ? -1 : 1;
     });
 
     return sorted.map((el) => {
+      // Clone first so we can strip removed descendants before cleanup
+      // (cleanup strips data-pl-id, so we must remove zombies first)
+      const clone = el.cloneNode(true);
+      if (this._removedIds.size > 0) {
+        for (const removedId of this._removedIds) {
+          const zombie = clone.querySelector(`[data-pl-id="${removedId}"]`);
+          if (zombie) zombie.remove();
+        }
+      }
+
       const tag = this.getTag(el);
       const needsWrap = (el.tagName === 'IMG' && tag === 'FIGURE');
       const needsReclassify = (tag !== el.tagName && !needsWrap);
 
       if (needsWrap) {
-        return cleanupElement(el, 'FIGURE');
+        return cleanupElement(clone, 'FIGURE');
       }
 
       if (needsReclassify) {
-        // Create new element with the target tag, move cleaned children
-        const cleaned = cleanupElement(el);
+        const cleaned = cleanupElement(clone);
         const wrapper = document.createElement(tag);
         while (cleaned.firstChild) {
           wrapper.appendChild(cleaned.firstChild);
@@ -109,7 +165,7 @@ export class EditMode {
         return wrapper;
       }
 
-      return cleanupElement(el);
+      return cleanupElement(clone);
     });
   }
 }
