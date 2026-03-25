@@ -148,6 +148,18 @@ export function createReadingOverlay({
   const toolbar = document.createElement('div');
   toolbar.className = 'pl-toolbar';
 
+  // Favicon in toolbar
+  if (faviconUrl) {
+    const toolbarFavicon = document.createElement('img');
+    toolbarFavicon.className = 'pl-toolbar-favicon';
+    toolbarFavicon.src = faviconUrl;
+    toolbarFavicon.alt = '';
+    toolbarFavicon.width = 16;
+    toolbarFavicon.height = 16;
+    toolbarFavicon.onerror = () => { toolbarFavicon.style.display = 'none'; };
+    toolbar.appendChild(toolbarFavicon);
+  }
+
   const titleEl = document.createElement('span');
   titleEl.className = 'pl-toolbar-title';
   titleEl.textContent = title || 'Reading';

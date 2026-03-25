@@ -5,8 +5,7 @@
  * Figures use a simple opacity fade-in instead.
  */
 
-const TOTAL_DURATION_S = 1.5;
-const MIN_PER_LINE_S = 0.12;
+const PER_LINE_DURATION_S = 0.3;
 const FIGURE_FADE_MS = 600;
 
 /**
@@ -36,9 +35,7 @@ export function calculateLineMetrics(el, speed = 'normal') {
   const lines = Math.max(1, Math.round(totalH / lh));
 
   const multiplier = SPEED_MULTIPLIERS[speed] ?? 1;
-  let perLine = (TOTAL_DURATION_S / lines) * multiplier;
-  if (multiplier > 0 && perLine < MIN_PER_LINE_S) perLine = MIN_PER_LINE_S;
-  if (multiplier === 0) perLine = 0;
+  const perLine = PER_LINE_DURATION_S * multiplier;
 
   const totalDuration = perLine * lines * 1000;
 

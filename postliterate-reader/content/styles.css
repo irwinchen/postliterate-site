@@ -94,6 +94,13 @@
     font-size: var(--text-meta);
 }
 
+.pl-toolbar-favicon {
+    width: 16px;
+    height: 16px;
+    object-fit: contain;
+    flex-shrink: 0;
+}
+
 .pl-toolbar-title {
     flex: 1;
     min-width: 0;

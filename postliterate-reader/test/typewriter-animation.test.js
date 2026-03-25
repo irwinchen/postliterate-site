@@ -7,7 +7,7 @@ import {
 } from '../content/typewriter-animation.js';
 
 describe('calculateLineMetrics', () => {
-  it('calculates line count and per-line duration from element dimensions', () => {
+  it('calculates line count and fixed per-line duration from element dimensions', () => {
     const el = document.createElement('p');
     // Mock scrollHeight and computed style
     Object.defineProperty(el, 'scrollHeight', { value: 100 });
@@ -19,9 +19,9 @@ describe('calculateLineMetrics', () => {
     const metrics = calculateLineMetrics(el);
     expect(metrics.lineHeight).toBe(25);
     expect(metrics.lines).toBe(4);
-    // 1.5 / 4 = 0.375
-    expect(metrics.perLine).toBeCloseTo(0.375);
-    expect(metrics.totalDuration).toBeCloseTo(1500);
+    // Fixed 0.3s per line regardless of line count
+    expect(metrics.perLine).toBeCloseTo(0.3);
+    expect(metrics.totalDuration).toBeCloseTo(1200); // 0.3 * 4 * 1000
   });
 
   it('falls back to fontSize * 1.4 when lineHeight is "normal"', () => {
@@ -37,7 +37,7 @@ describe('calculateLineMetrics', () => {
     expect(metrics.lines).toBe(2);
   });
 
-  it('enforces minimum perLine of 0.12s for long content', () => {
+  it('uses same per-line duration regardless of line count', () => {
     const el = document.createElement('p');
     Object.defineProperty(el, 'scrollHeight', { value: 500 });
     vi.spyOn(window, 'getComputedStyle').mockReturnValue({
@@ -47,9 +47,9 @@ describe('calculateLineMetrics', () => {
 
     const metrics = calculateLineMetrics(el);
     expect(metrics.lines).toBe(20);
-    // 1.5 / 20 = 0.075, but minimum is 0.12
-    expect(metrics.perLine).toBe(0.12);
-    expect(metrics.totalDuration).toBe(2400); // 0.12 * 20 * 1000
+    // Fixed 0.3s per line — same as a 4-line paragraph
+    expect(metrics.perLine).toBeCloseTo(0.3);
+    expect(metrics.totalDuration).toBeCloseTo(6000); // 0.3 * 20 * 1000
   });
 
   it('returns at least 1 line', () => {
@@ -64,7 +64,7 @@ describe('calculateLineMetrics', () => {
     expect(metrics.lines).toBe(1);
   });
 
-  it('respects speed setting: fast halves duration', () => {
+  it('respects speed setting: fast halves per-line duration', () => {
     const el = document.createElement('p');
     Object.defineProperty(el, 'scrollHeight', { value: 100 });
     vi.spyOn(window, 'getComputedStyle').mockReturnValue({
@@ -73,8 +73,8 @@ describe('calculateLineMetrics', () => {
     });
 
     const metrics = calculateLineMetrics(el, 'fast');
-    // 1.5 / 4 = 0.375, halved = 0.1875
-    expect(metrics.perLine).toBeCloseTo(0.1875);
+    // 0.3 * 0.5 = 0.15
+    expect(metrics.perLine).toBeCloseTo(0.15);
   });
 
   it('respects speed setting: instant sets perLine to 0', () => {
