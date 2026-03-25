@@ -3,30 +3,54 @@
  *
  * Reveals text elements line-by-line using clip-path polygon animation.
  * Figures use a simple opacity fade-in instead.
+ *
+ * Each block eases in: the first few lines are slower, ramping up to
+ * the target speed. This gives the eye a moment to settle before
+ * the text flows at full pace.
  */
-
-const PER_LINE_DURATION_S = 0.3;
-const FIGURE_FADE_MS = 600;
 
 /**
- * Speed multipliers for animation timing.
+ * Base per-line durations (seconds) at target speed for each setting.
  * @type {Record<string, number>}
  */
-const SPEED_MULTIPLIERS = {
-  normal: 1,
-  fast: 0.5,
+const BASE_PER_LINE = {
+  slow: 0.5,
+  medium: 0.3,
+  fast: 0.15,
   instant: 0,
 };
 
+const FIGURE_FADE_MS = 600;
+
+/**
+ * Ease-in ramp: multipliers for the first N lines.
+ * Line 0 is 2.5× slower, line 1 is 1.8×, line 2 is 1.3×,
+ * then all subsequent lines run at 1× (the base speed).
+ */
+const EASE_RAMP = [2.5, 1.8, 1.3];
+
+/**
+ * Get the per-line duration for a specific line index, applying ease-in ramp.
+ *
+ * @param {number} lineIndex - Zero-based line index
+ * @param {number} baseDuration - Target per-line duration in seconds
+ * @returns {number} Duration in seconds for this line
+ */
+export function getLineDuration(lineIndex, baseDuration) {
+  if (baseDuration === 0) return 0;
+  const rampMultiplier = lineIndex < EASE_RAMP.length ? EASE_RAMP[lineIndex] : 1;
+  return baseDuration * rampMultiplier;
+}
+
 /**
  * Calculate line metrics for an element: line height, line count,
- * per-line duration, and total animation duration.
+ * per-line schedule, and total animation duration.
  *
  * @param {Element} el - The element to measure
- * @param {'normal'|'fast'|'instant'} speed - Animation speed setting
- * @returns {{ lineHeight: number, lines: number, perLine: number, totalDuration: number }}
+ * @param {'slow'|'medium'|'fast'|'instant'} speed - Animation speed setting
+ * @returns {{ lineHeight: number, lines: number, perLineSchedule: number[], totalDuration: number }}
  */
-export function calculateLineMetrics(el, speed = 'normal') {
+export function calculateLineMetrics(el, speed = 'medium') {
   const style = getComputedStyle(el);
   let lh = parseFloat(style.lineHeight);
   if (isNaN(lh)) lh = parseFloat(style.fontSize) * 1.4;
@@ -34,12 +58,18 @@ export function calculateLineMetrics(el, speed = 'normal') {
   const totalH = el.scrollHeight;
   const lines = Math.max(1, Math.round(totalH / lh));
 
-  const multiplier = SPEED_MULTIPLIERS[speed] ?? 1;
-  const perLine = PER_LINE_DURATION_S * multiplier;
+  const base = BASE_PER_LINE[speed] ?? BASE_PER_LINE.medium;
 
-  const totalDuration = perLine * lines * 1000;
+  // Build per-line duration schedule with ease-in ramp
+  const perLineSchedule = [];
+  let totalMs = 0;
+  for (let i = 0; i < lines; i++) {
+    const dur = getLineDuration(i, base);
+    perLineSchedule.push(dur);
+    totalMs += dur * 1000;
+  }
 
-  return { lineHeight: lh, lines, perLine, totalDuration };
+  return { lineHeight: lh, lines, perLineSchedule, totalDuration: totalMs };
 }
 
 /**
@@ -66,11 +96,11 @@ export function buildClipPath({ line, progress, lineHeight, totalHeight }) {
  * Create and start a typewriter clip-path animation on an element.
  *
  * @param {Element} el - The element to animate
- * @param {'normal'|'fast'|'instant'} speed - Animation speed
+ * @param {'slow'|'medium'|'fast'|'instant'} speed - Animation speed
  * @returns {() => void} Cancel function to stop and clean up the animation
  */
-export function createTypewriterAnimation(el, speed = 'normal') {
-  const { lineHeight, lines, perLine, totalDuration } = calculateLineMetrics(el, speed);
+export function createTypewriterAnimation(el, speed = 'medium') {
+  const { lineHeight, lines, perLineSchedule, totalDuration } = calculateLineMetrics(el, speed);
   const totalH = el.scrollHeight;
 
   let cancelled = false;
@@ -95,7 +125,8 @@ export function createTypewriterAnimation(el, speed = 'normal') {
   function frame(now) {
     if (cancelled) return;
 
-    const t = Math.min((now - lineStart) / (perLine * 1000), 1);
+    const lineDuration = perLineSchedule[line] * 1000;
+    const t = Math.min((now - lineStart) / lineDuration, 1);
     el.style.clipPath = buildClipPath({
       line,
       progress: t,
@@ -128,10 +159,10 @@ export function createTypewriterAnimation(el, speed = 'normal') {
  * Create a simple fade-in animation for figure elements.
  *
  * @param {Element} el - The figure element to fade in
- * @param {'normal'|'fast'|'instant'} speed - Animation speed
+ * @param {'slow'|'medium'|'fast'|'instant'} speed - Animation speed
  * @returns {() => void} Cancel function
  */
-export function createFigureFadeIn(el, speed = 'normal') {
+export function createFigureFadeIn(el, speed = 'medium') {
   let cancelled = false;
 
   function cleanup() {
@@ -146,7 +177,8 @@ export function createFigureFadeIn(el, speed = 'normal') {
     return cleanup;
   }
 
-  const duration = speed === 'fast' ? FIGURE_FADE_MS / 2 : FIGURE_FADE_MS;
+  const baseDurations = { slow: 900, medium: 600, fast: 300 };
+  const duration = baseDurations[speed] || FIGURE_FADE_MS;
   el.style.opacity = '0';
   el.style.transition = `opacity ${duration}ms ease`;
 

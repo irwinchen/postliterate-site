@@ -4,24 +4,47 @@ import {
   buildClipPath,
   createTypewriterAnimation,
   createFigureFadeIn,
+  getLineDuration,
 } from '../content/typewriter-animation.js';
 
+describe('getLineDuration', () => {
+  it('applies ease-in ramp to early lines', () => {
+    const base = 0.3;
+    expect(getLineDuration(0, base)).toBeCloseTo(0.75);  // 2.5×
+    expect(getLineDuration(1, base)).toBeCloseTo(0.54);  // 1.8×
+    expect(getLineDuration(2, base)).toBeCloseTo(0.39);  // 1.3×
+  });
+
+  it('returns base duration for lines past the ramp', () => {
+    const base = 0.3;
+    expect(getLineDuration(3, base)).toBeCloseTo(0.3);
+    expect(getLineDuration(10, base)).toBeCloseTo(0.3);
+  });
+
+  it('returns 0 for instant speed', () => {
+    expect(getLineDuration(0, 0)).toBe(0);
+    expect(getLineDuration(5, 0)).toBe(0);
+  });
+});
+
 describe('calculateLineMetrics', () => {
-  it('calculates line count and fixed per-line duration from element dimensions', () => {
+  it('calculates line count and per-line schedule with ease-in', () => {
     const el = document.createElement('p');
-    // Mock scrollHeight and computed style
     Object.defineProperty(el, 'scrollHeight', { value: 100 });
     vi.spyOn(window, 'getComputedStyle').mockReturnValue({
       lineHeight: '25px',
       fontSize: '16px',
     });
 
-    const metrics = calculateLineMetrics(el);
+    const metrics = calculateLineMetrics(el, 'medium');
     expect(metrics.lineHeight).toBe(25);
     expect(metrics.lines).toBe(4);
-    // Fixed 0.3s per line regardless of line count
-    expect(metrics.perLine).toBeCloseTo(0.3);
-    expect(metrics.totalDuration).toBeCloseTo(1200); // 0.3 * 4 * 1000
+    expect(metrics.perLineSchedule).toHaveLength(4);
+    // First 3 lines have ramp multipliers, line 4 is base
+    expect(metrics.perLineSchedule[0]).toBeCloseTo(0.75);  // 0.3 * 2.5
+    expect(metrics.perLineSchedule[1]).toBeCloseTo(0.54);  // 0.3 * 1.8
+    expect(metrics.perLineSchedule[2]).toBeCloseTo(0.39);  // 0.3 * 1.3
+    expect(metrics.perLineSchedule[3]).toBeCloseTo(0.3);   // 0.3 * 1.0
   });
 
   it('falls back to fontSize * 1.4 when lineHeight is "normal"', () => {
@@ -37,19 +60,30 @@ describe('calculateLineMetrics', () => {
     expect(metrics.lines).toBe(2);
   });
 
-  it('uses same per-line duration regardless of line count', () => {
+  it('slow speed has longer per-line durations', () => {
     const el = document.createElement('p');
-    Object.defineProperty(el, 'scrollHeight', { value: 500 });
+    Object.defineProperty(el, 'scrollHeight', { value: 100 });
     vi.spyOn(window, 'getComputedStyle').mockReturnValue({
       lineHeight: '25px',
       fontSize: '16px',
     });
 
-    const metrics = calculateLineMetrics(el);
-    expect(metrics.lines).toBe(20);
-    // Fixed 0.3s per line — same as a 4-line paragraph
-    expect(metrics.perLine).toBeCloseTo(0.3);
-    expect(metrics.totalDuration).toBeCloseTo(6000); // 0.3 * 20 * 1000
+    const metrics = calculateLineMetrics(el, 'slow');
+    // Line 4 (index 3) should be at base slow speed: 0.5
+    expect(metrics.perLineSchedule[3]).toBeCloseTo(0.5);
+  });
+
+  it('fast speed has shorter per-line durations', () => {
+    const el = document.createElement('p');
+    Object.defineProperty(el, 'scrollHeight', { value: 100 });
+    vi.spyOn(window, 'getComputedStyle').mockReturnValue({
+      lineHeight: '25px',
+      fontSize: '16px',
+    });
+
+    const metrics = calculateLineMetrics(el, 'fast');
+    // Line 4 (index 3) should be at base fast speed: 0.15
+    expect(metrics.perLineSchedule[3]).toBeCloseTo(0.15);
   });
 
   it('returns at least 1 line', () => {
@@ -64,20 +98,7 @@ describe('calculateLineMetrics', () => {
     expect(metrics.lines).toBe(1);
   });
 
-  it('respects speed setting: fast halves per-line duration', () => {
-    const el = document.createElement('p');
-    Object.defineProperty(el, 'scrollHeight', { value: 100 });
-    vi.spyOn(window, 'getComputedStyle').mockReturnValue({
-      lineHeight: '25px',
-      fontSize: '16px',
-    });
-
-    const metrics = calculateLineMetrics(el, 'fast');
-    // 0.3 * 0.5 = 0.15
-    expect(metrics.perLine).toBeCloseTo(0.15);
-  });
-
-  it('respects speed setting: instant sets perLine to 0', () => {
+  it('instant speed has zero durations', () => {
     const el = document.createElement('p');
     Object.defineProperty(el, 'scrollHeight', { value: 100 });
     vi.spyOn(window, 'getComputedStyle').mockReturnValue({
@@ -86,7 +107,7 @@ describe('calculateLineMetrics', () => {
     });
 
     const metrics = calculateLineMetrics(el, 'instant');
-    expect(metrics.perLine).toBe(0);
+    expect(metrics.perLineSchedule.every((d) => d === 0)).toBe(true);
     expect(metrics.totalDuration).toBe(0);
   });
 });
@@ -109,7 +130,6 @@ describe('buildClipPath', () => {
       lineHeight: 25,
       totalHeight: 100,
     });
-    // Previous lines fully visible, current line partially visible
     expect(result).toBe('polygon(0 0, 100% 0, 100% 50px, 75% 50px, 75% 75px, 0 75px)');
   });
 
@@ -118,9 +138,8 @@ describe('buildClipPath', () => {
       line: 3,
       progress: 1,
       lineHeight: 25,
-      totalHeight: 90, // Not evenly divisible
+      totalHeight: 90,
     });
-    // bottom = min((3+1)*25, 90) = min(100, 90) = 90
     expect(result).toBe('polygon(0 0, 100% 0, 100% 75px, 100% 75px, 100% 90px, 0 90px)');
   });
 
@@ -138,7 +157,6 @@ describe('buildClipPath', () => {
 describe('createTypewriterAnimation', () => {
   beforeEach(() => {
     vi.useFakeTimers();
-    // Mock requestAnimationFrame
     let rafId = 0;
     vi.spyOn(window, 'requestAnimationFrame').mockImplementation((cb) => {
       rafId++;
@@ -155,7 +173,7 @@ describe('createTypewriterAnimation', () => {
       fontSize: '16px',
     });
 
-    createTypewriterAnimation(el, 'normal');
+    createTypewriterAnimation(el, 'medium');
     expect(el.style.clipPath).toBe('polygon(0 0, 0 0, 0 25px, 0 25px)');
   });
 
@@ -167,7 +185,7 @@ describe('createTypewriterAnimation', () => {
       fontSize: '16px',
     });
 
-    const cancel = createTypewriterAnimation(el, 'normal');
+    const cancel = createTypewriterAnimation(el, 'medium');
     expect(typeof cancel).toBe('function');
   });
 
@@ -180,7 +198,6 @@ describe('createTypewriterAnimation', () => {
     });
 
     createTypewriterAnimation(el, 'instant');
-    // Instant mode: animation should complete immediately
     await vi.advanceTimersByTimeAsync(50);
     expect(el.style.clipPath).toBe('');
   });
@@ -190,7 +207,6 @@ describe('createFigureFadeIn', () => {
   it('sets opacity transition and triggers fade to 1', () => {
     const el = document.createElement('figure');
     createFigureFadeIn(el);
-    // After forced reflow + opacity set, element ends at opacity 1 with transition
     expect(el.style.opacity).toBe('1');
     expect(el.style.transition).toContain('opacity');
   });
@@ -204,11 +220,7 @@ describe('createFigureFadeIn', () => {
 
     const el = document.createElement('figure');
     createFigureFadeIn(el);
-    // Need to trigger the rAF
     await vi.advanceTimersByTimeAsync(1);
-    // After the forced reflow + rAF, opacity should be 1
-    // The implementation sets opacity to 1 synchronously after forcing reflow
-    // Let's check it gets set
     expect(el.style.opacity === '0' || el.style.opacity === '1').toBe(true);
   });
 

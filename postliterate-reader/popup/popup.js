@@ -4,7 +4,7 @@
 
 const DEFAULTS = {
   theme: 'auto',
-  speed: 'normal',
+  speed: 'medium',
   fontBody: 'original',
   fontHeading: 'original',
   fontCode: 'original',

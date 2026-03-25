@@ -18,7 +18,7 @@ import {
  *
  * @param {Element[]} blocks - Array of block-level DOM elements
  * @param {Object} [options]
- * @param {'normal'|'fast'|'instant'} [options.speed='normal'] - Animation speed
+ * @param {'slow'|'medium'|'fast'|'instant'} [options.speed='medium'] - Animation speed
  * @param {number} [options.startAt=1] - Number of blocks to show initially (for resume)
  * @param {(state: Object) => void} [options.onProgress] - Called on each advance
  * @param {() => void} [options.onComplete] - Called when all blocks are revealed
@@ -26,7 +26,7 @@ import {
  */
 export function createReadingState(blocks, options = {}) {
   const {
-    speed = 'normal',
+    speed = 'medium',
     startAt = 1,
     onProgress,
     onComplete,

@@ -15,7 +15,7 @@ const EDIT_ICON = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" s
 const FULLSCREEN_EXPAND = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>`;
 
 /**
- * Build a toggle button group for settings.
+ * Build a toggle button group for settings (Mode, Theme, Speed).
  */
 function createOptionGroup(label, options, currentValue, onChange) {
   const row = document.createElement('div');
@@ -47,6 +47,37 @@ function createOptionGroup(label, options, currentValue, onChange) {
 }
 
 /**
+ * Build a dropdown select for settings (fonts).
+ */
+function createSelectGroup(label, options, currentValue, onChange) {
+  const row = document.createElement('div');
+  row.className = 'pl-settings-row';
+
+  const labelEl = document.createElement('span');
+  labelEl.className = 'pl-settings-label';
+  labelEl.textContent = label;
+  row.appendChild(labelEl);
+
+  const select = document.createElement('select');
+  select.className = 'pl-settings-select';
+
+  for (const opt of options) {
+    const option = document.createElement('option');
+    option.value = opt.value;
+    option.textContent = opt.label;
+    if (opt.value === currentValue) option.selected = true;
+    select.appendChild(option);
+  }
+
+  select.addEventListener('change', () => {
+    onChange(select.value);
+  });
+
+  row.appendChild(select);
+  return row;
+}
+
+/**
  * Create and mount the PostLiterate reading overlay.
  */
 export function createReadingOverlay({
@@ -63,10 +94,11 @@ export function createReadingOverlay({
 }) {
   let {
     theme = 'auto',
-    speed = 'normal',
+    speed = 'medium',
     fontBody = 'original',
     fontHeading = 'original',
     fontCode = 'original',
+    readingMode = 'deep',
     startAt = 1,
   } = settings;
 
@@ -194,13 +226,14 @@ export function createReadingOverlay({
     display: 'none',
     position: 'absolute',
     insetBlockStart: '100%',
-    insetInlineEnd: '0',
+    insetInlineEnd: '24px',
     width: '260px',
+    maxWidth: 'calc(100vw - 48px)',
     zIndex: '20',
   });
   toolbar.appendChild(settingsPanel);
 
-  const fontBodyGroup = createOptionGroup('Body Font', [
+  const fontBodyGroup = createSelectGroup('Body', [
     { label: 'Original', value: 'original' },
     { label: 'Literata', value: 'literata' },
     { label: 'System Sans', value: 'system-sans' },
@@ -213,7 +246,7 @@ export function createReadingOverlay({
     }
   });
 
-  const fontHeadingGroup = createOptionGroup('Heading Font', [
+  const fontHeadingGroup = createSelectGroup('Heading', [
     { label: 'Original', value: 'original' },
     { label: 'Outfit', value: 'outfit' },
     { label: 'System Sans', value: 'system-sans' },
@@ -226,7 +259,7 @@ export function createReadingOverlay({
     }
   });
 
-  const fontCodeGroup = createOptionGroup('Code Font', [
+  const fontCodeGroup = createSelectGroup('Code', [
     { label: 'Original', value: 'original' },
     { label: 'Sono', value: 'sono' },
     { label: 'System Mono', value: 'system-mono' },
@@ -253,7 +286,8 @@ export function createReadingOverlay({
   });
 
   const speedGroup = createOptionGroup('Speed', [
-    { label: 'Normal', value: 'normal' },
+    { label: 'Slow', value: 'slow' },
+    { label: 'Medium', value: 'medium' },
     { label: 'Fast', value: 'fast' },
     { label: 'Instant', value: 'instant' },
   ], speed, (val) => {
@@ -263,7 +297,18 @@ export function createReadingOverlay({
     }
   });
 
-  settingsPanel.append(fontBodyGroup, fontHeadingGroup, fontCodeGroup, themeGroup, speedGroup);
+  const modeGroup = createOptionGroup('Mode', [
+    { label: 'Deep Reading', value: 'deep' },
+    { label: 'Browse', value: 'browse' },
+  ], readingMode, (val) => {
+    readingMode = val;
+    applyReadingMode();
+    if (typeof chrome !== 'undefined' && chrome.storage) {
+      chrome.storage.local.set({ readingMode: val });
+    }
+  });
+
+  settingsPanel.append(modeGroup, fontBodyGroup, fontHeadingGroup, fontCodeGroup, themeGroup, speedGroup);
 
   // Toggle settings panel
   let settingsOpen = false;
@@ -381,6 +426,34 @@ export function createReadingOverlay({
     advanceBtn.style.display = 'none';
   }
 
+  // — Reading mode toggle (Deep Reading vs Browse)
+  function applyReadingMode() {
+    if (readingMode === 'browse') {
+      // Show all blocks, hide advance button
+      for (const block of blocks) {
+        block.classList.remove('fr-hidden', 'fr-visible', 'fr-revealing');
+        block.style.clipPath = '';
+        block.style.opacity = '';
+        block.style.transition = '';
+      }
+      advanceBtn.style.display = 'none';
+    } else {
+      // Re-enter deep reading from current position
+      state = createReadingState(blocks, {
+        speed,
+        startAt: state.visibleCount || 1,
+        onProgress: ({ progress, isComplete }) => {
+          updateProgressRing(progressSVG, progress);
+          if (isComplete) advanceBtn.style.display = 'none';
+        },
+        onComplete: () => { advanceBtn.style.display = 'none'; },
+      });
+      advanceBtn.style.display = '';
+      updateProgressRing(progressSVG, state.progress);
+    }
+  }
+  applyReadingMode();
+
   // — Event handlers
   function handleAdvance() {
     state.advance();
@@ -495,7 +568,10 @@ export function createReadingOverlay({
     editOverlay = createEditOverlay({
       page: document.body,
       selectedIds,
-      onConfirm: (assembledElements) => {
+      onConfirm: (assembledElements, currentMode) => {
+        // Update selectedIds so next edit session preserves removals/additions
+        selectedIds = currentMode.getSelectedIds();
+
         // Wrap assembled elements in a container and run through parseBlocks
         // for consistent filtering, visibility states, etc.
         const tempContainer = document.createElement('div');
@@ -513,19 +589,8 @@ export function createReadingOverlay({
         // Reassign blocks so handleAdvance uses the new array
         blocks = newBlocks;
 
-        // Reinitialize reading state
-        state = createReadingState(blocks, {
-          speed,
-          startAt: 1,
-          onProgress: ({ progress, isComplete }) => {
-            updateProgressRing(progressSVG, progress);
-            if (isComplete) advanceBtn.style.display = 'none';
-          },
-          onComplete: () => { advanceBtn.style.display = 'none'; },
-        });
-
-        advanceBtn.style.display = '';
-        updateProgressRing(progressSVG, state.progress);
+        // Re-apply the user's current reading mode (browse or deep)
+        applyReadingMode();
 
         // Exit edit mode, show reader
         exitEditMode();
