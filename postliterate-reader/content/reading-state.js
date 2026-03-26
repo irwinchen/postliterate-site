@@ -25,8 +25,10 @@ import {
  * @returns {Object} State machine with advance(), reset(), and state getters
  */
 export function createReadingState(blocks, options = {}) {
-  const {
+  let {
     speed = 'medium',
+  } = options;
+  const {
     startAt = 1,
     onProgress,
     onComplete,
@@ -114,6 +116,8 @@ export function createReadingState(blocks, options = {}) {
   return {
     advance,
     reset,
+    setSpeed(newSpeed) { speed = newSpeed; },
+    destroy() { if (currentCancel) { currentCancel(); currentCancel = null; } },
     get visibleCount() { return visibleCount; },
     get totalCount() { return blocks.length; },
     get progress() { return getState().progress; },

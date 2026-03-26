@@ -15,17 +15,32 @@ const EDIT_ICON = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" s
 const FULLSCREEN_EXPAND = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>`;
 
 /**
- * Build a toggle button group for settings (Mode, Theme, Speed).
+ * Create a settings row with label — shared by option groups and selects.
  */
-function createOptionGroup(label, options, currentValue, onChange) {
+function createSettingsRow(label) {
   const row = document.createElement('div');
   row.className = 'pl-settings-row';
-
   const labelEl = document.createElement('span');
   labelEl.className = 'pl-settings-label';
   labelEl.textContent = label;
   row.appendChild(labelEl);
+  return row;
+}
 
+/**
+ * Persist a setting to chrome.storage if available.
+ */
+function persistSetting(key, value) {
+  if (typeof chrome !== 'undefined' && chrome.storage) {
+    chrome.storage.local.set({ [key]: value });
+  }
+}
+
+/**
+ * Build a toggle button group for settings (Mode, Theme, Speed).
+ */
+function createOptionGroup(label, options, currentValue, onChange) {
+  const row = createSettingsRow(label);
   const group = document.createElement('div');
   group.className = 'pl-settings-group';
 
@@ -50,14 +65,7 @@ function createOptionGroup(label, options, currentValue, onChange) {
  * Build a dropdown select for settings (fonts).
  */
 function createSelectGroup(label, options, currentValue, onChange) {
-  const row = document.createElement('div');
-  row.className = 'pl-settings-row';
-
-  const labelEl = document.createElement('span');
-  labelEl.className = 'pl-settings-label';
-  labelEl.textContent = label;
-  row.appendChild(labelEl);
-
+  const row = createSettingsRow(label);
   const select = document.createElement('select');
   select.className = 'pl-settings-select';
 
@@ -241,9 +249,7 @@ export function createReadingOverlay({
   ], fontBody, (val) => {
     fontBody = val;
     applyFontOverrides();
-    if (typeof chrome !== 'undefined' && chrome.storage) {
-      chrome.storage.local.set({ fontBody: val });
-    }
+    persistSetting('fontBody', val);
   });
 
   const fontHeadingGroup = createSelectGroup('Heading', [
@@ -254,9 +260,7 @@ export function createReadingOverlay({
   ], fontHeading, (val) => {
     fontHeading = val;
     applyFontOverrides();
-    if (typeof chrome !== 'undefined' && chrome.storage) {
-      chrome.storage.local.set({ fontHeading: val });
-    }
+    persistSetting('fontHeading', val);
   });
 
   const fontCodeGroup = createSelectGroup('Code', [
@@ -266,9 +270,7 @@ export function createReadingOverlay({
   ], fontCode, (val) => {
     fontCode = val;
     applyFontOverrides();
-    if (typeof chrome !== 'undefined' && chrome.storage) {
-      chrome.storage.local.set({ fontCode: val });
-    }
+    persistSetting('fontCode', val);
   });
 
   const themeGroup = createOptionGroup('Theme', [
@@ -280,9 +282,7 @@ export function createReadingOverlay({
     const resolved = resolveTheme(val);
     host.setAttribute('data-theme', resolved);
     root.style.colorScheme = resolved;
-    if (typeof chrome !== 'undefined' && chrome.storage) {
-      chrome.storage.local.set({ theme: val });
-    }
+    persistSetting('theme', val);
   });
 
   const speedGroup = createOptionGroup('Speed', [
@@ -291,10 +291,8 @@ export function createReadingOverlay({
     { label: 'Fast', value: 'fast' },
   ], speed, (val) => {
     speed = val;
-    applyReadingMode();
-    if (typeof chrome !== 'undefined' && chrome.storage) {
-      chrome.storage.local.set({ speed: val });
-    }
+    state.setSpeed(speed);
+    persistSetting('speed', val);
   });
 
   const modeGroup = createOptionGroup('Mode', [
@@ -303,9 +301,7 @@ export function createReadingOverlay({
   ], readingMode, (val) => {
     readingMode = val;
     applyReadingMode();
-    if (typeof chrome !== 'undefined' && chrome.storage) {
-      chrome.storage.local.set({ readingMode: val });
-    }
+    persistSetting('readingMode', val);
   });
 
   settingsPanel.append(modeGroup, fontBodyGroup, fontHeadingGroup, fontCodeGroup, themeGroup, speedGroup);
@@ -405,20 +401,16 @@ export function createReadingOverlay({
   root.append(toolbar, contentArea, advanceBtn, fullscreenBtn);
   shadow.appendChild(root);
 
-  // Initialize reading state
-  let state = createReadingState(blocks, {
-    speed,
-    startAt,
+  // Shared progress callback for reading state
+  const stateCallbacks = {
     onProgress: ({ progress, isComplete }) => {
       updateProgressRing(progressSVG, progress);
-      if (isComplete) {
-        advanceBtn.style.display = 'none';
-      }
+      if (isComplete) advanceBtn.style.display = 'none';
     },
-    onComplete: () => {
-      advanceBtn.style.display = 'none';
-    },
-  });
+  };
+
+  // Initialize reading state
+  let state = createReadingState(blocks, { speed, startAt, ...stateCallbacks });
 
   // Update initial progress
   updateProgressRing(progressSVG, state.progress);
@@ -428,6 +420,7 @@ export function createReadingOverlay({
 
   // — Reading mode toggle (Deep Reading vs Browse)
   function applyReadingMode() {
+    state.destroy(); // Cancel any in-flight animation
     if (readingMode === 'browse') {
       // Show all blocks, hide advance button
       for (const block of blocks) {
@@ -442,11 +435,7 @@ export function createReadingOverlay({
       state = createReadingState(blocks, {
         speed,
         startAt: state.visibleCount || 1,
-        onProgress: ({ progress, isComplete }) => {
-          updateProgressRing(progressSVG, progress);
-          if (isComplete) advanceBtn.style.display = 'none';
-        },
-        onComplete: () => { advanceBtn.style.display = 'none'; },
+        ...stateCallbacks,
       });
       advanceBtn.style.display = '';
       updateProgressRing(progressSVG, state.progress);

@@ -33,6 +33,7 @@ function findBodyFontElement(selectorList) {
     if (els.length === 0) continue;
 
     const fontCounts = new Map();
+    const fontByEl = new Map(); // cache el -> fontFamily to avoid double getComputedStyle
     let longestEl = null;
     let longestLen = 0;
 
@@ -44,6 +45,7 @@ function findBodyFontElement(selectorList) {
       }
       if (textLen < MIN_TEXT_LENGTH) continue;
       const font = getComputedStyle(el).fontFamily;
+      fontByEl.set(el, font);
       fontCounts.set(font, (fontCounts.get(font) || 0) + 1);
     }
 
@@ -57,12 +59,9 @@ function findBodyFontElement(selectorList) {
           bestCount = count;
         }
       }
-      // Find a representative element with this font
-      for (const el of els) {
-        if (el.textContent.trim().length >= MIN_TEXT_LENGTH &&
-            getComputedStyle(el).fontFamily === bestFont) {
-          return el;
-        }
+      // Find a representative element with this font (from cache)
+      for (const [el, font] of fontByEl) {
+        if (font === bestFont) return el;
       }
     }
 
@@ -313,8 +312,6 @@ async function init(settings = {}) {
     document.head.appendChild(fontStyle);
   }
 
-  const resolvedCss = cssText;
-
   // Gather publication metadata
   const faviconUrl = getFaviconUrl();
   const siteName = article.siteName || '';
@@ -328,7 +325,7 @@ async function init(settings = {}) {
     faviconUrl,
     publishDate,
     contentHtml: article.content,
-    cssText: resolvedCss,
+    cssText,
     settings,
     originalStyles,
     selectedIds,
