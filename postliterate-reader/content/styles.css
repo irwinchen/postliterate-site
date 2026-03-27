@@ -636,27 +636,50 @@ hr {
    PRINT STYLES
    ================================================================ */
 @media print {
+    /* Hide UI chrome */
     .pl-toolbar,
     .fr-advance,
     .fr-fullscreen,
-    .pl-settings-panel {
+    .pl-settings-panel,
+    .pl-export-dropdown {
         display: none !important;
+    }
+
+    /* Break out of fixed overlay into normal flow */
+    :host {
+        position: static !important;
+        display: block !important;
+        width: auto !important;
+        height: auto !important;
+        overflow: visible !important;
     }
 
     .pl-reader-root {
         position: static !important;
+        inset: auto !important;
         overflow: visible !important;
+        height: auto !important;
+        z-index: auto !important;
     }
 
     .pl-content-area {
+        position: static !important;
         overflow: visible !important;
+        max-width: none !important;
+        height: auto !important;
+        padding: 0 !important;
+    }
+
+    .pl-article-content {
         max-width: none !important;
     }
 
-    /* Show all blocks regardless of reading state */
+    /* Show ALL blocks — reset every reading state effect */
     .fr-hidden {
         display: block !important;
         visibility: visible !important;
+        clip-path: none !important;
+        opacity: 1 !important;
     }
 
     .fr-visible,
@@ -664,6 +687,13 @@ hr {
         color: inherit !important;
         opacity: 1 !important;
         clip-path: none !important;
+    }
+
+    /* Reset any inline clip-path/opacity from typewriter animation */
+    .pl-article-content > * {
+        clip-path: none !important;
+        opacity: 1 !important;
+        transition: none !important;
     }
 
     /* Clean page breaks */
