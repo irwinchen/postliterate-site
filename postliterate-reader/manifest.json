@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "PostLiterate Reader",
+  "name": "Virgil Reader",
   "version": "0.1.0",
   "description": "Deep reading mode for any web page — focus on one block at a time with typewriter reveal",
   "permissions": ["activeTab", "storage", "scripting"],

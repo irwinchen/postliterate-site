@@ -92,7 +92,7 @@ async function init() {
   document.head.appendChild(fontStyle);
 
   // Set page title
-  document.title = article.title || 'PostLiterate Reader';
+  document.title = article.title || 'Virgil Reader';
 
   // Create and mount the reading overlay
   const overlay = createReadingOverlay({
