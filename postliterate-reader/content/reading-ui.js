@@ -13,6 +13,8 @@ const GEAR_ICON = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" s
 const CLOSE_ICON = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>`;
 const EDIT_ICON = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>`;
 const FULLSCREEN_EXPAND = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>`;
+const BOOKMARK_OUTLINE = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M19 21l-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>`;
+const BOOKMARK_FILLED = `<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M19 21l-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>`;
 
 /**
  * Create a settings row with label — shared by option groups and selects.
@@ -214,6 +216,69 @@ export function createReadingOverlay({
     editBtn.style.display = 'none';
   }
 
+  // Bookmark button (save to library)
+  const bookmarkBtn = document.createElement('button');
+  bookmarkBtn.className = 'pl-toolbar-btn';
+  bookmarkBtn.title = 'Save to Library';
+  bookmarkBtn.innerHTML = BOOKMARK_OUTLINE;
+  let articleSavedId = null;
+
+  // Check if this URL is already saved
+  if (typeof chrome !== 'undefined' && chrome.runtime) {
+    chrome.runtime.sendMessage({ action: 'check-saved', url: window.location.href }, (resp) => {
+      if (resp?.success && resp.entry) {
+        articleSavedId = resp.entry.id;
+        bookmarkBtn.innerHTML = BOOKMARK_FILLED;
+        bookmarkBtn.title = 'Saved to Library';
+      }
+    });
+  }
+
+  bookmarkBtn.addEventListener('click', () => {
+    if (typeof chrome === 'undefined' || !chrome.runtime) return;
+
+    // Compute word count and block count from content
+    const text = articleContent.textContent || '';
+    const wordCount = text.split(/\s+/).filter(Boolean).length;
+    const blockCount = articleContent.children.length;
+
+    const data = {
+      url: window.location.href,
+      title: title || '',
+      byline: byline || '',
+      siteName,
+      faviconUrl,
+      publishDate,
+      wordCount,
+      blockCount,
+      contentHtml: articleContent.innerHTML,
+      originalStyles: originalStyles || {},
+    };
+
+    if (articleSavedId) {
+      // Update existing
+      chrome.runtime.sendMessage({
+        action: 'update-article',
+        id: articleSavedId,
+        contentHtml: data.contentHtml,
+        counts: { wordCount, blockCount },
+      }, (resp) => {
+        if (resp?.success) {
+          bookmarkBtn.title = 'Updated in Library';
+        }
+      });
+    } else {
+      // Save new
+      chrome.runtime.sendMessage({ action: 'save-article', data }, (resp) => {
+        if (resp?.success) {
+          articleSavedId = resp.entry.id;
+          bookmarkBtn.innerHTML = BOOKMARK_FILLED;
+          bookmarkBtn.title = 'Saved to Library';
+        }
+      });
+    }
+  });
+
   // Gear button (settings)
   const gearBtn = document.createElement('button');
   gearBtn.className = 'pl-toolbar-btn';
@@ -225,7 +290,7 @@ export function createReadingOverlay({
   closeBtn.title = 'Close reader';
   closeBtn.innerHTML = CLOSE_ICON;
 
-  toolbar.append(titleEl, editBtn, gearBtn, closeBtn);
+  toolbar.append(titleEl, editBtn, bookmarkBtn, gearBtn, closeBtn);
 
   // — Settings panel (hidden by default, absolute inside sticky toolbar)
   const settingsPanel = document.createElement('div');

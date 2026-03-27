@@ -131,6 +131,12 @@ async function init() {
 
   // Edit First button
   document.getElementById('edit-first').addEventListener('click', editFirst);
+
+  // Library button
+  document.getElementById('open-library').addEventListener('click', () => {
+    chrome.tabs.create({ url: chrome.runtime.getURL('library/library.html') });
+    window.close();
+  });
 }
 
 init();
