@@ -101,6 +101,7 @@ export function createReadingOverlay({
   settings = {},
   originalStyles = null,
   selectedIds = null,
+  savedArticleId = null,
 }) {
   let {
     theme = 'auto',
@@ -221,10 +222,14 @@ export function createReadingOverlay({
   bookmarkBtn.className = 'pl-toolbar-btn';
   bookmarkBtn.title = 'Save to Library';
   bookmarkBtn.innerHTML = BOOKMARK_OUTLINE;
-  let articleSavedId = null;
+  let articleSavedId = savedArticleId || null;
 
-  // Check if this URL is already saved
-  if (typeof chrome !== 'undefined' && chrome.runtime) {
+  // For saved articles, show filled bookmark immediately
+  if (articleSavedId) {
+    bookmarkBtn.innerHTML = BOOKMARK_FILLED;
+    bookmarkBtn.title = 'Saved to Library';
+  } else if (typeof chrome !== 'undefined' && chrome.runtime) {
+    // Check if this URL is already saved
     chrome.runtime.sendMessage({ action: 'check-saved', url: window.location.href }, (resp) => {
       if (resp?.success && resp.entry) {
         articleSavedId = resp.entry.id;
@@ -540,7 +545,14 @@ export function createReadingOverlay({
 
   document.addEventListener('keydown', handleKeydown);
 
-  closeBtn.addEventListener('click', destroy);
+  closeBtn.addEventListener('click', () => {
+    if (savedArticleId) {
+      // In viewer page, navigate back to library
+      window.location.href = chrome.runtime.getURL('library/library.html');
+    } else {
+      destroy();
+    }
+  });
 
   // Fullscreen toggle
   fullscreenBtn.addEventListener('click', () => {

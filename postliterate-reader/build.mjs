@@ -22,6 +22,15 @@ const contentBuild = {
   target: 'chrome123',
 };
 
+// Bundle viewer (ESM → IIFE) — imports reading-ui without Readability/tagger
+const viewerBuild = {
+  entryPoints: ['viewer/viewer.js'],
+  bundle: true,
+  format: 'iife',
+  outfile: 'dist/viewer/viewer.js',
+  target: 'chrome123',
+};
+
 // Copy static files to dist
 function copyStatic() {
   const copies = [
@@ -33,6 +42,7 @@ function copyStatic() {
     ['icons', 'dist/icons'],
     ['fonts', 'dist/fonts'],
     ['library', 'dist/library'],
+    ['viewer/viewer.html', 'dist/viewer/viewer.html'],
   ];
 
   for (const [src, dest] of copies) {
@@ -48,10 +58,15 @@ async function build() {
 
   if (isWatch) {
     const ctx = await esbuild.context(contentBuild);
+    const ctx2 = await esbuild.context(viewerBuild);
     await ctx.watch();
+    await ctx2.watch();
     console.log('Watching for changes...');
   } else {
-    await esbuild.build(contentBuild);
+    await Promise.all([
+      esbuild.build(contentBuild),
+      esbuild.build(viewerBuild),
+    ]);
     console.log('Build complete → dist/');
   }
 }
