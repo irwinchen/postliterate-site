@@ -159,6 +159,38 @@
     box-shadow: 0 4px 12px light-dark(rgba(0,0,0,0.08), rgba(0,0,0,0.3));
 }
 
+.pl-export-dropdown {
+    position: absolute;
+    inset-block-start: 100%;
+    inset-inline-end: 0;
+    z-index: 20;
+    padding: 4px 0;
+    background: var(--background);
+    border: 1px solid var(--border-subtle);
+    flex-direction: column;
+    min-width: 140px;
+    box-shadow: 0 4px 12px light-dark(rgba(0,0,0,0.08), rgba(0,0,0,0.3));
+}
+
+.pl-export-item {
+    display: block;
+    width: 100%;
+    padding: 6px 14px;
+    font-family: 'Outfit', sans-serif;
+    font-size: var(--text-meta);
+    font-weight: 400;
+    color: var(--text);
+    background: none;
+    border: none;
+    cursor: pointer;
+    text-align: start;
+
+    &:hover {
+        background: light-dark(rgba(0,0,0,0.04), rgba(255,255,255,0.06));
+        color: var(--accent);
+    }
+}
+
 .pl-settings-row {
     display: flex;
     align-items: center;
@@ -597,5 +629,53 @@ hr {
 
     .pl-content-area {
         padding-inline: 16px;
+    }
+}
+
+/* ================================================================
+   PRINT STYLES
+   ================================================================ */
+@media print {
+    .pl-toolbar,
+    .fr-advance,
+    .fr-fullscreen,
+    .pl-settings-panel {
+        display: none !important;
+    }
+
+    .pl-reader-root {
+        position: static !important;
+        overflow: visible !important;
+    }
+
+    .pl-content-area {
+        overflow: visible !important;
+        max-width: none !important;
+    }
+
+    /* Show all blocks regardless of reading state */
+    .fr-hidden {
+        display: block !important;
+        visibility: visible !important;
+    }
+
+    .fr-visible,
+    .fr-revealing {
+        color: inherit !important;
+        opacity: 1 !important;
+        clip-path: none !important;
+    }
+
+    /* Clean page breaks */
+    .pl-article-header {
+        page-break-after: avoid;
+    }
+
+    h1, h2, h3, h4, h5, h6 {
+        page-break-after: avoid;
+    }
+
+    figure, blockquote, pre {
+        page-break-inside: avoid;
     }
 }

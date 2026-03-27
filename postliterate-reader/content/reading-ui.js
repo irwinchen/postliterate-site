@@ -8,6 +8,7 @@ import { parseBlocks } from './block-parser.js';
 import { createReadingState } from './reading-state.js';
 import { createProgressRingSVG, updateProgressRing } from './progress-ring.js';
 import { createEditOverlay } from './edit-mode-ui.js';
+import { exportPdf, exportHtml, exportMarkdown } from '../lib/export.js';
 
 const GEAR_ICON = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>`;
 const CLOSE_ICON = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>`;
@@ -15,6 +16,7 @@ const EDIT_ICON = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" s
 const FULLSCREEN_EXPAND = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>`;
 const BOOKMARK_OUTLINE = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M19 21l-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>`;
 const BOOKMARK_FILLED = `<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M19 21l-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>`;
+const DOWNLOAD_ICON = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>`;
 
 /**
  * Create a settings row with label — shared by option groups and selects.
@@ -284,6 +286,39 @@ export function createReadingOverlay({
     }
   });
 
+  // Export button + dropdown
+  const exportBtn = document.createElement('button');
+  exportBtn.className = 'pl-toolbar-btn';
+  exportBtn.title = 'Export';
+  exportBtn.innerHTML = DOWNLOAD_ICON;
+
+  const exportDropdown = document.createElement('div');
+  exportDropdown.className = 'pl-export-dropdown';
+  exportDropdown.style.display = 'none';
+
+  for (const [label, format] of [['PDF (Print)', 'pdf'], ['HTML', 'html'], ['Markdown', 'md']]) {
+    const item = document.createElement('button');
+    item.className = 'pl-export-item';
+    item.textContent = label;
+    item.addEventListener('click', () => {
+      exportDropdown.style.display = 'none';
+      const articleData = { title, byline, siteName, faviconUrl, publishDate, contentHtml: articleContent.innerHTML };
+      if (format === 'pdf') {
+        exportPdf();
+      } else if (format === 'html') {
+        exportHtml(articleData);
+      } else if (format === 'md') {
+        exportMarkdown(articleData, Array.from(articleContent.children));
+      }
+    });
+    exportDropdown.appendChild(item);
+  }
+
+  exportBtn.addEventListener('click', () => {
+    const isOpen = exportDropdown.style.display !== 'none';
+    exportDropdown.style.display = isOpen ? 'none' : 'flex';
+  });
+
   // Gear button (settings)
   const gearBtn = document.createElement('button');
   gearBtn.className = 'pl-toolbar-btn';
@@ -295,7 +330,7 @@ export function createReadingOverlay({
   closeBtn.title = 'Close reader';
   closeBtn.innerHTML = CLOSE_ICON;
 
-  toolbar.append(titleEl, editBtn, bookmarkBtn, gearBtn, closeBtn);
+  toolbar.append(titleEl, editBtn, bookmarkBtn, exportBtn, exportDropdown, gearBtn, closeBtn);
 
   // — Settings panel (hidden by default, absolute inside sticky toolbar)
   const settingsPanel = document.createElement('div');
