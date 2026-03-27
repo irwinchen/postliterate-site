@@ -115,7 +115,7 @@ export function createEditOverlay({ page, selectedIds, onConfirm, onCancel }) {
   // — Event handlers
   readBtn.addEventListener('click', () => {
     const blocks = mode.assemble();
-    onConfirm(blocks);
+    onConfirm(blocks, mode);
   });
 
   resetBtn.addEventListener('click', () => {
