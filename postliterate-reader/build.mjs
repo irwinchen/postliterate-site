@@ -32,6 +32,7 @@ function copyStatic() {
     ['background/service-worker.js', 'dist/background/service-worker.js'],
     ['icons', 'dist/icons'],
     ['fonts', 'dist/fonts'],
+    ['library', 'dist/library'],
   ];
 
   for (const [src, dest] of copies) {
