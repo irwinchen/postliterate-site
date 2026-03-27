@@ -8,6 +8,7 @@ import { parseBlocks } from './block-parser.js';
 import { createReadingState } from './reading-state.js';
 import { createProgressRingSVG, updateProgressRing } from './progress-ring.js';
 import { createEditOverlay } from './edit-mode-ui.js';
+import { enterSavedEditMode } from './saved-edit-mode.js';
 import { exportPdf, exportHtml, exportMarkdown } from '../lib/export.js';
 
 const GEAR_ICON = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>`;
@@ -214,8 +215,8 @@ export function createReadingOverlay({
   editBtn.className = 'pl-toolbar-btn';
   editBtn.title = 'Edit selection';
   editBtn.innerHTML = EDIT_ICON;
-  // Only show if we have selectedIds for mapping back to originals
-  if (!selectedIds || selectedIds.size === 0) {
+  // Show edit button if we have selectedIds for original page, or savedArticleId for block editor
+  if (!savedArticleId && (!selectedIds || selectedIds.size === 0)) {
     editBtn.style.display = 'none';
   }
 
@@ -610,6 +611,38 @@ export function createReadingOverlay({
   }
 
   editBtn.addEventListener('click', () => {
+    // Saved article: use block list editor within shadow DOM
+    if (savedArticleId) {
+      let savedEditHandle = null;
+      savedEditHandle = enterSavedEditMode(blocks, articleContent, shadow, {
+        onConfirm: (survivingBlocks) => {
+          // Update blocks and content
+          articleContent.innerHTML = '';
+          for (const block of survivingBlocks) {
+            articleContent.appendChild(block);
+          }
+          blocks = survivingBlocks;
+
+          // Save updated content back to storage
+          if (typeof chrome !== 'undefined' && chrome.runtime) {
+            const text = articleContent.textContent || '';
+            const wordCount = text.split(/\s+/).filter(Boolean).length;
+            chrome.runtime.sendMessage({
+              action: 'update-article',
+              id: savedArticleId,
+              contentHtml: articleContent.innerHTML,
+              counts: { wordCount, blockCount: survivingBlocks.length },
+            });
+          }
+
+          // Re-apply reading mode
+          applyReadingMode();
+        },
+        onCancel: () => { /* nothing to restore */ },
+      });
+      return;
+    }
+
     if (!selectedIds || selectedIds.size === 0) return;
 
     // Hide the reading overlay
