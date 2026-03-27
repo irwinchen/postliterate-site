@@ -1,0 +1,168 @@
+/* PostLiterate Reader — Popup Styles
+   Matches the PostLiterate design system: Outfit, Swiss minimal, no rounded corners. */
+
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600&display=swap');
+
+*,
+*::before,
+*::after {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Outfit', system-ui, sans-serif;
+    font-size: 14px;
+    color: light-dark(#2C2C2C, #c8c8c8);
+    background: light-dark(#F3EFE1, #1a1a1a);
+    color-scheme: light dark;
+    width: 280px;
+}
+
+.popup {
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+/* Header */
+.popup-header {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+}
+
+.popup-title {
+    font-size: 16px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+}
+
+.popup-subtitle {
+    font-size: 12px;
+    color: light-dark(#E53E33, #ff6b5e);
+    font-weight: 500;
+}
+
+/* Primary button */
+.btn-primary {
+    display: block;
+    flex: 1.5;
+    padding: 10px;
+    font-family: 'Outfit', system-ui, sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    color: #fff;
+    background: light-dark(#E53E33, #ff6b5e);
+    border: none;
+    cursor: pointer;
+    transition: opacity 0.2s ease;
+
+    &:hover {
+        opacity: 0.9;
+    }
+
+    &:focus-visible {
+        outline: 2px solid light-dark(#E53E33, #ff6b5e);
+        outline-offset: 2px;
+    }
+}
+
+/* Action buttons */
+.popup-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.btn-secondary {
+    display: block;
+    flex: 1;
+    padding: 10px;
+    font-family: 'Outfit', system-ui, sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    color: light-dark(#2C2C2C, #c8c8c8);
+    background: none;
+    border: 1px solid light-dark(rgba(0, 0, 0, 0.15), rgba(255, 255, 255, 0.15));
+    cursor: pointer;
+    transition: border-color 0.2s ease, color 0.2s ease;
+
+    &:hover {
+        border-color: light-dark(#E53E33, #ff6b5e);
+        color: light-dark(#E53E33, #ff6b5e);
+    }
+
+    &:focus-visible {
+        outline: 2px solid light-dark(#E53E33, #ff6b5e);
+        outline-offset: 2px;
+    }
+}
+
+/* Settings */
+.settings {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.setting-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.setting-label {
+    font-size: 12px;
+    color: light-dark(#666, #a0a0a0);
+    min-width: 44px;
+    flex-shrink: 0;
+}
+
+.setting-options {
+    display: flex;
+    gap: 4px;
+    flex: 1;
+}
+
+.setting-btn {
+    flex: 1;
+    padding: 4px 8px;
+    font-family: 'Outfit', system-ui, sans-serif;
+    font-size: 11px;
+    font-weight: 400;
+    color: light-dark(#666, #a0a0a0);
+    background: none;
+    border: 1px solid light-dark(rgba(0, 0, 0, 0.1), rgba(255, 255, 255, 0.1));
+    cursor: pointer;
+    transition: color 0.15s ease, border-color 0.15s ease;
+
+    &:hover {
+        color: light-dark(#E53E33, #ff6b5e);
+        border-color: light-dark(#E53E33, #ff6b5e);
+    }
+
+    &.active {
+        color: light-dark(#E53E33, #ff6b5e);
+        border-color: light-dark(#E53E33, #ff6b5e);
+        background: light-dark(rgba(229, 62, 51, 0.05), rgba(255, 107, 94, 0.08));
+        font-weight: 500;
+    }
+
+    &:focus-visible {
+        outline: 2px solid light-dark(#E53E33, #ff6b5e);
+        outline-offset: 1px;
+    }
+}
+
+/* Footer */
+.popup-footer {
+    padding-block-start: 4px;
+    border-block-start: 1px solid light-dark(rgba(0, 0, 0, 0.06), rgba(255, 255, 255, 0.06));
+}
+
+.shortcut-hint {
+    font-size: 11px;
+    color: light-dark(#999, #707070);
+}

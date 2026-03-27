@@ -1,0 +1,38 @@
+{
+  "manifest_version": 3,
+  "name": "PostLiterate Reader",
+  "version": "0.1.0",
+  "description": "Deep reading mode for any web page — focus on one block at a time with typewriter reveal",
+  "permissions": ["activeTab", "storage", "scripting"],
+  "action": {
+    "default_popup": "popup/popup.html",
+    "default_icon": {
+      "16": "icons/icon-16.png",
+      "48": "icons/icon-48.png",
+      "128": "icons/icon-128.png"
+    }
+  },
+  "commands": {
+    "toggle-reader": {
+      "suggested_key": {
+        "default": "Alt+R",
+        "mac": "Alt+R"
+      },
+      "description": "Toggle Deep Reading mode"
+    }
+  },
+  "background": {
+    "service_worker": "background/service-worker.js"
+  },
+  "web_accessible_resources": [
+    {
+      "resources": ["fonts/*", "icons/*", "content/styles.css"],
+      "matches": ["<all_urls>"]
+    }
+  ],
+  "icons": {
+    "16": "icons/icon-16.png",
+    "48": "icons/icon-48.png",
+    "128": "icons/icon-128.png"
+  }
+}
