@@ -107,7 +107,7 @@ export function createReadingOverlay({
     fontHeading = 'original',
     fontCode = 'original',
     readingMode = 'deep',
-    startAt = 1,
+    startAt = 0,
   } = settings;
 
   // Create host element
@@ -434,7 +434,7 @@ export function createReadingOverlay({
       // Re-enter deep reading from current position
       state = createReadingState(blocks, {
         speed,
-        startAt: state.visibleCount || 1,
+        startAt: state.visibleCount,
         ...stateCallbacks,
       });
       advanceBtn.style.display = '';
