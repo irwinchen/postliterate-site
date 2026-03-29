@@ -303,6 +303,7 @@ export function createReadingOverlay({
     item.textContent = label;
     item.addEventListener('click', () => {
       exportDropdown.style.display = 'none';
+      exportBtn.classList.remove('active');
       const articleData = { title, byline, siteName, faviconUrl, publishDate, contentHtml: articleContent.innerHTML };
       if (format === 'pdf') {
         exportPdf();
@@ -318,6 +319,12 @@ export function createReadingOverlay({
   exportBtn.addEventListener('click', () => {
     const isOpen = exportDropdown.style.display !== 'none';
     exportDropdown.style.display = isOpen ? 'none' : 'flex';
+    exportBtn.classList.toggle('active', !isOpen);
+    if (!isOpen && settingsOpen) {
+      settingsOpen = false;
+      settingsPanel.style.display = 'none';
+      gearBtn.classList.remove('active');
+    }
   });
 
   // Gear button (settings)
@@ -418,6 +425,10 @@ export function createReadingOverlay({
     settingsOpen = !settingsOpen;
     settingsPanel.style.display = settingsOpen ? 'flex' : 'none';
     gearBtn.classList.toggle('active', settingsOpen);
+    if (settingsOpen && exportDropdown.style.display !== 'none') {
+      exportDropdown.style.display = 'none';
+      exportBtn.classList.remove('active');
+    }
   });
 
   // — Content area
@@ -569,7 +580,10 @@ export function createReadingOverlay({
       handleAdvance();
     } else if (e.key === 'Escape') {
       e.preventDefault();
-      if (settingsOpen) {
+      if (exportDropdown.style.display !== 'none') {
+        exportDropdown.style.display = 'none';
+        exportBtn.classList.remove('active');
+      } else if (settingsOpen) {
         settingsOpen = false;
         settingsPanel.style.display = 'none';
         gearBtn.classList.remove('active');
@@ -601,6 +615,7 @@ export function createReadingOverlay({
 
   // — Edit mode: enter/exit
   let editOverlay = null;
+  let cleanupHoverControls = null;
 
   // Defined at outer scope so exitEditMode can remove it
   function blockNavigation(e) {
@@ -735,10 +750,14 @@ export function createReadingOverlay({
     });
 
     // Set up hover controls on tagged elements
-    setupHoverControls(editOverlay);
+    cleanupHoverControls = setupHoverControls(editOverlay);
   });
 
   function exitEditMode() {
+    if (cleanupHoverControls) {
+      cleanupHoverControls();
+      cleanupHoverControls = null;
+    }
     if (editOverlay) {
       editOverlay.destroy();
       editOverlay = null;
@@ -810,15 +829,15 @@ export function createReadingOverlay({
       currentTarget = el;
     }
 
-    document.body.addEventListener('mouseover', (e) => {
+    function handleMouseover(e) {
       const el = e.target.closest('[data-pl-id]');
       if (!el || el === currentTarget) return;
       // Don't attach to the edit toolbar or scrim
       if (el.closest('.pl-edit-toolbar, .pl-edit-scrim')) return;
       createControls(el);
-    });
+    }
 
-    document.body.addEventListener('mouseout', (e) => {
+    function handleMouseout(e) {
       const el = e.target.closest('[data-pl-id]');
       if (!el) return;
       // Check if we're moving to a child (don't remove controls)
@@ -826,7 +845,16 @@ export function createReadingOverlay({
       if (el === currentTarget) {
         removeControls();
       }
-    });
+    }
+
+    document.body.addEventListener('mouseover', handleMouseover);
+    document.body.addEventListener('mouseout', handleMouseout);
+
+    return function cleanupHoverControls() {
+      removeControls();
+      document.body.removeEventListener('mouseover', handleMouseover);
+      document.body.removeEventListener('mouseout', handleMouseout);
+    };
   }
 
   /**
@@ -896,6 +924,7 @@ export function createReadingOverlay({
 
   // — Destroy function
   function destroy() {
+    if (editOverlay || cleanupHoverControls) exitEditMode();
     document.removeEventListener('keydown', handleKeydown);
     mediaQuery.removeEventListener('change', handleThemeChange);
     document.body.style.overflow = originalOverflow;

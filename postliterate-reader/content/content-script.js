@@ -8,6 +8,8 @@
 import { createReadingOverlay } from './reading-ui.js';
 import { tagElements, collectSurvivingIds, matchByTextFingerprint } from './element-tagger.js';
 
+let activeOverlay = null;
+
 /**
  * Find the first matching element from an array of selectors (tried in priority order).
  * Unlike comma-separated selectors, this checks each selector individually
@@ -253,12 +255,14 @@ function getPublicationDate() {
  */
 async function init(settings = {}) {
   // Check if reader is already active
-  if (document.getElementById('postliterate-reader')) {
-    // Toggle off
-    document.getElementById('postliterate-reader').remove();
-    document.body.style.overflow = '';
+  if (activeOverlay && document.getElementById('postliterate-reader')) {
+    // Toggle off — use destroy() so edit mode listeners are properly cleaned up
+    activeOverlay.destroy();
+    activeOverlay = null;
     return { success: false, reason: 'toggled-off' };
   }
+  // Stale reference (reader was closed from within) — clear it
+  activeOverlay = null;
 
   // Snapshot original styles before any DOM changes
   const originalStyles = snapshotOriginalStyles();
@@ -318,7 +322,7 @@ async function init(settings = {}) {
   const publishDate = getPublicationDate();
 
   // Create the reading overlay
-  const overlay = createReadingOverlay({
+  activeOverlay = createReadingOverlay({
     title: article.title,
     byline: article.byline || '',
     siteName,
@@ -333,7 +337,7 @@ async function init(settings = {}) {
 
   // If editFirst flag is set, go straight into edit mode
   if (settings.editFirst && selectedIds.size > 0) {
-    overlay.enterEditMode();
+    activeOverlay.enterEditMode();
   }
 
   return {
