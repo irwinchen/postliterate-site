@@ -32,6 +32,7 @@ export function createReadingState(blocks, options = {}) {
     startAt = 1,
     onProgress,
     onComplete,
+    animationStrategy,
   } = options;
 
   let visibleCount = 0;
@@ -94,10 +95,12 @@ export function createReadingState(blocks, options = {}) {
     el.classList.remove('fr-hidden');
     el.classList.add('fr-revealing');
 
-    // Start animation
+    // Start animation — use Pretext line reveal if available, else clip-path fallback
     const isFigure = el.tagName === 'FIGURE' || el.classList.contains('figure');
     if (isFigure) {
       currentCancel = createFigureFadeIn(el, speed);
+    } else if (animationStrategy?.hasPretextData(el)) {
+      currentCancel = animationStrategy.createLineRevealAnimation(el, speed);
     } else {
       currentCancel = createTypewriterAnimation(el, speed);
     }

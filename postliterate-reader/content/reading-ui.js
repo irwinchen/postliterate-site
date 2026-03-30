@@ -10,6 +10,8 @@ import { createProgressRingSVG, updateProgressRing } from './progress-ring.js';
 import { createEditOverlay } from './edit-mode-ui.js';
 import { enterSavedEditMode } from './saved-edit-mode.js';
 import { exportPdf, exportHtml, exportMarkdown } from '../lib/export.js';
+import { setupLightbox } from './lightbox.js';
+import { prepareBlocks, hasPretextData, createLineRevealAnimation } from './pretext-layout.js';
 
 const GEAR_ICON = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>`;
 const CLOSE_ICON = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>`;
@@ -502,6 +504,12 @@ export function createReadingOverlay({
 
   contentArea.append(header, articleContent);
 
+  // Pre-compute Pretext line layout (async, non-blocking).
+  // If not ready by first advance(), clip-path fallback is used.
+  let pretextReady = prepareBlocks(blocks);
+
+  const animationStrategy = { hasPretextData, createLineRevealAnimation };
+
   // — Advance button with progress ring
   const advanceBtn = document.createElement('button');
   advanceBtn.className = 'fr-advance';
@@ -518,6 +526,9 @@ export function createReadingOverlay({
   root.append(toolbar, contentArea, advanceBtn, fullscreenBtn);
   shadow.appendChild(root);
 
+  // Lightbox for figures/images
+  const lightbox = setupLightbox(shadow, articleContent);
+
   // Shared progress callback for reading state
   const stateCallbacks = {
     onProgress: ({ progress, isComplete }) => {
@@ -527,7 +538,7 @@ export function createReadingOverlay({
   };
 
   // Initialize reading state
-  let state = createReadingState(blocks, { speed, startAt, ...stateCallbacks });
+  let state = createReadingState(blocks, { speed, startAt, animationStrategy, ...stateCallbacks });
 
   // Update initial progress
   updateProgressRing(progressSVG, state.progress);
@@ -552,6 +563,7 @@ export function createReadingOverlay({
       state = createReadingState(blocks, {
         speed,
         startAt: state.visibleCount,
+        animationStrategy,
         ...stateCallbacks,
       });
       advanceBtn.style.display = '';
@@ -737,6 +749,9 @@ export function createReadingOverlay({
 
         // Reassign blocks so handleAdvance uses the new array
         blocks = newBlocks;
+
+        // Re-prepare Pretext layout for the new blocks
+        pretextReady = prepareBlocks(blocks);
 
         // Re-apply the user's current reading mode (browse or deep)
         applyReadingMode();
@@ -925,6 +940,7 @@ export function createReadingOverlay({
   // — Destroy function
   function destroy() {
     if (editOverlay || cleanupHoverControls) exitEditMode();
+    lightbox.destroy();
     document.removeEventListener('keydown', handleKeydown);
     mediaQuery.removeEventListener('change', handleThemeChange);
     document.body.style.overflow = originalOverflow;

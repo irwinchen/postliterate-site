@@ -10,10 +10,21 @@
  */
 
 /**
+ * Ease-out cubic: decelerates into the end of each line's sweep.
+ * Gives the reveal a natural settle rather than a hard linear stop.
+ *
+ * @param {number} t - Linear progress [0, 1]
+ * @returns {number} Eased progress [0, 1]
+ */
+function easeOutCubic(t) {
+  return 1 - Math.pow(1 - t, 3);
+}
+
+/**
  * Base per-line durations (seconds) at target speed for each setting.
  * @type {Record<string, number>}
  */
-const BASE_PER_LINE = {
+export const BASE_PER_LINE = {
   slow: 0.5,
   medium: 0.3,
   fast: 0.15,
@@ -27,7 +38,7 @@ const FIGURE_FADE_MS = 600;
  * Line 0 is 2.5× slower, line 1 is 1.8×, line 2 is 1.3×,
  * then all subsequent lines run at 1× (the base speed).
  */
-const EASE_RAMP = [2.5, 1.8, 1.3];
+export const EASE_RAMP = [2.5, 1.8, 1.3];
 
 /**
  * Get the per-line duration for a specific line index, applying ease-in ramp.
@@ -110,10 +121,22 @@ export function createTypewriterAnimation(el, speed = 'medium') {
   // Initial clip-path: zero-width rectangle at first line
   el.style.clipPath = `polygon(0 0, 0 0, 0 ${lineHeight}px, 0 ${lineHeight}px)`;
 
+  // Opacity fade-in: materialise over the first ~3 lines.
+  // CSS handles the transition independently of the rAF loop.
+  const fadeDuration = Math.round(
+    perLineSchedule.slice(0, Math.min(3, lines)).reduce((s, d) => s + d, 0) * 1000
+  );
+  el.style.opacity = '0';
+  el.style.transition = `opacity ${fadeDuration}ms ease-out`;
+  // Kick the transition on the next frame so the initial opacity:0 is painted first
+  requestAnimationFrame(() => { el.style.opacity = '1'; });
+
   function cleanup() {
     if (cancelled) return;
     cancelled = true;
     el.style.clipPath = '';
+    el.style.opacity = '';
+    el.style.transition = '';
   }
 
   if (speed === 'instant' || totalDuration === 0) {
@@ -126,7 +149,8 @@ export function createTypewriterAnimation(el, speed = 'medium') {
     if (cancelled) return;
 
     const lineDuration = perLineSchedule[line] * 1000;
-    const t = Math.min((now - lineStart) / lineDuration, 1);
+    const tLinear = Math.min((now - lineStart) / lineDuration, 1);
+    const t = easeOutCubic(tLinear);
     el.style.clipPath = buildClipPath({
       line,
       progress: t,

@@ -146,4 +146,55 @@ describe('createReadingState', () => {
     expect(blocks[3].classList.contains('fr-hidden')).toBe(true);
     expect(blocks[4].classList.contains('fr-hidden')).toBe(true);
   });
+
+  it('uses animationStrategy.createLineRevealAnimation when pretext data is available', () => {
+    const blocks = makeBlocks(3);
+    const mockCancel = vi.fn();
+    const animationStrategy = {
+      hasPretextData: vi.fn((el) => el === blocks[1]),
+      createLineRevealAnimation: vi.fn(() => mockCancel),
+    };
+    const state = createReadingState(blocks, { animationStrategy });
+
+    state.advance();
+
+    expect(animationStrategy.hasPretextData).toHaveBeenCalledWith(blocks[1]);
+    expect(animationStrategy.createLineRevealAnimation).toHaveBeenCalledWith(blocks[1], 'medium');
+  });
+
+  it('falls back to clip-path animation when pretext data is not available', () => {
+    const blocks = makeBlocks(3);
+    const animationStrategy = {
+      hasPretextData: vi.fn(() => false),
+      createLineRevealAnimation: vi.fn(),
+    };
+    const state = createReadingState(blocks, { animationStrategy });
+
+    state.advance();
+
+    expect(animationStrategy.hasPretextData).toHaveBeenCalledWith(blocks[1]);
+    expect(animationStrategy.createLineRevealAnimation).not.toHaveBeenCalled();
+    // clip-path should be set (typewriter animation was used)
+    expect(blocks[1].style.clipPath).toBeTruthy();
+  });
+
+  it('uses createFigureFadeIn for figures regardless of animationStrategy', () => {
+    const fig = document.createElement('figure');
+    fig.textContent = 'Image';
+    Object.defineProperty(fig, 'scrollHeight', { value: 25, configurable: true });
+    const blocks = [makeBlocks(1)[0], fig];
+
+    const animationStrategy = {
+      hasPretextData: vi.fn(() => true),
+      createLineRevealAnimation: vi.fn(),
+    };
+    const state = createReadingState(blocks, { animationStrategy });
+
+    state.advance();
+
+    // Figure should use fade, not line reveal
+    expect(animationStrategy.createLineRevealAnimation).not.toHaveBeenCalled();
+    // Figure should have opacity transition (from createFigureFadeIn)
+    expect(fig.style.transition).toContain('opacity');
+  });
 });
