@@ -44,6 +44,7 @@ const ARTIFACT_PATTERNS = [
   /^\[edit\]$/i,
   /^Advertisement$/i,
   /^Share this article$/i,
+  /^Share full article$/i,
   /^Related articles?$/i,
   /^More from /i,
   /^Sign up for /i,
@@ -71,6 +72,10 @@ const ARTIFACT_PATTERNS = [
   // NYTimes-specific credits
   /^Credit\b/i,
   /^By .+ for The (?:New York )?Times$/i,
+  // Social/sharing UI
+  /^Share$/i,
+  /^\d+(\.\d+)?k?$/i,  // bare numbers like "1.1k", "23"
+  /^Account$/i,
 ];
 
 /**
@@ -83,6 +88,33 @@ function isArtifact(el) {
 }
 
 /**
+ * Check if an element is interactive UI (buttons, forms, share widgets)
+ * rather than readable content.
+ */
+function isInteractiveUI(el) {
+  // Element is itself a button or input
+  if (el.tagName === 'BUTTON' || el.tagName === 'INPUT' || el.tagName === 'FORM') return true;
+
+  // Element contains buttons/inputs but little prose text
+  const buttons = el.querySelectorAll('button, [role="button"], input, [type="submit"]');
+  if (buttons.length > 0) {
+    const buttonText = Array.from(buttons)
+      .reduce((sum, b) => sum + b.textContent.trim().length, 0);
+    const totalText = el.textContent.trim().length;
+    // If buttons account for most of the text, it's UI not content
+    if (totalText > 0 && buttonText / totalText > 0.5) return true;
+    // If there are buttons but very little total text, it's UI
+    if (totalText < 20 && buttons.length > 0) return true;
+  }
+
+  // SVG-only blocks (icon-only elements)
+  const svgs = el.querySelectorAll('svg');
+  if (svgs.length > 0 && !el.textContent.trim()) return true;
+
+  return false;
+}
+
+/**
  * Check if a list (UL/OL) is a navigational/promotional link list.
  * A list is link-heavy if most of its items are predominantly links
  * with little surrounding text.
@@ -92,19 +124,26 @@ function isLinkList(el) {
   const items = el.querySelectorAll(':scope > li');
   if (items.length === 0) return false;
 
-  let linkOnlyCount = 0;
+  let uiItemCount = 0;
   for (const li of items) {
     const linkText = Array.from(li.querySelectorAll('a'))
       .reduce((sum, a) => sum + a.textContent.trim().length, 0);
+    const buttonText = Array.from(li.querySelectorAll('button, [role="button"]'))
+      .reduce((sum, b) => sum + b.textContent.trim().length, 0);
     const totalText = li.textContent.trim().length;
-    // If link text is >80% of the item's text, it's a link-only item
-    if (totalText > 0 && linkText / totalText > 0.8) {
-      linkOnlyCount++;
+    const interactiveText = linkText + buttonText;
+    // If links/buttons account for >80% of the item's text, it's UI
+    if (totalText > 0 && interactiveText / totalText > 0.8) {
+      uiItemCount++;
+    }
+    // Items with only an SVG and no text are UI (social icons)
+    if (!totalText && li.querySelector('svg')) {
+      uiItemCount++;
     }
   }
 
-  // If >60% of items are link-only, it's a nav/promo list
-  return linkOnlyCount / items.length > 0.6;
+  // If >60% of items are link/button-only, it's a nav/share list
+  return uiItemCount / items.length > 0.6;
 }
 
 /**
@@ -168,7 +207,7 @@ export function parseBlocks(html) {
   const blocks = [];
   collectBlocks(container, blocks);
 
-  return blocks.filter((el) => !isEmpty(el) && !isArtifact(el) && !isLinkList(el) && !isJunkFigure(el));
+  return blocks.filter((el) => !isEmpty(el) && !isArtifact(el) && !isInteractiveUI(el) && !isLinkList(el) && !isJunkFigure(el));
 }
 
 /**
