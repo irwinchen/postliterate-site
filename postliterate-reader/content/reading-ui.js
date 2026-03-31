@@ -20,6 +20,7 @@ const FULLSCREEN_EXPAND = `<svg width="20" height="20" viewBox="0 0 24 24" fill=
 const BOOKMARK_OUTLINE = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M19 21l-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>`;
 const BOOKMARK_FILLED = `<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M19 21l-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>`;
 const DOWNLOAD_ICON = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>`;
+const MORE_ICON = `<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg>`;
 
 /**
  * Create a settings row with label — shared by option groups and selects.
@@ -327,10 +328,57 @@ export function createReadingOverlay({
     const isOpen = exportDropdown.style.display !== 'none';
     exportDropdown.style.display = isOpen ? 'none' : 'flex';
     exportBtn.classList.toggle('active', !isOpen);
-    if (!isOpen && settingsOpen) {
-      settingsOpen = false;
-      settingsPanel.style.display = 'none';
-      gearBtn.classList.remove('active');
+    if (!isOpen) {
+      if (settingsOpen) {
+        settingsOpen = false;
+        settingsPanel.style.display = 'none';
+        gearBtn.classList.remove('active');
+      }
+      if (moreDropdown.style.display !== 'none') {
+        moreDropdown.style.display = 'none';
+        moreBtn.classList.remove('active');
+      }
+    }
+  });
+
+  // More button (overflow menu: Library, Insights)
+  const moreBtn = document.createElement('button');
+  moreBtn.className = 'pl-toolbar-btn';
+  moreBtn.title = 'More';
+  moreBtn.innerHTML = MORE_ICON;
+
+  const moreDropdown = document.createElement('div');
+  moreDropdown.className = 'pl-export-dropdown';
+  moreDropdown.style.display = 'none';
+
+  for (const [label, page] of [['Library', 'library/library.html'], ['Insights', 'insights/insights.html']]) {
+    const item = document.createElement('button');
+    item.className = 'pl-export-item';
+    item.textContent = label;
+    item.addEventListener('click', () => {
+      moreDropdown.style.display = 'none';
+      moreBtn.classList.remove('active');
+      if (typeof chrome !== 'undefined' && chrome.runtime) {
+        window.open(chrome.runtime.getURL(page), '_blank');
+      }
+    });
+    moreDropdown.appendChild(item);
+  }
+
+  moreBtn.addEventListener('click', () => {
+    const isOpen = moreDropdown.style.display !== 'none';
+    moreDropdown.style.display = isOpen ? 'none' : 'flex';
+    moreBtn.classList.toggle('active', !isOpen);
+    if (!isOpen) {
+      if (settingsOpen) {
+        settingsOpen = false;
+        settingsPanel.style.display = 'none';
+        gearBtn.classList.remove('active');
+      }
+      if (exportDropdown.style.display !== 'none') {
+        exportDropdown.style.display = 'none';
+        exportBtn.classList.remove('active');
+      }
     }
   });
 
@@ -345,7 +393,7 @@ export function createReadingOverlay({
   closeBtn.title = 'Close reader';
   closeBtn.innerHTML = CLOSE_ICON;
 
-  toolbar.append(titleEl, editBtn, bookmarkBtn, exportBtn, exportDropdown, gearBtn, closeBtn);
+  toolbar.append(titleEl, editBtn, bookmarkBtn, exportBtn, exportDropdown, moreBtn, moreDropdown, gearBtn, closeBtn);
 
   // — Settings panel (hidden by default, absolute inside sticky toolbar)
   const settingsPanel = document.createElement('div');
@@ -432,9 +480,15 @@ export function createReadingOverlay({
     settingsOpen = !settingsOpen;
     settingsPanel.style.display = settingsOpen ? 'flex' : 'none';
     gearBtn.classList.toggle('active', settingsOpen);
-    if (settingsOpen && exportDropdown.style.display !== 'none') {
-      exportDropdown.style.display = 'none';
-      exportBtn.classList.remove('active');
+    if (settingsOpen) {
+      if (exportDropdown.style.display !== 'none') {
+        exportDropdown.style.display = 'none';
+        exportBtn.classList.remove('active');
+      }
+      if (moreDropdown.style.display !== 'none') {
+        moreDropdown.style.display = 'none';
+        moreBtn.classList.remove('active');
+      }
     }
   });
 
@@ -598,7 +652,10 @@ export function createReadingOverlay({
       handleAdvance();
     } else if (e.key === 'Escape') {
       e.preventDefault();
-      if (exportDropdown.style.display !== 'none') {
+      if (moreDropdown.style.display !== 'none') {
+        moreDropdown.style.display = 'none';
+        moreBtn.classList.remove('active');
+      } else if (exportDropdown.style.display !== 'none') {
         exportDropdown.style.display = 'none';
         exportBtn.classList.remove('active');
       } else if (settingsOpen) {
