@@ -17,7 +17,7 @@
  * @param {() => void} callbacks.onCancel - Called on cancel
  * @returns {{ destroy: () => void }} Cleanup handle
  */
-export function enterSavedEditMode(blocks, articleContent, shadow, { onConfirm, onCancel }) {
+export function enterBlockEditMode(blocks, articleContent, shadow, { onConfirm, onCancel }) {
   const removedBlocks = new Set();
   let activeControls = null;
 
@@ -203,3 +203,6 @@ export function enterSavedEditMode(blocks, articleContent, shadow, { onConfirm, 
 
   return { destroy };
 }
+
+// Backward-compatible alias
+export { enterBlockEditMode as enterSavedEditMode };

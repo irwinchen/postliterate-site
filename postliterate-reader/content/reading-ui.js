@@ -8,7 +8,7 @@ import { parseBlocks } from './block-parser.js';
 import { createReadingState } from './reading-state.js';
 import { createProgressRingSVG, updateProgressRing } from './progress-ring.js';
 import { createEditOverlay } from './edit-mode-ui.js';
-import { enterSavedEditMode } from './saved-edit-mode.js';
+import { enterBlockEditMode } from './saved-edit-mode.js';
 import { exportPdf, exportHtml, exportMarkdown } from '../lib/export.js';
 import { setupLightbox } from './lightbox.js';
 import { prepareBlocks, hasPretextData, createLineRevealAnimation } from './pretext-layout.js';
@@ -218,15 +218,11 @@ export function createReadingOverlay({
   titleEl.className = 'pl-toolbar-title';
   titleEl.textContent = title || 'Reading';
 
-  // Edit button (refine extraction)
+  // Edit button (refine extraction — block editor)
   const editBtn = document.createElement('button');
   editBtn.className = 'pl-toolbar-btn';
-  editBtn.title = 'Edit selection';
+  editBtn.title = 'Edit blocks';
   editBtn.innerHTML = EDIT_ICON;
-  // Show edit button if we have selectedIds for original page, or savedArticleId for block editor
-  if (!savedArticleId && (!selectedIds || selectedIds.size === 0)) {
-    editBtn.style.display = 'none';
-  }
 
   // Bookmark button (save to library)
   const bookmarkBtn = document.createElement('button');
@@ -363,6 +359,19 @@ export function createReadingOverlay({
       }
     });
     moreDropdown.appendChild(item);
+  }
+
+  // "Edit Source" — advanced edit on original page (only for live articles)
+  if (!savedArticleId && selectedIds && selectedIds.size > 0) {
+    const editSourceItem = document.createElement('button');
+    editSourceItem.className = 'pl-export-item';
+    editSourceItem.textContent = 'Edit Source';
+    editSourceItem.addEventListener('click', () => {
+      moreDropdown.style.display = 'none';
+      moreBtn.classList.remove('active');
+      enterSourceEditMode();
+    });
+    moreDropdown.appendChild(editSourceItem);
   }
 
   moreBtn.addEventListener('click', () => {
@@ -700,49 +709,43 @@ export function createReadingOverlay({
     }
   }
 
+  // Block edit: default for all articles — edit the blocks the user actually sees
   editBtn.addEventListener('click', () => {
-    // Saved article: use block list editor within shadow DOM
-    if (savedArticleId) {
-      let savedEditHandle = null;
-      savedEditHandle = enterSavedEditMode(blocks, articleContent, shadow, {
-        onConfirm: (survivingBlocks) => {
-          // Update blocks and content
-          articleContent.innerHTML = '';
-          for (const block of survivingBlocks) {
-            articleContent.appendChild(block);
-          }
-          blocks = survivingBlocks;
+    enterBlockEditMode(blocks, articleContent, shadow, {
+      onConfirm: (survivingBlocks) => {
+        articleContent.innerHTML = '';
+        for (const block of survivingBlocks) {
+          articleContent.appendChild(block);
+        }
+        blocks = survivingBlocks;
 
-          // Save updated content back to storage
-          if (typeof chrome !== 'undefined' && chrome.runtime) {
-            const text = articleContent.textContent || '';
-            const wordCount = text.split(/\s+/).filter(Boolean).length;
-            chrome.runtime.sendMessage({
-              action: 'update-article',
-              id: savedArticleId,
-              contentHtml: articleContent.innerHTML,
-              counts: { wordCount, blockCount: survivingBlocks.length },
-            });
-          }
+        // Save updated content if this is a saved article
+        if (savedArticleId && typeof chrome !== 'undefined' && chrome.runtime) {
+          const text = articleContent.textContent || '';
+          const wordCount = text.split(/\s+/).filter(Boolean).length;
+          chrome.runtime.sendMessage({
+            action: 'update-article',
+            id: savedArticleId,
+            contentHtml: articleContent.innerHTML,
+            counts: { wordCount, blockCount: survivingBlocks.length },
+          });
+        }
 
-          // Re-apply reading mode
-          applyReadingMode();
-        },
-        onCancel: () => { /* nothing to restore */ },
-      });
-      return;
-    }
+        pretextReady = prepareBlocks(blocks);
+        applyReadingMode();
+      },
+      onCancel: () => { /* nothing to restore */ },
+    });
+  });
 
+  // Source edit: advanced — edit original page elements (add/remove from source)
+  function enterSourceEditMode() {
     if (!selectedIds || selectedIds.size === 0) return;
 
-    // Hide the reading overlay
     host.style.display = 'none';
     document.body.style.overflow = '';
-
-    // Disable all links to prevent accidental navigation
     document.addEventListener('click', blockNavigation, true);
 
-    // Inject edit mode CSS into the page (not shadow DOM)
     let editStyleEl = document.getElementById('pl-edit-styles');
     if (!editStyleEl) {
       editStyleEl = document.createElement('style');
@@ -788,38 +791,25 @@ export function createReadingOverlay({
       document.head.appendChild(editStyleEl);
     }
 
-    // Create the edit overlay
     editOverlay = createEditOverlay({
       page: document.body,
       selectedIds,
       onConfirm: (assembledElements, currentMode) => {
-        // Update selectedIds so next edit session preserves removals/additions
         selectedIds = currentMode.getSelectedIds();
 
-        // Wrap assembled elements in a container and run through parseBlocks
-        // for consistent filtering, visibility states, etc.
         const tempContainer = document.createElement('div');
         for (const el of assembledElements) {
           tempContainer.appendChild(el);
         }
         const newBlocks = parseBlocks(tempContainer.innerHTML);
 
-        // Replace reading content
         articleContent.innerHTML = '';
         for (const block of newBlocks) {
           articleContent.appendChild(block);
         }
-
-        // Reassign blocks so handleAdvance uses the new array
         blocks = newBlocks;
-
-        // Re-prepare Pretext layout for the new blocks
         pretextReady = prepareBlocks(blocks);
-
-        // Re-apply the user's current reading mode (browse or deep)
         applyReadingMode();
-
-        // Exit edit mode, show reader
         exitEditMode();
       },
       onCancel: () => {
@@ -827,9 +817,8 @@ export function createReadingOverlay({
       },
     });
 
-    // Set up hover controls on tagged elements
     cleanupHoverControls = setupHoverControls(editOverlay);
-  });
+  }
 
   function exitEditMode() {
     if (cleanupHoverControls) {
