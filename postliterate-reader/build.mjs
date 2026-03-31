@@ -43,6 +43,7 @@ function copyStatic() {
     ['fonts', 'dist/fonts'],
     ['library', 'dist/library'],
     ['viewer/viewer.html', 'dist/viewer/viewer.html'],
+    ['insights', 'dist/insights'],
   ];
 
   for (const [src, dest] of copies) {

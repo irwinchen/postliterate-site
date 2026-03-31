@@ -118,7 +118,12 @@ export function createReadingOverlay({
     startAt = 0,
   } = settings;
 
-  // Create host element
+  // ─── Session tracking ──────────────────────────────────────────────
+  const sessionStart = Date.now();
+  const sessionAdvances = [];
+  let sessionStartBlock = startAt;
+
+  // ─── Create host element
   const host = document.createElement('div');
   host.id = 'postliterate-reader';
   host.style.cssText = 'all: initial; position: fixed; inset: 0; z-index: 2147483647;';
@@ -575,6 +580,7 @@ export function createReadingOverlay({
   // — Event handlers
   function handleAdvance() {
     state.advance();
+    sessionAdvances.push({ block: state.visibleCount, ts: Date.now() });
     const idx = state.visibleCount - 1;
     if (idx >= 0 && idx < blocks.length) {
       blocks[idx].scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -939,6 +945,29 @@ export function createReadingOverlay({
 
   // — Destroy function
   function destroy() {
+    // Save reading session
+    if (typeof chrome !== 'undefined' && chrome.runtime && sessionAdvances.length > 0) {
+      const text = articleContent.textContent || '';
+      const wordCount = text.split(/\s+/).filter(Boolean).length;
+      chrome.runtime.sendMessage({
+        action: 'save-session',
+        session: {
+          articleUrl: window.location.href,
+          savedArticleId: savedArticleId || null,
+          title: title || '',
+          startedAt: sessionStart,
+          endedAt: Date.now(),
+          startBlock: sessionStartBlock,
+          endBlock: state.visibleCount,
+          totalBlocks: blocks.length,
+          wordCount,
+          completed: state.isComplete,
+          speed,
+          advances: sessionAdvances,
+        },
+      });
+    }
+
     if (editOverlay || cleanupHoverControls) exitEditMode();
     lightbox.destroy();
     document.removeEventListener('keydown', handleKeydown);

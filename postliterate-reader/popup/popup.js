@@ -137,6 +137,12 @@ async function init() {
     chrome.tabs.create({ url: chrome.runtime.getURL('library/library.html') });
     window.close();
   });
+
+  // Insights button
+  document.getElementById('open-insights').addEventListener('click', () => {
+    chrome.tabs.create({ url: chrome.runtime.getURL('insights/insights.html') });
+    window.close();
+  });
 }
 
 init();

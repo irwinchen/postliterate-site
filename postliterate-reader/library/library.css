@@ -47,6 +47,18 @@ body {
     font-weight: 400;
 }
 
+.library-header-link {
+    margin-inline-start: auto;
+    font-size: 12px;
+    font-weight: 500;
+    color: light-dark(#E53E33, #ff6b5e);
+    text-decoration: none;
+
+    &:hover {
+        text-decoration: underline;
+    }
+}
+
 /* Article list */
 .library-list {
     display: flex;
@@ -107,6 +119,35 @@ body {
     font-size: 12px;
     color: light-dark(#999, #707070);
     margin-block-end: 10px;
+}
+
+/* Reading depth bar */
+.library-card-depth {
+    height: 3px;
+    background: light-dark(rgba(0, 0, 0, 0.06), rgba(255, 255, 255, 0.06));
+    margin-block-end: 6px;
+}
+
+.library-card-depth-fill {
+    height: 100%;
+    background: light-dark(#E53E33, #ff6b5e);
+    transition: width 0.3s ease;
+}
+
+/* Reading stats */
+.library-card-stats {
+    font-size: 11px;
+    color: light-dark(#999, #707070);
+    margin-block-end: 10px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.library-card-completed {
+    color: light-dark(#549E44, #6bbd5e);
+    font-weight: 500;
+    margin-inline-start: auto;
 }
 
 .library-card-actions {

@@ -22,6 +22,18 @@ function formatDate(timestamp) {
 }
 
 /**
+ * Format milliseconds as a human-readable duration.
+ */
+function formatDuration(ms) {
+  const mins = Math.round(ms / 60000);
+  if (mins < 1) return '< 1 min';
+  if (mins < 60) return `${mins} min`;
+  const hours = Math.floor(mins / 60);
+  const remaining = mins % 60;
+  return remaining > 0 ? `${hours}h ${remaining}min` : `${hours}h`;
+}
+
+/**
  * Create a card element for an article.
  */
 function createCard(entry) {
@@ -87,6 +99,40 @@ function createCard(entry) {
   meta.textContent = parts.join(' \u00B7 ');
   card.appendChild(meta);
 
+  // Reading metrics (only if article has been read)
+  if (entry.sessionCount > 0 || entry.readingDepth > 0) {
+    // Depth bar
+    const depthBar = document.createElement('div');
+    depthBar.className = 'library-card-depth';
+    const depthFill = document.createElement('div');
+    depthFill.className = 'library-card-depth-fill';
+    depthFill.style.width = `${Math.round((entry.readingDepth || 0) * 100)}%`;
+    depthBar.appendChild(depthFill);
+    card.appendChild(depthBar);
+
+    // Reading stats row
+    const statsRow = document.createElement('div');
+    statsRow.className = 'library-card-stats';
+
+    const statParts = [];
+    if (entry.totalReadTimeMs > 0) {
+      statParts.push(formatDuration(entry.totalReadTimeMs));
+    }
+    if (entry.sessionCount > 1) {
+      statParts.push(`Read ${entry.sessionCount} times`);
+    }
+    statsRow.textContent = statParts.join(' \u00B7 ');
+
+    if (entry.completed) {
+      const badge = document.createElement('span');
+      badge.className = 'library-card-completed';
+      badge.textContent = '\u2713 Finished';
+      statsRow.appendChild(badge);
+    }
+
+    card.appendChild(statsRow);
+  }
+
   // Actions
   const actions = document.createElement('div');
   actions.className = 'library-card-actions';
@@ -142,6 +188,12 @@ async function init() {
     listEl.appendChild(createCard(entry));
   }
   updateCount();
+
+  // Insights link
+  document.getElementById('open-insights').addEventListener('click', (e) => {
+    e.preventDefault();
+    chrome.tabs.create({ url: chrome.runtime.getURL('insights/insights.html') });
+  });
 }
 
 init();

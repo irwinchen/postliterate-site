@@ -12,8 +12,9 @@
 // Hybrid: chrome.storage.local for index, IndexedDB for article content.
 
 const DB_NAME = 'postliterate-library';
-const DB_VERSION = 1;
+const DB_VERSION = 2;
 const STORE_NAME = 'articles';
+const SESSIONS_STORE = 'reading-sessions';
 const INDEX_KEY = 'libraryIndex';
 
 function _generateId() {
@@ -25,10 +26,15 @@ function _generateId() {
 function _openDb() {
   return new Promise((resolve, reject) => {
     const request = indexedDB.open(DB_NAME, DB_VERSION);
-    request.onupgradeneeded = () => {
+    request.onupgradeneeded = (event) => {
       const db = request.result;
       if (!db.objectStoreNames.contains(STORE_NAME)) {
         db.createObjectStore(STORE_NAME, { keyPath: 'id' });
+      }
+      if (!db.objectStoreNames.contains(SESSIONS_STORE)) {
+        const sessionsStore = db.createObjectStore(SESSIONS_STORE, { keyPath: 'id' });
+        sessionsStore.createIndex('articleUrl', 'articleUrl', { unique: false });
+        sessionsStore.createIndex('startedAt', 'startedAt', { unique: false });
       }
     };
     request.onsuccess = () => resolve(request.result);
@@ -115,6 +121,132 @@ async function libraryUpdate(id, contentHtml, counts = {}) {
 async function libraryCheckUrl(url) {
   const index = await _getIndex();
   return index.find((e) => e.url === url) || null;
+}
+
+// ─── Reading Sessions ──────────────────────────────────────────────────────
+
+async function _sessionsTx(mode, fn) {
+  const db = await _openDb();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(SESSIONS_STORE, mode);
+    const store = tx.objectStore(SESSIONS_STORE);
+    const req = fn(store);
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+    tx.oncomplete = () => db.close();
+  });
+}
+
+async function saveSession(session) {
+  session.id = session.id || _generateId();
+  await _sessionsTx('readwrite', (s) => s.put(session));
+
+  // Update article aggregate on library index
+  const index = await _getIndex();
+  const entry = index.find((e) => e.url === session.articleUrl);
+  if (entry) {
+    const duration = (session.endedAt || 0) - (session.startedAt || 0);
+    entry.totalReadTimeMs = (entry.totalReadTimeMs || 0) + Math.max(0, duration);
+    entry.sessionCount = (entry.sessionCount || 0) + 1;
+    entry.lastReadAt = session.endedAt || Date.now();
+    if (session.endBlock > (entry.highestBlock || 0)) {
+      entry.highestBlock = session.endBlock;
+    }
+    if (session.totalBlocks > 0) {
+      entry.readingDepth = (entry.highestBlock || 0) / session.totalBlocks;
+    }
+    if (session.completed && !entry.completed) {
+      entry.completed = true;
+      entry.completedAt = session.endedAt || Date.now();
+    }
+    await _saveIndex(index);
+  }
+
+  return session;
+}
+
+async function getSessions(opts = {}) {
+  const db = await _openDb();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(SESSIONS_STORE, 'readonly');
+    const store = tx.objectStore(SESSIONS_STORE);
+    const results = [];
+    const req = store.index('startedAt').openCursor(null, 'prev');
+    req.onsuccess = () => {
+      const cursor = req.result;
+      if (!cursor) { resolve(results); return; }
+      const val = cursor.value;
+      if (opts.after && val.startedAt < opts.after) { resolve(results); return; }
+      if (!opts.before || val.startedAt <= opts.before) {
+        results.push(val);
+      }
+      cursor.continue();
+    };
+    req.onerror = () => reject(req.error);
+    tx.oncomplete = () => db.close();
+  });
+}
+
+async function getReadingStats() {
+  const index = await _getIndex();
+  const sessions = await getSessions();
+
+  const articlesWithSessions = index.filter((e) => (e.sessionCount || 0) > 0);
+  const completedArticles = index.filter((e) => e.completed);
+  const totalReadTimeMs = index.reduce((sum, e) => sum + (e.totalReadTimeMs || 0), 0);
+  const avgDepth = articlesWithSessions.length > 0
+    ? articlesWithSessions.reduce((sum, e) => sum + (e.readingDepth || 0), 0) / articlesWithSessions.length
+    : 0;
+
+  // Session duration stats
+  const durations = sessions.map((s) => Math.max(0, (s.endedAt || 0) - (s.startedAt || 0)));
+  const avgSessionMs = durations.length > 0
+    ? durations.reduce((a, b) => a + b, 0) / durations.length
+    : 0;
+
+  // Reading days (for streak / heatmap)
+  const dayMap = {};
+  for (const s of sessions) {
+    const day = new Date(s.startedAt).toISOString().slice(0, 10);
+    const dur = Math.max(0, (s.endedAt || 0) - (s.startedAt || 0));
+    dayMap[day] = (dayMap[day] || 0) + dur;
+  }
+
+  // Source/publisher breakdown
+  const sourceMap = {};
+  for (const e of index) {
+    const source = e.siteName || new URL(e.url || 'https://unknown').hostname;
+    if (!source) continue;
+    if (!sourceMap[source]) {
+      sourceMap[source] = { articles: 0, readTimeMs: 0, completed: 0 };
+    }
+    sourceMap[source].articles++;
+    sourceMap[source].readTimeMs += e.totalReadTimeMs || 0;
+    if (e.completed) sourceMap[source].completed++;
+  }
+  const topSources = Object.entries(sourceMap)
+    .map(([name, data]) => ({ name, ...data }))
+    .sort((a, b) => b.articles - a.articles)
+    .slice(0, 10);
+
+  return {
+    totalArticles: index.length,
+    articlesRead: articlesWithSessions.length,
+    articlesCompleted: completedArticles.length,
+    completionRate: articlesWithSessions.length > 0
+      ? completedArticles.length / articlesWithSessions.length
+      : 0,
+    totalReadTimeMs,
+    avgSessionMs,
+    avgDepth,
+    sessionCount: sessions.length,
+    sessions,
+    dayMap,
+    topSources,
+    recentlyCompleted: completedArticles
+      .sort((a, b) => (b.completedAt || 0) - (a.completedAt || 0))
+      .slice(0, 5),
+  };
 }
 
 // Track which tabs have the reader active
@@ -243,6 +375,31 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action === 'check-saved') {
     libraryCheckUrl(message.url).then(
       (entry) => sendResponse({ success: true, entry }),
+      (err) => sendResponse({ success: false, error: err.message })
+    );
+    return true;
+  }
+
+  // ─── Reading session messages ──────────────────────────────────────
+  if (message.action === 'save-session') {
+    saveSession(message.session).then(
+      (session) => sendResponse({ success: true, session }),
+      (err) => sendResponse({ success: false, error: err.message })
+    );
+    return true;
+  }
+
+  if (message.action === 'get-sessions') {
+    getSessions(message.opts || {}).then(
+      (sessions) => sendResponse({ success: true, sessions }),
+      (err) => sendResponse({ success: false, error: err.message })
+    );
+    return true;
+  }
+
+  if (message.action === 'get-reading-stats') {
+    getReadingStats().then(
+      (stats) => sendResponse({ success: true, stats }),
       (err) => sendResponse({ success: false, error: err.message })
     );
     return true;

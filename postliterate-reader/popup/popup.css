@@ -30,8 +30,12 @@ body {
 /* Header */
 .popup-header {
     display: flex;
-    align-items: baseline;
+    align-items: center;
     gap: 8px;
+}
+
+.popup-icon {
+    flex-shrink: 0;
 }
 
 .popup-title {
@@ -174,9 +178,16 @@ body {
     border: none;
     cursor: pointer;
     padding: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
 
     &:hover {
         text-decoration: underline;
+    }
+
+    & svg {
+        flex-shrink: 0;
     }
 }
 
