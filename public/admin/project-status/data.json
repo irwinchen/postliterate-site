@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-03-18T18:21:15.079Z",
+  "generated_at": "2026-03-26T17:03:40.109Z",
   "scope": {
     "past_days": 3,
     "workflow": "blog-first",
@@ -17,7 +17,7 @@
     "blog_velocity_target": 1.5,
     "on_target": true,
     "daily_notes_blog_ready": 3,
-    "blog_drafts_pending": 3
+    "blog_drafts_pending": 1
   },
   "blog_opportunities": [
     {
@@ -106,12 +106,12 @@
   ],
   "blog_status": [
     {
-      "id": "blog-draft-deep-reading-vs.-dopamine",
+      "id": "blog-published-deep-reading-vs.-dopamine",
       "title": "Deep Reading vs. Dopamine",
       "date_published": "2026-03-04",
-      "status": "draft",
+      "status": "published",
       "notes": null,
-      "social_companion": null
+      "social_companion": "missing"
     },
     {
       "id": "blog-published-how-im-using-ai",
@@ -124,7 +124,7 @@
     {
       "id": "blog-published-notes-from-self",
       "title": "Notes from Self",
-      "date_published": "2026-03-16",
+      "date_published": "2026-03-18",
       "status": "published",
       "notes": null,
       "social_companion": "missing"
@@ -146,12 +146,12 @@
       "social_companion": "missing"
     },
     {
-      "id": "blog-draft-armored-for-a-different-kind-of-battle",
-      "title": "Books are texts armored for battle",
+      "id": "blog-published-why-hearing-an-author-talk-about-their-book-isnt-the-same-as-reading-it",
+      "title": "Why hearing an author talk about their book isn't the same as reading it",
       "date_published": "2026-03-02",
-      "status": "draft",
+      "status": "published",
       "notes": null,
-      "social_companion": null
+      "social_companion": "present"
     },
     {
       "id": "blog-published-my-path-to-ai",
@@ -176,6 +176,14 @@
       "status": "published",
       "notes": null,
       "social_companion": "missing"
+    },
+    {
+      "id": "blog-published-trying-to-read-in-a-distraction-war-zone",
+      "title": "Trying to Read In a Distraction War Zone",
+      "date_published": "2026-03-25",
+      "status": "published",
+      "notes": null,
+      "social_companion": "present"
     },
     {
       "id": "blog-draft-deep-reading-is-fighting-dopamine",
@@ -217,162 +225,162 @@
   ],
   "website_activity": [
     {
-      "id": "site-commit-1fe522d",
+      "id": "site-commit-e6b2103",
       "type": "commit",
-      "title": "publish: Notes from Self",
-      "date": "2026-03-18T14:21:14-04:00",
+      "title": "publish: trying-to-read-in-a-distraction-war-zone",
+      "date": "2026-03-26T13:03:39-04:00",
       "status": "pending",
       "notes": null
     },
     {
-      "id": "site-commit-0098ce6",
+      "id": "site-commit-9bf3347",
       "type": "commit",
-      "title": "publish: the-skeptics-window",
-      "date": "2026-03-16T12:12:38-04:00",
+      "title": "publish: Deep Reading vs. Dopamine",
+      "date": "2026-03-26T13:03:05-04:00",
       "status": "pending",
       "notes": null
     },
     {
-      "id": "site-commit-000bb1e",
+      "id": "site-commit-e204a4f",
+      "type": "commit",
+      "title": "feat: Bluesky thread replies as blog post comments",
+      "date": "2026-03-24T12:11:49-04:00",
+      "status": "pending",
+      "notes": null
+    },
+    {
+      "id": "site-commit-ac0fd09",
+      "type": "commit",
+      "title": "remove Bluesky feed, add Vercel Analytics, fix republish detection",
+      "date": "2026-03-24T10:32:02-04:00",
+      "status": "pending",
+      "notes": null
+    },
+    {
+      "id": "site-commit-85ec2a2",
+      "type": "commit",
+      "title": "republish: Why Are You Talking to It Like Its a Person",
+      "date": "2026-03-24T10:26:12-04:00",
+      "status": "pending",
+      "notes": null
+    },
+    {
+      "id": "site-commit-4f66545",
+      "type": "commit",
+      "title": "republish: Why hearing an author talk about their book isn't the same as reading it",
+      "date": "2026-03-23T15:34:28-04:00",
+      "status": "pending",
+      "notes": null
+    },
+    {
+      "id": "site-commit-b0d2154",
+      "type": "commit",
+      "title": "publish: Why hearing an author talk about their book isn't the same as reading it",
+      "date": "2026-03-23T08:21:23-04:00",
+      "status": "pending",
+      "notes": null
+    },
+    {
+      "id": "site-commit-63f0c4e",
+      "type": "commit",
+      "title": "republish: Notes from Self",
+      "date": "2026-03-22T19:57:03-04:00",
+      "status": "pending",
+      "notes": null
+    },
+    {
+      "id": "site-commit-cdd789e",
+      "type": "commit",
+      "title": "republish: Why Are You Talking to It Like Its a Person",
+      "date": "2026-03-22T19:57:01-04:00",
+      "status": "pending",
+      "notes": null
+    },
+    {
+      "id": "site-commit-87813cd",
       "type": "commit",
       "title": "republish: my-path-to-ai",
-      "date": "2026-03-14T21:24:23-04:00",
+      "date": "2026-03-22T19:56:59-04:00",
       "status": "pending",
       "notes": null
     },
     {
-      "id": "site-commit-50ecb1d",
+      "id": "site-commit-361d6d3",
       "type": "commit",
-      "title": "publish: the-ethical-lines-are-blurry-right-now",
-      "date": "2026-03-14T21:09:44-04:00",
+      "title": "republish: the-ethical-lines-are-blurry-right-now",
+      "date": "2026-03-22T19:56:56-04:00",
       "status": "pending",
       "notes": null
     },
     {
-      "id": "site-commit-068c4ac",
+      "id": "site-commit-1e95c27",
       "type": "commit",
-      "title": "republish: my-path-to-ai",
-      "date": "2026-03-14T21:09:25-04:00",
+      "title": "republish: the-skeptics-window",
+      "date": "2026-03-22T19:56:54-04:00",
       "status": "pending",
       "notes": null
     },
     {
-      "id": "site-commit-28eb68f",
+      "id": "site-commit-034e531",
       "type": "commit",
-      "title": "feat: add figure lightbox and auto-wrap images in Figure components",
-      "date": "2026-03-10T11:12:29-04:00",
+      "title": "republish: Vibe-coding vs Vibe-writing",
+      "date": "2026-03-22T19:56:52-04:00",
       "status": "pending",
       "notes": null
     },
     {
-      "id": "site-commit-a61a135",
-      "type": "commit",
-      "title": "publish: my-path-to-ai",
-      "date": "2026-03-09T20:11:09-04:00",
-      "status": "pending",
-      "notes": null
-    },
-    {
-      "id": "site-commit-66eb4f0",
-      "type": "commit",
-      "title": "feat: auto-refresh admin dashboard data on startup",
-      "date": "2026-03-09T19:11:00-04:00",
-      "status": "pending",
-      "notes": null
-    },
-    {
-      "id": "site-commit-486c6d2",
-      "type": "commit",
-      "title": "clean up post URL slugs: lowercase, hyphens, strip punctuation",
-      "date": "2026-03-09T15:50:29-04:00",
-      "status": "pending",
-      "notes": null
-    },
-    {
-      "id": "site-commit-3642ae7",
-      "type": "commit",
-      "title": "publish: Why Are You Talking to It Like Its a Person",
-      "date": "2026-03-09T15:42:33-04:00",
-      "status": "pending",
-      "notes": null
-    },
-    {
-      "id": "site-commit-9a1ed89",
-      "type": "commit",
-      "title": "seed edit history for existing published posts",
-      "date": "2026-03-07T15:47:23-05:00",
-      "status": "pending",
-      "notes": null
-    },
-    {
-      "id": "site-commit-a0721b1",
+      "id": "site-commit-5512882",
       "type": "commit",
       "title": "republish: How I'm Using AI",
-      "date": "2026-03-07T15:37:40-05:00",
+      "date": "2026-03-22T19:56:50-04:00",
       "status": "pending",
       "notes": null
     },
     {
-      "id": "site-commit-0cfbe92",
+      "id": "site-commit-b1a1cdf",
       "type": "commit",
-      "title": "republish: Vibe-coding vs Vibe-writing",
-      "date": "2026-03-07T11:14:56-05:00",
+      "title": "fix: fade-in for figures, fix fr-hidden specificity override",
+      "date": "2026-03-18T18:10:37-04:00",
       "status": "pending",
       "notes": null
     },
     {
-      "id": "site-commit-40789ec",
+      "id": "site-commit-2220219",
       "type": "commit",
-      "title": "add blog post edit history with inline word diff",
-      "date": "2026-03-06T21:26:06-05:00",
+      "title": "feat: sequential line-by-line typewriter reveal using clip-path polygon",
+      "date": "2026-03-18T17:44:17-04:00",
       "status": "pending",
       "notes": null
     },
     {
-      "id": "site-commit-463ebc7",
+      "id": "site-commit-8d7a7a1",
       "type": "commit",
-      "title": "republish: Vibe-coding vs Vibe-writing",
-      "date": "2026-03-06T21:25:36-05:00",
+      "title": "fix: increase reveal duration to 1.5s",
+      "date": "2026-03-18T17:29:23-04:00",
       "status": "pending",
       "notes": null
     },
     {
-      "id": "site-commit-35e218f",
+      "id": "site-commit-0cbd441",
       "type": "commit",
-      "title": "republish: Vibe-coding vs Vibe-writing",
-      "date": "2026-03-06T20:57:12-05:00",
+      "title": "fix: smooth linear reveal with softer gradient for consistent typing feel",
+      "date": "2026-03-18T17:27:41-04:00",
       "status": "pending",
       "notes": null
     },
     {
-      "id": "site-commit-81c1f78",
+      "id": "site-commit-89b7325",
       "type": "commit",
-      "title": "fix: add touch/tap support for margin notes on iPad/tablet",
-      "date": "2026-03-06T17:54:10-05:00",
+      "title": "feat: line-by-line typewriter reveal for deep reading",
+      "date": "2026-03-18T17:25:55-04:00",
       "status": "pending",
       "notes": null
     },
     {
-      "id": "site-commit-cf114fb",
+      "id": "site-commit-6e84949",
       "type": "commit",
-      "title": "unpublish: armored-for-a-different-kind-of-battle",
-      "date": "2026-03-06T14:04:50-05:00",
-      "status": "pending",
-      "notes": null
-    },
-    {
-      "id": "site-commit-3e18338",
-      "type": "commit",
-      "title": "republish: Vibe-coding vs Vibe-writing",
-      "date": "2026-03-06T13:42:54-05:00",
-      "status": "pending",
-      "notes": null
-    },
-    {
-      "id": "site-commit-1a0d577",
-      "type": "commit",
-      "title": "fix: margin note markdown-to-HTML conversion, remove homepage tag bar",
-      "date": "2026-03-06T13:34:02-05:00",
+      "title": "fix: slow reveal animation to 1.2s",
+      "date": "2026-03-18T17:24:58-04:00",
       "status": "pending",
       "notes": null
     }
@@ -381,9 +389,10 @@
     {
       "id": "blocker-social-companions",
       "title": "Missing social companions for published blog posts",
-      "description": "Published posts lack Mastodon/Bluesky companion versions for social distribution",
+      "description": "Published posts lack Mastodon companion versions for social distribution",
       "severity": "low",
       "related_items": [
+        "blog-published-deep-reading-vs.-dopamine",
         "blog-published-how-im-using-ai",
         "blog-published-notes-from-self",
         "blog-published-vibe-coding-vs-vibe-writing",

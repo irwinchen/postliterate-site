@@ -25,3 +25,9 @@ pnpm-debug.log*
 
 # dev server lock
 .dev-server.pid
+
+# editor
+.vscode/
+
+# claude worktrees
+.claude/worktrees/

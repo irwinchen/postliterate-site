@@ -180,6 +180,7 @@ function findInVault(filename) {
  */
 function transformImageEmbeds(content) {
   let needsImport = false;
+  const copiedImages = [];
 
   // Obsidian embeds: ![[filename.ext]] or ![[filename.ext|caption]]
   content = content.replace(/!\[\[([^\]|]+\.(png|jpg|jpeg|gif|webp|svg))(?:\|([^\]]*))?\]\]/gi, (_, filename, _ext, caption) => {
@@ -188,6 +189,7 @@ function transformImageEmbeds(content) {
     if (src) {
       if (!existsSync(PUBLIC_IMAGES)) mkdirSync(PUBLIC_IMAGES, { recursive: true });
       copyFileSync(src, join(PUBLIC_IMAGES, safeName));
+      copiedImages.push(join(PUBLIC_IMAGES, safeName));
     }
     needsImport = true;
     let layoutAttr = '';
@@ -223,7 +225,7 @@ function transformImageEmbeds(content) {
     }
   }
 
-  return content;
+  return { content, copiedImages };
 }
 
 /** Copy a vault post to content dir as .mdx with the sync marker after frontmatter. */
@@ -234,7 +236,7 @@ export function syncPost(slug) {
   }
   let content = readFileSync(vault.path, 'utf8');
   content = transformMarginNotes(content);
-  content = transformImageEmbeds(content);
+  ({ content } = transformImageEmbeds(content));
   let marked = content.replace(/^(---\n[\s\S]*?\n---)/m, `$1\n${SYNC_MARKER}`);
   // Ensure a blank line between the last import and body content (MDX requirement)
   marked = marked.replace(/(^import .+;)\n(?!\n|import )/m, '$1\n\n');
@@ -513,8 +515,9 @@ export function publishPost(slug) {
   const vaultSource = readFileSync(vault.path, 'utf8');
   const sourceHash = createHash('sha256').update(vaultSource).digest('hex').slice(0, 12);
   let content = vaultSource;
+  let copiedImages = [];
   content = transformMarginNotes(content);
-  content = transformImageEmbeds(content);
+  ({ content, copiedImages } = transformImageEmbeds(content));
   content = content.replace(/^status:\s*draft$/m, 'status: published');
   // Insert source_hash into frontmatter (update if exists, insert if not)
   if (/^source_hash:\s*.+$/m.test(content)) {
@@ -555,7 +558,8 @@ export function publishPost(slug) {
   // Git add, commit, push
   const commitMsg = isRepublish ? `republish: ${slug}` : `publish: ${slug}`;
   try {
-    execSync(`git add "${dest}" "${historyPath}"`, { cwd: ROOT, stdio: 'pipe' });
+    const imageArgs = copiedImages.map((p) => `"${p}"`).join(' ');
+    execSync(`git add "${dest}" "${historyPath}"${imageArgs ? ' ' + imageArgs : ''}`, { cwd: ROOT, stdio: 'pipe' });
     execSync(`git commit -m "${commitMsg}"`, { cwd: ROOT, stdio: 'pipe' });
     execSync(`git push origin main`, { cwd: ROOT, stdio: 'pipe' });
     return { slug, published: true };
