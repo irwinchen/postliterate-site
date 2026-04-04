@@ -160,6 +160,119 @@ body {
     }
 }
 
+/* PDF section */
+.popup-pdf {
+    padding-block-start: 4px;
+    border-block-start: 1px solid light-dark(rgba(0, 0, 0, 0.06), rgba(255, 255, 255, 0.06));
+}
+
+.popup-section-toggle {
+    font-family: 'Outfit', system-ui, sans-serif;
+    font-size: 11px;
+    font-weight: 500;
+    color: light-dark(#999, #707070);
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+
+    &:hover {
+        color: light-dark(#E53E33, #ff6b5e);
+    }
+}
+
+.toggle-arrow {
+    font-size: 8px;
+    transition: transform 0.15s ease;
+}
+
+.popup-section-toggle.open .toggle-arrow {
+    transform: rotate(90deg);
+}
+
+.popup-pdf-body {
+    margin-block-start: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.setting-input {
+    flex: 1;
+    font-family: 'Outfit', system-ui, sans-serif;
+    font-size: 11px;
+    padding: 4px 6px;
+    color: light-dark(#2C2C2C, #c8c8c8);
+    background: light-dark(rgba(0, 0, 0, 0.03), rgba(255, 255, 255, 0.05));
+    border: 1px solid light-dark(rgba(0, 0, 0, 0.1), rgba(255, 255, 255, 0.1));
+
+    &:focus-visible {
+        outline: 2px solid light-dark(#E53E33, #ff6b5e);
+        outline-offset: 1px;
+    }
+}
+
+.setting-hint {
+    font-size: 10px;
+    color: light-dark(#999, #707070);
+
+    & a {
+        color: light-dark(#E53E33, #ff6b5e);
+    }
+}
+
+.btn-small {
+    padding: 5px 10px;
+    font-size: 12px;
+}
+
+.popup-pdf-import-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn-cancel {
+    font-family: 'Outfit', system-ui, sans-serif;
+    font-size: 11px;
+    font-weight: 500;
+    color: light-dark(#999, #707070);
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+
+    &:hover {
+        color: light-dark(#E53E33, #ff6b5e);
+    }
+}
+
+.popup-pdf-progress {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.popup-pdf-status {
+    font-size: 11px;
+    color: light-dark(#666, #a0a0a0);
+}
+
+.popup-pdf-bar {
+    height: 2px;
+    background: light-dark(rgba(0, 0, 0, 0.06), rgba(255, 255, 255, 0.06));
+}
+
+.popup-pdf-fill {
+    height: 100%;
+    width: 0%;
+    background: light-dark(#E53E33, #ff6b5e);
+    transition: width 0.3s ease;
+}
+
 /* Footer */
 .popup-footer {
     display: flex;

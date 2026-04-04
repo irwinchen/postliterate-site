@@ -9,10 +9,22 @@
 <body>
   <div class="library">
     <header class="library-header">
-      <h1 class="library-title">Virgil Library</h1>
+      <h1 class="library-title"><img src="../icons/virgil_library.svg" alt="" width="24" height="24"> Virgil Library</h1>
       <span class="library-count" id="article-count"></span>
+      <button class="library-import-btn" id="import-pdf">Import PDF</button>
+      <input type="file" id="pdf-file-input" accept=".pdf" hidden>
       <a class="library-header-link" id="open-insights" href="#">Insights</a>
     </header>
+
+    <div class="library-import-progress" id="import-progress" style="display: none;">
+      <div class="import-progress-row">
+        <span class="import-status" id="import-status">Uploading...</span>
+        <button class="import-cancel" id="import-cancel">Cancel</button>
+      </div>
+      <div class="import-progress-bar">
+        <div class="import-progress-fill" id="import-fill"></div>
+      </div>
+    </div>
 
     <div class="library-list" id="article-list"></div>
 

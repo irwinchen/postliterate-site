@@ -274,7 +274,7 @@ async function init(settings = {}) {
     return {
       success: false,
       reason: 'extraction-failed',
-      message: 'Could not extract article content from this page.',
+      message: 'This page doesn\'t appear to be a longform article.',
     };
   }
 
@@ -312,6 +312,9 @@ async function init(settings = {}) {
       @font-face { font-family: 'Literata'; src: url('${fontsUrl}literata-400i.woff2') format('woff2'); font-weight: 400; font-style: italic; font-display: swap; }
       @font-face { font-family: 'Literata'; src: url('${fontsUrl}literata-500.woff2') format('woff2'); font-weight: 500; font-style: normal; font-display: swap; }
       @font-face { font-family: 'Sono'; src: url('${fontsUrl}sono-400.woff2') format('woff2'); font-weight: 400; font-display: swap; }
+      @font-face { font-family: 'Latin Modern'; src: url('${fontsUrl}lm-regular.woff') format('woff'); font-weight: 400; font-style: normal; font-display: swap; }
+      @font-face { font-family: 'Latin Modern'; src: url('${fontsUrl}lm-bold.woff') format('woff'); font-weight: 700; font-style: normal; font-display: swap; }
+      @font-face { font-family: 'Latin Modern'; src: url('${fontsUrl}lm-italic.woff') format('woff'); font-weight: 400; font-style: italic; font-display: swap; }
     `;
     document.head.appendChild(fontStyle);
   }

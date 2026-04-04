@@ -31,6 +31,15 @@ const viewerBuild = {
   target: 'chrome123',
 };
 
+// Bundle service worker (ESM → IIFE) — imports lib/reducto.js for PDF support
+const serviceWorkerBuild = {
+  entryPoints: ['background/service-worker.js'],
+  bundle: true,
+  format: 'iife',
+  outfile: 'dist/background/service-worker.js',
+  target: 'chrome123',
+};
+
 // Copy static files to dist
 function copyStatic() {
   const copies = [
@@ -38,7 +47,7 @@ function copyStatic() {
     ['lib/readability.js', 'dist/lib/readability.js'],
     ['content/styles.css', 'dist/content/styles.css'],
     ['popup', 'dist/popup'],
-    ['background/service-worker.js', 'dist/background/service-worker.js'],
+    // service-worker.js is now bundled via esbuild (not copied)
     ['icons', 'dist/icons'],
     ['fonts', 'dist/fonts'],
     ['library', 'dist/library'],
@@ -60,13 +69,16 @@ async function build() {
   if (isWatch) {
     const ctx = await esbuild.context(contentBuild);
     const ctx2 = await esbuild.context(viewerBuild);
+    const ctx3 = await esbuild.context(serviceWorkerBuild);
     await ctx.watch();
     await ctx2.watch();
+    await ctx3.watch();
     console.log('Watching for changes...');
   } else {
     await Promise.all([
       esbuild.build(contentBuild),
       esbuild.build(viewerBuild),
+      esbuild.build(serviceWorkerBuild),
     ]);
     console.log('Build complete → dist/');
   }

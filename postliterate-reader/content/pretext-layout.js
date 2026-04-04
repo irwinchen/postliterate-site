@@ -57,8 +57,10 @@ export async function prepareBlocks(blocks) {
   await document.fonts.ready;
 
   for (const block of blocks) {
-    // Skip figures — they use createFigureFadeIn
-    if (block.tagName === 'FIGURE' || block.classList.contains('figure')) continue;
+    // Skip figures and image-containing blocks — they use createFigureFadeIn
+    if (block.tagName === 'FIGURE' || block.tagName === 'IMG'
+      || block.classList.contains('figure')
+      || block.querySelector('img, video, picture')) continue;
 
     const style = getComputedStyle(block);
     if (!isMeasurableFont(style.fontFamily)) continue;
@@ -109,28 +111,31 @@ export function hasPretextData(el) {
  *
  * @param {Element} el - The element to animate
  * @param {'slow'|'medium'|'fast'|'instant'} speed - Animation speed
- * @returns {() => void} Cancel function to stop and clean up
+ * @returns {{ cancel: () => void, finish: () => void }} Animation handle
  */
-export function createLineRevealAnimation(el, speed = 'medium') {
+export function createLineRevealAnimation(el, speed = 'medium', { skipRamp = false } = {}) {
   const data = pretextDataMap.get(el);
   if (!data) {
     throw new Error('No Pretext data for element — check hasPretextData() first');
   }
 
   const baseDuration = BASE_PER_LINE[speed] ?? BASE_PER_LINE.medium;
-  let cancelled = false;
+  let done = false;
 
   // Save original content for restoration
   const originalHTML = el.innerHTML;
 
   function cleanup() {
-    if (cancelled) return;
-    cancelled = true;
+    if (done) return;
+    done = true;
+    clearTimeout(safetyTimer);
     el.innerHTML = originalHTML;
   }
 
+  const handle = { cancel: cleanup, finish: cleanup };
+
   if (speed === 'instant' || baseDuration === 0) {
-    return cleanup;
+    return handle;
   }
 
   // Replace content with per-line spans
@@ -153,7 +158,7 @@ export function createLineRevealAnimation(el, speed = 'medium') {
     span.textContent = line.text;
     span.style.opacity = '0';
 
-    const duration = getLineDuration(i, baseDuration);
+    const duration = getLineDuration(i, baseDuration, { skipRamp });
     lastLineDuration = duration;
     // cubic-bezier(0.215, 0.61, 0.355, 1) ≈ easeOutCubic
     span.style.transition = `opacity ${duration}s cubic-bezier(0.215, 0.61, 0.355, 1)`;
@@ -166,7 +171,7 @@ export function createLineRevealAnimation(el, speed = 'medium') {
 
   // Trigger transitions on next frame so initial opacity:0 is painted first
   requestAnimationFrame(() => {
-    if (cancelled) return;
+    if (done) return;
     for (const span of spans) {
       span.style.opacity = '1';
     }
@@ -178,9 +183,5 @@ export function createLineRevealAnimation(el, speed = 'medium') {
   // Cleanup after animation completes — restore original markup
   const safetyTimer = setTimeout(cleanup, totalMs + 200);
 
-  // Return cancel function
-  return () => {
-    clearTimeout(safetyTimer);
-    cleanup();
-  };
+  return handle;
 }

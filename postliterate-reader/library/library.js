@@ -45,7 +45,17 @@ function createCard(entry) {
   const pubRow = document.createElement('div');
   pubRow.className = 'library-card-pub';
 
-  if (entry.faviconUrl) {
+  if (entry.sourceType === 'pdf') {
+    const badge = document.createElement('span');
+    badge.className = 'library-card-badge';
+    badge.textContent = 'PDF';
+    pubRow.appendChild(badge);
+    if (entry.sourceFileName) {
+      const fname = document.createElement('span');
+      fname.textContent = entry.sourceFileName;
+      pubRow.appendChild(fname);
+    }
+  } else if (entry.faviconUrl) {
     const favicon = document.createElement('img');
     favicon.className = 'library-card-favicon';
     favicon.src = entry.faviconUrl;
@@ -76,11 +86,45 @@ function createCard(entry) {
 
   card.appendChild(pubRow);
 
-  // Title
+  // Title row with progress ring
+  const titleRow = document.createElement('div');
+  titleRow.className = 'library-card-title-row';
+
   const title = document.createElement('div');
   title.className = 'library-card-title';
   title.textContent = entry.title || 'Untitled';
-  card.appendChild(title);
+  titleRow.appendChild(title);
+
+  // Progress ring
+  const depth = entry.readingDepth || 0;
+  const pct = Math.round(depth * 100);
+  const size = 30;
+  const strokeWidth = 2.5;
+  const radius = (size - strokeWidth) / 2;
+  const circumference = 2 * Math.PI * radius;
+  const offset = circumference * (1 - depth);
+  const ringColor = entry.completed
+    ? 'var(--ring-complete, #549E44)'
+    : 'var(--ring-accent, #E53E33)';
+
+  const ring = document.createElement('div');
+  ring.className = 'library-card-ring';
+  ring.title = entry.completed ? 'Finished' : `${pct}% read`;
+  ring.innerHTML = `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
+    <circle cx="${size / 2}" cy="${size / 2}" r="${radius}"
+      fill="none" stroke="currentColor" stroke-width="${strokeWidth}" opacity="0.1"/>
+    <circle cx="${size / 2}" cy="${size / 2}" r="${radius}"
+      fill="none" stroke="${ringColor}" stroke-width="${strokeWidth}"
+      stroke-dasharray="${circumference}" stroke-dashoffset="${offset}"
+      stroke-linecap="round" transform="rotate(-90 ${size / 2} ${size / 2})"
+      style="transition: stroke-dashoffset 0.3s ease"/>
+    ${pct > 0 ? `<text x="${size / 2}" y="${size / 2}" text-anchor="middle" dominant-baseline="central"
+      font-size="10" font-family="Outfit, sans-serif" font-weight="500"
+      fill="currentColor" opacity="0.6">${pct}</text>` : ''}
+  </svg>`;
+  titleRow.appendChild(ring);
+
+  card.appendChild(titleRow);
 
   // Byline
   if (entry.byline) {
@@ -101,15 +145,6 @@ function createCard(entry) {
 
   // Reading metrics (only if article has been read)
   if (entry.sessionCount > 0 || entry.readingDepth > 0) {
-    // Depth bar
-    const depthBar = document.createElement('div');
-    depthBar.className = 'library-card-depth';
-    const depthFill = document.createElement('div');
-    depthFill.className = 'library-card-depth-fill';
-    depthFill.style.width = `${Math.round((entry.readingDepth || 0) * 100)}%`;
-    depthBar.appendChild(depthFill);
-    card.appendChild(depthBar);
-
     // Reading stats row
     const statsRow = document.createElement('div');
     statsRow.className = 'library-card-stats';
@@ -193,6 +228,84 @@ async function init() {
   document.getElementById('open-insights').addEventListener('click', (e) => {
     e.preventDefault();
     chrome.tabs.create({ url: chrome.runtime.getURL('insights/insights.html') });
+  });
+
+  // PDF import
+  const importBtn = document.getElementById('import-pdf');
+  const fileInput = document.getElementById('pdf-file-input');
+
+  importBtn.addEventListener('click', () => fileInput.click());
+
+  const progressEl = document.getElementById('import-progress');
+  const statusEl = document.getElementById('import-status');
+  const fillEl = document.getElementById('import-fill');
+  const cancelBtn = document.getElementById('import-cancel');
+  let activePort = null;
+
+  function resetImportUI() {
+    importBtn.textContent = 'Import PDF';
+    importBtn.disabled = false;
+    progressEl.style.display = 'none';
+    fillEl.style.width = '0%';
+    fileInput.value = '';
+    activePort = null;
+  }
+
+  cancelBtn.addEventListener('click', () => {
+    if (activePort) {
+      activePort.disconnect();
+      resetImportUI();
+    }
+  });
+
+  fileInput.addEventListener('change', async () => {
+    const file = fileInput.files[0];
+    if (!file) return;
+
+    importBtn.disabled = true;
+    importBtn.textContent = 'Processing...';
+    progressEl.style.display = 'block';
+    statusEl.textContent = 'Reading file...';
+    fillEl.style.width = '0%';
+
+    const arrayBuffer = await file.arrayBuffer();
+    const bytes = new Uint8Array(arrayBuffer);
+    let binary = '';
+    for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
+    const base64 = btoa(binary);
+
+    const port = chrome.runtime.connect({ name: 'pdf-import' });
+    activePort = port;
+
+    port.onMessage.addListener((msg) => {
+      if (msg.progress != null) {
+        fillEl.style.width = `${Math.round(msg.progress * 100)}%`;
+      }
+      if (msg.status) {
+        statusEl.textContent = msg.status;
+      }
+      if (msg.done && msg.entry) {
+        const card = createCard(msg.entry);
+        listEl.prepend(card);
+        emptyEl.style.display = 'none';
+        updateCount();
+        resetImportUI();
+      }
+      if (msg.error) {
+        const text = msg.reason === 'no-api-key'
+          ? 'Set your Reducto API key in the popup settings'
+          : msg.error;
+        statusEl.textContent = text;
+        fillEl.style.width = '0%';
+        setTimeout(resetImportUI, 3000);
+      }
+    });
+
+    port.onDisconnect.addListener(() => {
+      if (activePort === port) resetImportUI();
+    });
+
+    port.postMessage({ base64, filename: file.name });
   });
 }
 

@@ -6,7 +6,15 @@
  * - Messages from popup to inject content scripts
  * - Badge state management
  * - Library CRUD (save/get/delete/update articles)
+ * - PDF processing via Reducto.ai
  */
+
+import {
+  uploadToReducto,
+  parseWithReducto,
+  convertReductoToHtml,
+  extractPdfMetadata,
+} from '../lib/reducto.js';
 
 // ─── Library Storage ────────────────────────────────────────────────────────
 // Hybrid: chrome.storage.local for index, IndexedDB for article content.
@@ -79,6 +87,8 @@ async function librarySave(article) {
     savedAt: Date.now(),
     wordCount: article.wordCount || 0,
     blockCount: article.blockCount || 0,
+    sourceType: article.sourceType || 'web',
+    sourceFileName: article.sourceFileName || '',
   };
   await _idbTx('readwrite', (s) =>
     s.put({ id, contentHtml: article.contentHtml, originalStyles: article.originalStyles || {} })
@@ -142,10 +152,20 @@ async function saveSession(session) {
   await _sessionsTx('readwrite', (s) => s.put(session));
 
   // Update article aggregate on library index
+  // Match by savedArticleId first (viewer), then by URL (live reading)
   const index = await _getIndex();
-  const entry = index.find((e) => e.url === session.articleUrl);
+  const entry = (session.savedArticleId && index.find((e) => e.id === session.savedArticleId))
+    || index.find((e) => e.url === session.articleUrl)
+    || index.find((e) => {
+      // Normalize URLs: strip trailing slash, hash, and query for comparison
+      const norm = (u) => u?.replace(/[?#].*$/, '').replace(/\/+$/, '') || '';
+      return norm(e.url) === norm(session.articleUrl);
+    });
   if (entry) {
-    const duration = (session.endedAt || 0) - (session.startedAt || 0);
+    // Use active time (excludes idle/hidden tab) if available, else wall-clock
+    const duration = session.activeTimeMs != null
+      ? session.activeTimeMs
+      : Math.max(0, (session.endedAt || 0) - (session.startedAt || 0));
     entry.totalReadTimeMs = (entry.totalReadTimeMs || 0) + Math.max(0, duration);
     entry.sessionCount = (entry.sessionCount || 0) + 1;
     entry.lastReadAt = session.endedAt || Date.now();
@@ -198,18 +218,20 @@ async function getReadingStats() {
     ? articlesWithSessions.reduce((sum, e) => sum + (e.readingDepth || 0), 0) / articlesWithSessions.length
     : 0;
 
-  // Session duration stats
-  const durations = sessions.map((s) => Math.max(0, (s.endedAt || 0) - (s.startedAt || 0)));
+  // Session duration stats — prefer activeTimeMs over wall-clock
+  const durations = sessions.map((s) =>
+    s.activeTimeMs != null ? s.activeTimeMs : Math.max(0, (s.endedAt || 0) - (s.startedAt || 0))
+  );
   const avgSessionMs = durations.length > 0
     ? durations.reduce((a, b) => a + b, 0) / durations.length
     : 0;
 
   // Reading days (for streak / heatmap)
   const dayMap = {};
-  for (const s of sessions) {
+  for (let i = 0; i < sessions.length; i++) {
+    const s = sessions[i];
     const day = new Date(s.startedAt).toISOString().slice(0, 10);
-    const dur = Math.max(0, (s.endedAt || 0) - (s.startedAt || 0));
-    dayMap[day] = (dayMap[day] || 0) + dur;
+    dayMap[day] = (dayMap[day] || 0) + durations[i];
   }
 
   // Source/publisher breakdown
@@ -255,8 +277,49 @@ const activeTabs = new Set();
 /**
  * Inject scripts and toggle the reader in the given tab.
  */
+async function handlePdfUrl(tabId, url, settings) {
+  const { reductoApiKey } = await chrome.storage.local.get('reductoApiKey');
+  if (!reductoApiKey) {
+    return { success: false, reason: 'no-api-key', message: 'No Reducto API key configured.' };
+  }
+  try {
+    const parseResult = await parseWithReducto(reductoApiKey, url);
+    const { html, title } = convertReductoToHtml(parseResult);
+    const meta = extractPdfMetadata(parseResult);
+    const filename = url.split('/').pop().split('?')[0] || 'document.pdf';
+
+    const entry = await librarySave({
+      url,
+      title: title || filename.replace(/\.pdf$/i, ''),
+      byline: '',
+      siteName: '',
+      faviconUrl: '',
+      publishDate: '',
+      contentHtml: html,
+      wordCount: meta.wordCount,
+      blockCount: (html.match(/<(?:p|h[1-6]|figure|blockquote|ul|ol|pre|table|hr|aside)[>\s]/gi) || []).length,
+      sourceType: 'pdf',
+      sourceFileName: filename,
+    });
+
+    // Open the viewer with the saved article
+    chrome.tabs.create({ url: chrome.runtime.getURL(`viewer/viewer.html?id=${entry.id}`) });
+    return { success: true, entry };
+  } catch (err) {
+    return { success: false, reason: 'pdf-error', message: err.message };
+  }
+}
+
 async function toggleReader(tabId, settings = {}) {
   try {
+    // Check if this is a PDF URL — intercept and process via Reducto
+    try {
+      const tab = await chrome.tabs.get(tabId);
+      if (tab.url && /\.pdf(\?|#|$)/i.test(tab.url)) {
+        return await handlePdfUrl(tabId, tab.url, settings);
+      }
+    } catch { /* ignore — proceed with normal flow */ }
+
     // Check if content script is already injected by trying to send a ping
     let alreadyInjected = false;
     try {
@@ -405,6 +468,85 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     return true;
   }
 
+  if (message.action === 'open-extension-page') {
+    chrome.tabs.create({ url: chrome.runtime.getURL(message.page) });
+    sendResponse({ success: true });
+    return false;
+  }
+
+  // ─── PDF processing messages ────────────────────────────────────────
+  if (message.action === 'process-pdf') {
+    (async () => {
+      const { reductoApiKey } = await chrome.storage.local.get('reductoApiKey');
+      if (!reductoApiKey) {
+        sendResponse({ success: false, error: 'No Reducto API key configured.' });
+        return;
+      }
+      try {
+        // Decode base64 back to ArrayBuffer (Chrome message passing can't serialize ArrayBuffer)
+        const binaryStr = atob(message.base64);
+        const bytes = new Uint8Array(binaryStr.length);
+        for (let i = 0; i < binaryStr.length; i++) bytes[i] = binaryStr.charCodeAt(i);
+        const fileId = await uploadToReducto(reductoApiKey, bytes.buffer, message.filename);
+        const parseResult = await parseWithReducto(reductoApiKey, fileId);
+        const { html, title } = convertReductoToHtml(parseResult);
+        const meta = extractPdfMetadata(parseResult);
+
+        const entry = await librarySave({
+          url: `pdf://${message.filename}`,
+          title: title || message.filename.replace(/\.pdf$/i, ''),
+          byline: '',
+          siteName: '',
+          faviconUrl: '',
+          publishDate: '',
+          contentHtml: html,
+          wordCount: meta.wordCount,
+          blockCount: (html.match(/<(?:p|h[1-6]|figure|blockquote|ul|ol|pre|table|hr|aside)[>\s]/gi) || []).length,
+          sourceType: 'pdf',
+          sourceFileName: message.filename,
+        });
+        sendResponse({ success: true, entry });
+      } catch (err) {
+        sendResponse({ success: false, error: err.message });
+      }
+    })();
+    return true;
+  }
+
+  if (message.action === 'process-pdf-url') {
+    (async () => {
+      const { reductoApiKey } = await chrome.storage.local.get('reductoApiKey');
+      if (!reductoApiKey) {
+        sendResponse({ success: false, error: 'No Reducto API key configured.', reason: 'no-api-key' });
+        return;
+      }
+      try {
+        const parseResult = await parseWithReducto(reductoApiKey, message.url);
+        const { html, title } = convertReductoToHtml(parseResult);
+        const meta = extractPdfMetadata(parseResult);
+        const filename = message.url.split('/').pop().split('?')[0] || 'document.pdf';
+
+        const entry = await librarySave({
+          url: message.url,
+          title: title || filename.replace(/\.pdf$/i, ''),
+          byline: '',
+          siteName: '',
+          faviconUrl: '',
+          publishDate: '',
+          contentHtml: html,
+          wordCount: meta.wordCount,
+          blockCount: (html.match(/<(?:p|h[1-6]|figure|blockquote|ul|ol|pre|table|hr|aside)[>\s]/gi) || []).length,
+          sourceType: 'pdf',
+          sourceFileName: filename,
+        });
+        sendResponse({ success: true, entry });
+      } catch (err) {
+        sendResponse({ success: false, error: err.message });
+      }
+    })();
+    return true;
+  }
+
   if (message.action === 'edit-first-from-popup') {
     (async () => {
       const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
@@ -433,4 +575,64 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo) => {
     activeTabs.delete(tabId);
     chrome.action.setBadgeText({ text: '', tabId });
   }
+});
+
+// ─── PDF import via long-lived port (supports progress updates) ──────
+chrome.runtime.onConnect.addListener((port) => {
+  if (port.name !== 'pdf-import') return;
+
+  let cancelled = false;
+  port.onDisconnect.addListener(() => { cancelled = true; });
+
+  port.onMessage.addListener(async (msg) => {
+    const { reductoApiKey } = await chrome.storage.local.get('reductoApiKey');
+    if (!reductoApiKey) {
+      port.postMessage({ error: 'No Reducto API key configured.', reason: 'no-api-key' });
+      return;
+    }
+
+    try {
+      // Step 1: Upload
+      port.postMessage({ progress: 0.1, status: 'Uploading to Reducto...' });
+      const binaryStr = atob(msg.base64);
+      const bytes = new Uint8Array(binaryStr.length);
+      for (let i = 0; i < binaryStr.length; i++) bytes[i] = binaryStr.charCodeAt(i);
+      const fileId = await uploadToReducto(reductoApiKey, bytes.buffer, msg.filename);
+
+      if (cancelled) return;
+
+      // Step 2: Parse
+      port.postMessage({ progress: 0.4, status: 'Extracting content...' });
+      const parseResult = await parseWithReducto(reductoApiKey, fileId);
+
+      if (cancelled) return;
+
+      // Step 3: Convert
+      port.postMessage({ progress: 0.8, status: 'Converting to reading format...' });
+      const { html, title } = convertReductoToHtml(parseResult);
+      const meta = extractPdfMetadata(parseResult);
+
+      // Step 4: Save
+      port.postMessage({ progress: 0.9, status: 'Saving to library...' });
+      const entry = await librarySave({
+        url: `pdf://${msg.filename}`,
+        title: title || msg.filename.replace(/\.pdf$/i, ''),
+        byline: '',
+        siteName: '',
+        faviconUrl: '',
+        publishDate: '',
+        contentHtml: html,
+        wordCount: meta.wordCount,
+        blockCount: (html.match(/<(?:p|h[1-6]|figure|blockquote|ul|ol|pre|table|hr|aside)[>\s]/gi) || []).length,
+        sourceType: 'pdf',
+        sourceFileName: msg.filename,
+      });
+
+      port.postMessage({ progress: 1, status: 'Done', done: true, entry });
+    } catch (err) {
+      if (!cancelled) {
+        port.postMessage({ error: err.message });
+      }
+    }
+  });
 });

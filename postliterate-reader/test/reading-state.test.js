@@ -149,17 +149,17 @@ describe('createReadingState', () => {
 
   it('uses animationStrategy.createLineRevealAnimation when pretext data is available', () => {
     const blocks = makeBlocks(3);
-    const mockCancel = vi.fn();
+    const mockHandle = { cancel: vi.fn(), finish: vi.fn() };
     const animationStrategy = {
       hasPretextData: vi.fn((el) => el === blocks[1]),
-      createLineRevealAnimation: vi.fn(() => mockCancel),
+      createLineRevealAnimation: vi.fn(() => mockHandle),
     };
     const state = createReadingState(blocks, { animationStrategy });
 
     state.advance();
 
     expect(animationStrategy.hasPretextData).toHaveBeenCalledWith(blocks[1]);
-    expect(animationStrategy.createLineRevealAnimation).toHaveBeenCalledWith(blocks[1], 'medium');
+    expect(animationStrategy.createLineRevealAnimation).toHaveBeenCalledWith(blocks[1], 'medium', {});
   });
 
   it('falls back to clip-path animation when pretext data is not available', () => {

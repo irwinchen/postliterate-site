@@ -88,6 +88,27 @@ async function init() {
       font-style: normal;
       font-display: swap;
     }
+    @font-face {
+      font-family: 'Latin Modern';
+      src: url('${fontsUrl}lm-regular.woff') format('woff');
+      font-weight: 400;
+      font-style: normal;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: 'Latin Modern';
+      src: url('${fontsUrl}lm-bold.woff') format('woff');
+      font-weight: 700;
+      font-style: normal;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: 'Latin Modern';
+      src: url('${fontsUrl}lm-italic.woff') format('woff');
+      font-weight: 400;
+      font-style: italic;
+      font-display: swap;
+    }
   `;
   document.head.appendChild(fontStyle);
 
@@ -106,6 +127,7 @@ async function init() {
     settings,
     originalStyles: article.originalStyles || null,
     savedArticleId: article.id,
+    sourceType: article.sourceType || 'web',
   });
 
   document.body.appendChild(overlay);

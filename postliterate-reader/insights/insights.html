@@ -9,13 +9,20 @@
 <body>
   <div class="insights">
     <header class="insights-header">
-      <h1 class="insights-title">Reading Insights</h1>
-      <a class="insights-header-link" id="open-library" href="#">Library</a>
+      <h1 class="insights-title"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg> Reading Insights</h1>
+      <a class="insights-header-link" id="open-library" href="#"><img src="../icons/virgil_library.svg" alt="" width="14" height="14"> Library</a>
     </header>
 
     <section class="insights-section">
       <h2 class="insights-section-title">Reading Activity</h2>
-      <div class="heatmap" id="heatmap"></div>
+      <div class="heatmap-container">
+        <div></div>
+        <div class="heatmap-months" id="heatmap-months"></div>
+        <div class="heatmap-labels">
+          <span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span>
+        </div>
+        <div class="heatmap" id="heatmap"></div>
+      </div>
       <div class="heatmap-legend">
         <span class="heatmap-legend-label">Less</span>
         <span class="heatmap-cell" style="opacity: 0.15"></span>

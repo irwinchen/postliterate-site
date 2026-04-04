@@ -17,8 +17,12 @@ function formatDuration(ms) {
 /**
  * Build the reading activity heatmap (last 12 weeks = 84 days).
  */
+const MONTHS_SHORT = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+  'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
 function buildHeatmap(dayMap) {
   const container = document.getElementById('heatmap');
+  const monthRow = document.getElementById('heatmap-months');
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
@@ -26,19 +30,34 @@ function buildHeatmap(dayMap) {
   const values = Object.values(dayMap);
   const maxMs = values.length > 0 ? Math.max(...values) : 0;
 
-  // 12 weeks × 7 days = 84 days, grid flows column-first (week columns)
-  // We need to start from the first day of the earliest week
+  // Exactly 12 columns × 7 rows = 84 cells, flowing column-first.
   const endDay = new Date(today);
-  const startDay = new Date(today);
-  startDay.setDate(startDay.getDate() - 83);
 
-  // Adjust start to the previous Sunday (start of week)
-  const startDow = startDay.getDay();
-  startDay.setDate(startDay.getDate() - startDow);
+  const thisSunday = new Date(today);
+  thisSunday.setDate(thisSunday.getDate() - thisSunday.getDay());
 
-  // Fill grid column by column (each column = 1 week, top = Sun)
+  const startDay = new Date(thisSunday);
+  startDay.setDate(startDay.getDate() - 11 * 7);
+
+  // Build month labels — one per column, show label when month changes
+  if (monthRow) {
+    const weekStart = new Date(startDay);
+    let prevMonth = -1;
+    for (let w = 0; w < 12; w++) {
+      const span = document.createElement('span');
+      const month = weekStart.getMonth();
+      if (month !== prevMonth) {
+        span.textContent = MONTHS_SHORT[month];
+        prevMonth = month;
+      }
+      monthRow.appendChild(span);
+      weekStart.setDate(weekStart.getDate() + 7);
+    }
+  }
+
+  // Emit exactly 84 cells
   const current = new Date(startDay);
-  while (current <= endDay || current.getDay() !== 0) {
+  for (let i = 0; i < 84; i++) {
     const dateStr = current.toISOString().slice(0, 10);
     const cell = document.createElement('div');
 
@@ -48,18 +67,17 @@ function buildHeatmap(dayMap) {
       cell.className = 'heatmap-day';
       const readMs = dayMap[dateStr] || 0;
       if (readMs > 0 && maxMs > 0) {
-        // Scale opacity: min 0.2, max 1.0
         const ratio = readMs / maxMs;
         cell.style.opacity = (0.2 + ratio * 0.8).toFixed(2);
       }
-      cell.title = `${dateStr}: ${readMs > 0 ? formatDuration(readMs) : 'No reading'}`;
+      // Human-readable tooltip: "Mon, Mar 31: 12 min" or "Mon, Mar 31: No reading"
+      const dayName = current.toLocaleDateString('en-US', { weekday: 'short' });
+      const monthDay = current.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+      cell.title = `${dayName}, ${monthDay}: ${readMs > 0 ? formatDuration(readMs) : 'No reading'}`;
     }
 
     container.appendChild(cell);
     current.setDate(current.getDate() + 1);
-
-    // Stop after we've filled enough columns
-    if (current > endDay && current.getDay() === 0) break;
   }
 }
 

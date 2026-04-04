@@ -36,13 +36,14 @@ export function createReadingState(blocks, options = {}) {
   } = options;
 
   let visibleCount = 0;
-  let currentCancel = null;
+  /** @type {{ cancel: () => void, finish: () => void } | null} */
+  let currentAnim = null;
 
   function applyInitialState(resumeAt) {
     // Cancel any running animation
-    if (currentCancel) {
-      currentCancel();
-      currentCancel = null;
+    if (currentAnim) {
+      currentAnim.cancel();
+      currentAnim = null;
     }
 
     const showCount = Math.min(Math.max(0, resumeAt), blocks.length);
@@ -84,6 +85,12 @@ export function createReadingState(blocks, options = {}) {
   function advance() {
     if (blocks.length === 0 || visibleCount >= blocks.length) return;
 
+    // Finish any in-flight animation immediately before starting the next
+    if (currentAnim) {
+      currentAnim.finish();
+      currentAnim = null;
+    }
+
     // Dim the previous (current) block
     const prev = blocks[visibleCount - 1];
     if (prev) {
@@ -96,13 +103,16 @@ export function createReadingState(blocks, options = {}) {
     el.classList.add('fr-revealing');
 
     // Start animation — use Pretext line reveal if available, else clip-path fallback
-    const isFigure = el.tagName === 'FIGURE' || el.classList.contains('figure');
+    const isFigure = el.tagName === 'FIGURE' || el.tagName === 'IMG'
+      || el.classList.contains('figure') || el.querySelector('img, video, picture');
+    const isHeading = /^H[1-6]$/.test(el.tagName);
+    const animOpts = isHeading ? { skipRamp: true } : {};
     if (isFigure) {
-      currentCancel = createFigureFadeIn(el, speed);
+      currentAnim = createFigureFadeIn(el, speed);
     } else if (animationStrategy?.hasPretextData(el)) {
-      currentCancel = animationStrategy.createLineRevealAnimation(el, speed);
+      currentAnim = animationStrategy.createLineRevealAnimation(el, speed, animOpts);
     } else {
-      currentCancel = createTypewriterAnimation(el, speed);
+      currentAnim = createTypewriterAnimation(el, speed, animOpts);
     }
 
     visibleCount++;
@@ -120,7 +130,7 @@ export function createReadingState(blocks, options = {}) {
     advance,
     reset,
     setSpeed(newSpeed) { speed = newSpeed; },
-    destroy() { if (currentCancel) { currentCancel(); currentCancel = null; } },
+    destroy() { if (currentAnim) { currentAnim.cancel(); currentAnim = null; } },
     get visibleCount() { return visibleCount; },
     get totalCount() { return blocks.length; },
     get progress() { return getState().progress; },

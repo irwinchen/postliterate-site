@@ -47,8 +47,9 @@ export const EASE_RAMP = [2.5, 1.8, 1.3];
  * @param {number} baseDuration - Target per-line duration in seconds
  * @returns {number} Duration in seconds for this line
  */
-export function getLineDuration(lineIndex, baseDuration) {
+export function getLineDuration(lineIndex, baseDuration, { skipRamp = false } = {}) {
   if (baseDuration === 0) return 0;
+  if (skipRamp) return baseDuration;
   const rampMultiplier = lineIndex < EASE_RAMP.length ? EASE_RAMP[lineIndex] : 1;
   return baseDuration * rampMultiplier;
 }
@@ -61,7 +62,7 @@ export function getLineDuration(lineIndex, baseDuration) {
  * @param {'slow'|'medium'|'fast'|'instant'} speed - Animation speed setting
  * @returns {{ lineHeight: number, lines: number, perLineSchedule: number[], totalDuration: number }}
  */
-export function calculateLineMetrics(el, speed = 'medium') {
+export function calculateLineMetrics(el, speed = 'medium', { skipRamp = false } = {}) {
   const style = getComputedStyle(el);
   let lh = parseFloat(style.lineHeight);
   if (isNaN(lh)) lh = parseFloat(style.fontSize) * 1.4;
@@ -75,7 +76,7 @@ export function calculateLineMetrics(el, speed = 'medium') {
   const perLineSchedule = [];
   let totalMs = 0;
   for (let i = 0; i < lines; i++) {
-    const dur = getLineDuration(i, base);
+    const dur = getLineDuration(i, base, { skipRamp });
     perLineSchedule.push(dur);
     totalMs += dur * 1000;
   }
@@ -108,15 +109,16 @@ export function buildClipPath({ line, progress, lineHeight, totalHeight }) {
  *
  * @param {Element} el - The element to animate
  * @param {'slow'|'medium'|'fast'|'instant'} speed - Animation speed
- * @returns {() => void} Cancel function to stop and clean up the animation
+ * @returns {{ cancel: () => void, finish: () => void }} Animation handle
  */
-export function createTypewriterAnimation(el, speed = 'medium') {
-  const { lineHeight, lines, perLineSchedule, totalDuration } = calculateLineMetrics(el, speed);
+export function createTypewriterAnimation(el, speed = 'medium', { skipRamp = false } = {}) {
+  const { lineHeight, lines, perLineSchedule, totalDuration } = calculateLineMetrics(el, speed, { skipRamp });
   const totalH = el.scrollHeight;
 
-  let cancelled = false;
+  let done = false;
   let line = 0;
   let lineStart = performance.now();
+  let safetyTimer;
 
   // Initial clip-path: zero-width rectangle at first line
   el.style.clipPath = `polygon(0 0, 0 0, 0 ${lineHeight}px, 0 ${lineHeight}px)`;
@@ -129,24 +131,30 @@ export function createTypewriterAnimation(el, speed = 'medium') {
   el.style.opacity = '0';
   el.style.transition = `opacity ${fadeDuration}ms ease-out`;
   // Kick the transition on the next frame so the initial opacity:0 is painted first
-  requestAnimationFrame(() => { el.style.opacity = '1'; });
+  requestAnimationFrame(() => { if (!done) el.style.opacity = '1'; });
 
   function cleanup() {
-    if (cancelled) return;
-    cancelled = true;
+    if (done) return;
+    done = true;
+    clearTimeout(safetyTimer);
     el.style.clipPath = '';
     el.style.opacity = '';
     el.style.transition = '';
   }
 
+  const handle = {
+    cancel: cleanup,
+    finish: cleanup,
+  };
+
   if (speed === 'instant' || totalDuration === 0) {
     // Reveal immediately on next frame
     requestAnimationFrame(() => cleanup());
-    return cleanup;
+    return handle;
   }
 
   function frame(now) {
-    if (cancelled) return;
+    if (done) return;
 
     const lineDuration = perLineSchedule[line] * 1000;
     const tLinear = Math.min((now - lineStart) / lineDuration, 1);
@@ -174,9 +182,9 @@ export function createTypewriterAnimation(el, speed = 'medium') {
   requestAnimationFrame(frame);
 
   // Safety timeout: clean up even if rAF loop stalls
-  setTimeout(cleanup, totalDuration + 200);
+  safetyTimer = setTimeout(cleanup, totalDuration + 200);
 
-  return cleanup;
+  return handle;
 }
 
 /**
@@ -184,21 +192,24 @@ export function createTypewriterAnimation(el, speed = 'medium') {
  *
  * @param {Element} el - The figure element to fade in
  * @param {'slow'|'medium'|'fast'|'instant'} speed - Animation speed
- * @returns {() => void} Cancel function
+ * @returns {{ cancel: () => void, finish: () => void }} Animation handle
  */
 export function createFigureFadeIn(el, speed = 'medium') {
-  let cancelled = false;
+  let done = false;
+  let timer;
 
   function cleanup() {
-    if (cancelled) return;
-    cancelled = true;
+    if (done) return;
+    done = true;
+    clearTimeout(timer);
     el.style.opacity = '';
     el.style.transition = '';
   }
 
+  const handle = { cancel: cleanup, finish: cleanup };
+
   if (speed === 'instant') {
-    // No animation needed
-    return cleanup;
+    return handle;
   }
 
   const baseDurations = { slow: 900, medium: 600, fast: 300 };
@@ -210,7 +221,7 @@ export function createFigureFadeIn(el, speed = 'medium') {
   void el.offsetWidth;
   el.style.opacity = '1';
 
-  setTimeout(cleanup, duration + 100);
+  timer = setTimeout(cleanup, duration + 100);
 
-  return cleanup;
+  return handle;
 }
