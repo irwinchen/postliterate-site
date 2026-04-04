@@ -177,7 +177,7 @@ describe('createTypewriterAnimation', () => {
     expect(el.style.clipPath).toBe('polygon(0 0, 0 0, 0 25px, 0 25px)');
   });
 
-  it('returns a cancel function', () => {
+  it('returns an object with cancel and finish methods', () => {
     const el = document.createElement('p');
     Object.defineProperty(el, 'scrollHeight', { value: 50 });
     vi.spyOn(window, 'getComputedStyle').mockReturnValue({
@@ -185,8 +185,28 @@ describe('createTypewriterAnimation', () => {
       fontSize: '16px',
     });
 
-    const cancel = createTypewriterAnimation(el, 'medium');
-    expect(typeof cancel).toBe('function');
+    const handle = createTypewriterAnimation(el, 'medium');
+    expect(typeof handle).toBe('object');
+    expect(typeof handle.cancel).toBe('function');
+    expect(typeof handle.finish).toBe('function');
+  });
+
+  it('finish() clears clip-path and shows element immediately', () => {
+    const el = document.createElement('p');
+    Object.defineProperty(el, 'scrollHeight', { value: 50 });
+    vi.spyOn(window, 'getComputedStyle').mockReturnValue({
+      lineHeight: '25px',
+      fontSize: '16px',
+    });
+
+    const handle = createTypewriterAnimation(el, 'medium');
+    // Animation is in progress — clip-path should be set
+    expect(el.style.clipPath).not.toBe('');
+
+    handle.finish();
+    // After finish, element should be fully visible — no clip-path
+    expect(el.style.clipPath).toBe('');
+    expect(el.style.opacity).toBe('');
   });
 
   it('clears clip-path after animation completes', async () => {
@@ -224,9 +244,11 @@ describe('createFigureFadeIn', () => {
     expect(el.style.opacity === '0' || el.style.opacity === '1').toBe(true);
   });
 
-  it('returns a cancel function', () => {
+  it('returns an object with cancel and finish methods', () => {
     const el = document.createElement('figure');
-    const cancel = createFigureFadeIn(el);
-    expect(typeof cancel).toBe('function');
+    const handle = createFigureFadeIn(el);
+    expect(typeof handle).toBe('object');
+    expect(typeof handle.cancel).toBe('function');
+    expect(typeof handle.finish).toBe('function');
   });
 });

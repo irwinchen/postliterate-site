@@ -228,11 +228,11 @@ describe('createLineRevealAnimation', () => {
     const originalHTML = el.innerHTML;
     await prepareBlocks([el]);
 
-    const cancel = createLineRevealAnimation(el, 'medium');
+    const handle = createLineRevealAnimation(el, 'medium');
     // Spans should be present now
     expect(el.querySelectorAll('.pl-line-span').length).toBeGreaterThan(0);
 
-    cancel();
+    handle.cancel();
     expect(el.innerHTML).toBe(originalHTML);
   });
 
@@ -254,8 +254,9 @@ describe('createLineRevealAnimation', () => {
     const originalHTML = el.innerHTML;
     await prepareBlocks([el]);
 
-    const cancel = createLineRevealAnimation(el, 'instant');
-    expect(typeof cancel).toBe('function');
+    const handle = createLineRevealAnimation(el, 'instant');
+    expect(typeof handle.cancel).toBe('function');
+    expect(typeof handle.finish).toBe('function');
     // innerHTML should still be original (no span wrapping for instant)
     expect(el.innerHTML).toBe(originalHTML);
   });

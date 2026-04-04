@@ -139,14 +139,18 @@
     background: var(--bg-highlight);
 }
 
+.pl-toolbar-btn-wrap {
+    position: relative;
+}
+
 /* ================================================================
    SETTINGS PANEL
    ================================================================ */
 
 .pl-settings-panel {
-    position: sticky;
-    inset-block-start: 49px;
-    margin-inline-start: auto;
+    position: absolute;
+    inset-block-start: 100%;
+    inset-inline-end: 0;
     z-index: 20;
     padding: 12px 16px;
     background: var(--background);
@@ -156,6 +160,7 @@
     gap: 8px;
     font-family: 'Outfit', sans-serif;
     width: 260px;
+    max-width: calc(100vw - 48px);
     box-shadow: 0 4px 12px light-dark(rgba(0,0,0,0.08), rgba(0,0,0,0.3));
 }
 
@@ -333,8 +338,10 @@
         overflow-y: auto;
     }
 
-    /* Figures never scroll — image constrains itself via max-height */
-    &:is(figure):hover {
+    /* Figures and image-only blocks never scroll — image constrains itself */
+    &:is(figure):hover,
+    &:has(> img:only-child):hover,
+    &:has(> picture:only-child):hover {
         overflow-y: hidden;
     }
 }
@@ -430,6 +437,17 @@ ul, ol {
     li + li {
         margin-block-start: calc(var(--line-height) * 0.3);
     }
+}
+
+/* Standalone images (not inside a figure) */
+.pl-article-content > * img:not(figure img) {
+    display: block;
+    max-width: 100%;
+    max-height: 85dvh;
+    width: auto;
+    height: auto;
+    margin-inline: auto;
+    cursor: zoom-in;
 }
 
 /* Figures */
@@ -593,18 +611,31 @@ hr {
     background: var(--background);
     cursor: pointer;
     color: var(--text-secondary);
-    transition: color 0.2s ease, background-color 0.3s ease;
+    transition: color 0.2s ease, background-color 0.3s ease, box-shadow 0.2s ease;
     padding: 0;
     z-index: 10;
 
+    &:hover {
+        box-shadow: 0 0 8px 2px light-dark(rgba(229, 62, 51, 0.15), rgba(255, 107, 94, 0.18));
+    }
+
     &:hover path {
         stroke: var(--accent);
+    }
+
+    &.fr-advance-pulse {
+        animation: advance-glow 0.85s ease-out;
     }
 
     &:focus-visible {
         outline: 2px solid var(--accent);
         outline-offset: 2px;
     }
+}
+
+@keyframes advance-glow {
+    0%   { box-shadow: 0 0 14px 5px light-dark(rgba(229, 62, 51, 0.4), rgba(255, 107, 94, 0.45)); }
+    100% { box-shadow: 0 0 0 0 transparent; }
 }
 
 .fr-progress-ring {
@@ -617,7 +648,7 @@ hr {
 
 .fr-fullscreen {
     position: fixed;
-    inset-block-end: 80px;
+    inset-block-end: 24px;
     inset-inline-end: 24px;
     display: grid;
     place-items: center;
@@ -778,5 +809,95 @@ hr {
 
     figure, blockquote, pre {
         page-break-inside: avoid;
+    }
+}
+
+/* ================================================================
+   ACADEMIC PAPER STYLES (PDF source)
+   Applied via data-source="pdf" on the root element.
+   Uses Latin Modern (LaTeX's digital font) for body text.
+   ================================================================ */
+
+.pl-reader-root[data-source="pdf"] {
+
+    /* Body text in Latin Modern */
+    .pl-article-content {
+        font-family: 'Latin Modern', 'Literata', 'Georgia', serif;
+        font-size: clamp(16px, 1.1rem + 0.2vw, 20px);
+        line-height: 1.6;
+    }
+
+    /* Paper title — larger, bold Latin Modern */
+    .pl-article-content h1 {
+        font-family: 'Latin Modern', 'Georgia', serif;
+        font-weight: 700;
+        font-size: clamp(24px, 1.6rem + 0.8vw, 38px);
+        line-height: 1.25;
+        margin-block-end: calc(var(--line-height) * 0.5);
+    }
+
+    /* Section headers — bold Latin Modern, slightly smaller */
+    .pl-article-content h2 {
+        font-family: 'Latin Modern', 'Georgia', serif;
+        font-weight: 700;
+        font-size: clamp(18px, 1.2rem + 0.4vw, 26px);
+        line-height: 1.3;
+        text-transform: none;
+    }
+
+    .pl-article-content h3 {
+        font-family: 'Latin Modern', 'Georgia', serif;
+        font-weight: 700;
+        font-style: italic;
+    }
+
+    /* Author/affiliation block — first few paragraphs after first h1
+       typically contain author names, affiliations, emails.
+       Style them distinctly as metadata. */
+    .pl-article-content h1 + p,
+    .pl-article-content h1 + p + p,
+    .pl-article-content h1 + p + p + p {
+        font-size: var(--text-meta);
+        color: var(--text-secondary);
+        line-height: 1.5;
+    }
+
+    /* First paragraph after author block (abstract) — italic */
+    .pl-article-content h1 + p + p + p + p {
+        font-style: italic;
+    }
+
+    /* Tables — academic style: top/bottom borders, no vertical rules */
+    .pl-article-content table {
+        font-family: 'Latin Modern', 'Georgia', serif;
+        font-size: 0.9em;
+        border-collapse: collapse;
+        width: 100%;
+        margin-block: var(--line-height);
+
+        & thead {
+            border-block-start: 2px solid var(--text);
+            border-block-end: 1px solid var(--text);
+        }
+
+        & tbody {
+            border-block-end: 2px solid var(--text);
+        }
+
+        & th, & td {
+            padding: 4px 10px;
+            text-align: start;
+        }
+
+        & th {
+            font-weight: 700;
+        }
+    }
+
+    /* Blockquotes — used for comments/annotations */
+    .pl-article-content blockquote {
+        font-style: italic;
+        border-inline-start: 2px solid var(--text-tertiary);
+        padding-inline-start: 16px;
     }
 }

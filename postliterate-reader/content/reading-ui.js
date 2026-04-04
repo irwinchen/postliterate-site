@@ -8,7 +8,7 @@ import { parseBlocks } from './block-parser.js';
 import { createReadingState } from './reading-state.js';
 import { createProgressRingSVG, updateProgressRing } from './progress-ring.js';
 import { createEditOverlay } from './edit-mode-ui.js';
-import { enterSavedEditMode } from './saved-edit-mode.js';
+import { enterBlockEditMode } from './saved-edit-mode.js';
 import { exportPdf, exportHtml, exportMarkdown } from '../lib/export.js';
 import { setupLightbox } from './lightbox.js';
 import { prepareBlocks, hasPretextData, createLineRevealAnimation } from './pretext-layout.js';
@@ -20,6 +20,7 @@ const FULLSCREEN_EXPAND = `<svg width="20" height="20" viewBox="0 0 24 24" fill=
 const BOOKMARK_OUTLINE = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M19 21l-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>`;
 const BOOKMARK_FILLED = `<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M19 21l-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>`;
 const DOWNLOAD_ICON = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>`;
+const MORE_ICON = `<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg>`;
 
 /**
  * Create a settings row with label — shared by option groups and selects.
@@ -64,6 +65,13 @@ function createOptionGroup(label, options, currentValue, onChange) {
     group.appendChild(btn);
   }
 
+  /** Programmatically set the active value (updates UI only, does NOT fire onChange). */
+  row.setValue = (value) => {
+    group.querySelectorAll('.pl-settings-option').forEach((b) => {
+      b.classList.toggle('active', b.dataset.value === value);
+    });
+  };
+
   row.appendChild(group);
   return row;
 }
@@ -107,6 +115,7 @@ export function createReadingOverlay({
   originalStyles = null,
   selectedIds = null,
   savedArticleId = null,
+  sourceType = 'web',
 }) {
   let {
     theme = 'auto',
@@ -118,7 +127,59 @@ export function createReadingOverlay({
     startAt = 0,
   } = settings;
 
-  // Create host element
+  // ─── Session tracking ──────────────────────────────────────────────
+  const sessionStart = Date.now();
+  const sessionAdvances = [];
+  let sessionStartBlock = startAt;
+  let activeTimeMs = 0;
+  let lastActiveTs = Date.now();
+
+  // Track actual active reading time — pause when tab is hidden
+  function handleVisibilityChange() {
+    if (document.hidden) {
+      // Tab going away — bank the active time so far
+      activeTimeMs += Date.now() - lastActiveTs;
+    } else {
+      // Tab coming back — reset the active timer
+      lastActiveTs = Date.now();
+    }
+  }
+  document.addEventListener('visibilitychange', handleVisibilityChange);
+
+  // Save session on tab close / navigation (destroy may not fire)
+  function handleBeforeUnload() {
+    if (sessionAdvances.length === 0) return;
+    if (!document.hidden) activeTimeMs += Date.now() - lastActiveTs;
+    const text = articleContent?.textContent || '';
+    const wc = text.split(/\s+/).filter(Boolean).length;
+    // sendBeacon is fire-and-forget; we encode as a message the SW will pick up
+    // But chrome.runtime.sendMessage won't work in beforeunload reliably,
+    // so we use navigator.sendBeacon to a no-op URL as a fallback signal,
+    // and primarily rely on chrome.runtime.sendMessage with a try/catch.
+    try {
+      chrome.runtime.sendMessage({
+        action: 'save-session',
+        session: {
+          articleUrl: window.location.href,
+          savedArticleId: savedArticleId || null,
+          title: title || '',
+          startedAt: sessionStart,
+          endedAt: Date.now(),
+          activeTimeMs,
+          startBlock: sessionStartBlock,
+          endBlock: state.visibleCount,
+          totalBlocks: blocks.length,
+          wordCount: wc,
+          completed: state.isComplete,
+          speed,
+          advances: sessionAdvances,
+        },
+      });
+    } catch { /* tab is closing — best effort */ }
+  }
+  window.addEventListener('beforeunload', handleBeforeUnload);
+
+  // ─── Create host element
   const host = document.createElement('div');
   host.id = 'postliterate-reader';
   host.style.cssText = 'all: initial; position: fixed; inset: 0; z-index: 2147483647;';
@@ -190,6 +251,7 @@ export function createReadingOverlay({
   // Build DOM structure
   const root = document.createElement('div');
   root.className = 'pl-reader-root';
+  if (sourceType === 'pdf') root.dataset.source = 'pdf';
   root.style.colorScheme = resolveTheme(theme);
 
   // — Toolbar
@@ -212,15 +274,11 @@ export function createReadingOverlay({
   titleEl.className = 'pl-toolbar-title';
   titleEl.textContent = title || 'Reading';
 
-  // Edit button (refine extraction)
+  // Edit button (refine extraction — block editor)
   const editBtn = document.createElement('button');
   editBtn.className = 'pl-toolbar-btn';
-  editBtn.title = 'Edit selection';
+  editBtn.title = 'Edit blocks';
   editBtn.innerHTML = EDIT_ICON;
-  // Show edit button if we have selectedIds for original page, or savedArticleId for block editor
-  if (!savedArticleId && (!selectedIds || selectedIds.size === 0)) {
-    editBtn.style.display = 'none';
-  }
 
   // Bookmark button (save to library)
   const bookmarkBtn = document.createElement('button');
@@ -322,10 +380,57 @@ export function createReadingOverlay({
     const isOpen = exportDropdown.style.display !== 'none';
     exportDropdown.style.display = isOpen ? 'none' : 'flex';
     exportBtn.classList.toggle('active', !isOpen);
-    if (!isOpen && settingsOpen) {
-      settingsOpen = false;
-      settingsPanel.style.display = 'none';
-      gearBtn.classList.remove('active');
+    if (!isOpen) {
+      if (settingsOpen) {
+        settingsOpen = false;
+        settingsPanel.style.display = 'none';
+        gearBtn.classList.remove('active');
+      }
+      if (moreDropdown.style.display !== 'none') {
+        moreDropdown.style.display = 'none';
+        moreBtn.classList.remove('active');
+      }
+    }
+  });
+
+  // More button (overflow menu: Library, Insights)
+  const moreBtn = document.createElement('button');
+  moreBtn.className = 'pl-toolbar-btn';
+  moreBtn.title = 'More';
+  moreBtn.innerHTML = MORE_ICON;
+
+  const moreDropdown = document.createElement('div');
+  moreDropdown.className = 'pl-export-dropdown';
+  moreDropdown.style.display = 'none';
+
+  for (const [label, page] of [['Library', 'library/library.html'], ['Insights', 'insights/insights.html']]) {
+    const item = document.createElement('button');
+    item.className = 'pl-export-item';
+    item.textContent = label;
+    item.addEventListener('click', () => {
+      moreDropdown.style.display = 'none';
+      moreBtn.classList.remove('active');
+      if (typeof chrome !== 'undefined' && chrome.runtime) {
+        chrome.runtime.sendMessage({ action: 'open-extension-page', page });
+      }
+    });
+    moreDropdown.appendChild(item);
+  }
+
+  moreBtn.addEventListener('click', () => {
+    const isOpen = moreDropdown.style.display !== 'none';
+    moreDropdown.style.display = isOpen ? 'none' : 'flex';
+    moreBtn.classList.toggle('active', !isOpen);
+    if (!isOpen) {
+      if (settingsOpen) {
+        settingsOpen = false;
+        settingsPanel.style.display = 'none';
+        gearBtn.classList.remove('active');
+      }
+      if (exportDropdown.style.display !== 'none') {
+        exportDropdown.style.display = 'none';
+        exportBtn.classList.remove('active');
+      }
     }
   });
 
@@ -340,21 +445,27 @@ export function createReadingOverlay({
   closeBtn.title = 'Close reader';
   closeBtn.innerHTML = CLOSE_ICON;
 
-  toolbar.append(titleEl, editBtn, bookmarkBtn, exportBtn, exportDropdown, gearBtn, closeBtn);
+  // Wrap button+dropdown pairs in positioned containers for alignment
+  function wrapBtnDropdown(btn, dropdown) {
+    const wrap = document.createElement('div');
+    wrap.className = 'pl-toolbar-btn-wrap';
+    wrap.append(btn, dropdown);
+    return wrap;
+  }
 
-  // — Settings panel (hidden by default, absolute inside sticky toolbar)
+  const exportWrap = wrapBtnDropdown(exportBtn, exportDropdown);
+  const moreWrap = wrapBtnDropdown(moreBtn, moreDropdown);
+
+  // Settings panel — also wrapped with gear button
   const settingsPanel = document.createElement('div');
   settingsPanel.className = 'pl-settings-panel';
-  Object.assign(settingsPanel.style, {
-    display: 'none',
-    position: 'absolute',
-    insetBlockStart: '100%',
-    insetInlineEnd: '24px',
-    width: '260px',
-    maxWidth: 'calc(100vw - 48px)',
-    zIndex: '20',
-  });
-  toolbar.appendChild(settingsPanel);
+  settingsPanel.style.display = 'none';
+
+  const gearWrap = document.createElement('div');
+  gearWrap.className = 'pl-toolbar-btn-wrap';
+  gearWrap.append(gearBtn, settingsPanel);
+
+  toolbar.append(titleEl, editBtn, bookmarkBtn, exportWrap, moreWrap, gearWrap, closeBtn);
 
   const fontBodyGroup = createSelectGroup('Body', [
     { label: 'Original', value: 'original' },
@@ -427,9 +538,15 @@ export function createReadingOverlay({
     settingsOpen = !settingsOpen;
     settingsPanel.style.display = settingsOpen ? 'flex' : 'none';
     gearBtn.classList.toggle('active', settingsOpen);
-    if (settingsOpen && exportDropdown.style.display !== 'none') {
-      exportDropdown.style.display = 'none';
-      exportBtn.classList.remove('active');
+    if (settingsOpen) {
+      if (exportDropdown.style.display !== 'none') {
+        exportDropdown.style.display = 'none';
+        exportBtn.classList.remove('active');
+      }
+      if (moreDropdown.style.display !== 'none') {
+        moreDropdown.style.display = 'none';
+        moreBtn.classList.remove('active');
+      }
     }
   });
 
@@ -527,7 +644,7 @@ export function createReadingOverlay({
   shadow.appendChild(root);
 
   // Lightbox for figures/images
-  const lightbox = setupLightbox(shadow, articleContent);
+  const lightbox = setupLightbox(root, articleContent);
 
   // Shared progress callback for reading state
   const stateCallbacks = {
@@ -575,13 +692,23 @@ export function createReadingOverlay({
   // — Event handlers
   function handleAdvance() {
     state.advance();
+    sessionAdvances.push({ block: state.visibleCount, ts: Date.now() });
     const idx = state.visibleCount - 1;
     if (idx >= 0 && idx < blocks.length) {
       blocks[idx].scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
   }
 
-  advanceBtn.addEventListener('click', handleAdvance);
+  function pulseAdvanceBtn() {
+    advanceBtn.classList.remove('fr-advance-pulse');
+    advanceBtn.getBoundingClientRect();
+    advanceBtn.classList.add('fr-advance-pulse');
+  }
+
+  advanceBtn.addEventListener('click', () => {
+    pulseAdvanceBtn();
+    handleAdvance();
+  });
 
   function handleKeydown(e) {
     const tag = (e.target.tagName || '').toLowerCase();
@@ -589,10 +716,14 @@ export function createReadingOverlay({
 
     if (e.key === 'ArrowDown' || e.key === ' ' || e.key === 'j') {
       e.preventDefault();
+      pulseAdvanceBtn();
       handleAdvance();
     } else if (e.key === 'Escape') {
       e.preventDefault();
-      if (exportDropdown.style.display !== 'none') {
+      if (moreDropdown.style.display !== 'none') {
+        moreDropdown.style.display = 'none';
+        moreBtn.classList.remove('active');
+      } else if (exportDropdown.style.display !== 'none') {
         exportDropdown.style.display = 'none';
         exportBtn.classList.remove('active');
       } else if (settingsOpen) {
@@ -637,49 +768,93 @@ export function createReadingOverlay({
     }
   }
 
+  // Block edit: default for all articles — edit the blocks the user actually sees
+  let activeEditHandle = null;
+  let modeBeforeEdit = null; // track what mode we were in before edit
+
+  function enterEditBrowse() {
+    // Switch to browse mode for editing (shows all blocks)
+    modeBeforeEdit = readingMode;
+    if (readingMode !== 'browse') {
+      readingMode = 'browse';
+      applyReadingMode();
+      modeGroup.setValue('browse');
+    }
+  }
+
+  function restoreModeAfterEdit() {
+    if (modeBeforeEdit && modeBeforeEdit !== readingMode) {
+      readingMode = modeBeforeEdit;
+      applyReadingMode();
+      modeGroup.setValue(readingMode);
+      persistSetting('readingMode', readingMode);
+    }
+    modeBeforeEdit = null;
+  }
+
+  function exitBlockEdit() {
+    if (activeEditHandle) {
+      activeEditHandle.destroy();
+      activeEditHandle = null;
+      editBtn.classList.remove('active');
+      restoreModeAfterEdit();
+    }
+  }
+
   editBtn.addEventListener('click', () => {
-    // Saved article: use block list editor within shadow DOM
-    if (savedArticleId) {
-      let savedEditHandle = null;
-      savedEditHandle = enterSavedEditMode(blocks, articleContent, shadow, {
-        onConfirm: (survivingBlocks) => {
-          // Update blocks and content
-          articleContent.innerHTML = '';
-          for (const block of survivingBlocks) {
-            articleContent.appendChild(block);
-          }
-          blocks = survivingBlocks;
-
-          // Save updated content back to storage
-          if (typeof chrome !== 'undefined' && chrome.runtime) {
-            const text = articleContent.textContent || '';
-            const wordCount = text.split(/\s+/).filter(Boolean).length;
-            chrome.runtime.sendMessage({
-              action: 'update-article',
-              id: savedArticleId,
-              contentHtml: articleContent.innerHTML,
-              counts: { wordCount, blockCount: survivingBlocks.length },
-            });
-          }
-
-          // Re-apply reading mode
-          applyReadingMode();
-        },
-        onCancel: () => { /* nothing to restore */ },
-      });
+    // Toggle: if already in edit mode, cancel and exit
+    if (activeEditHandle) {
+      exitBlockEdit();
       return;
     }
 
+    editBtn.classList.add('active');
+    enterEditBrowse();
+
+    activeEditHandle = enterBlockEditMode(blocks, articleContent, shadow, {
+      readerRoot: root,
+      onConfirm: (survivingBlocks) => {
+        activeEditHandle = null;
+        editBtn.classList.remove('active');
+
+        articleContent.innerHTML = '';
+        for (const block of survivingBlocks) {
+          articleContent.appendChild(block);
+        }
+        blocks = survivingBlocks;
+
+        // Save updated content if this is a saved article
+        if (savedArticleId && typeof chrome !== 'undefined' && chrome.runtime) {
+          const text = articleContent.textContent || '';
+          const wordCount = text.split(/\s+/).filter(Boolean).length;
+          chrome.runtime.sendMessage({
+            action: 'update-article',
+            id: savedArticleId,
+            contentHtml: articleContent.innerHTML,
+            counts: { wordCount, blockCount: survivingBlocks.length },
+          });
+        }
+
+        pretextReady = prepareBlocks(blocks);
+        // Restore the mode we were in before editing
+        restoreModeAfterEdit();
+      },
+      onCancel: () => {
+        activeEditHandle = null;
+        editBtn.classList.remove('active');
+        restoreModeAfterEdit();
+      },
+    });
+  });
+
+  // Source edit: advanced — edit original page elements (add/remove from source)
+  function enterSourceEditMode() {
     if (!selectedIds || selectedIds.size === 0) return;
 
-    // Hide the reading overlay
     host.style.display = 'none';
     document.body.style.overflow = '';
-
-    // Disable all links to prevent accidental navigation
     document.addEventListener('click', blockNavigation, true);
 
-    // Inject edit mode CSS into the page (not shadow DOM)
     let editStyleEl = document.getElementById('pl-edit-styles');
     if (!editStyleEl) {
       editStyleEl = document.createElement('style');
@@ -725,38 +900,25 @@ export function createReadingOverlay({
       document.head.appendChild(editStyleEl);
     }
 
-    // Create the edit overlay
     editOverlay = createEditOverlay({
       page: document.body,
       selectedIds,
       onConfirm: (assembledElements, currentMode) => {
-        // Update selectedIds so next edit session preserves removals/additions
         selectedIds = currentMode.getSelectedIds();
 
-        // Wrap assembled elements in a container and run through parseBlocks
-        // for consistent filtering, visibility states, etc.
         const tempContainer = document.createElement('div');
         for (const el of assembledElements) {
           tempContainer.appendChild(el);
         }
         const newBlocks = parseBlocks(tempContainer.innerHTML);
 
-        // Replace reading content
         articleContent.innerHTML = '';
         for (const block of newBlocks) {
           articleContent.appendChild(block);
         }
-
-        // Reassign blocks so handleAdvance uses the new array
         blocks = newBlocks;
-
-        // Re-prepare Pretext layout for the new blocks
         pretextReady = prepareBlocks(blocks);
-
-        // Re-apply the user's current reading mode (browse or deep)
         applyReadingMode();
-
-        // Exit edit mode, show reader
         exitEditMode();
       },
       onCancel: () => {
@@ -764,9 +926,8 @@ export function createReadingOverlay({
       },
     });
 
-    // Set up hover controls on tagged elements
     cleanupHoverControls = setupHoverControls(editOverlay);
-  });
+  }
 
   function exitEditMode() {
     if (cleanupHoverControls) {
@@ -939,6 +1100,37 @@ export function createReadingOverlay({
 
   // — Destroy function
   function destroy() {
+    // Clean up session tracking listeners
+    document.removeEventListener('visibilitychange', handleVisibilityChange);
+    window.removeEventListener('beforeunload', handleBeforeUnload);
+
+    // Bank final active time
+    if (!document.hidden) activeTimeMs += Date.now() - lastActiveTs;
+
+    // Save reading session
+    if (typeof chrome !== 'undefined' && chrome.runtime && sessionAdvances.length > 0) {
+      const text = articleContent.textContent || '';
+      const wordCount = text.split(/\s+/).filter(Boolean).length;
+      chrome.runtime.sendMessage({
+        action: 'save-session',
+        session: {
+          articleUrl: window.location.href,
+          savedArticleId: savedArticleId || null,
+          title: title || '',
+          startedAt: sessionStart,
+          endedAt: Date.now(),
+          activeTimeMs,
+          startBlock: sessionStartBlock,
+          endBlock: state.visibleCount,
+          totalBlocks: blocks.length,
+          wordCount,
+          completed: state.isComplete,
+          speed,
+          advances: sessionAdvances,
+        },
+      }).catch(() => { /* tab closing — best effort */ });
+    }
+
     if (editOverlay || cleanupHoverControls) exitEditMode();
     lightbox.destroy();
     document.removeEventListener('keydown', handleKeydown);

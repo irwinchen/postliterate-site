@@ -39,12 +39,50 @@ body {
     font-size: 24px;
     font-weight: 600;
     letter-spacing: -0.02em;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
 }
 
 .library-count {
     font-size: 13px;
     color: light-dark(#999, #707070);
     font-weight: 400;
+}
+
+.library-import-btn {
+    margin-inline-start: auto;
+    font-family: 'Outfit', system-ui, sans-serif;
+    font-size: 12px;
+    font-weight: 500;
+    color: light-dark(#2C2C2C, #c8c8c8);
+    background: none;
+    border: 1px solid light-dark(rgba(0, 0, 0, 0.15), rgba(255, 255, 255, 0.15));
+    padding: 4px 10px;
+    cursor: pointer;
+    transition: border-color 0.2s ease, color 0.2s ease;
+
+    &:hover {
+        border-color: light-dark(#E53E33, #ff6b5e);
+        color: light-dark(#E53E33, #ff6b5e);
+    }
+
+    &:disabled {
+        opacity: 0.5;
+        cursor: default;
+        pointer-events: none;
+    }
+}
+
+.library-header-link {
+    font-size: 12px;
+    font-weight: 500;
+    color: light-dark(#E53E33, #ff6b5e);
+    text-decoration: none;
+
+    &:hover {
+        text-decoration: underline;
+    }
 }
 
 /* Article list */
@@ -89,12 +127,26 @@ body {
     opacity: 0.4;
 }
 
+.library-card-title-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    margin-block-end: 4px;
+}
+
 .library-card-title {
+    flex: 1;
     font-size: 18px;
     font-weight: 500;
     line-height: 1.3;
-    margin-block-end: 4px;
     text-wrap: balance;
+}
+
+.library-card-ring {
+    --ring-accent: light-dark(#E53E33, #ff6b5e);
+    --ring-complete: light-dark(#549E44, #6bbd5e);
+    flex-shrink: 0;
+    line-height: 0;
 }
 
 .library-card-byline {
@@ -107,6 +159,22 @@ body {
     font-size: 12px;
     color: light-dark(#999, #707070);
     margin-block-end: 10px;
+}
+
+/* Reading stats */
+.library-card-stats {
+    font-size: 11px;
+    color: light-dark(#999, #707070);
+    margin-block-end: 10px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.library-card-completed {
+    color: light-dark(#549E44, #6bbd5e);
+    font-weight: 500;
+    margin-inline-start: auto;
 }
 
 .library-card-actions {
@@ -140,6 +208,63 @@ body {
             color: light-dark(#E53E33, #ff6b5e);
         }
     }
+}
+
+/* PDF import progress */
+.library-import-progress {
+    margin-block-end: 24px;
+    padding: 12px 0;
+    border-block-end: 1px solid light-dark(rgba(0, 0, 0, 0.08), rgba(255, 255, 255, 0.08));
+}
+
+.import-progress-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-block-end: 8px;
+}
+
+.import-status {
+    font-size: 13px;
+    color: light-dark(#666, #a0a0a0);
+}
+
+.import-cancel {
+    font-family: 'Outfit', system-ui, sans-serif;
+    font-size: 12px;
+    font-weight: 500;
+    color: light-dark(#999, #707070);
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+
+    &:hover {
+        color: light-dark(#E53E33, #ff6b5e);
+    }
+}
+
+.import-progress-bar {
+    height: 3px;
+    background: light-dark(rgba(0, 0, 0, 0.06), rgba(255, 255, 255, 0.06));
+}
+
+.import-progress-fill {
+    height: 100%;
+    width: 0%;
+    background: light-dark(#E53E33, #ff6b5e);
+    transition: width 0.3s ease;
+}
+
+/* PDF badge */
+.library-card-badge {
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: light-dark(#E53E33, #ff6b5e);
+    border: 1px solid light-dark(rgba(229, 62, 51, 0.3), rgba(255, 107, 94, 0.3));
+    padding: 1px 5px;
 }
 
 /* Empty state */
