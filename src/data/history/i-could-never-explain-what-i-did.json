@@ -5,6 +5,99 @@
       "date": "2026-04-12T19:04:26.214Z",
       "summary": "Initial publication",
       "diff": null
+    },
+    {
+      "date": "2026-04-12T19:19:19.553Z",
+      "diff": [
+        {
+          "type": "context",
+          "text": "I graduated from Yale in the mid-nineties thinking I was going to move to New York and publish small edition books. Then the internet landed. And a few years later, when it was commercialized, everything exploded. And I surfed the wave, maybe not as successfully as some others, but I still "
+        },
+        {
+          "type": "del",
+          "text": "got"
+        },
+        {
+          "type": "add",
+          "text": "rode"
+        },
+        {
+          "type": "context",
+          "text": " "
+        },
+        {
+          "type": "del",
+          "text": "swept"
+        },
+        {
+          "type": "add",
+          "text": "it"
+        },
+        {
+          "type": "context",
+          "text": " "
+        },
+        {
+          "type": "del",
+          "text": "up"
+        },
+        {
+          "type": "add",
+          "text": "as"
+        },
+        {
+          "type": "context",
+          "text": " "
+        },
+        {
+          "type": "del",
+          "text": "in"
+        },
+        {
+          "type": "add",
+          "text": "far"
+        },
+        {
+          "type": "context",
+          "text": " "
+        },
+        {
+          "type": "del",
+          "text": "it."
+        },
+        {
+          "type": "add",
+          "text": "as I could and still feel human."
+        },
+        {
+          "type": "context",
+          "text": "\nMy job titles during that period went like this: Graphic designer. Art Director. Programmer. Then something called Information Architecture — a title that meant nothing to anyone except for people who called themselves Information Architects. Then UX. Then Interaction Design. Then I started teaching at Parsons. I went through the side door because you couldn't get a degree in any of these things when I was doing them. By the time the degree programs caught up, I was already teaching.\nMy mother would nod when I tried to explain. Eventually I just settled on telling her \"I do design\" and eventually just \"Computers.\"\nLooking at those job titles again, on their face they are meaningless. And having done many organizational charts for a wide array of companies, I can say confidently that there is very little correlation between the title on your business card and what you actually do day-to-day. \nBut knowing what I know now, with the perspective of time and experience, I can see a pattern in my progression of job titles. Graphics is about the page, and eventually, the screen. Code is about the machine. Information Architecture is about the structure — how things are organized so you can find them. UX is about the experience for the user navigating that structure. Interaction Design is about orchestrating the moments of contact between a person and a system.\nEach title got harder to explain because I was moving deeper into designing systems and how humans interacted with them. What I didn't think enough about at the time was what the system was moving us towards. I was more focused on the surface. \nWe told ourselves we were helping users. Reducing cognitive load. Making things easier to find, easier to use, easier to stay in. And we were. That part was true. But we were also optimizing engagement. Reducing friction. Making it harder to leave. Same work, two frames. One felt noble. The other we didn't have language for yet.\nThere was no conspiracy. Nobody sat in a room and said, let's capture human attention and sell it. It was much more simplistic than that. Let's make these numbers go up. We were riding the wave, doing the best work we could get with the know-how we had, solving problems that felt real. The attention economy didn't announce itself. It grew in the space between what we were building and what we could name.\nThat's how these things work. The force that reshapes how you think never has a name you recognize. Not until it's already done. My mother couldn't understand my job titles because they described something that didn't exist yet in the world she knew. And by the time it did exist, it was so woven into daily life that it was invisible.\nNow it's AI. Same pattern. The wave is here, and people are riding it — building tools, reducing friction, making things easier, making things faster. The job titles are new and hard to explain. \"Prompt "
+        },
+        {
+          "type": "del",
+          "text": "Engineer\""
+        },
+        {
+          "type": "add",
+          "text": "Engineer.\" \"AI Agent Orchestrator.\""
+        },
+        {
+          "type": "context",
+          "text": " Your parents nod politely.\nBut this time, I can see the shape. I've ridden this wave before. I watched \"helping users\" become \"optimizing attention\" in slow motion, and I know what it looks like when a technology is doing something bigger than the people building it can describe.\nI "
+        },
+        {
+          "type": "del",
+          "text": "made"
+        },
+        {
+          "type": "add",
+          "text": "have"
+        },
+        {
+          "type": "context",
+          "text": " a name for how AI is exploiting our cognitive impulses: synthetic orality. It's what my book is about. And I know that by the time I finish writing it, it will already be too late."
+        }
+      ]
     }
   ]
 }
