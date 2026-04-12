@@ -21,7 +21,7 @@
     /* Layout */
     --page-width: min(100vw, 1200px);
     --min-side-margin: max(20px, 2vw);
-    --content-width: 65ch;
+    --content-width: 75ch;
 
     /* Colors — light-dark() eliminates duplicate dark mode declarations */
     --background: light-dark(#F3EFE1, #1a1a1a);
@@ -443,9 +443,9 @@ body {
 /* Nested grid for blog posts with margin notes */
 .main-column.has-margin-notes {
     display: grid;
-    grid-template-columns: minmax(min-content, 65ch) minmax(150px, 200px);
+    grid-template-columns: minmax(min-content, var(--content-width)) minmax(150px, 200px);
     gap: clamp(20px, 3vw, 40px);
-    max-width: calc(65ch + 240px);
+    max-width: calc(var(--content-width) + 240px);
 
     .article-header {
         grid-column: 1 / -1;
