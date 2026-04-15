@@ -74,6 +74,287 @@
           "text": " and then you iterate.\nIt generated a basic mockup in React and we started going back and forth. When he could see the actual prototype, his demeanor changed. He leaned in. Make it like this, or No, it should do this, or That doesn't work. I translated his feedback into prompts. I'd write things like: Thanks, it looks great, but can you actually do this and this?\nAnd then he turned to me and said: \"Why are you talking to it like it's a person?\"\nThat stopped me for a second. I hadn't thought about it until he said it. I was just doing what I always do. But his question exposed something — a gap between his mental model of what AI is and what I'd come to take for granted.\nI think part of it was my politeness. My chumminess. He expected formality, maybe. Technical jargon. Not someone chatting over text the way you'd chat with a friend. But here's the thing: I don't talk to it like a person because I think it is a person. I talk to it like a person because it can understand me when I do.\nThat's the revolution, and it's easy to miss if you never coded before. Previously, the only way to tell a computer what to do was to write complex programs in languages you barely knew. If you got a single comma or quotation mark wrong, the whole thing would crash. It was brittle and hostile. Now you can program a computer in the language you speak every day. The friction that's been removed is incredible.\nBut it still requires thinking. You still need logical structure, an overall sense of what you're asking for and why. The AI handles a lot of the mechanical work and the logistics, but the intention has to come from you.\nAnd this is what I mean by synthetic orality. I can talk to this machine. It decodes what I'm saying, infers my intention from context, and goes and acts on it. The interface is conversation. But it's not the same kind of conversation I'd have with a junior developer. In some ways it's easier. I can ask it to do things I'd think twice about asking a real person to do. In other ways it's something entirely new. A different kind of orality.\nWhat's happening is that these systems exploit our oral nature. They use the deep architecture of human communication to reduce friction between us and our machines. Synthetic orality is like an artificial mask worn by AI. It coaxes us into lowering our guard by using conversational language, exploiting the conventions of speech. The benefits are clear. The costs remain hidden.\nKenya didn't know any of this. He just thought it was weird that his dad was being polite to a computer. But his instinct was right. There is something that deserves scrutiny in this exchange, not because the technology doesn't work, but because it works so well that we stop asking what's really going on underneath. How the machine arrives at its \"understanding.\" Whose language it learned from. And what happens when the output isn't a game prototype but something with real consequences."
         }
       ]
+    },
+    {
+      "date": "2026-04-15T00:08:56.084Z",
+      "diff": [
+        {
+          "type": "context",
+          "text": "My youngest son Kenya is thirteen. His computer sits next to mine in my office, so I can see what he's doing. And he can see what I'm doing too. He watches me talk to Claude, watches me code with it. He absorbs this stuff sideways, the way kids do.\nI've been thinking a lot about what it means to raise kids in this moment. AI is beginning to change the nature of learning and work, and as a parent I feel a responsibility to prepare my kids to thrive in that world. I'm torn between teaching them what I know and how to think about AI, and letting them figure it out on their own, as kids will do. \nSo a few days ago, sitting side by side, I leaned over to Kenya and said: Let's make a game together. Let's use AI to build it. Let's vibe-code!\nHe looked at me funny.\nI booted up Antigravity, Google's coding assistant, and proposed we make Jotto, a two-player word-guessing game our family loves to play, as a web app. What's funny is that I'd tried to code this myself in Javascript about two years ago. Got maybe halfway there before I hit a wall. It was beyond my skill and patience at the time. I figured, let's see how far the tools can take us now.\n\"Okay, whatever, Dad.\"\nI started dictating the instructions in plain English, typing as I spoke. Go look up the rules. Make it look like Wordle. It needs to be two-player. You can play against the computer. Now make a plan. I wanted him to see that part: you just tell it what you want, in regular language, and it produces a detailed plan for how to build the thing. It goes and builds based on that plan and then you iterate.\nIt generated a basic mockup in React and we started going back and forth. When he could see the actual prototype, his demeanor changed. He leaned in. Make it like this, or No, it should do this, or That doesn't work. I translated his feedback into prompts. I'd write things like: Thanks, it looks great, but can you actually do this and this?\nAnd then he turned to me and said: \"Why are you talking to it like it's a person?\"\nThat stopped me for a second. I hadn't thought about it until he said it. I was just doing what I always do. But his question exposed something — a gap between his mental model of what AI is and what I'd come to take for granted.\nI think part of it was my politeness. My chumminess. He expected formality, maybe. Technical jargon. Not someone chatting over text the way you'd chat with a friend. But here's the thing: I don't talk to it like a person because I think it is a person. I talk to it like a person because it can understand me when I do.\nThat's the revolution, and it's easy to miss if you never coded before. Previously, the only way to tell a computer what to do was to write complex programs in languages you barely knew. If you got a single comma or quotation mark wrong, the whole thing would crash. It was brittle and hostile. Now you can program a computer in the language you speak every day. The friction that's been removed is incredible.\nBut it still requires thinking. You still need logical structure, an overall sense of what you're asking for and why. The AI handles a lot of the mechanical work and the logistics, but the intention has to come from you.\nAnd this is what I mean by synthetic orality. I can talk to this machine. It decodes what I'm saying, infers my intention from context, and goes and acts on it. The interface is conversation. But it's not the same kind of conversation I'd have with a junior developer. In some ways it's easier. I can ask it to do things I'd think twice about asking a real person to do. In other ways it's something entirely new. A different kind of orality.\nWhat's happening is that these systems exploit our oral nature. They use the deep architecture of human communication to reduce friction between us and our machines. Synthetic orality is like an artificial mask worn by AI. It coaxes us into lowering our guard by using conversational language, exploiting the conventions of speech. The benefits are clear. The costs remain hidden.\nKenya didn't know any of this. He just thought it was weird that his dad was being polite to a computer. But his instinct was "
+        },
+        {
+          "type": "del",
+          "text": "right."
+        },
+        {
+          "type": "add",
+          "text": "right:"
+        },
+        {
+          "type": "context",
+          "text": " "
+        },
+        {
+          "type": "del",
+          "text": "There"
+        },
+        {
+          "type": "add",
+          "text": "there"
+        },
+        {
+          "type": "context",
+          "text": " is something that deserves scrutiny in this "
+        },
+        {
+          "type": "del",
+          "text": "exchange,"
+        },
+        {
+          "type": "add",
+          "text": "exchange."
+        },
+        {
+          "type": "context",
+          "text": " "
+        },
+        {
+          "type": "del",
+          "text": "not"
+        },
+        {
+          "type": "add",
+          "text": "What"
+        },
+        {
+          "type": "context",
+          "text": " "
+        },
+        {
+          "type": "del",
+          "text": "because"
+        },
+        {
+          "type": "add",
+          "text": "are"
+        },
+        {
+          "type": "context",
+          "text": " the"
+        },
+        {
+          "type": "del",
+          "text": " technology doesn't work, but because it works so well that we stop"
+        },
+        {
+          "type": "context",
+          "text": " "
+        },
+        {
+          "type": "del",
+          "text": "asking"
+        },
+        {
+          "type": "add",
+          "text": "implications"
+        },
+        {
+          "type": "context",
+          "text": " "
+        },
+        {
+          "type": "del",
+          "text": "what's"
+        },
+        {
+          "type": "add",
+          "text": "of"
+        },
+        {
+          "type": "context",
+          "text": " "
+        },
+        {
+          "type": "del",
+          "text": "really"
+        },
+        {
+          "type": "add",
+          "text": "being"
+        },
+        {
+          "type": "context",
+          "text": " "
+        },
+        {
+          "type": "del",
+          "text": "going"
+        },
+        {
+          "type": "add",
+          "text": "able"
+        },
+        {
+          "type": "context",
+          "text": " "
+        },
+        {
+          "type": "del",
+          "text": "on"
+        },
+        {
+          "type": "add",
+          "text": "to"
+        },
+        {
+          "type": "context",
+          "text": " "
+        },
+        {
+          "type": "del",
+          "text": "underneath."
+        },
+        {
+          "type": "add",
+          "text": "now"
+        },
+        {
+          "type": "context",
+          "text": " "
+        },
+        {
+          "type": "del",
+          "text": "How"
+        },
+        {
+          "type": "add",
+          "text": "address"
+        },
+        {
+          "type": "context",
+          "text": " the "
+        },
+        {
+          "type": "del",
+          "text": "machine"
+        },
+        {
+          "type": "add",
+          "text": "computer"
+        },
+        {
+          "type": "context",
+          "text": " "
+        },
+        {
+          "type": "del",
+          "text": "arrives"
+        },
+        {
+          "type": "add",
+          "text": "in"
+        },
+        {
+          "type": "context",
+          "text": " "
+        },
+        {
+          "type": "del",
+          "text": "at"
+        },
+        {
+          "type": "add",
+          "text": "plain"
+        },
+        {
+          "type": "context",
+          "text": " "
+        },
+        {
+          "type": "del",
+          "text": "its"
+        },
+        {
+          "type": "add",
+          "text": "English,"
+        },
+        {
+          "type": "context",
+          "text": " "
+        },
+        {
+          "type": "del",
+          "text": "\"understanding.\""
+        },
+        {
+          "type": "add",
+          "text": "without"
+        },
+        {
+          "type": "context",
+          "text": " "
+        },
+        {
+          "type": "del",
+          "text": "Whose"
+        },
+        {
+          "type": "add",
+          "text": "contorting"
+        },
+        {
+          "type": "context",
+          "text": " "
+        },
+        {
+          "type": "del",
+          "text": "language"
+        },
+        {
+          "type": "add",
+          "text": "my"
+        },
+        {
+          "type": "context",
+          "text": " "
+        },
+        {
+          "type": "del",
+          "text": "it"
+        },
+        {
+          "type": "add",
+          "text": "syntax"
+        },
+        {
+          "type": "context",
+          "text": " "
+        },
+        {
+          "type": "del",
+          "text": "learned"
+        },
+        {
+          "type": "add",
+          "text": "and"
+        },
+        {
+          "type": "context",
+          "text": " "
+        },
+        {
+          "type": "del",
+          "text": "from."
+        },
+        {
+          "type": "add",
+          "text": "grammar?"
+        },
+        {
+          "type": "context",
+          "text": " And what happens when the output isn't a game prototype but something with real consequences."
+        }
+      ]
     }
   ]
 }
