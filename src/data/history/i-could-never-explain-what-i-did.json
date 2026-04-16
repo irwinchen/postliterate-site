@@ -231,6 +231,499 @@
           "text": "invisible."
         }
       ]
+    },
+    {
+      "date": "2026-04-16T00:55:26.330Z",
+      "diff": [
+        {
+          "type": "context",
+          "text": "I graduated from Yale in the mid-nineties thinking I was going to move to New York and publish small edition books. Then the internet landed. And a few years later, when it was commercialized, everything exploded. And I surfed the wave, maybe not as successfully as some others, but I still rode it as far as I could and still live with myself.\nMy job titles during that period went like this: Graphic designer. Art Director. Programmer. Then something called Information Architecture — a title that meant nothing to anyone except for people who called themselves Information Architects. Then UX. Then Interaction Design. I started my own consultancy and at some point I started teaching at Parsons. I went through the side door because you couldn't get a degree in any of these things when I was doing them. By the time the degree programs caught up, I was teaching those subjects.\nMy mother would nod blankly when I tried to explain. Eventually I just settled on telling her \"I do design\" and eventually just \"Computers.\"\nLooking at those job titles again, on their face they are meaningless. And having done many organizational charts for a wide array of companies, I can say confidently that there is very little correlation between the title on your business card and what you actually do day-to-day. \nBut knowing what I know now, with the perspective of time and experience, I can see a pattern in my progression of job titles. Graphics is about the page, and eventually, the screen. Code is about the machine. Information Architecture is about the structure — how things are organized so people can find them. UX is about the experience for the user navigating that structure. Interaction Design is about orchestrating the moments of contact between a person and a system.\nEach title got progressively harder to explain because I was moving deeper into designing systems and how humans interacted with them. What I didn't think enough about at the time was what the system was moving us towards. I was more focused on the surface. \nWe told ourselves we were helping users. Reducing cognitive load. Making things easier to find, easier to use, easier to stay in. And we were. That part was true. But we were also optimizing engagement. Reducing friction. Making it harder to leave. Same work, "
+        },
+        {
+          "type": "del",
+          "text": "two"
+        },
+        {
+          "type": "add",
+          "text": "but different"
+        },
+        {
+          "type": "context",
+          "text": " frames. One felt noble. The other we didn't"
+        },
+        {
+          "type": "add",
+          "text": " really"
+        },
+        {
+          "type": "context",
+          "text": " have language for yet.\nThere was no conspiracy. Nobody sat in a room and said, let's capture human attention and sell it. It was much more simplistic than that. Let's make these numbers go up. We were riding the wave, doing the best work we could get with the know-how we had, solving problems that felt real. The attention economy didn't announce "
+        },
+        {
+          "type": "del",
+          "text": "itself."
+        },
+        {
+          "type": "add",
+          "text": "itself though."
+        },
+        {
+          "type": "context",
+          "text": " It"
+        },
+        {
+          "type": "add",
+          "text": " just"
+        },
+        {
+          "type": "context",
+          "text": " grew "
+        },
+        {
+          "type": "del",
+          "text": "in"
+        },
+        {
+          "type": "add",
+          "text": "silently"
+        },
+        {
+          "type": "context",
+          "text": " "
+        },
+        {
+          "type": "del",
+          "text": "the"
+        },
+        {
+          "type": "add",
+          "text": "like"
+        },
+        {
+          "type": "context",
+          "text": " "
+        },
+        {
+          "type": "del",
+          "text": "space"
+        },
+        {
+          "type": "add",
+          "text": "an"
+        },
+        {
+          "type": "context",
+          "text": " "
+        },
+        {
+          "type": "del",
+          "text": "between"
+        },
+        {
+          "type": "add",
+          "text": "invasive"
+        },
+        {
+          "type": "context",
+          "text": " "
+        },
+        {
+          "type": "del",
+          "text": "what"
+        },
+        {
+          "type": "add",
+          "text": "weed"
+        },
+        {
+          "type": "context",
+          "text": " "
+        },
+        {
+          "type": "del",
+          "text": "we"
+        },
+        {
+          "type": "add",
+          "text": "and"
+        },
+        {
+          "type": "context",
+          "text": " "
+        },
+        {
+          "type": "del",
+          "text": "were"
+        },
+        {
+          "type": "add",
+          "text": "was"
+        },
+        {
+          "type": "context",
+          "text": " "
+        },
+        {
+          "type": "del",
+          "text": "building"
+        },
+        {
+          "type": "add",
+          "text": "suddenly"
+        },
+        {
+          "type": "context",
+          "text": " "
+        },
+        {
+          "type": "del",
+          "text": "and"
+        },
+        {
+          "type": "add",
+          "text": "a"
+        },
+        {
+          "type": "context",
+          "text": " "
+        },
+        {
+          "type": "del",
+          "text": "what"
+        },
+        {
+          "type": "add",
+          "text": "part"
+        },
+        {
+          "type": "context",
+          "text": " "
+        },
+        {
+          "type": "del",
+          "text": "we"
+        },
+        {
+          "type": "add",
+          "text": "of"
+        },
+        {
+          "type": "context",
+          "text": " "
+        },
+        {
+          "type": "del",
+          "text": "could"
+        },
+        {
+          "type": "add",
+          "text": "the"
+        },
+        {
+          "type": "context",
+          "text": " "
+        },
+        {
+          "type": "del",
+          "text": "name."
+        },
+        {
+          "type": "add",
+          "text": "ecology of the Web."
+        },
+        {
+          "type": "context",
+          "text": "\nThat's how these things work. The force that reshapes how you think "
+        },
+        {
+          "type": "del",
+          "text": "never"
+        },
+        {
+          "type": "add",
+          "text": "rarely ever"
+        },
+        {
+          "type": "context",
+          "text": " has a"
+        },
+        {
+          "type": "del",
+          "text": " name you recognize. Not until it's already"
+        },
+        {
+          "type": "context",
+          "text": " "
+        },
+        {
+          "type": "del",
+          "text": "done."
+        },
+        {
+          "type": "add",
+          "text": "name."
+        },
+        {
+          "type": "context",
+          "text": " My mother couldn't understand my job titles because they described something that didn't exist yet in the world she knew. And by the time it did exist, it was so woven into daily life that it was invisible.\nNow it's AI. Same pattern. The wave is here, and people are riding it — building tools, reducing friction, making things easier, making things faster. The job titles are new and hard to explain. \"Prompt Engineer.\" \"AI Agent Orchestrator.\" Your parents nod politely.\nBut this time, I think I can see the trajectory. I've ridden this wave before. I watched \"helping users\" become \"optimizing attention\" in slow"
+        },
+        {
+          "type": "del",
+          "text": " motion,"
+        },
+        {
+          "type": "context",
+          "text": " "
+        },
+        {
+          "type": "del",
+          "text": "and"
+        },
+        {
+          "type": "add",
+          "text": "motion."
+        },
+        {
+          "type": "context",
+          "text": " I "
+        },
+        {
+          "type": "del",
+          "text": "know"
+        },
+        {
+          "type": "add",
+          "text": "feel"
+        },
+        {
+          "type": "context",
+          "text": " "
+        },
+        {
+          "type": "del",
+          "text": "what"
+        },
+        {
+          "type": "add",
+          "text": "like,"
+        },
+        {
+          "type": "context",
+          "text": " "
+        },
+        {
+          "type": "del",
+          "text": "it"
+        },
+        {
+          "type": "add",
+          "text": "if"
+        },
+        {
+          "type": "context",
+          "text": " "
+        },
+        {
+          "type": "del",
+          "text": "looks"
+        },
+        {
+          "type": "add",
+          "text": "I"
+        },
+        {
+          "type": "context",
+          "text": " "
+        },
+        {
+          "type": "del",
+          "text": "like"
+        },
+        {
+          "type": "add",
+          "text": "have"
+        },
+        {
+          "type": "context",
+          "text": " "
+        },
+        {
+          "type": "del",
+          "text": "when"
+        },
+        {
+          "type": "add",
+          "text": "any"
+        },
+        {
+          "type": "context",
+          "text": " "
+        },
+        {
+          "type": "del",
+          "text": "a"
+        },
+        {
+          "type": "add",
+          "text": "skill,"
+        },
+        {
+          "type": "context",
+          "text": " "
+        },
+        {
+          "type": "del",
+          "text": "technology"
+        },
+        {
+          "type": "add",
+          "text": "it's"
+        },
+        {
+          "type": "context",
+          "text": " "
+        },
+        {
+          "type": "del",
+          "text": "is"
+        },
+        {
+          "type": "add",
+          "text": "in"
+        },
+        {
+          "type": "context",
+          "text": " "
+        },
+        {
+          "type": "del",
+          "text": "doing"
+        },
+        {
+          "type": "add",
+          "text": "having"
+        },
+        {
+          "type": "context",
+          "text": " "
+        },
+        {
+          "type": "del",
+          "text": "something"
+        },
+        {
+          "type": "add",
+          "text": "an"
+        },
+        {
+          "type": "context",
+          "text": " "
+        },
+        {
+          "type": "del",
+          "text": "bigger"
+        },
+        {
+          "type": "add",
+          "text": "instinct"
+        },
+        {
+          "type": "context",
+          "text": " "
+        },
+        {
+          "type": "del",
+          "text": "than"
+        },
+        {
+          "type": "add",
+          "text": "for"
+        },
+        {
+          "type": "context",
+          "text": " "
+        },
+        {
+          "type": "del",
+          "text": "the"
+        },
+        {
+          "type": "add",
+          "text": "when"
+        },
+        {
+          "type": "context",
+          "text": " "
+        },
+        {
+          "type": "del",
+          "text": "people"
+        },
+        {
+          "type": "add",
+          "text": "some"
+        },
+        {
+          "type": "context",
+          "text": " "
+        },
+        {
+          "type": "del",
+          "text": "building"
+        },
+        {
+          "type": "add",
+          "text": "technological"
+        },
+        {
+          "type": "context",
+          "text": " "
+        },
+        {
+          "type": "del",
+          "text": "it"
+        },
+        {
+          "type": "add",
+          "text": "shift"
+        },
+        {
+          "type": "context",
+          "text": " "
+        },
+        {
+          "type": "del",
+          "text": "can"
+        },
+        {
+          "type": "add",
+          "text": "is"
+        },
+        {
+          "type": "context",
+          "text": " "
+        },
+        {
+          "type": "del",
+          "text": "describe."
+        },
+        {
+          "type": "add",
+          "text": "happening."
+        },
+        {
+          "type": "context",
+          "text": "\n"
+        },
+        {
+          "type": "add",
+          "text": "So "
+        },
+        {
+          "type": "context",
+          "text": "I have a name for how AI is exploiting our cognitive impulses: synthetic orality. It's what my book is about. And I know that by the time I finish writing it, it will already be invisible."
+        }
+      ]
     }
   ]
 }
