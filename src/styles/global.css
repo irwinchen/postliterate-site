@@ -21,7 +21,7 @@
     /* Layout */
     --page-width: min(100vw, 1200px);
     --min-side-margin: max(20px, 2vw);
-    --content-width: 75ch;
+    --content-width: 85ch;
 
     /* Colors — light-dark() eliminates duplicate dark mode declarations */
     --background: light-dark(#F3EFE1, #1a1a1a);
@@ -62,7 +62,7 @@ html {
 }
 
 body {
-    font-family: 'Literata', serif;
+    font-family: 'Alegreya', serif;
     font-size: var(--text-base);
     line-height: var(--line-height);
     color: var(--text);
@@ -721,7 +721,7 @@ body {
 
 .edit-diff {
     margin-block-start: calc(var(--line-height) * 0.5);
-    font-family: 'Literata', serif;
+    font-family: 'Alegreya', serif;
     font-size: var(--text-caption);
     line-height: 1.6;
     color: var(--text);
@@ -837,7 +837,7 @@ body {
 
 .bsky-comment-text {
     grid-column: 2;
-    font-family: 'Literata', serif;
+    font-family: 'Alegreya', serif;
     font-size: var(--text-base);
     color: var(--text);
     line-height: var(--line-height);
@@ -1131,8 +1131,12 @@ tbody tr:hover {
 
 /* Figures */
 .figure {
-    margin-block: calc(var(--line-height) * 2);
+    margin-block: calc(var(--line-height) * 0.75);
     max-width: 100%;
+}
+
+.article-content > .figure + * {
+    margin-block-start: calc(var(--line-height) * 0.5);
 }
 
 .figure-content {
@@ -1401,6 +1405,10 @@ hr {
     height: auto;
     display: block;
     margin-block: calc(var(--line-height) * 1);
+}
+
+.figure img {
+    margin-block: 0;
 }
 
 /* Iframes (YouTube embeds etc) */

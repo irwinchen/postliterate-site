@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-03-26T17:03:40.109Z",
+  "generated_at": "2026-04-30T13:22:58.557Z",
   "scope": {
     "past_days": 3,
     "workflow": "blog-first",
@@ -12,12 +12,12 @@
     ]
   },
   "metrics": {
-    "blog_posts_published_this_period": 3,
-    "blog_velocity_per_week": 3,
+    "blog_posts_published_this_period": 1,
+    "blog_velocity_per_week": 1,
     "blog_velocity_target": 1.5,
-    "on_target": true,
+    "on_target": false,
     "daily_notes_blog_ready": 3,
-    "blog_drafts_pending": 1
+    "blog_drafts_pending": 3
   },
   "blog_opportunities": [
     {
@@ -106,14 +106,6 @@
   ],
   "blog_status": [
     {
-      "id": "blog-published-deep-reading-vs.-dopamine",
-      "title": "Deep Reading vs. Dopamine",
-      "date_published": "2026-03-04",
-      "status": "published",
-      "notes": null,
-      "social_companion": "missing"
-    },
-    {
       "id": "blog-published-how-im-using-ai",
       "title": "How I'm Using AI",
       "date_published": "2026-03-05",
@@ -154,12 +146,36 @@
       "social_companion": "present"
     },
     {
+      "id": "blog-published-i-could-never-explain-what-i-did",
+      "title": "I could never explain to my mother what I did for a living",
+      "date_published": "2026-04-12",
+      "status": "published",
+      "notes": null,
+      "social_companion": "missing"
+    },
+    {
+      "id": "blog-draft-luria-in-uzbekistan-video-script",
+      "title": "Luria in Uzbekistan — Video Script",
+      "date_published": "2026-04-16",
+      "status": "draft",
+      "notes": null,
+      "social_companion": null
+    },
+    {
       "id": "blog-published-my-path-to-ai",
       "title": "My Path to AI",
       "date_published": "2026-03-07",
       "status": "published",
       "notes": null,
       "social_companion": "missing"
+    },
+    {
+      "id": "blog-draft-the-bears-youve-never-seen",
+      "title": "The Bears You've Never Seen",
+      "date_published": "2026-04-15",
+      "status": "draft",
+      "notes": null,
+      "social_companion": null
     },
     {
       "id": "blog-published-the-ethical-lines-are-blurry-right-now",
@@ -178,12 +194,28 @@
       "social_companion": "missing"
     },
     {
+      "id": "blog-published-thoth-the-original-tech-bro",
+      "title": "Thoth, the Original Tech Bro",
+      "date_published": "2026-04-30",
+      "status": "published",
+      "notes": null,
+      "social_companion": "present"
+    },
+    {
       "id": "blog-published-trying-to-read-in-a-distraction-war-zone",
       "title": "Trying to Read In a Distraction War Zone",
       "date_published": "2026-03-25",
       "status": "published",
       "notes": null,
       "social_companion": "present"
+    },
+    {
+      "id": "blog-published-deep-reading-vs.-dopamine",
+      "title": "Deep Reading vs. Dopamine",
+      "date_published": "2026-03-04",
+      "status": "published",
+      "notes": null,
+      "social_companion": "missing"
     },
     {
       "id": "blog-draft-deep-reading-is-fighting-dopamine",
@@ -225,162 +257,162 @@
   ],
   "website_activity": [
     {
-      "id": "site-commit-e6b2103",
+      "id": "site-commit-107abaf",
       "type": "commit",
-      "title": "publish: trying-to-read-in-a-distraction-war-zone",
-      "date": "2026-03-26T13:03:39-04:00",
+      "title": "republish: thoth-the-original-tech-bro",
+      "date": "2026-04-30T09:22:57-04:00",
       "status": "pending",
       "notes": null
     },
     {
-      "id": "site-commit-9bf3347",
+      "id": "site-commit-09359d9",
       "type": "commit",
-      "title": "publish: Deep Reading vs. Dopamine",
-      "date": "2026-03-26T13:03:05-04:00",
+      "title": "republish: thoth-the-original-tech-bro",
+      "date": "2026-04-30T09:21:08-04:00",
       "status": "pending",
       "notes": null
     },
     {
-      "id": "site-commit-e204a4f",
+      "id": "site-commit-d665d8b",
       "type": "commit",
-      "title": "feat: Bluesky thread replies as blog post comments",
-      "date": "2026-03-24T12:11:49-04:00",
+      "title": "republish: thoth-the-original-tech-bro",
+      "date": "2026-04-30T09:20:18-04:00",
       "status": "pending",
       "notes": null
     },
     {
-      "id": "site-commit-ac0fd09",
+      "id": "site-commit-ed4425c",
       "type": "commit",
-      "title": "remove Bluesky feed, add Vercel Analytics, fix republish detection",
-      "date": "2026-03-24T10:32:02-04:00",
+      "title": "republish: thoth-the-original-tech-bro",
+      "date": "2026-04-30T09:06:47-04:00",
       "status": "pending",
       "notes": null
     },
     {
-      "id": "site-commit-85ec2a2",
+      "id": "site-commit-6dbf371",
+      "type": "commit",
+      "title": "republish: thoth-the-original-tech-bro",
+      "date": "2026-04-30T09:05:18-04:00",
+      "status": "pending",
+      "notes": null
+    },
+    {
+      "id": "site-commit-4a2bf1f",
+      "type": "commit",
+      "title": "publish: thoth-the-original-tech-bro",
+      "date": "2026-04-30T08:59:05-04:00",
+      "status": "pending",
+      "notes": null
+    },
+    {
+      "id": "site-commit-4b3009c",
+      "type": "commit",
+      "title": "republish: i-could-never-explain-what-i-did",
+      "date": "2026-04-15T20:55:26-04:00",
+      "status": "pending",
+      "notes": null
+    },
+    {
+      "id": "site-commit-f30c5a6",
       "type": "commit",
       "title": "republish: Why Are You Talking to It Like Its a Person",
-      "date": "2026-03-24T10:26:12-04:00",
+      "date": "2026-04-14T20:08:56-04:00",
       "status": "pending",
       "notes": null
     },
     {
-      "id": "site-commit-4f66545",
+      "id": "site-commit-373336e",
+      "type": "commit",
+      "title": "widen main body text column from 65ch to 75ch",
+      "date": "2026-04-12T19:34:43-04:00",
+      "status": "pending",
+      "notes": null
+    },
+    {
+      "id": "site-commit-838fc38",
+      "type": "commit",
+      "title": "republish: i-could-never-explain-what-i-did",
+      "date": "2026-04-12T19:27:22-04:00",
+      "status": "pending",
+      "notes": null
+    },
+    {
+      "id": "site-commit-d9813ee",
       "type": "commit",
       "title": "republish: Why hearing an author talk about their book isn't the same as reading it",
-      "date": "2026-03-23T15:34:28-04:00",
+      "date": "2026-04-12T15:35:56-04:00",
       "status": "pending",
       "notes": null
     },
     {
-      "id": "site-commit-b0d2154",
-      "type": "commit",
-      "title": "publish: Why hearing an author talk about their book isn't the same as reading it",
-      "date": "2026-03-23T08:21:23-04:00",
-      "status": "pending",
-      "notes": null
-    },
-    {
-      "id": "site-commit-63f0c4e",
-      "type": "commit",
-      "title": "republish: Notes from Self",
-      "date": "2026-03-22T19:57:03-04:00",
-      "status": "pending",
-      "notes": null
-    },
-    {
-      "id": "site-commit-cdd789e",
+      "id": "site-commit-10b68a0",
       "type": "commit",
       "title": "republish: Why Are You Talking to It Like Its a Person",
-      "date": "2026-03-22T19:57:01-04:00",
+      "date": "2026-04-12T15:35:48-04:00",
       "status": "pending",
       "notes": null
     },
     {
-      "id": "site-commit-87813cd",
+      "id": "site-commit-b09de6a",
       "type": "commit",
-      "title": "republish: my-path-to-ai",
-      "date": "2026-03-22T19:56:59-04:00",
+      "title": "republish: i-could-never-explain-what-i-did",
+      "date": "2026-04-12T15:19:19-04:00",
       "status": "pending",
       "notes": null
     },
     {
-      "id": "site-commit-361d6d3",
+      "id": "site-commit-2c0fe00",
       "type": "commit",
-      "title": "republish: the-ethical-lines-are-blurry-right-now",
-      "date": "2026-03-22T19:56:56-04:00",
+      "title": "publish: i-could-never-explain-what-i-did",
+      "date": "2026-04-12T15:04:26-04:00",
       "status": "pending",
       "notes": null
     },
     {
-      "id": "site-commit-1e95c27",
+      "id": "site-commit-331fcb6",
       "type": "commit",
-      "title": "republish: the-skeptics-window",
-      "date": "2026-03-22T19:56:54-04:00",
+      "title": "chore: extract Virgil Reader to irwinchen/virgil-reader",
+      "date": "2026-04-04T10:52:48-04:00",
       "status": "pending",
       "notes": null
     },
     {
-      "id": "site-commit-034e531",
+      "id": "site-commit-e3483e5",
       "type": "commit",
-      "title": "republish: Vibe-coding vs Vibe-writing",
-      "date": "2026-03-22T19:56:52-04:00",
+      "title": "feat: PDF support, animation overhaul, edit mode rewrite, UI polish",
+      "date": "2026-04-04T10:41:52-04:00",
       "status": "pending",
       "notes": null
     },
     {
-      "id": "site-commit-5512882",
+      "id": "site-commit-adc657a",
       "type": "commit",
-      "title": "republish: How I'm Using AI",
-      "date": "2026-03-22T19:56:50-04:00",
+      "title": "fix: make block editor the default edit mode for all articles",
+      "date": "2026-03-31T13:23:14-04:00",
       "status": "pending",
       "notes": null
     },
     {
-      "id": "site-commit-b1a1cdf",
+      "id": "site-commit-fa84761",
       "type": "commit",
-      "title": "fix: fade-in for figures, fix fr-hidden specificity override",
-      "date": "2026-03-18T18:10:37-04:00",
+      "title": "fix: filter interactive UI elements from block parser",
+      "date": "2026-03-31T12:55:10-04:00",
       "status": "pending",
       "notes": null
     },
     {
-      "id": "site-commit-2220219",
+      "id": "site-commit-6ce719b",
       "type": "commit",
-      "title": "feat: sequential line-by-line typewriter reveal using clip-path polygon",
-      "date": "2026-03-18T17:44:17-04:00",
+      "title": "feat: add overflow menu to reader toolbar with Library/Insights links",
+      "date": "2026-03-31T12:45:46-04:00",
       "status": "pending",
       "notes": null
     },
     {
-      "id": "site-commit-8d7a7a1",
+      "id": "site-commit-db16bd0",
       "type": "commit",
-      "title": "fix: increase reveal duration to 1.5s",
-      "date": "2026-03-18T17:29:23-04:00",
-      "status": "pending",
-      "notes": null
-    },
-    {
-      "id": "site-commit-0cbd441",
-      "type": "commit",
-      "title": "fix: smooth linear reveal with softer gradient for consistent typing feel",
-      "date": "2026-03-18T17:27:41-04:00",
-      "status": "pending",
-      "notes": null
-    },
-    {
-      "id": "site-commit-89b7325",
-      "type": "commit",
-      "title": "feat: line-by-line typewriter reveal for deep reading",
-      "date": "2026-03-18T17:25:55-04:00",
-      "status": "pending",
-      "notes": null
-    },
-    {
-      "id": "site-commit-6e84949",
-      "type": "commit",
-      "title": "fix: slow reveal animation to 1.2s",
-      "date": "2026-03-18T17:24:58-04:00",
+      "title": "feat: add reading session tracking, library metrics, and insights page",
+      "date": "2026-03-31T11:31:35-04:00",
       "status": "pending",
       "notes": null
     }
@@ -392,14 +424,15 @@
       "description": "Published posts lack Mastodon companion versions for social distribution",
       "severity": "low",
       "related_items": [
-        "blog-published-deep-reading-vs.-dopamine",
         "blog-published-how-im-using-ai",
         "blog-published-notes-from-self",
         "blog-published-vibe-coding-vs-vibe-writing",
         "blog-published-why-are-you-talking-to-it-like-its-a-person",
+        "blog-published-i-could-never-explain-what-i-did",
         "blog-published-my-path-to-ai",
         "blog-published-the-ethical-lines-are-blurry-right-now",
-        "blog-published-the-skeptics-window"
+        "blog-published-the-skeptics-window",
+        "blog-published-deep-reading-vs.-dopamine"
       ]
     }
   ]
