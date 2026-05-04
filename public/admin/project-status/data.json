@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-04-30T13:22:58.557Z",
+  "generated_at": "2026-05-01T19:22:30.470Z",
   "scope": {
     "past_days": 3,
     "workflow": "blog-first",
@@ -210,14 +210,6 @@
       "social_companion": "present"
     },
     {
-      "id": "blog-published-deep-reading-vs.-dopamine",
-      "title": "Deep Reading vs. Dopamine",
-      "date_published": "2026-03-04",
-      "status": "published",
-      "notes": null,
-      "social_companion": "missing"
-    },
-    {
       "id": "blog-draft-deep-reading-is-fighting-dopamine",
       "title": "Deep reading is fighting dopamine",
       "date_published": "2026-03-04",
@@ -256,6 +248,46 @@
     }
   ],
   "website_activity": [
+    {
+      "id": "site-commit-314c5d5",
+      "type": "commit",
+      "title": "unpublish: Deep Reading vs. Dopamine",
+      "date": "2026-05-01T15:22:29-04:00",
+      "status": "pending",
+      "notes": null
+    },
+    {
+      "id": "site-commit-ede1ced",
+      "type": "commit",
+      "title": "republish: thoth-the-original-tech-bro",
+      "date": "2026-04-30T15:57:07-04:00",
+      "status": "pending",
+      "notes": null
+    },
+    {
+      "id": "site-commit-1a18c38",
+      "type": "commit",
+      "title": "republish: thoth-the-original-tech-bro",
+      "date": "2026-04-30T15:51:03-04:00",
+      "status": "pending",
+      "notes": null
+    },
+    {
+      "id": "site-commit-35aaf52",
+      "type": "commit",
+      "title": "colophon: update body font to Alegreya",
+      "date": "2026-04-30T11:48:35-04:00",
+      "status": "pending",
+      "notes": null
+    },
+    {
+      "id": "site-commit-10e6df3",
+      "type": "commit",
+      "title": "style: switch body font to Alegreya, tighten figure spacing",
+      "date": "2026-04-30T11:09:33-04:00",
+      "status": "pending",
+      "notes": null
+    },
     {
       "id": "site-commit-107abaf",
       "type": "commit",
@@ -375,46 +407,6 @@
       "date": "2026-04-04T10:52:48-04:00",
       "status": "pending",
       "notes": null
-    },
-    {
-      "id": "site-commit-e3483e5",
-      "type": "commit",
-      "title": "feat: PDF support, animation overhaul, edit mode rewrite, UI polish",
-      "date": "2026-04-04T10:41:52-04:00",
-      "status": "pending",
-      "notes": null
-    },
-    {
-      "id": "site-commit-adc657a",
-      "type": "commit",
-      "title": "fix: make block editor the default edit mode for all articles",
-      "date": "2026-03-31T13:23:14-04:00",
-      "status": "pending",
-      "notes": null
-    },
-    {
-      "id": "site-commit-fa84761",
-      "type": "commit",
-      "title": "fix: filter interactive UI elements from block parser",
-      "date": "2026-03-31T12:55:10-04:00",
-      "status": "pending",
-      "notes": null
-    },
-    {
-      "id": "site-commit-6ce719b",
-      "type": "commit",
-      "title": "feat: add overflow menu to reader toolbar with Library/Insights links",
-      "date": "2026-03-31T12:45:46-04:00",
-      "status": "pending",
-      "notes": null
-    },
-    {
-      "id": "site-commit-db16bd0",
-      "type": "commit",
-      "title": "feat: add reading session tracking, library metrics, and insights page",
-      "date": "2026-03-31T11:31:35-04:00",
-      "status": "pending",
-      "notes": null
     }
   ],
   "blockers": [
@@ -431,8 +423,7 @@
         "blog-published-i-could-never-explain-what-i-did",
         "blog-published-my-path-to-ai",
         "blog-published-the-ethical-lines-are-blurry-right-now",
-        "blog-published-the-skeptics-window",
-        "blog-published-deep-reading-vs.-dopamine"
+        "blog-published-the-skeptics-window"
       ]
     }
   ]
