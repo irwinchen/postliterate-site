@@ -724,6 +724,323 @@
           "text": "I have a name for how AI is exploiting our cognitive impulses: synthetic orality. It's what my book is about. And I know that by the time I finish writing it, it will already be invisible."
         }
       ]
+    },
+    {
+      "date": "2026-05-05T18:54:10.912Z",
+      "diff": [
+        {
+          "type": "context",
+          "text": "I graduated from Yale in the mid-nineties thinking I was going to move to New York and publish small edition books. Then the internet "
+        },
+        {
+          "type": "del",
+          "text": "landed."
+        },
+        {
+          "type": "add",
+          "text": "opened"
+        },
+        {
+          "type": "context",
+          "text": " "
+        },
+        {
+          "type": "del",
+          "text": "And"
+        },
+        {
+          "type": "add",
+          "text": "up in 1995 and"
+        },
+        {
+          "type": "context",
+          "text": " a few years later, when it was commercialized, everything exploded. And I surfed the wave, maybe not as successfully as some others, but I still rode it as far as I could"
+        },
+        {
+          "type": "del",
+          "text": " and"
+        },
+        {
+          "type": "context",
+          "text": " "
+        },
+        {
+          "type": "del",
+          "text": "still"
+        },
+        {
+          "type": "add",
+          "text": "without"
+        },
+        {
+          "type": "context",
+          "text": " "
+        },
+        {
+          "type": "del",
+          "text": "live"
+        },
+        {
+          "type": "add",
+          "text": "selling"
+        },
+        {
+          "type": "context",
+          "text": " "
+        },
+        {
+          "type": "del",
+          "text": "with"
+        },
+        {
+          "type": "add",
+          "text": "my"
+        },
+        {
+          "type": "context",
+          "text": " "
+        },
+        {
+          "type": "del",
+          "text": "myself."
+        },
+        {
+          "type": "add",
+          "text": "soul."
+        },
+        {
+          "type": "context",
+          "text": "\nMy job titles during that period went like this: Graphic designer. Art Director. Programmer. Then something called Information Architecture — a title that meant nothing to anyone except for people who called themselves Information Architects. Then UX. Then Interaction Design. I started my own consultancy and at some point I started teaching at Parsons. I went through the"
+        },
+        {
+          "type": "add",
+          "text": " academia"
+        },
+        {
+          "type": "context",
+          "text": " side door because you couldn't get a degree in any of these things when I was doing them. By the time the degree programs caught up, I was"
+        },
+        {
+          "type": "add",
+          "text": " already"
+        },
+        {
+          "type": "context",
+          "text": " teaching those subjects.\nMy mother would"
+        },
+        {
+          "type": "add",
+          "text": " ask what I did and"
+        },
+        {
+          "type": "context",
+          "text": " nod blankly when I tried to explain. Eventually I just settled on telling her \"I do design\" and eventually just \"Computers.\"\nLooking at those job titles again, on their face they are meaningless. And having done many organizational charts for a wide array of companies, I can say confidently that there is very little correlation between the title on your business card and what you actually do day-to-day. \nBut knowing what I know now, with the perspective of time and experience, I can see a pattern in my progression of job titles. Graphics is about the page, and eventually, the screen. Code is about the machine. Information Architecture is about the structure — how things are organized so people can find them. UX is about the experience for the user navigating that structure. Interaction Design is about orchestrating the moments of contact between a person and a system.\nEach title got progressively harder to explain because I was moving deeper into designing systems and how humans interacted with them. What I didn't think enough about at the time was what the system was moving us towards. I was more focused on the surface. \nWe told ourselves we were helping users. Reducing cognitive load. Making things easier to find, easier to use, easier to stay in. And we were. That part was true. But we were also optimizing engagement. Reducing friction. Making it harder to leave. Same work,"
+        },
+        {
+          "type": "del",
+          "text": " but"
+        },
+        {
+          "type": "context",
+          "text": " different frames. One felt noble. The other we "
+        },
+        {
+          "type": "del",
+          "text": "didn't"
+        },
+        {
+          "type": "add",
+          "text": "couldn't"
+        },
+        {
+          "type": "context",
+          "text": " really "
+        },
+        {
+          "type": "del",
+          "text": "have"
+        },
+        {
+          "type": "add",
+          "text": "put"
+        },
+        {
+          "type": "context",
+          "text": " "
+        },
+        {
+          "type": "del",
+          "text": "language"
+        },
+        {
+          "type": "add",
+          "text": "a"
+        },
+        {
+          "type": "context",
+          "text": " "
+        },
+        {
+          "type": "del",
+          "text": "for"
+        },
+        {
+          "type": "add",
+          "text": "name to"
+        },
+        {
+          "type": "context",
+          "text": " yet.\nThere was no conspiracy. Nobody sat in a room and said, "
+        },
+        {
+          "type": "del",
+          "text": "let's"
+        },
+        {
+          "type": "add",
+          "text": "\"Let's"
+        },
+        {
+          "type": "context",
+          "text": " capture human attention and sell "
+        },
+        {
+          "type": "del",
+          "text": "it."
+        },
+        {
+          "type": "add",
+          "text": "it!\""
+        },
+        {
+          "type": "context",
+          "text": " It was much more simplistic than that. "
+        },
+        {
+          "type": "del",
+          "text": "Let's"
+        },
+        {
+          "type": "add",
+          "text": "\"Let's"
+        },
+        {
+          "type": "context",
+          "text": " make these numbers go "
+        },
+        {
+          "type": "del",
+          "text": "up."
+        },
+        {
+          "type": "add",
+          "text": "up.\""
+        },
+        {
+          "type": "context",
+          "text": " We were riding the wave, doing the best work we could get "
+        },
+        {
+          "type": "del",
+          "text": "with"
+        },
+        {
+          "type": "add",
+          "text": "figuring"
+        },
+        {
+          "type": "context",
+          "text": " "
+        },
+        {
+          "type": "del",
+          "text": "the"
+        },
+        {
+          "type": "add",
+          "text": "things"
+        },
+        {
+          "type": "context",
+          "text": " "
+        },
+        {
+          "type": "del",
+          "text": "know-how"
+        },
+        {
+          "type": "add",
+          "text": "out"
+        },
+        {
+          "type": "context",
+          "text": " "
+        },
+        {
+          "type": "del",
+          "text": "we"
+        },
+        {
+          "type": "add",
+          "text": "on"
+        },
+        {
+          "type": "context",
+          "text": " "
+        },
+        {
+          "type": "del",
+          "text": "had,"
+        },
+        {
+          "type": "add",
+          "text": "the fly,"
+        },
+        {
+          "type": "context",
+          "text": " solving problems that felt real. The attention economy didn't announce itself though."
+        },
+        {
+          "type": "add",
+          "text": " It wasn't like \"Web 2.0\" appearing on the cover of Wired Magazine."
+        },
+        {
+          "type": "context",
+          "text": " It just grew silently like an invasive weed and was suddenly a "
+        },
+        {
+          "type": "del",
+          "text": "part"
+        },
+        {
+          "type": "add",
+          "text": "core driver"
+        },
+        {
+          "type": "context",
+          "text": " of the ecology of the Web.\nThat's how these things work. The force that reshapes how you think rarely ever has a "
+        },
+        {
+          "type": "del",
+          "text": "name."
+        },
+        {
+          "type": "add",
+          "text": "name at the time."
+        },
+        {
+          "type": "context",
+          "text": " My mother couldn't understand my job titles because they described something that didn't exist yet in the world she knew. And by the time it did exist, it was so woven into daily life that it was invisible.\nNow it's AI. Same pattern. The wave is here, and people are riding it — building tools, reducing friction, making things easier, making things faster. The job titles are new and hard to explain. \"Prompt Engineer.\" \"AI Agent Orchestrator.\" Your parents nod politely.\nBut this time, I think I can see the trajectory. I've ridden this"
+        },
+        {
+          "type": "add",
+          "text": " kind of"
+        },
+        {
+          "type": "context",
+          "text": " wave before. I watched \"helping users\" become \"optimizing attention\" in slow motion. I feel like, if I have any skill, it's in having an instinct for when some technological shift is happening.\nSo I have a name for how AI is exploiting our cognitive impulses: synthetic orality. It's what my book is about. And I know that by the time I finish writing it, it will already be invisible."
+        }
+      ]
     }
   ]
 }
