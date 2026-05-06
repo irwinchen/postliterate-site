@@ -1,0 +1,47 @@
+---
+import BrainModes3D from '../components/brain-3d/BrainModes3D.astro';
+---
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Brain Modes 3D — preview</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Literata:ital,wght@0,400;0,500;0,700;1,400&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+    <style>
+      :root { color-scheme: dark; }
+      body {
+        margin: 0;
+        background: #0a0a0a;
+        font-family: 'Outfit', system-ui, sans-serif;
+        color: #ece7d6;
+      }
+      .preview-wrap {
+        max-width: 1280px;
+        margin-inline: auto;
+        padding: 2rem 1rem;
+      }
+      h1 {
+        font-family: 'Literata', Georgia, serif;
+        font-weight: 700;
+        margin-block: 0 0.25rem;
+        text-wrap: balance;
+      }
+      .preview-note {
+        color: #888;
+        font-style: italic;
+        margin-block-end: 1.5rem;
+        font-size: 0.875rem;
+      }
+    </style>
+  </head>
+  <body>
+    <main class="preview-wrap">
+      <h1>Brain Modes 3D — preview</h1>
+      <p class="preview-note">Phase 1 placeholder mesh. Real Lipkin/Yeo/DK parcels swap in later.</p>
+      <BrainModes3D />
+    </main>
+  </body>
+</html>

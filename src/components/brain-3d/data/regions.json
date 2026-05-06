@@ -1,0 +1,29 @@
+{
+  "modes": {
+    "1": { "name": "Logical Reasoning",       "colour": "#3B6DB4", "source": "Parsons & Osherson 2001" },
+    "2": { "name": "Estimating Likelihoods",  "colour": "#549E44", "source": "Parsons & Osherson 2001" },
+    "3": { "name": "Language",                "colour": "#D89233", "source": "Paunov 2022 / Lipkin 2022 atlas" },
+    "4": { "name": "Imagining Other Minds",   "colour": "#E53E33", "source": "Paunov 2022 / Hasson 2016 / Yeo 2011" }
+  },
+  "parcels": {
+    "lang.LanA-IFGorb-L":   { "modes": [3], "label": "IFG-orbital",         "atlas": "fedorenko-lang", "placeholderCentroid": [-0.62, -0.15,  0.55], "placeholderRadius": 0.10 },
+    "lang.LanB-IFG-L":      { "modes": [3], "label": "IFG (Broca's)",       "atlas": "fedorenko-lang", "placeholderCentroid": [-0.68,  0.05,  0.45], "placeholderRadius": 0.11 },
+    "lang.LanC-MFG-L":      { "modes": [3], "label": "MFG",                 "atlas": "fedorenko-lang", "placeholderCentroid": [-0.62,  0.30,  0.40], "placeholderRadius": 0.11 },
+    "lang.LanD-AntTemp-L":  { "modes": [3], "label": "Anterior temporal",   "atlas": "fedorenko-lang", "placeholderCentroid": [-0.55, -0.30,  0.45], "placeholderRadius": 0.10 },
+    "lang.LanE-PostTemp-L": { "modes": [3], "label": "Posterior temporal",  "atlas": "fedorenko-lang", "placeholderCentroid": [-0.55, -0.20, -0.10], "placeholderRadius": 0.11 },
+
+    "tom.TPJ-L":            { "modes": [4], "label": "TPJ-L",               "atlas": "fedorenko-tom",  "placeholderCentroid": [-0.50,  0.30, -0.25], "placeholderRadius": 0.12 },
+    "tom.TPJ-R":            { "modes": [4], "label": "TPJ-R",               "atlas": "fedorenko-tom",  "placeholderCentroid": [ 0.50,  0.30, -0.25], "placeholderRadius": 0.12 },
+    "tom.MTG-L":            { "modes": [4], "label": "MTG-L",               "atlas": "fedorenko-tom",  "placeholderCentroid": [-0.62, -0.15, -0.05], "placeholderRadius": 0.10 },
+    "tom.MTG-R":            { "modes": [4], "label": "MTG-R",               "atlas": "fedorenko-tom",  "placeholderCentroid": [ 0.62, -0.15, -0.05], "placeholderRadius": 0.10 },
+
+    "yeo.DMN-dmPFC":        { "modes": [4], "label": "dmPFC",               "atlas": "yeo-7net-dmn",   "placeholderCentroid": [ 0.00,  0.50,  0.55], "placeholderRadius": 0.13 },
+    "yeo.DMN-Precuneus":    { "modes": [4], "label": "Precuneus",           "atlas": "yeo-7net-dmn",   "placeholderCentroid": [ 0.00,  0.45, -0.45], "placeholderRadius": 0.13 },
+    "yeo.DMN-PCC":          { "modes": [4], "label": "PCC",                 "atlas": "yeo-7net-dmn",   "placeholderCentroid": [ 0.00,  0.15, -0.40], "placeholderRadius": 0.12 },
+
+    "dk.lh-frontal-coarse":  { "modes": [1], "label": "L frontal (coarse)",  "atlas": "desikan-killiany", "placeholderCentroid": [-0.45,  0.30,  0.45], "placeholderRadius": 0.24 },
+    "dk.lh-parietal-coarse": { "modes": [1], "label": "L parietal (coarse)", "atlas": "desikan-killiany", "placeholderCentroid": [-0.35,  0.55, -0.15], "placeholderRadius": 0.24 },
+    "dk.rh-frontal-coarse":  { "modes": [2], "label": "R frontal (coarse)",  "atlas": "desikan-killiany", "placeholderCentroid": [ 0.45,  0.30,  0.45], "placeholderRadius": 0.24 },
+    "dk.rh-parietal-coarse": { "modes": [2], "label": "R parietal (coarse)", "atlas": "desikan-killiany", "placeholderCentroid": [ 0.35,  0.55, -0.15], "placeholderRadius": 0.24 }
+  }
+}

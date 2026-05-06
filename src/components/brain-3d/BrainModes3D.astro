@@ -1,0 +1,372 @@
+---
+import regions from './data/regions.json';
+import content from './data/mode-content.json';
+---
+
+<div class="brain-3d" data-component="brain-modes-3d">
+  <div class="brain-3d__canvas-wrap">
+    <canvas class="brain-3d__canvas" aria-label="3D brain visualization"></canvas>
+  </div>
+
+  <aside class="brain-3d__panel" aria-live="polite">
+    <header class="brain-3d__panel-head">
+      <span class="brain-3d__mode-num">MODE <span data-bind="modeNum">01</span></span>
+      <h3 class="brain-3d__mode-name" data-bind="modeName"></h3>
+      <p  class="brain-3d__mode-tag"  data-bind="modeTag"></p>
+    </header>
+
+    <div class="brain-3d__delta" data-bind="delta" hidden>
+      <span class="brain-3d__section-label">Different from previous</span>
+      <p data-bind="deltaText"></p>
+    </div>
+
+    <div class="brain-3d__overlap" data-bind="overlap" hidden>
+      <span class="brain-3d__section-label">Where they overlap</span>
+      <p data-bind="overlapText"></p>
+    </div>
+
+    <div class="brain-3d__section">
+      <span class="brain-3d__section-label">What it does</span>
+      <p data-bind="whatItDoes"></p>
+    </div>
+
+    <div class="brain-3d__section">
+      <span class="brain-3d__section-label">What lights up</span>
+      <p data-bind="whatLightsUp"></p>
+    </div>
+
+    <div class="brain-3d__section">
+      <span class="brain-3d__section-label">Can it be checked?</span>
+      <p class="brain-3d__check"><span data-bind="checkSymbol"></span> <span data-bind="checkText"></span></p>
+    </div>
+
+    <footer class="brain-3d__sources">
+      <span class="brain-3d__section-label">Sources</span>
+      <p data-bind="sources"></p>
+    </footer>
+  </aside>
+
+  <nav class="brain-3d__chips" role="toolbar" aria-label="Cognitive mode selector">
+    <button class="brain-3d__chip" data-mode="1"><span class="brain-3d__chip-num">01</span> Logical</button>
+    <button class="brain-3d__chip" data-mode="2"><span class="brain-3d__chip-num">02</span> Likelihoods</button>
+    <button class="brain-3d__chip" data-mode="3"><span class="brain-3d__chip-num">03</span> Language</button>
+    <button class="brain-3d__chip" data-mode="4"><span class="brain-3d__chip-num">04</span> Other Minds</button>
+    <span class="brain-3d__chip-sep" aria-hidden="true">·</span>
+    <button class="brain-3d__chip brain-3d__chip--aux" data-action="compare" aria-pressed="false">Compare</button>
+    <button class="brain-3d__chip brain-3d__chip--aux" data-action="all">All</button>
+    <button class="brain-3d__chip brain-3d__chip--aux" data-action="reset">Reset</button>
+  </nav>
+
+  <p class="brain-3d__disclaimer">
+    Schematic visualization. Cortex mesh: FreeSurfer fsaverage Desikan-Killiany surface
+    (Brainder.org, Anderson Winkler, CC BY-SA 3.0). Activation regions are placeholder
+    spheres at hand-tuned anatomical positions; in the published version, Modes 03 and 04
+    will be the functional parcels from Lipkin 2022 (Fedorenko lab) and Yeo 2011, while
+    Modes 01 and 02 remain coarse anatomical groupings to match the resolution of their
+    source data (Parsons &amp; Osherson 2001). Not derived from new neuroimaging data.
+  </p>
+</div>
+
+<script type="module" define:vars={{ rawRegions: regions, rawContent: content }}>
+  import { loadRegions } from '/src/lib/brain-viz/parcels.js';
+  import { createModeState } from '/src/lib/brain-viz/mode-state.js';
+  import { createContentLookup } from '/src/lib/brain-viz/content.js';
+  import { createBrainRenderer } from '/src/components/brain-3d/renderer.js';
+
+  const root = document.querySelector('[data-component="brain-modes-3d"]');
+  const canvas = root.querySelector('.brain-3d__canvas');
+
+  const regions = loadRegions(rawRegions);
+  const content = createContentLookup(rawContent);
+  const modeState = createModeState({ initialMode: 1 });
+
+  // Set CSS custom properties for each mode color (used by chips + bars)
+  for (const [id, def] of Object.entries(rawRegions.modes)) {
+    root.style.setProperty(`--mode-${id}`, def.colour);
+  }
+
+  // === Panel rendering ===
+  const bind = (name) => root.querySelector(`[data-bind="${name}"]`);
+
+  function renderPanel() {
+    const active = modeState.activeModes();
+    const isCompare = modeState.isCompare();
+    const primary = active[0]; // for sequential, the only one; for compare, the lowest
+
+    if (active.length === 1) {
+      const m = content.forMode(primary);
+      bind('modeNum').textContent = String(primary).padStart(2, '0');
+      bind('modeName').textContent = rawRegions.modes[primary].name;
+      bind('modeTag').textContent = m.tag;
+      bind('whatItDoes').textContent = m.whatItDoes.join(' ');
+      bind('whatLightsUp').textContent = m.whatLightsUp.join(' ');
+      bind('checkSymbol').textContent = m.checkable.symbol;
+      bind('checkText').textContent = m.checkable.text;
+      bind('sources').textContent = m.sources.join(' · ');
+
+      const prev = modeState.previousMode();
+      const deltaLine = content.delta(prev, primary);
+      if (deltaLine) {
+        bind('delta').hidden = false;
+        bind('deltaText').textContent = deltaLine;
+      } else {
+        bind('delta').hidden = true;
+      }
+      bind('overlap').hidden = true;
+    } else {
+      // Compare: show the lowest-numbered mode as the primary panel,
+      // surface overlap line at the top.
+      const m = content.forMode(primary);
+      bind('modeNum').textContent = active.map(n => String(n).padStart(2, '0')).join(' + ');
+      bind('modeName').textContent = `Comparing ${active.length} modes`;
+      bind('modeTag').textContent = active.map(n => rawRegions.modes[n].name).join(' · ');
+      bind('whatItDoes').textContent = m.whatItDoes.join(' ');
+      bind('whatLightsUp').textContent = active
+        .map(n => `${String(n).padStart(2, '0')}: ${content.forMode(n).whatLightsUp.join(' ')}`)
+        .join('  ');
+      bind('checkSymbol').textContent = '';
+      bind('checkText').textContent = active
+        .map(n => `${String(n).padStart(2, '0')} ${content.forMode(n).checkable.symbol}`)
+        .join('   ');
+      bind('sources').textContent = '';
+
+      bind('delta').hidden = true;
+      const overlapLine = content.overlap(active);
+      if (overlapLine) {
+        bind('overlap').hidden = false;
+        bind('overlapText').textContent = overlapLine;
+      } else {
+        bind('overlap').hidden = true;
+      }
+    }
+
+    // === Chip pressed state ===
+    for (const chip of root.querySelectorAll('.brain-3d__chip[data-mode]')) {
+      const id = Number(chip.dataset.mode);
+      const isActive = active.includes(id);
+      chip.classList.toggle('is-active', isActive);
+      chip.setAttribute('aria-pressed', String(isActive));
+      chip.style.setProperty('--chip-color', rawRegions.modes[id].colour);
+    }
+    const compareBtn = root.querySelector('[data-action="compare"]');
+    compareBtn.classList.toggle('is-active', isCompare);
+    compareBtn.setAttribute('aria-pressed', String(isCompare));
+  }
+
+  // === Chip wiring ===
+  for (const chip of root.querySelectorAll('.brain-3d__chip[data-mode]')) {
+    chip.addEventListener('click', () => {
+      const mode = Number(chip.dataset.mode);
+      if (modeState.isCompare()) {
+        // In compare mode, clicking a chip toggles it (unless removing the last).
+        const active = modeState.activeModes();
+        if (active.includes(mode) && active.length === 1) return;
+        modeState.toggle(mode);
+      } else {
+        modeState.select(mode);
+      }
+    });
+  }
+
+  root.querySelector('[data-action="compare"]').addEventListener('click', () => {
+    if (modeState.isCompare()) modeState.exitCompare();
+    else modeState.enterCompare();
+  });
+  root.querySelector('[data-action="all"]').addEventListener('click', () => {
+    modeState.showAll();
+  });
+  root.querySelector('[data-action="reset"]').addEventListener('click', () => {
+    modeState.reset();
+  });
+
+  modeState.subscribe(renderPanel);
+  renderPanel();
+
+  // === WebGL ===
+  if (window.WebGLRenderingContext) {
+    createBrainRenderer({ canvas, regions, modeState });
+  } else {
+    canvas.replaceWith(Object.assign(document.createElement('p'), {
+      className: 'brain-3d__nowebgl',
+      textContent: 'Your browser does not support WebGL. The 2D version of this figure is available below.',
+    }));
+  }
+</script>
+
+<style>
+  .brain-3d {
+    color-scheme: dark;
+    --bg: light-dark(#F3EFE1, #0a0a0a);
+    --fg: light-dark(#1a1a1a, #ece7d6);
+    --muted: light-dark(#777, #888);
+    --border: light-dark(rgba(26, 26, 26, 0.12), rgba(255, 255, 255, 0.10));
+    background: var(--bg);
+    color: var(--fg);
+    display: grid;
+    grid-template-columns: 1fr 380px;
+    grid-template-rows: auto auto auto;
+    grid-template-areas:
+      "canvas panel"
+      "chips  chips"
+      "disclaimer disclaimer";
+    gap: 1.25rem;
+    padding: 1.5rem;
+    font-family: 'Outfit', system-ui, sans-serif;
+    container-type: inline-size;
+  }
+
+  .brain-3d__canvas-wrap {
+    grid-area: canvas;
+    aspect-ratio: 4 / 3;
+    border: 1px solid var(--border);
+    background: var(--bg);
+    border-radius: 4px;
+    overflow: hidden;
+    position: relative;
+  }
+  .brain-3d__canvas {
+    inline-size: 100%;
+    block-size: 100%;
+    display: block;
+    cursor: grab;
+  }
+  .brain-3d__canvas:active { cursor: grabbing; }
+
+  .brain-3d__panel {
+    grid-area: panel;
+    display: grid;
+    grid-template-rows: auto auto auto auto auto auto auto;
+    gap: 1rem;
+    align-content: start;
+  }
+
+  .brain-3d__panel-head { display: grid; gap: 0.25rem; }
+  .brain-3d__mode-num {
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.22em;
+    color: var(--muted);
+  }
+  .brain-3d__mode-name {
+    font-family: 'Literata', Georgia, serif;
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin: 0;
+    line-height: 1.15;
+    text-wrap: balance;
+  }
+  .brain-3d__mode-tag {
+    font-family: 'Literata', Georgia, serif;
+    font-style: italic;
+    color: var(--muted);
+    font-size: 0.85rem;
+    margin: 0;
+  }
+
+  .brain-3d__section-label {
+    display: block;
+    font-size: 0.65rem;
+    font-weight: 600;
+    color: var(--muted);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    margin-block-end: 0.35rem;
+  }
+
+  .brain-3d__section p,
+  .brain-3d__delta p,
+  .brain-3d__overlap p,
+  .brain-3d__sources p {
+    margin: 0;
+    font-size: 0.875rem;
+    line-height: 1.5;
+    text-wrap: pretty;
+  }
+
+  .brain-3d__delta p {
+    font-family: 'Literata', Georgia, serif;
+    font-style: italic;
+    color: var(--fg);
+  }
+  .brain-3d__overlap p {
+    font-family: 'Literata', Georgia, serif;
+    font-style: italic;
+    color: var(--fg);
+  }
+
+  .brain-3d__check { font-weight: 500; }
+
+  .brain-3d__sources p { font-size: 0.75rem; color: var(--muted); }
+
+  .brain-3d__chips {
+    grid-area: chips;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    align-items: center;
+    padding-block: 0.5rem;
+    border-block-start: 1px solid var(--border);
+  }
+  .brain-3d__chip {
+    --chip-color: #888;
+    appearance: none;
+    border: 1px solid var(--border);
+    background: var(--bg);
+    color: var(--fg);
+    font: inherit;
+    font-size: 0.8rem;
+    padding: 0.45rem 0.85rem;
+    border-radius: 4px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    border-inline-start: 4px solid var(--chip-color);
+    transition: background-color 200ms ease, color 200ms ease;
+  }
+  .brain-3d__chip:focus-visible {
+    outline: 2px solid var(--chip-color);
+    outline-offset: 2px;
+  }
+  .brain-3d__chip.is-active {
+    background: var(--chip-color);
+    color: white;
+    border-color: var(--chip-color);
+  }
+  .brain-3d__chip-num {
+    font-weight: 600;
+    font-size: 0.7rem;
+    letter-spacing: 0.15em;
+    opacity: 0.7;
+  }
+  .brain-3d__chip--aux {
+    border-inline-start-width: 1px;
+    --chip-color: var(--border);
+  }
+  .brain-3d__chip--aux.is-active {
+    background: var(--fg);
+    color: var(--bg);
+    border-color: var(--fg);
+  }
+  .brain-3d__chip-sep { color: var(--border); margin-inline: 0.25rem; }
+
+  .brain-3d__disclaimer {
+    grid-area: disclaimer;
+    font-size: 0.75rem;
+    font-style: italic;
+    color: var(--muted);
+    margin: 0;
+    text-wrap: pretty;
+  }
+
+  @container (max-width: 720px) {
+    .brain-3d {
+      grid-template-columns: 1fr;
+      grid-template-areas:
+        "canvas"
+        "panel"
+        "chips"
+        "disclaimer";
+    }
+  }
+</style>
