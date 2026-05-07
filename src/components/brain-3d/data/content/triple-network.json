@@ -1,0 +1,52 @@
+{
+  "_comment_": "Network panel copy. Currently unused (info panel removed in Phase A); kept for when a panel returns or for the cross-paper compare route.",
+  "networks": {
+    "cen": {
+      "tag": "Goal-directed executive control",
+      "whatItDoes": [
+        "Holds task goals in mind, plans action, monitors performance, suppresses distraction."
+      ],
+      "whatLightsUp": [
+        "Bilateral dorsolateral prefrontal cortex and inferior parietal lobule."
+      ],
+      "checkable": { "symbol": "✓", "text": "Yes — performance against task goals." },
+      "sources": ["Yeo 2011", "Menon 2011"]
+    },
+    "dmn": {
+      "tag": "Self-referential, internally-directed thought",
+      "whatItDoes": [
+        "Active during rest, mind-wandering, autobiographical memory, mentalizing about other minds."
+      ],
+      "whatLightsUp": [
+        "Medial prefrontal cortex, precuneus, posterior cingulate, bilateral angular gyrus."
+      ],
+      "checkable": { "symbol": "✗", "text": "No external check — internal narrative." },
+      "sources": ["Yeo 2011", "Menon 2011"]
+    },
+    "sn": {
+      "tag": "Salience detection and switching",
+      "whatItDoes": [
+        "Detects what matters in the moment; gates which network gets resources by switching between CEN and DMN."
+      ],
+      "whatLightsUp": [
+        "Bilateral anterior insula and dorsal anterior cingulate."
+      ],
+      "checkable": { "symbol": "◐", "text": "Indirect — measured by switching latency." },
+      "sources": ["Seeley 2007", "Menon 2011"]
+    }
+  },
+  "deltas": {
+    "cen->dmn": "From outward, goal-driven control to inward, self-referential thought — the brain shifts from doing to reflecting.",
+    "dmn->cen": "From inward reflection back to outward task focus.",
+    "cen->sn": "From sustained executive control to the moment-to-moment salience detector that decides what deserves attention.",
+    "sn->cen": "From salience-gating back into executive control of the chosen task.",
+    "dmn->sn": "From internal narrative to the salience network — the gatekeeper that determines whether to stay in mind-wandering or switch out.",
+    "sn->dmn": "From salience detection back into self-referential thought."
+  },
+  "overlaps": {
+    "cen+dmn": "CEN and DMN are typically anticorrelated — when one is active, the other tends to quiet. Their parcels live in different cortical territory: CEN lateral, DMN medial.",
+    "cen+sn": "CEN and SN both involve frontal cortex but in different territories — SN sits in the anterior insula and ACC, CEN in dlPFC.",
+    "dmn+sn": "SN modulates DMN: the salience network can suppress DMN activity when external attention is required.",
+    "cen+dmn+sn": "Menon's triple-network model: SN switches between CEN (external focus) and DMN (internal focus) depending on what's salient."
+  }
+}

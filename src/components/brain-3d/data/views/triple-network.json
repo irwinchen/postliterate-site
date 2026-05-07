@@ -1,0 +1,32 @@
+{
+  "slug": "triple-network",
+  "name": "Triple Network",
+  "subtitle": "CEN · DMN · SN (Menon 2011 / Seeley 2007)",
+  "papers": ["menon-2011", "seeley-2007", "yeo-2011"],
+  "networks": {
+    "cen": {
+      "displayNum": "CEN",
+      "label": "Central Executive Network",
+      "color": "#3B6DB4",
+      "source": "Yeo 2011 / Menon 2011",
+      "parcels": ["yeo7.CEN.dlPFC-L", "yeo7.CEN.dlPFC-R", "yeo7.CEN.IPL-L", "yeo7.CEN.IPL-R"]
+    },
+    "dmn": {
+      "displayNum": "DMN",
+      "label": "Default Mode Network",
+      "color": "#E53E33",
+      "source": "Yeo 2011 / Menon 2011",
+      "parcels": ["yeo.DMN-dmPFC", "yeo.DMN-Precuneus", "yeo.DMN-PCC", "yeo7.DMN.AG-L", "yeo7.DMN.AG-R"]
+    },
+    "sn": {
+      "displayNum": "SN",
+      "label": "Salience Network",
+      "color": "#D89233",
+      "source": "Seeley 2007",
+      "parcels": ["seeley.SN.AI-L", "seeley.SN.AI-R", "seeley.SN.ACC"]
+    }
+  },
+  "networkOrder": ["cen", "dmn", "sn"],
+  "uiMode": "chips-with-compare",
+  "defaultNetwork": "cen"
+}
