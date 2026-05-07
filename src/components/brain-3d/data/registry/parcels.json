@@ -23,15 +23,15 @@
 
   "_comment_triple_network_": "Triple Network parcels (Phase B). Yeo 2011 7-network atlas regions for CEN; existing yeo.DMN-* + new yeo7.DMN.AG-* angular gyrus parcels for DMN; Seeley 2007 anterior insula + ACC for SN.",
 
-  "yeo7.CEN.dlPFC-L": { "label": "dlPFC (CEN)",       "atlas": "yeo-7net-cen",   "hemisphere": "L", "centroid": [-0.55,  0.32,  0.50], "radius": 0.10, "provenance": "hand-tuned", "group": "frontal", "layCue": "upper front of your forehead, left side" },
-  "yeo7.CEN.dlPFC-R": { "label": "dlPFC (CEN)",       "atlas": "yeo-7net-cen",   "hemisphere": "R", "centroid": [ 0.55,  0.32,  0.50], "radius": 0.10, "provenance": "hand-tuned", "group": "frontal", "layCue": "upper front of your forehead, right side" },
-  "yeo7.CEN.IPL-L":   { "label": "IPL (CEN)",         "atlas": "yeo-7net-cen",   "hemisphere": "L", "centroid": [-0.55,  0.55,  0.05], "radius": 0.10, "provenance": "hand-tuned", "group": "parietal" },
-  "yeo7.CEN.IPL-R":   { "label": "IPL (CEN)",         "atlas": "yeo-7net-cen",   "hemisphere": "R", "centroid": [ 0.55,  0.55,  0.05], "radius": 0.10, "provenance": "hand-tuned", "group": "parietal" },
+  "yeo7.CEN.dlPFC-L": { "label": "L dlPFC (CEN)",         "atlas": "yeo-7net-cen",   "hemisphere": "L", "centroid": [-0.50,  0.30,  0.45], "radius": 0.10, "provenance": "hand-tuned", "group": "frontal", "layCue": "upper front of your forehead, left side" },
+  "yeo7.CEN.dlPFC-R": { "label": "R dlPFC (CEN)",         "atlas": "yeo-7net-cen",   "hemisphere": "R", "centroid": [ 0.50,  0.30,  0.45], "radius": 0.10, "provenance": "hand-tuned", "group": "frontal", "layCue": "upper front of your forehead, right side" },
+  "yeo7.CEN.IPL-L":   { "label": "L IPL (CEN)",           "atlas": "yeo-7net-cen",   "hemisphere": "L", "centroid": [-0.50,  0.35, -0.05], "radius": 0.10, "provenance": "hand-tuned", "group": "parietal" },
+  "yeo7.CEN.IPL-R":   { "label": "R IPL (CEN)",           "atlas": "yeo-7net-cen",   "hemisphere": "R", "centroid": [ 0.50,  0.35, -0.05], "radius": 0.10, "provenance": "hand-tuned", "group": "parietal" },
 
-  "yeo7.DMN.AG-L":    { "label": "Angular Gyrus (DMN)", "atlas": "yeo-7net-dmn", "hemisphere": "L", "centroid": [-0.50,  0.55, -0.10], "radius": 0.09, "provenance": "hand-tuned", "group": "parietal", "layCue": "lower parietal, semantic integration zone" },
-  "yeo7.DMN.AG-R":    { "label": "Angular Gyrus (DMN)", "atlas": "yeo-7net-dmn", "hemisphere": "R", "centroid": [ 0.50,  0.55, -0.10], "radius": 0.09, "provenance": "hand-tuned", "group": "parietal" },
+  "yeo7.DMN.AG-L":    { "label": "L Angular Gyrus (DMN)", "atlas": "yeo-7net-dmn",   "hemisphere": "L", "centroid": [-0.45,  0.40, -0.20], "radius": 0.09, "provenance": "hand-tuned", "group": "parietal", "layCue": "lower parietal, semantic integration zone" },
+  "yeo7.DMN.AG-R":    { "label": "R Angular Gyrus (DMN)", "atlas": "yeo-7net-dmn",   "hemisphere": "R", "centroid": [ 0.45,  0.40, -0.20], "radius": 0.09, "provenance": "hand-tuned", "group": "parietal" },
 
-  "seeley.SN.AI-L":   { "label": "Anterior Insula",   "atlas": "seeley-2007-sn", "hemisphere": "L", "centroid": [-0.42,  0.10,  0.10], "radius": 0.07, "provenance": "hand-tuned", "group": "insula", "layCue": "hidden inside the lateral fissure, on the left" },
-  "seeley.SN.AI-R":   { "label": "Anterior Insula",   "atlas": "seeley-2007-sn", "hemisphere": "R", "centroid": [ 0.42,  0.10,  0.10], "radius": 0.07, "provenance": "hand-tuned", "group": "insula", "layCue": "hidden inside the lateral fissure, on the right" },
-  "seeley.SN.ACC":    { "label": "ACC",               "atlas": "seeley-2007-sn", "hemisphere": "M", "centroid": [ 0.00,  0.32,  0.40], "radius": 0.10, "provenance": "hand-tuned", "group": "frontal-medial", "layCue": "anterior cingulate, midline-front" }
+  "seeley.SN.AI-L":   { "label": "L Anterior Insula",     "atlas": "seeley-2007-sn", "hemisphere": "L", "centroid": [-0.50,  0.10,  0.10], "radius": 0.07, "provenance": "hand-tuned", "group": "insula", "layCue": "hidden inside the lateral fissure, on the left" },
+  "seeley.SN.AI-R":   { "label": "R Anterior Insula",     "atlas": "seeley-2007-sn", "hemisphere": "R", "centroid": [ 0.50,  0.10,  0.10], "radius": 0.07, "provenance": "hand-tuned", "group": "insula", "layCue": "hidden inside the lateral fissure, on the right" },
+  "seeley.SN.ACC":    { "label": "ACC",                   "atlas": "seeley-2007-sn", "hemisphere": "M", "centroid": [ 0.00,  0.30,  0.40], "radius": 0.10, "provenance": "hand-tuned", "group": "frontal-medial", "layCue": "anterior cingulate, midline-front" }
 }
