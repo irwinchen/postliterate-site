@@ -16,7 +16,7 @@ const CORTEX_BASE_COLOR = 0xb8b2a4;   // warm grey for wireframe lines on dark b
 const BACKGROUND_COLOR = 0x0a0a0a;    // near-black scene background
 const TRANSITION_MS = 400;
 const GLOW_SCALE = 1.6;               // diffuse glows extend beyond the data radius
-const MESH_BASE_PATH = '/brain-mesh/pial-dk';
+const MESH_BASE_PATH = '/brain-mesh/pial-dk-lo';   // pre-decimated to ~15% retention
 const MESH_MANIFEST_URL = `${MESH_BASE_PATH}/manifest.txt`;
 
 export function createBrainRenderer({ canvas, regions, modeState }) {
@@ -114,6 +114,8 @@ export function createBrainRenderer({ canvas, regions, modeState }) {
       0, 0, 0, 1,
     );
 
+    // Meshes are pre-decimated offline by scripts/decimate-brain-mesh.mjs.
+    // Renderer just loads, applies coordinate-space swap, and assigns materials.
     for (const { obj } of meshes) {
       obj.traverse((child) => {
         if (child.isMesh) {
