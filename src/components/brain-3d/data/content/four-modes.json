@@ -1,0 +1,70 @@
+{
+  "networks": {
+    "m1": {
+      "tag": "Step-by-step proofs and inferences",
+      "whatItDoes": [
+        "Following the rules of logic to reach a conclusion."
+      ],
+      "whatLightsUp": [
+        "Frontal & parietal cortex, left side."
+      ],
+      "checkable": { "symbol": "✓", "text": "Yes — against the rules." },
+      "sources": ["Parsons & Osherson 2001"]
+    },
+    "m2": {
+      "tag": "Weighing chances and evidence",
+      "whatItDoes": [
+        "Estimating how likely something is, given prior evidence."
+      ],
+      "whatLightsUp": [
+        "Frontal & parietal cortex, right side."
+      ],
+      "checkable": { "symbol": "✓", "text": "Mostly — against frequencies." },
+      "sources": ["Parsons & Osherson 2001"]
+    },
+    "m3": {
+      "tag": "Understanding and producing words",
+      "whatItDoes": [
+        "Parsing words. Building sentences. Tracking grammar."
+      ],
+      "whatLightsUp": [
+        "A network spanning the left frontal & temporal lobes."
+      ],
+      "checkable": { "symbol": "◐", "text": "Partly — against grammar." },
+      "sources": ["Paunov 2022", "Lipkin 2022"]
+    },
+    "m4": {
+      "tag": "Following stories. Modelling people.",
+      "whatItDoes": [
+        "Modelling other minds. Following stories. Making meaning."
+      ],
+      "whatLightsUp": [
+        "A wide network across both sides of the brain and along the midline."
+      ],
+      "checkable": { "symbol": "✗", "text": "No — there is no external check." },
+      "sources": ["Paunov 2022", "Hasson 2016", "Yeo 2011", "Chiong 2013"]
+    }
+  },
+  "deltas": {
+    "m1->m2": "Now in the right hemisphere — same kind of cortex, opposite side.",
+    "m2->m1": "Back to the left hemisphere — the kind of thinking that has to be exact.",
+    "m1->m3": "A different left-side network: the language regions, sitting inside the broader task-positive territory.",
+    "m3->m1": "Back to the broader task-control regions that surround language.",
+    "m2->m3": "Crossed back to the left hemisphere — and into a network for words, not numbers.",
+    "m3->m2": "Crossed to the right hemisphere — leaving language for likelihood.",
+    "m1->m4": "A wider, distributed network across both sides and the midline. The only mode without an external check.",
+    "m4->m1": "Back to a single hemisphere and a checkable kind of thinking.",
+    "m2->m4": "From a single right-hemisphere network to a wide distributed one — including the parts you can only see from the inside surface.",
+    "m4->m2": "Back to a single right-side network with verifiable outputs.",
+    "m3->m4": "Still includes the language territory, but now stretches into both hemispheres and along the midline — and checks against nothing.",
+    "m4->m3": "Narrows from a brain-wide network back to the language regions in the left hemisphere."
+  },
+  "overlaps": {
+    "m1+m3": "Modes 01 and 03 share territory in the left frontal cortex — the language regions sit inside the broader task-control area.",
+    "m1+m4": "Modes 01 and 04 share territory in the left parietal cortex — the angular gyrus is part of both networks.",
+    "m2+m4": "Modes 02 and 04 share territory in the right parietal cortex — including the right TPJ.",
+    "m3+m4": "Modes 03 and 04 share posterior temporal territory — the language and social-narrative networks live next to each other in the left hemisphere.",
+    "m1+m2": "Modes 01 and 02 are mirror images of each other — the same kind of frontal-parietal control, on opposite sides.",
+    "m2+m3": "Modes 02 and 03 use opposite hemispheres — Mode 02 right, Mode 03 left."
+  }
+}

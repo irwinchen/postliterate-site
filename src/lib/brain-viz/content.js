@@ -1,22 +1,23 @@
-// Mode panel content lookup — modes, sequential deltas, pairwise overlaps.
-// Pure JS, no DOM.
-
-const VALID_MODES = [1, 2, 3, 4];
+// Network panel content lookup — per-network panel copy, sequential deltas,
+// pairwise overlap lines. Pure JS, no DOM. Generalized over any view's networks.
 
 function pairKey(a, b) {
   const [lo, hi] = a < b ? [a, b] : [b, a];
   return `${lo}+${hi}`;
 }
 
-export function createContentLookup(raw) {
-  if (!raw || !raw.modes) throw new Error('createContentLookup: missing modes');
+export function createViewContent(raw) {
+  if (!raw || typeof raw !== 'object' || !raw.networks || typeof raw.networks !== 'object') {
+    throw new Error('createViewContent: missing or invalid "networks" key');
+  }
 
   return {
-    forMode(n) {
-      if (!VALID_MODES.includes(n) || !raw.modes[n]) {
-        throw new Error(`Invalid mode ${n}`);
+    forNetwork(id) {
+      const entry = raw.networks[id];
+      if (!entry) {
+        throw new Error(`Unknown network "${id}"`);
       }
-      return raw.modes[n];
+      return entry;
     },
 
     delta(prev, current) {
@@ -26,13 +27,13 @@ export function createContentLookup(raw) {
       return raw.deltas?.[key] ?? null;
     },
 
-    overlap(activeModes) {
-      if (!Array.isArray(activeModes) || activeModes.length < 2) return null;
+    overlap(activeNetworks) {
+      if (!Array.isArray(activeNetworks) || activeNetworks.length < 2) return null;
       const overlaps = raw.overlaps ?? {};
       const found = [];
-      for (let i = 0; i < activeModes.length; i++) {
-        for (let j = i + 1; j < activeModes.length; j++) {
-          const line = overlaps[pairKey(activeModes[i], activeModes[j])];
+      for (let i = 0; i < activeNetworks.length; i++) {
+        for (let j = i + 1; j < activeNetworks.length; j++) {
+          const line = overlaps[pairKey(activeNetworks[i], activeNetworks[j])];
           if (line) found.push(line);
         }
       }

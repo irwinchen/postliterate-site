@@ -1,0 +1,74 @@
+{
+  "_comment_": "Citation source-of-truth. Per-paper entries used in disclaimers and source panels.",
+
+  "parsons-2001": {
+    "authors": "Parsons & Osherson",
+    "year": 2001,
+    "title": "New evidence for distinct right and left brain systems for deductive versus probabilistic reasoning",
+    "venue": "Cerebral Cortex",
+    "doi": "10.1093/cercor/11.10.954"
+  },
+  "paunov-2022": {
+    "authors": "Paunov et al.",
+    "year": 2022,
+    "title": "Differential tracking of linguistic vs. mental state content in naturalistic stimuli by language and Theory of Mind networks",
+    "venue": "Neurobiology of Language",
+    "doi": "10.1162/nol_a_00071"
+  },
+  "lipkin-2022": {
+    "authors": "Lipkin et al.",
+    "year": 2022,
+    "title": "Probabilistic atlas for the language network based on precision fMRI data from >800 individuals",
+    "venue": "Scientific Data",
+    "doi": "10.1038/s41597-022-01645-3"
+  },
+  "fedorenko-2010": {
+    "authors": "Fedorenko et al.",
+    "year": 2010,
+    "title": "New method for fMRI investigations of language: defining ROIs functionally in individual subjects",
+    "venue": "Journal of Neurophysiology",
+    "doi": "10.1152/jn.00032.2010"
+  },
+  "yeo-2011": {
+    "authors": "Yeo et al.",
+    "year": 2011,
+    "title": "The organization of the human cerebral cortex estimated by intrinsic functional connectivity",
+    "venue": "Journal of Neurophysiology",
+    "doi": "10.1152/jn.00338.2011"
+  },
+  "saxe-2003": {
+    "authors": "Saxe & Kanwisher",
+    "year": 2003,
+    "title": "People thinking about thinking people: the role of the temporo-parietal junction in 'theory of mind'",
+    "venue": "NeuroImage",
+    "doi": "10.1016/s1053-8119(03)00230-1"
+  },
+  "fox-2005": {
+    "authors": "Fox et al.",
+    "year": 2005,
+    "title": "The human brain is intrinsically organized into dynamic, anticorrelated functional networks",
+    "venue": "PNAS",
+    "doi": "10.1073/pnas.0504136102"
+  },
+  "blank-2014": {
+    "authors": "Blank et al.",
+    "year": 2014,
+    "title": "A functional dissociation between language and multiple-demand systems revealed in patterns of BOLD signal fluctuations",
+    "venue": "Journal of Neurophysiology",
+    "doi": "10.1152/jn.00884.2013"
+  },
+  "hasson-2016": {
+    "authors": "Hasson et al.",
+    "year": 2016,
+    "title": "Hierarchical process memory: memory as an integral component of information processing",
+    "venue": "Trends in Cognitive Sciences",
+    "doi": "10.1016/j.tics.2015.04.006"
+  },
+  "chiong-2013": {
+    "authors": "Chiong et al.",
+    "year": 2013,
+    "title": "The salience network causally influences default mode network activity during moral reasoning",
+    "venue": "Brain",
+    "doi": "10.1093/brain/awt066"
+  }
+}

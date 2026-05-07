@@ -1,0 +1,23 @@
+{
+  "_comment_": "Master parcel registry. Atlas-grounded facts about cortical regions, independent of any paper or view. View configs reference parcels here by stable ID. When atlas data replaces hand-tuned centroids, only centroid/radius/provenance change.",
+
+  "lang.LanA-IFGorb-L":   { "label": "IFG-orbital",         "atlas": "fedorenko-lang",   "hemisphere": "L", "centroid": [-0.62, -0.15,  0.55], "radius": 0.10, "provenance": "hand-tuned", "group": "frontal" },
+  "lang.LanB-IFG-L":      { "label": "IFG (Broca's)",       "atlas": "fedorenko-lang",   "hemisphere": "L", "centroid": [-0.68,  0.05,  0.45], "radius": 0.11, "provenance": "hand-tuned", "group": "frontal", "layCue": "left side, behind your temple" },
+  "lang.LanC-MFG-L":      { "label": "MFG",                 "atlas": "fedorenko-lang",   "hemisphere": "L", "centroid": [-0.62,  0.30,  0.40], "radius": 0.11, "provenance": "hand-tuned", "group": "frontal" },
+  "lang.LanD-AntTemp-L":  { "label": "Anterior temporal",   "atlas": "fedorenko-lang",   "hemisphere": "L", "centroid": [-0.55, -0.30,  0.45], "radius": 0.10, "provenance": "hand-tuned", "group": "temporal" },
+  "lang.LanE-PostTemp-L": { "label": "Posterior temporal",  "atlas": "fedorenko-lang",   "hemisphere": "L", "centroid": [-0.55, -0.20, -0.10], "radius": 0.11, "provenance": "hand-tuned", "group": "temporal", "layCue": "left side, behind your ear (Wernicke's)" },
+
+  "tom.TPJ-L":            { "label": "TPJ-L",               "atlas": "fedorenko-tom",    "hemisphere": "L", "centroid": [-0.50,  0.30, -0.25], "radius": 0.12, "provenance": "hand-tuned", "group": "parietal", "layCue": "left side, where the temporal and parietal lobes meet" },
+  "tom.TPJ-R":            { "label": "TPJ-R",               "atlas": "fedorenko-tom",    "hemisphere": "R", "centroid": [ 0.50,  0.30, -0.25], "radius": 0.12, "provenance": "hand-tuned", "group": "parietal" },
+  "tom.MTG-L":            { "label": "MTG-L",               "atlas": "fedorenko-tom",    "hemisphere": "L", "centroid": [-0.62, -0.15, -0.05], "radius": 0.10, "provenance": "hand-tuned", "group": "temporal" },
+  "tom.MTG-R":            { "label": "MTG-R",               "atlas": "fedorenko-tom",    "hemisphere": "R", "centroid": [ 0.62, -0.15, -0.05], "radius": 0.10, "provenance": "hand-tuned", "group": "temporal" },
+
+  "yeo.DMN-dmPFC":        { "label": "dmPFC",               "atlas": "yeo-7net-dmn",     "hemisphere": "M", "centroid": [ 0.00,  0.50,  0.55], "radius": 0.13, "provenance": "hand-tuned", "group": "frontal-medial", "layCue": "middle-top, on the inside surface" },
+  "yeo.DMN-Precuneus":    { "label": "Precuneus",           "atlas": "yeo-7net-dmn",     "hemisphere": "M", "centroid": [ 0.00,  0.45, -0.45], "radius": 0.13, "provenance": "hand-tuned", "group": "parietal-medial", "layCue": "middle of the inside surface, toward the back" },
+  "yeo.DMN-PCC":          { "label": "PCC",                 "atlas": "yeo-7net-dmn",     "hemisphere": "M", "centroid": [ 0.00,  0.15, -0.40], "radius": 0.12, "provenance": "hand-tuned", "group": "cingulate-posterior" },
+
+  "dk.lh-frontal-coarse":  { "label": "L frontal (coarse)",  "atlas": "desikan-killiany", "hemisphere": "L", "centroid": [-0.45,  0.30,  0.45], "radius": 0.24, "provenance": "hand-tuned", "group": "frontal" },
+  "dk.lh-parietal-coarse": { "label": "L parietal (coarse)", "atlas": "desikan-killiany", "hemisphere": "L", "centroid": [-0.35,  0.55, -0.15], "radius": 0.24, "provenance": "hand-tuned", "group": "parietal" },
+  "dk.rh-frontal-coarse":  { "label": "R frontal (coarse)",  "atlas": "desikan-killiany", "hemisphere": "R", "centroid": [ 0.45,  0.30,  0.45], "radius": 0.24, "provenance": "hand-tuned", "group": "frontal" },
+  "dk.rh-parietal-coarse": { "label": "R parietal (coarse)", "atlas": "desikan-killiany", "hemisphere": "R", "centroid": [ 0.35,  0.55, -0.15], "radius": 0.24, "provenance": "hand-tuned", "group": "parietal" }
+}

@@ -1,0 +1,478 @@
+---
+import parcelsRaw from './data/registry/parcels.json';
+import papersRaw from './data/registry/papers.json';
+
+const { viewConfig, contentConfig } = Astro.props;
+if (!viewConfig) throw new Error('BrainViz3D: viewConfig prop is required');
+if (!contentConfig) throw new Error('BrainViz3D: contentConfig prop is required');
+---
+
+<div class="brain-3d" data-component="brain-viz-3d">
+  <aside class="brain-3d__glossary" aria-label="Region glossary">
+    <div class="brain-3d__glossary-list" data-bind="glossary"></div>
+  </aside>
+
+  <div class="brain-3d__center">
+    <canvas class="brain-3d__canvas" aria-label="3D brain visualization"></canvas>
+  </div>
+
+  <aside class="brain-3d__rightcol">
+    <nav class="brain-3d__chips" role="toolbar" aria-label="Network selector" data-bind="chips"></nav>
+  </aside>
+
+  <svg class="brain-3d__leaders" data-bind="leaders" aria-hidden="true"></svg>
+</div>
+
+<script type="module" define:vars={{ rawParcels: parcelsRaw, rawPapers: papersRaw, viewConfig, contentConfig }}>
+  import { loadParcelRegistry } from '/src/lib/brain-viz/parcel-registry.js';
+  import { loadView } from '/src/lib/brain-viz/view-loader.js';
+  import { createViewState } from '/src/lib/brain-viz/view-state.js';
+  import { createGlossaryState } from '/src/lib/brain-viz/glossary-state.js';
+  import { createViewContent } from '/src/lib/brain-viz/content.js';
+  import { computeVisibleLabels } from '/src/lib/brain-viz/label-visibility.js';
+  import { createBrainRenderer } from '/src/components/brain-3d/renderer.js';
+
+  // Anatomical group display names. Subtitles are intentionally omitted in the
+  // compact glossary layout; reintroduce as <details> tooltips later if needed.
+  const GROUP_NAMES = {
+    'frontal':              'Frontal',
+    'frontal-medial':       'Frontal-medial',
+    'sensorimotor':         'Sensorimotor',
+    'parietal':             'Parietal',
+    'parietal-medial':      'Parietal-medial',
+    'temporal':             'Temporal',
+    'temporal-ventral':     'Temporal-ventral',
+    'cingulate-posterior':  'Cingulate-posterior',
+    'occipital':            'Occipital',
+    'insula':               'Insula',
+    'other':                'Other',
+  };
+  const GROUP_ORDER = [
+    'frontal', 'frontal-medial', 'sensorimotor',
+    'parietal', 'parietal-medial',
+    'temporal', 'temporal-ventral', 'cingulate-posterior',
+    'occipital', 'insula', 'other',
+  ];
+
+  const root = document.querySelector('[data-component="brain-viz-3d"]');
+  const canvas = root.querySelector('.brain-3d__canvas');
+  const leadersSvg = root.querySelector('[data-bind="leaders"]');
+
+  const registry = loadParcelRegistry(rawParcels);
+  const view = loadView({ viewConfig, registry, papersRaw: rawPapers });
+  const content = createViewContent(contentConfig);
+  const viewState = createViewState({
+    networkIds: view.networkOrder,
+    initialNetwork: view.view.defaultNetwork,
+  });
+  const glossaryState = createGlossaryState();
+
+  for (const id of view.networkOrder) {
+    root.style.setProperty(`--mode-${id}`, view.networks[id].color);
+  }
+
+  // === Build the chips ===
+  const chipsRoot = root.querySelector('[data-bind="chips"]');
+  for (const id of view.networkOrder) {
+    const net = view.networks[id];
+    const btn = document.createElement('button');
+    btn.className = 'brain-3d__chip';
+    btn.dataset.network = id;
+    btn.innerHTML = `<span class="brain-3d__chip-num">${net.displayNum ?? ''}</span> ${net.label}`;
+    btn.style.setProperty('--chip-color', net.color);
+    chipsRoot.appendChild(btn);
+  }
+
+  const isMulti = view.networkOrder.length > 1;
+  if (isMulti) {
+    const compareBtn = document.createElement('button');
+    compareBtn.className = 'brain-3d__chip brain-3d__chip--aux';
+    compareBtn.dataset.action = 'compare';
+    compareBtn.setAttribute('aria-pressed', 'false');
+    compareBtn.textContent = 'Compare';
+    chipsRoot.appendChild(compareBtn);
+
+    const allBtn = document.createElement('button');
+    allBtn.className = 'brain-3d__chip brain-3d__chip--aux';
+    allBtn.dataset.action = 'all';
+    allBtn.textContent = 'All';
+    chipsRoot.appendChild(allBtn);
+  }
+  const resetBtn = document.createElement('button');
+  resetBtn.className = 'brain-3d__chip brain-3d__chip--aux';
+  resetBtn.dataset.action = 'reset';
+  resetBtn.textContent = 'Reset';
+  chipsRoot.appendChild(resetBtn);
+
+  // === Build the glossary (collapsible <details> per anatomical group) ===
+  const allParcels = registry.parcels();
+  const grouped = {};
+  for (const parcel of Object.values(allParcels)) {
+    const g = parcel.group ?? 'other';
+    (grouped[g] ??= []).push(parcel);
+  }
+  for (const list of Object.values(grouped)) {
+    list.sort((a, b) => a.label.localeCompare(b.label));
+  }
+
+  const glossaryRoot = root.querySelector('[data-bind="glossary"]');
+  const glossaryEntryEls = new Map(); // parcelId -> button element
+
+  for (const groupId of GROUP_ORDER) {
+    const list = grouped[groupId];
+    if (!list || list.length === 0) continue;
+    const groupName = GROUP_NAMES[groupId] ?? groupId;
+
+    const details = document.createElement('details');
+    details.className = 'brain-3d__gloss-group';
+    details.open = true; // start expanded
+
+    const summary = document.createElement('summary');
+    summary.className = 'brain-3d__gloss-group-name';
+    summary.innerHTML = `<span>${groupName.toUpperCase()}</span>`;
+    details.appendChild(summary);
+
+    const entriesWrap = document.createElement('div');
+    entriesWrap.className = 'brain-3d__gloss-entries';
+    for (const parcel of list) {
+      const inThisView = !!view.parcels[parcel.id];
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'brain-3d__gloss-entry';
+      btn.dataset.parcelId = parcel.id;
+      if (!inThisView) btn.classList.add('is-faded');
+      btn.textContent = parcel.label;
+      if (parcel.layCue) btn.title = parcel.layCue;
+      btn.addEventListener('click', () => glossaryState.inspect(parcel.id));
+      entriesWrap.appendChild(btn);
+      glossaryEntryEls.set(parcel.id, btn);
+    }
+    details.appendChild(entriesWrap);
+    glossaryRoot.appendChild(details);
+  }
+
+  // === Glossary highlighting wiring ===
+  function syncGlossary() {
+    const inspected = glossaryState.inspectedParcels();
+    for (const [id, btn] of glossaryEntryEls) {
+      btn.classList.toggle('is-inspected', inspected.has(id));
+    }
+  }
+
+  // === Chip wiring ===
+  for (const chip of root.querySelectorAll('.brain-3d__chip[data-network]')) {
+    chip.addEventListener('click', () => {
+      const id = chip.dataset.network;
+      if (viewState.isCompare()) {
+        const active = viewState.activeNetworks();
+        if (active.includes(id) && active.length === 1) return;
+        viewState.toggle(id);
+      } else {
+        viewState.select(id);
+      }
+    });
+  }
+  function syncChips() {
+    const active = viewState.activeNetworks();
+    const isCompare = viewState.isCompare();
+    for (const chip of root.querySelectorAll('.brain-3d__chip[data-network]')) {
+      const id = chip.dataset.network;
+      const isActive = active.includes(id);
+      chip.classList.toggle('is-active', isActive);
+      chip.setAttribute('aria-pressed', String(isActive));
+    }
+    const compareBtn = root.querySelector('[data-action="compare"]');
+    if (compareBtn) {
+      compareBtn.classList.toggle('is-active', isCompare);
+      compareBtn.setAttribute('aria-pressed', String(isCompare));
+    }
+  }
+  const compareBtn = root.querySelector('[data-action="compare"]');
+  if (compareBtn) {
+    compareBtn.addEventListener('click', () => {
+      if (viewState.isCompare()) viewState.exitCompare();
+      else viewState.enterCompare();
+    });
+  }
+  const allBtn = root.querySelector('[data-action="all"]');
+  if (allBtn) allBtn.addEventListener('click', () => viewState.showAll());
+  root.querySelector('[data-action="reset"]').addEventListener('click', () => {
+    viewState.reset();
+    glossaryState.clear();
+  });
+
+  viewState.subscribe(() => syncChips());
+  glossaryState.subscribe(() => syncGlossary());
+
+  syncChips();
+  syncGlossary();
+
+  // === Renderer + leader-line overlay ===
+  let renderer;
+  if (window.WebGLRenderingContext) {
+    renderer = createBrainRenderer({ canvas, view, viewState });
+    renderer.onAfterRender(drawLeaderLines);
+  } else {
+    canvas.replaceWith(Object.assign(document.createElement('p'), {
+      className: 'brain-3d__nowebgl',
+      textContent: 'Your browser does not support WebGL. The 2D version of this figure is available below.',
+    }));
+  }
+
+  function isEntryVisible(el) {
+    // Element is rendered (not inside a collapsed <details>) iff offsetParent is non-null
+    return el.offsetParent !== null;
+  }
+
+  const SVG_NS = 'http://www.w3.org/2000/svg';
+
+  function drawLeaderLines() {
+    if (!renderer) return;
+
+    // Clear previous content unconditionally so toggling-off cleans up.
+    while (leadersSvg.firstChild) leadersSvg.removeChild(leadersSvg.firstChild);
+
+    const inspected = glossaryState.inspectedParcels();
+    if (inspected.size === 0) return;
+
+    const rootRect = root.getBoundingClientRect();
+    const canvasRect = renderer.getCanvasRect();
+
+    const w = rootRect.width;
+    const h = rootRect.height;
+    leadersSvg.setAttribute('viewBox', `0 0 ${w} ${h}`);
+    leadersSvg.setAttribute('width', w);
+    leadersSvg.setAttribute('height', h);
+
+    for (const id of inspected) {
+      if (!view.parcels[id]) continue;
+      const btn = glossaryEntryEls.get(id);
+      if (!btn || !isEntryVisible(btn)) continue;
+      const screen = renderer.getParcelScreenPosition(id);
+      if (!screen || !screen.onScreen) continue;
+
+      const entryRect = btn.getBoundingClientRect();
+      const sourceX = entryRect.right - rootRect.left;
+      const sourceY = entryRect.top + entryRect.height / 2 - rootRect.top;
+      const targetX = canvasRect.left + screen.x - rootRect.left;
+      const targetY = canvasRect.top + screen.y - rootRect.top;
+
+      const line = document.createElementNS(SVG_NS, 'line');
+      line.setAttribute('x1', sourceX);
+      line.setAttribute('y1', sourceY);
+      line.setAttribute('x2', targetX);
+      line.setAttribute('y2', targetY);
+      line.setAttribute('class', 'brain-3d__leader');
+      leadersSvg.appendChild(line);
+
+      const dot = document.createElementNS(SVG_NS, 'circle');
+      dot.setAttribute('cx', targetX);
+      dot.setAttribute('cy', targetY);
+      dot.setAttribute('r', 4);
+      dot.setAttribute('class', 'brain-3d__leader-dot');
+      leadersSvg.appendChild(dot);
+    }
+  }
+</script>
+
+<style is:global>
+  .brain-3d {
+    color-scheme: dark;
+    --bg: #0a0a0a;
+    --fg: #ece7d6;
+    --muted: #888;
+    --faint: #555;
+    --border: rgba(255, 255, 255, 0.10);
+    background: var(--bg);
+    color: var(--fg);
+    block-size: 100dvh;
+    inline-size: 100vw;
+    display: grid;
+    grid-template-columns: 220px 1fr 280px;
+    grid-template-rows: 1fr;
+    grid-template-areas: "glossary center rightcol";
+    font-family: 'Outfit', system-ui, sans-serif;
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* Glossary (left column) */
+  .brain-3d__glossary {
+    grid-area: glossary;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-gutter: stable;
+    padding: 1.25rem 0.75rem 1.25rem 1.25rem;
+  }
+  .brain-3d__glossary-list {
+    display: grid;
+    gap: 0.5rem;
+  }
+
+  .brain-3d__gloss-group {
+    border-block-end: 1px solid var(--border);
+    padding-block-end: 0.5rem;
+  }
+  .brain-3d__gloss-group[open] .brain-3d__gloss-group-name::after {
+    transform: rotate(0deg);
+  }
+  .brain-3d__gloss-group-name {
+    list-style: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.5rem 0.25rem;
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    color: var(--fg);
+  }
+  .brain-3d__gloss-group-name::-webkit-details-marker {
+    display: none;
+  }
+  .brain-3d__gloss-group-name::after {
+    content: '▼';
+    font-size: 0.6rem;
+    color: var(--muted);
+    transform: rotate(-90deg);
+    transition: transform 200ms ease;
+  }
+  .brain-3d__gloss-entries {
+    display: grid;
+    gap: 0;
+  }
+  .brain-3d__gloss-entry {
+    appearance: none;
+    background: transparent;
+    border: none;
+    color: var(--faint);
+    font: inherit;
+    font-size: 0.7rem;
+    text-align: start;
+    cursor: pointer;
+    padding: 0.4rem 0.5rem;
+    inline-size: 100%;
+    transition: background-color 150ms, color 150ms;
+  }
+  .brain-3d__gloss-entry:hover {
+    color: var(--fg);
+    background: rgba(255, 255, 255, 0.04);
+  }
+  .brain-3d__gloss-entry:focus-visible {
+    outline: 2px solid var(--fg);
+    outline-offset: -2px;
+  }
+  .brain-3d__gloss-entry.is-faded {
+    opacity: 0.35;
+  }
+  .brain-3d__gloss-entry.is-inspected {
+    color: var(--fg);
+    background: rgba(255, 255, 255, 0.10);
+    font-weight: 600;
+  }
+
+  /* Center (canvas) */
+  .brain-3d__center {
+    grid-area: center;
+    min-inline-size: 0;
+    position: relative;
+  }
+  .brain-3d__canvas {
+    inline-size: 100%;
+    block-size: 100%;
+    display: block;
+    cursor: grab;
+  }
+  .brain-3d__canvas:active { cursor: grabbing; }
+
+  /* Right column (chips top) */
+  .brain-3d__rightcol {
+    grid-area: rightcol;
+    padding: 1.25rem 1.25rem 1.25rem 0.75rem;
+    display: grid;
+    align-content: start;
+    gap: 0.75rem;
+  }
+  .brain-3d__chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    align-items: flex-start;
+  }
+  .brain-3d__chip {
+    --chip-color: #888;
+    appearance: none;
+    border: 1px solid var(--border);
+    background: var(--bg);
+    color: var(--fg);
+    font: inherit;
+    font-size: 0.7rem;
+    padding: 0.35rem 0.6rem;
+    border-radius: 3px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    border-inline-start: 3px solid var(--chip-color);
+    transition: background-color 200ms, color 200ms;
+  }
+  .brain-3d__chip:focus-visible {
+    outline: 2px solid var(--chip-color);
+    outline-offset: 2px;
+  }
+  .brain-3d__chip.is-active {
+    background: var(--chip-color);
+    color: white;
+    border-color: var(--chip-color);
+  }
+  .brain-3d__chip-num {
+    font-weight: 600;
+    font-size: 0.6rem;
+    letter-spacing: 0.14em;
+    opacity: 0.65;
+  }
+  .brain-3d__chip--aux {
+    border-inline-start-width: 1px;
+    --chip-color: var(--border);
+  }
+  .brain-3d__chip--aux.is-active {
+    background: var(--fg);
+    color: var(--bg);
+    border-color: var(--fg);
+  }
+
+  /* Leader-line overlay (positioned over the entire component) */
+  .brain-3d__leaders {
+    position: absolute;
+    inset: 0;
+    z-index: 5;
+    pointer-events: none;
+  }
+  .brain-3d__leaders * {
+    pointer-events: none;
+  }
+  .brain-3d__leader {
+    stroke: rgba(216, 146, 51, 0.85);
+    stroke-width: 1.25;
+    fill: none;
+  }
+  .brain-3d__leader-dot {
+    fill: rgba(216, 146, 51, 0.95);
+    stroke: rgba(0, 0, 0, 0.4);
+    stroke-width: 1;
+  }
+
+  /* Mobile collapse */
+  @media (max-width: 720px) {
+    .brain-3d {
+      grid-template-columns: 1fr;
+      grid-template-rows: auto 1fr auto;
+      grid-template-areas: "rightcol" "center" "glossary";
+    }
+    .brain-3d__glossary {
+      max-block-size: 40dvh;
+      border-block-start: 1px solid var(--border);
+    }
+  }
+</style>

@@ -1,0 +1,53 @@
+{
+  "slug": "four-modes",
+  "name": "Four Cognitive Modes",
+  "subtitle": "Logical · Likelihoods · Language · Other Minds",
+  "papers": ["parsons-2001", "paunov-2022", "lipkin-2022", "yeo-2011", "hasson-2016", "chiong-2013"],
+  "networks": {
+    "m1": {
+      "displayNum": "01",
+      "label": "Logical Reasoning",
+      "color": "#3B6DB4",
+      "source": "Parsons & Osherson 2001",
+      "parcels": ["dk.lh-frontal-coarse", "dk.lh-parietal-coarse"]
+    },
+    "m2": {
+      "displayNum": "02",
+      "label": "Estimating Likelihoods",
+      "color": "#549E44",
+      "source": "Parsons & Osherson 2001",
+      "parcels": ["dk.rh-frontal-coarse", "dk.rh-parietal-coarse"]
+    },
+    "m3": {
+      "displayNum": "03",
+      "label": "Language",
+      "color": "#D89233",
+      "source": "Paunov 2022 / Lipkin 2022 atlas",
+      "parcels": [
+        "lang.LanA-IFGorb-L",
+        "lang.LanB-IFG-L",
+        "lang.LanC-MFG-L",
+        "lang.LanD-AntTemp-L",
+        "lang.LanE-PostTemp-L"
+      ]
+    },
+    "m4": {
+      "displayNum": "04",
+      "label": "Imagining Other Minds",
+      "color": "#E53E33",
+      "source": "Paunov 2022 / Hasson 2016 / Yeo 2011",
+      "parcels": [
+        "tom.TPJ-L",
+        "tom.TPJ-R",
+        "tom.MTG-L",
+        "tom.MTG-R",
+        "yeo.DMN-dmPFC",
+        "yeo.DMN-Precuneus",
+        "yeo.DMN-PCC"
+      ]
+    }
+  },
+  "networkOrder": ["m1", "m2", "m3", "m4"],
+  "uiMode": "chips-with-compare",
+  "defaultNetwork": "m1"
+}
