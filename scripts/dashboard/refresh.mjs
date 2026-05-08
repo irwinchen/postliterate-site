@@ -20,6 +20,7 @@
 import { writeFileSync, mkdirSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { getCards } from './sources/cards.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const SNAPSHOTS_DIR = join(__dirname, 'snapshots');
@@ -33,13 +34,20 @@ export async function refresh() {
 
   const snapshot = {
     refreshed_at: new Date().toISOString(),
-    // Each key is populated by its phase; null = not yet implemented.
     cards: null,       // Phase 2 — parse 06_Meta/Book/Cards/INDEX.md
     vault_watch: null, // Phase 3 — outstanding sources, reading queue
     writing: null,     // Phase 4 — word counts + sparkline snapshots
     reminders: null,   // Phase 5 — TASKS.md
     activity: null,    // Phase 6 — Cowork sessions, chat exports, git
   };
+
+  // Phase 2 — Cards
+  try {
+    snapshot.cards = await getCards();
+    console.log(`  Cards: ${snapshot.cards.total} loaded.`);
+  } catch (err) {
+    console.warn(`  Warning: cards failed — ${err.message}`);
+  }
 
   const outPath = join(SNAPSHOTS_DIR, 'latest.json');
   writeFileSync(outPath, JSON.stringify(snapshot, null, 2), 'utf8');
