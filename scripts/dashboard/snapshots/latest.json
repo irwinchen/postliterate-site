@@ -1,5 +1,5 @@
 {
-  "refreshed_at": "2026-05-08T20:29:36.956Z",
+  "refreshed_at": "2026-05-08T23:14:01.284Z",
   "cards": {
     "total": 74,
     "sections": [
@@ -1355,7 +1355,733 @@
       }
     }
   },
-  "vault_watch": null,
+  "vault_watch": {
+    "outstanding_sources": {
+      "count": 62,
+      "pdfs_total": 112,
+      "articles_total": 75,
+      "items": [
+        {
+          "pdf": "Yao_Belin_Scheepers_2011_JoCN.pdf",
+          "size_kb": 219,
+          "mtime": "2026-05-08T14:33:33.335Z"
+        },
+        {
+          "pdf": "Saygin_2016_NatureNeuro.pdf",
+          "size_kb": 1089,
+          "mtime": "2026-05-08T13:57:21.234Z"
+        },
+        {
+          "pdf": "Saygin2025 - Connectivity.pdf",
+          "size_kb": 997,
+          "mtime": "2026-05-08T13:55:39.057Z"
+        },
+        {
+          "pdf": "Tamir et al 2016 - Reading fiction and default network.pdf",
+          "size_kb": 284,
+          "mtime": "2026-05-08T13:28:35.550Z"
+        },
+        {
+          "pdf": "Yao et al 2020 - Direct reference and ToM network.pdf",
+          "size_kb": 568,
+          "mtime": "2026-05-08T13:27:57.323Z"
+        },
+        {
+          "pdf": "Dehaene2018 - Longitudinal evolution of VWFA.pdf",
+          "size_kb": 10010,
+          "mtime": "2026-05-08T13:23:48.947Z"
+        },
+        {
+          "pdf": "Digital_Tools_for_Reading_Success_Meta-analyses_of.pdf",
+          "size_kb": 2443,
+          "mtime": "2026-05-08T12:33:44.651Z"
+        },
+        {
+          "pdf": "Chen-VWFA-part-of-language-and-attention-circuitry.pdf",
+          "size_kb": 1743,
+          "mtime": "2026-05-08T12:21:22.779Z"
+        },
+        {
+          "pdf": "fnhum-20-1687121.pdf",
+          "size_kb": 257,
+          "mtime": "2026-05-07T14:17:09.834Z"
+        },
+        {
+          "pdf": "Benso+et+al.+2025+Frontiers.pdf",
+          "size_kb": 981,
+          "mtime": "2026-05-07T13:05:06.440Z"
+        },
+        {
+          "pdf": "Isko2026 - Singing Mouse.pdf",
+          "size_kb": 13760,
+          "mtime": "2026-05-07T12:05:50.150Z"
+        },
+        {
+          "pdf": "Saxe2003_TheoryOfMindTPJ.pdf",
+          "size_kb": 229,
+          "mtime": "2026-05-06T20:22:25.450Z"
+        },
+        {
+          "pdf": "Fedorenko2010_NewMethodfMRILanguageROIs.pdf",
+          "size_kb": 2241,
+          "mtime": "2026-05-06T20:19:13.325Z"
+        },
+        {
+          "pdf": "Parvizi2026 - Functional_Architecture.pdf",
+          "size_kb": 3218,
+          "mtime": "2026-05-06T18:03:46.295Z"
+        },
+        {
+          "pdf": "Paunov_et_al_2019_JNeurophys.pdf",
+          "size_kb": 4440,
+          "mtime": "2026-05-06T18:02:40.860Z"
+        },
+        {
+          "pdf": "mineroff2018_default_mode_networks.pdf",
+          "size_kb": 1615,
+          "mtime": "2026-05-06T18:01:26.057Z"
+        },
+        {
+          "pdf": "Ogawa2025_neural_correlates.pdf",
+          "size_kb": 3036,
+          "mtime": "2026-05-06T18:00:07.890Z"
+        },
+        {
+          "pdf": "OECD2019_PISA2018_AssessmentFramework.pdf",
+          "size_kb": 6520,
+          "mtime": "2026-05-05T15:24:54.172Z"
+        },
+        {
+          "pdf": "OECD2023_PISA2022_Vol_II.pdf",
+          "size_kb": 20565,
+          "mtime": "2026-05-05T15:24:53.122Z"
+        },
+        {
+          "pdf": "OECD2023_PISA2022_Vol_I.pdf",
+          "size_kb": 23861,
+          "mtime": "2026-05-05T15:24:42.346Z"
+        },
+        {
+          "pdf": "decline_of_reading_survey.pdf",
+          "size_kb": 5172,
+          "mtime": "2026-05-05T14:12:01.428Z"
+        },
+        {
+          "pdf": "Incompressible Knowledge Probes_ Estimating Black-Box LLM Parameter Counts via Factual Capacity.pdf",
+          "size_kb": 1616,
+          "mtime": "2026-05-01T13:46:31.729Z"
+        },
+        {
+          "pdf": "Effective_LLMs-ssrn-6423358.pdf",
+          "size_kb": 2901,
+          "mtime": "2026-04-29T17:08:20.309Z"
+        },
+        {
+          "pdf": "sciadv.aed5260.pdf",
+          "size_kb": 2705,
+          "mtime": "2026-04-24T23:56:32.333Z"
+        },
+        {
+          "pdf": "blocking_mobile_improves_attention.pdf",
+          "size_kb": 558,
+          "mtime": "2026-04-23T13:24:13.118Z"
+        },
+        {
+          "pdf": "sycophantic_chatbots.pdf",
+          "size_kb": 1334,
+          "mtime": "2026-04-23T13:22:20.892Z"
+        },
+        {
+          "pdf": "poor_comprehenders.pdf",
+          "size_kb": 902,
+          "mtime": "2026-04-23T13:18:20.938Z"
+        },
+        {
+          "pdf": "Claude Sonnet 4.6 System Card.pdf",
+          "size_kb": 9138,
+          "mtime": "2026-04-22T20:20:00.511Z"
+        },
+        {
+          "pdf": "how_ai_use_impacts_skill_formation.pdf",
+          "size_kb": 2793,
+          "mtime": "2026-04-22T20:03:35.763Z"
+        },
+        {
+          "pdf": "Left-Right_reasoning.pdf",
+          "size_kb": 693,
+          "mtime": "2026-04-20T19:25:29.951Z"
+        },
+        {
+          "pdf": "mangen a_2013_reading_linear_texts_on_paper_ve_14552.pdf",
+          "size_kb": 192,
+          "mtime": "2026-04-19T22:15:06.949Z"
+        },
+        {
+          "pdf": "scribner-cole-1978-unpackaging-literacy.pdf",
+          "size_kb": 1023,
+          "mtime": "2026-04-19T16:59:38.276Z"
+        },
+        {
+          "pdf": "PARRY - Culture  Literacy  and L2 Reading.pdf",
+          "size_kb": 151,
+          "mtime": "2026-04-17T12:04:09.452Z"
+        },
+        {
+          "pdf": "1993 - Street - The new literacy studies  guest editorial.pdf",
+          "size_kb": 1246,
+          "mtime": "2026-04-17T02:15:20.187Z"
+        },
+        {
+          "pdf": "LamdanYasnitsky2016.pdf",
+          "size_kb": 20710,
+          "mtime": "2026-04-17T00:03:47.176Z"
+        },
+        {
+          "pdf": "Who_had_illusions_Alexander_R_Luria_s_Ce.pdf",
+          "size_kb": 209,
+          "mtime": "2026-04-16T23:53:11.894Z"
+        },
+        {
+          "pdf": "RossouwKosyanaya-AlexanderLuria.pdf",
+          "size_kb": 223,
+          "mtime": "2026-04-15T15:20:17.278Z"
+        },
+        {
+          "pdf": "Luria1976_CognitiveDevelopment.pdf",
+          "size_kb": 8659,
+          "mtime": "2026-04-14T21:02:38.017Z"
+        },
+        {
+          "pdf": "cognitive_surrender.pdf",
+          "size_kb": 1868,
+          "mtime": "2026-04-01T19:50:21.849Z"
+        },
+        {
+          "pdf": "Sharma_sycophancy.pdf",
+          "size_kb": 1351,
+          "mtime": "2026-03-24T17:59:58.999Z"
+        },
+        {
+          "pdf": "Sharma2024 UnderstandingSycophancy.pdf",
+          "size_kb": 1351,
+          "mtime": "2026-03-24T17:48:21.726Z"
+        },
+        {
+          "pdf": "00-Distinguishing cause from effect _ many deficits associated with developmental dyslexia may be.pdf",
+          "size_kb": 1806,
+          "mtime": "2026-03-19T13:00:18.000Z"
+        },
+        {
+          "pdf": "ai_anthropomorphism.pdf",
+          "size_kb": 172,
+          "mtime": "2026-03-18T15:07:51.173Z"
+        },
+        {
+          "pdf": "ai_hijacks_human_empathy.pdf",
+          "size_kb": 103,
+          "mtime": "2026-03-18T15:06:09.353Z"
+        },
+        {
+          "pdf": "MCTD-AIAndTheNovel-Report-Web.pdf",
+          "size_kb": 5808,
+          "mtime": "2026-03-12T03:31:59.337Z"
+        },
+        {
+          "pdf": "AI-Admissions-Key-Findings_Final_2024.07.08.pdf",
+          "size_kb": 1699,
+          "mtime": "2026-03-09T14:25:23.718Z"
+        },
+        {
+          "pdf": "Stiegler_Pharmakon.pdf",
+          "size_kb": 149,
+          "mtime": "2026-03-06T15:29:10.667Z"
+        },
+        {
+          "pdf": "TimeDiscounting.pdf",
+          "size_kb": 7185,
+          "mtime": "2026-03-04T21:25:26.998Z"
+        },
+        {
+          "pdf": "On_the_Differences_Between_Spo.pdf",
+          "size_kb": 3358,
+          "mtime": "2026-01-30T23:14:17.665Z"
+        },
+        {
+          "pdf": "Evans-LevinsonBBS2009.pdf",
+          "size_kb": 688,
+          "mtime": "2026-01-30T13:13:30.154Z"
+        },
+        {
+          "pdf": "story_morals_2024.pdf",
+          "size_kb": 990,
+          "mtime": "2026-01-13T14:31:55.934Z"
+        },
+        {
+          "pdf": "story_morals.pdf",
+          "size_kb": 990,
+          "mtime": "2026-01-13T01:31:31.921Z"
+        },
+        {
+          "pdf": "narrative_theory_for_computational_narrative.pdf",
+          "size_kb": 315,
+          "mtime": "2026-01-12T23:47:50.834Z"
+        },
+        {
+          "pdf": "Tangherlini2008-automated_pipeline.pdf",
+          "size_kb": 4264,
+          "mtime": "2026-01-12T18:31:50.556Z"
+        },
+        {
+          "pdf": "wolf2018_reader_come_home.pdf",
+          "size_kb": 5856,
+          "mtime": "2026-01-01T22:13:08.584Z"
+        },
+        {
+          "pdf": "The bias of communication -- Harold Innis.pdf",
+          "size_kb": 10909,
+          "mtime": "2025-12-11T17:02:43.606Z"
+        },
+        {
+          "pdf": "dunbar-2014-how-conversations-around-campfires-came-to-be.pdf",
+          "size_kb": 613,
+          "mtime": "2025-12-01T16:17:33.820Z"
+        },
+        {
+          "pdf": "Your Brain on ChatGPT - Kosmyna et al 2025.pdf",
+          "size_kb": 35375,
+          "mtime": "2025-12-01T16:16:10.509Z"
+        },
+        {
+          "pdf": "The mnemonic functions of episodic memory.pdf",
+          "size_kb": 721,
+          "mtime": "2025-11-30T17:21:45.304Z"
+        },
+        {
+          "pdf": "mahr-csibra-2020-witnessing-remembering-and-testifying-why-the-past-is-special-for-human-beings.pdf",
+          "size_kb": 170,
+          "mtime": "2025-11-30T17:21:45.303Z"
+        },
+        {
+          "pdf": "episodic-memory-retrieval-neuroscience.pdf",
+          "size_kb": 470,
+          "mtime": "2025-11-30T17:21:45.295Z"
+        },
+        {
+          "pdf": "communicative-function-of-episodic-memory.pdf",
+          "size_kb": 202,
+          "mtime": "2025-11-30T17:21:45.288Z"
+        }
+      ]
+    },
+    "reading_queue": {
+      "total": 53,
+      "by_status": {
+        "to-read": 45,
+        "reading": 4,
+        "read": 4,
+        "finished": 0
+      },
+      "to_read": 45,
+      "in_progress": 4,
+      "done": 4,
+      "items": [
+        {
+          "slug": "Huettig2018 The Culturally Co-Opted Brain",
+          "kind": "article",
+          "added": "03-19-2026",
+          "status": "to-read"
+        },
+        {
+          "slug": "Sharma2024 Towards Understanding Sycophancy in Language Models",
+          "kind": "paper",
+          "added": "03-24-2026",
+          "status": "to-read"
+        },
+        {
+          "slug": "Luria1976 Cognitive Development",
+          "kind": "book",
+          "added": "04-14-2026",
+          "status": "reading"
+        },
+        {
+          "slug": "Cataldo2000 Why Are Poor Comprehenders Inefficient Searchers",
+          "kind": "article",
+          "added": "04-23-2026",
+          "status": "to-read"
+        },
+        {
+          "slug": "Noyes2008 Computer vs Paper-Based Tasks",
+          "kind": "article",
+          "added": "04-23-2026",
+          "status": "to-read"
+        },
+        {
+          "slug": "Parsons2001 New Evidence for Distinct Right and Left Brain Systems",
+          "kind": "article",
+          "added": "04-23-2026",
+          "status": "to-read"
+        },
+        {
+          "slug": "Shen2026 How AI Impacts Skill Formation",
+          "kind": "paper",
+          "added": "04-23-2026",
+          "status": "to-read"
+        },
+        {
+          "slug": "Anthropic2026 Claude Sonnet 4.6 System Card",
+          "kind": "paper",
+          "added": "04-23-2026",
+          "status": "to-read"
+        },
+        {
+          "slug": "Castelo2025 Blocking Mobile Internet Improves Attention",
+          "kind": "article",
+          "added": "04-23-2026",
+          "status": "to-read"
+        },
+        {
+          "slug": "Chandra2026 Sycophantic Chatbots Cause Delusional Spiraling",
+          "kind": "paper",
+          "added": "04-23-2026",
+          "status": "to-read"
+        },
+        {
+          "slug": "Casten2026 Ancient Regulatory Evolution Language Abilities",
+          "kind": "article",
+          "added": "05-01-2026",
+          "status": "to-read"
+        },
+        {
+          "slug": "Chung2026 Effective Personalized AI Tutors",
+          "kind": "paper",
+          "added": "05-01-2026",
+          "status": "to-read"
+        },
+        {
+          "slug": "Li2026 Incompressible Knowledge Probes",
+          "kind": "paper",
+          "added": "05-01-2026",
+          "status": "to-read"
+        },
+        {
+          "slug": "Shaw2026 Cognitive Surrender AI Reasoning",
+          "kind": "paper",
+          "added": "05-01-2026",
+          "status": "to-read"
+        },
+        {
+          "slug": "Mangen2013 Reading Linear Texts Paper vs Computer Screen",
+          "kind": "article",
+          "added": "05-01-2026",
+          "status": "to-read"
+        },
+        {
+          "slug": "Parry1996 Culture Literacy L2 Reading",
+          "kind": "article",
+          "added": "05-01-2026",
+          "status": "to-read"
+        },
+        {
+          "slug": "Kostyanaya2013 Alexander Luria Life Research Neuroscience",
+          "kind": "article",
+          "added": "05-01-2026",
+          "status": "read"
+        },
+        {
+          "slug": "Acemoglu2026 AI Human Cognition Knowledge Collapse",
+          "kind": "paper",
+          "added": "05-01-2026",
+          "status": "read"
+        },
+        {
+          "slug": "Girgis2026 What Is AI Psychosis",
+          "kind": "article",
+          "added": "05-01-2026",
+          "status": "to-read"
+        },
+        {
+          "slug": "Bommasani2023 Foundation Model Transparency Index",
+          "kind": "paper",
+          "added": "05-01-2026",
+          "status": "to-read"
+        },
+        {
+          "slug": "Bone2025 The Decline in Reading for Pleasure",
+          "kind": "article",
+          "added": "05-05-2026",
+          "status": "to-read"
+        },
+        {
+          "slug": "Patel2025 - Karpathy Summoning Ghosts Interview",
+          "kind": "podcast",
+          "added": "05-05-2026",
+          "status": "read"
+        },
+        {
+          "slug": "Hasson2016 Dynamic Reconfiguration Default Mode Network Narrative",
+          "kind": "article",
+          "added": "05-06-2026",
+          "status": "to-read"
+        },
+        {
+          "slug": "Paunov2022 Differential Tracking Linguistic Mental State Content",
+          "kind": "article",
+          "added": "05-06-2026",
+          "status": "to-read"
+        },
+        {
+          "slug": "Phillips2015 Literary Neuroscience History of Attention Jane Austen",
+          "kind": "article",
+          "added": "05-06-2026",
+          "status": "to-read"
+        },
+        {
+          "slug": "Fletcher2021 Why Computers Will Never Read or Write Literature",
+          "kind": "article",
+          "added": "05-06-2026",
+          "status": "to-read"
+        },
+        {
+          "slug": "Paunov2019 Functionally Distinct Language and ToM Networks Synchronized",
+          "kind": "article",
+          "added": "05-06-2026",
+          "status": "to-read"
+        },
+        {
+          "slug": "Chiong2013 Salience Network Causally Influences DMN Moral Reasoning",
+          "kind": "article",
+          "added": "05-06-2026",
+          "status": "to-read"
+        },
+        {
+          "slug": "Saxe2003 People Thinking About Thinking People TPJ Theory of Mind",
+          "kind": "article",
+          "added": "05-06-2026",
+          "status": "reading"
+        },
+        {
+          "slug": "Fedorenko2010 New Method fMRI Language ROIs Individual Subjects",
+          "kind": "article",
+          "added": "05-06-2026",
+          "status": "to-read"
+        },
+        {
+          "slug": "Fox2005 Human Brain Intrinsically Organized Anticorrelated Functional Networks",
+          "kind": "article",
+          "added": "05-06-2026",
+          "status": "read"
+        },
+        {
+          "slug": "Blank2014 Functional Dissociation Language Multiple Demand Networks",
+          "kind": "article",
+          "added": "05-06-2026",
+          "status": "to-read"
+        },
+        {
+          "slug": "Neag2023 Escaping Boundaries Technologically Mediated Learning",
+          "kind": "article",
+          "added": "05-07-2026",
+          "status": "to-read"
+        },
+        {
+          "slug": "Moya2023 Affordances Agency Online Platforms",
+          "kind": "article",
+          "added": "05-07-2026",
+          "status": "to-read"
+        },
+        {
+          "slug": "Groot2023 Filtered Universe Algorithms",
+          "kind": "article",
+          "added": "05-07-2026",
+          "status": "to-read"
+        },
+        {
+          "slug": "Fernandes2018 Handle Literacy Orientation",
+          "kind": "article",
+          "added": "05-07-2026",
+          "status": "to-read"
+        },
+        {
+          "slug": "Malik-Moraleda2018 Literacy Parsing Strings",
+          "kind": "article",
+          "added": "05-07-2026",
+          "status": "to-read"
+        },
+        {
+          "slug": "Zhou2018 Chinese English Reading Skills",
+          "kind": "article",
+          "added": "05-07-2026",
+          "status": "to-read"
+        },
+        {
+          "slug": "Kosmidis2018 Neuropsychological Assessment Illiterate",
+          "kind": "article",
+          "added": "05-07-2026",
+          "status": "to-read"
+        },
+        {
+          "slug": "Parvizi2026 Functional Architecture Insula",
+          "kind": "article",
+          "added": "05-07-2026",
+          "status": "to-read"
+        },
+        {
+          "slug": "Mineroff2018 Dissociation Language DMD Network",
+          "kind": "article",
+          "added": "05-07-2026",
+          "status": "to-read"
+        },
+        {
+          "slug": "Ogawa2025 Neural Correlates Creative Insight",
+          "kind": "article",
+          "added": "05-07-2026",
+          "status": "to-read"
+        },
+        {
+          "slug": "Benso2025 Beyond Modular Non-Modular States",
+          "kind": "article",
+          "added": "05-07-2026",
+          "status": "to-read"
+        },
+        {
+          "slug": "Isko2026 Specific Expansion Motor Cortical Projections Singing Mouse",
+          "kind": "paper",
+          "added": "05-08-2026",
+          "status": "to-read"
+        },
+        {
+          "slug": "Blank2026 Video Games as Stimuli in Neuroimaging Studies",
+          "kind": "paper",
+          "added": "05-08-2026",
+          "status": "to-read"
+        },
+        {
+          "slug": "Chen2019 VWFA Language Attention Circuitry",
+          "kind": "article",
+          "added": "05-08-2026",
+          "status": "to-read"
+        },
+        {
+          "slug": "Pasqualotto2025 Digital Tools Reading Success",
+          "kind": "article",
+          "added": "05-08-2026",
+          "status": "to-read"
+        },
+        {
+          "slug": "Dehaene-Lambertz2018 The Emergence of the Visual Word Form",
+          "kind": "paper",
+          "added": "05-08-2026",
+          "status": "to-read"
+        },
+        {
+          "slug": "Saygin2016 Connectivity Precedes Function",
+          "kind": "paper",
+          "added": "05-08-2026",
+          "status": "to-read"
+        },
+        {
+          "slug": "Alderson-Day2020 Processing Speech and Thoughts during Silent Reading",
+          "kind": "paper",
+          "added": "05-08-2026",
+          "status": "to-read"
+        },
+        {
+          "slug": "Yao2011 Silent Reading of Direct versus Indirect Speech",
+          "kind": "paper",
+          "added": "05-08-2026",
+          "status": "reading"
+        },
+        {
+          "slug": "Dawkins2026 When Dawkins Met Claude",
+          "kind": "web-column",
+          "added": "05-08-2026",
+          "status": "reading"
+        },
+        {
+          "slug": "Dawkins2026 When Claudia Met Claudius",
+          "kind": "web-column",
+          "added": "05-08-2026",
+          "status": "to-read"
+        }
+      ]
+    },
+    "recent_daily_notes": [
+      {
+        "name": "05-08-2026",
+        "date": "2026-05-08",
+        "mtime": "2026-05-08T17:00:36.432Z",
+        "size_bytes": 9318
+      },
+      {
+        "name": "05-07-2026",
+        "date": "2026-05-07",
+        "mtime": "2026-05-08T12:57:32.219Z",
+        "size_bytes": 1245
+      },
+      {
+        "name": "05-06-2026",
+        "date": "2026-05-06",
+        "mtime": "2026-05-06T11:52:28.834Z",
+        "size_bytes": 143
+      },
+      {
+        "name": "05-05-2026",
+        "date": "2026-05-05",
+        "mtime": "2026-05-06T10:38:10.049Z",
+        "size_bytes": 961
+      },
+      {
+        "name": "05-03-2026",
+        "date": "2026-05-03",
+        "mtime": "2026-05-04T21:10:31.224Z",
+        "size_bytes": 1929
+      },
+      {
+        "name": "05-02-2026",
+        "date": "2026-05-02",
+        "mtime": "2026-05-03T11:14:26.792Z",
+        "size_bytes": 1248
+      },
+      {
+        "name": "05-01-2026",
+        "date": "2026-05-01",
+        "mtime": "2026-05-01T16:35:46.610Z",
+        "size_bytes": 63
+      }
+    ],
+    "recent_inbox": [
+      {
+        "name": "Vowel Shift is evidence of orality vs literacy",
+        "mtime": "2026-05-01T18:33:28.114Z",
+        "size_bytes": 1096
+      },
+      {
+        "name": "Connor Leahy",
+        "mtime": "2026-05-01T13:44:20.649Z",
+        "size_bytes": 191
+      },
+      {
+        "name": "AI is the ultimate technologization of the word",
+        "mtime": "2026-05-01T13:44:05.750Z",
+        "size_bytes": 794
+      },
+      {
+        "name": "Episodic Memory and Orality",
+        "mtime": "2026-04-22T13:32:32.137Z",
+        "size_bytes": 786
+      },
+      {
+        "name": "Luria syllogism - oral minds reject speculation",
+        "mtime": "2026-04-14T20:47:14.584Z",
+        "size_bytes": 1197
+      },
+      {
+        "name": "Is writing the optimal mode of language preservation?",
+        "mtime": "2026-04-14T20:22:47.083Z",
+        "size_bytes": 526
+      }
+    ]
+  },
   "writing": null,
   "reminders": null,
   "activity": null

@@ -513,10 +513,19 @@
     .cards-browser {
       display: grid;
       grid-template-columns: 260px 1fr;
+      grid-template-rows: min(75vh, 900px);
       border: 1.5px solid var(--border);
       min-height: 520px;
-      max-height: 75vh;
       overflow: hidden;
+    }
+
+    /* Track transparent, thumb subtle. min-height:0 lets the grid row
+       actually constrain children so their overflow-y:auto engages. */
+    .cards-sidebar,
+    .cards-reader {
+      min-height: 0;
+      scrollbar-width: thin;
+      scrollbar-color: color-mix(in srgb, var(--fg) 30%, transparent) transparent;
     }
 
     .cards-sidebar {
@@ -683,10 +692,145 @@
       padding: 0.05em 0.28em;
     }
 
+    /* ── Vault Watch ─────────────────────────── */
+    .vw-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+    }
+
+    .vw-block {
+      margin-block-end: 1.75rem;
+    }
+
+    .vw-block:last-child { margin-block-end: 0; }
+
+    .vw-block-heading {
+      display: flex;
+      align-items: baseline;
+      gap: 0.5rem;
+      margin-block-end: 0.6rem;
+      padding-block-end: 0.4rem;
+      border-block-end: 1.5px solid var(--border);
+    }
+
+    .vw-block-heading h3 {
+      font-family: 'Outfit', system-ui, sans-serif;
+      font-weight: 700;
+      font-size: 0.95rem;
+      letter-spacing: -0.01em;
+    }
+
+    .vw-block-count {
+      font-family: 'Sono', monospace;
+      font-size: 0.7rem;
+      color: var(--muted);
+    }
+
+    .vw-list {
+      border: 1.5px solid var(--border);
+      max-height: 360px;
+      overflow-y: auto;
+      scrollbar-gutter: stable;
+    }
+
+    .vw-list.tall { max-height: 480px; }
+
+    .vw-list-item {
+      display: flex;
+      align-items: baseline;
+      gap: 0.75rem;
+      padding: 0.5rem 0.75rem;
+      border-block-end: 1px solid #ccc;
+      font-size: 0.85rem;
+      line-height: 1.35;
+    }
+
+    .vw-list-item:last-child { border-block-end: none; }
+
+    .vw-list-item.done .vw-item-title {
+      color: var(--muted);
+      text-decoration: line-through;
+    }
+
+    .vw-status {
+      flex-shrink: 0;
+      font-family: 'Sono', monospace;
+      font-size: 0.7rem;
+      padding: 0.15rem 0.45rem;
+      background: transparent;
+      color: var(--fg);
+      border: 1.5px solid var(--border);
+      cursor: pointer;
+      appearance: none;
+      -webkit-appearance: none;
+      text-transform: lowercase;
+      align-self: center;
+      min-inline-size: 5.5rem;
+      background-image: linear-gradient(45deg, transparent 50%, var(--fg) 50%),
+                        linear-gradient(135deg, var(--fg) 50%, transparent 50%);
+      background-position: calc(100% - 0.65rem) center, calc(100% - 0.4rem) center;
+      background-size: 5px 5px, 5px 5px;
+      background-repeat: no-repeat;
+      padding-inline-end: 1.25rem;
+    }
+
+    .vw-status:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 1px;
+    }
+
+    .vw-status:disabled {
+      cursor: not-allowed;
+      opacity: 0.5;
+    }
+
+    .vw-status[data-status="to-read"]  { color: var(--accent); border-color: var(--accent); }
+    .vw-status[data-status="reading"]  { color: var(--blue);   border-color: var(--blue); }
+    .vw-status[data-status="read"],
+    .vw-status[data-status="finished"] { color: var(--muted);  border-color: var(--muted); }
+
+    .vw-item-title {
+      flex: 1;
+      min-width: 0;
+      word-break: break-word;
+    }
+
+    .vw-item-title a {
+      color: inherit;
+      text-decoration: none;
+      border-block-end: 1px solid transparent;
+    }
+
+    .vw-item-title a:hover {
+      color: var(--accent);
+      border-block-end-color: var(--accent);
+    }
+
+    .vw-item-meta {
+      font-family: 'Sono', monospace;
+      font-size: 0.7rem;
+      color: var(--muted);
+      flex-shrink: 0;
+      white-space: nowrap;
+    }
+
+    .vw-tag {
+      display: inline-block;
+      font-family: 'Sono', monospace;
+      font-size: 0.65rem;
+      text-transform: lowercase;
+      color: var(--muted);
+      border: 1px solid var(--border);
+      padding: 0 0.4rem;
+      flex-shrink: 0;
+    }
+
     /* ── Responsive ──────────────────────────── */
     @media (max-width: 768px) {
       .kpi-row { grid-template-columns: repeat(2, 1fr); }
       .chart-row { grid-template-columns: 1fr; }
+      .vw-grid { grid-template-columns: 1fr; }
       .section-nav {
         overflow-x: auto;
         scrollbar-width: none;
@@ -1706,14 +1850,271 @@
     return html;
   }
 
-  // ── Vault Watch (Phase 3 stub) ───────────────
+  // ── Vault Watch (Phase 3) ────────────────────
+  const VAULT_NAME = 'PostLiterate';
+
+  function obsidianUrl(vaultPath) {
+    return `obsidian://open?vault=${VAULT_NAME}&file=${encodeURIComponent(vaultPath)}`;
+  }
+
+  function fmtRelDate(iso) {
+    if (!iso) return '';
+    const then = new Date(iso);
+    if (isNaN(then.getTime())) return '';
+    const ms = Date.now() - then.getTime();
+    const days = Math.floor(ms / 86_400_000);
+    if (days < 1) return 'today';
+    if (days === 1) return '1d ago';
+    if (days < 30) return `${days}d ago`;
+    const months = Math.floor(days / 30);
+    if (months < 12) return `${months}mo ago`;
+    return `${Math.floor(months / 12)}y ago`;
+  }
+
   function renderVaultWatch(data) {
     const el = document.getElementById('vault-watch-body');
     if (!data || data.vault_watch === null) {
-      el.innerHTML = '<div class="empty">Vault Watch not yet available — coming in Phase 3.</div>';
+      el.innerHTML = '<div class="empty">Vault Watch not yet available — click Refresh.</div>';
       return;
     }
-    el.innerHTML = '<div class="empty">Vault Watch data present but renderer not yet implemented.</div>';
+
+    const vw = data.vault_watch;
+    const os = vw.outstanding_sources || { count: 0, items: [], pdfs_total: 0, articles_total: 0 };
+    const rq = vw.reading_queue || { total: 0, unread: 0, read: 0, items: [] };
+    const dailyNotes = vw.recent_daily_notes || [];
+    const inbox = vw.recent_inbox || [];
+
+    const linkedTotal = Math.max(0, os.pdfs_total - os.count);
+    const oldestOutstanding = os.items.length > 0
+      ? os.items[os.items.length - 1].mtime
+      : null;
+
+    el.innerHTML = `
+      <div class="kpi-row" style="grid-template-columns: repeat(3, 1fr);">
+        <div class="kpi-card">
+          <div class="kpi-label">Outstanding PDFs</div>
+          <div class="kpi-value" style="color:${os.count > 0 ? 'var(--accent)' : 'var(--green)'};">${os.count}</div>
+          <div class="kpi-metric">${linkedTotal} linked of ${os.pdfs_total} total · ${os.articles_total} article notes</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Reading Queue</div>
+          <div class="kpi-value">${rq.to_read}</div>
+          <div class="kpi-metric">${rq.in_progress} reading · ${rq.done} done · ${rq.total} total</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Latest Daily Note</div>
+          <div class="kpi-value" style="font-size:1.3rem;">${dailyNotes[0] ? escapeHtml(dailyNotes[0].name) : '—'}</div>
+          <div class="kpi-metric">${dailyNotes[0] ? fmtRelDate(dailyNotes[0].mtime) : 'no daily notes found'}</div>
+        </div>
+      </div>
+
+      <div class="vw-block">
+        <div class="vw-block-heading">
+          <h3><i data-lucide="file-warning" style="width:14px; height:14px; vertical-align:-2px;"></i> Outstanding Sources</h3>
+          <span class="vw-block-count">${os.count} PDF${os.count === 1 ? '' : 's'} without an article note${oldestOutstanding ? ' · oldest ' + fmtRelDate(oldestOutstanding) : ''}</span>
+        </div>
+        ${renderOutstandingList(os.items)}
+      </div>
+
+      <div class="vw-block">
+        <div class="vw-block-heading">
+          <h3><i data-lucide="book-open-check" style="width:14px; height:14px; vertical-align:-2px;"></i> Reading Queue</h3>
+          <span class="vw-block-count">${rq.to_read} to read · ${rq.in_progress} reading · ${rq.done} done</span>
+        </div>
+        ${renderReadingQueueList(rq.items)}
+      </div>
+
+      <div class="vw-grid">
+        <div class="vw-block">
+          <div class="vw-block-heading">
+            <h3><i data-lucide="calendar-days" style="width:14px; height:14px; vertical-align:-2px;"></i> Recent Daily Notes</h3>
+            <span class="vw-block-count">${dailyNotes.length} most recent</span>
+          </div>
+          ${renderDailyNotesList(dailyNotes)}
+        </div>
+        <div class="vw-block">
+          <div class="vw-block-heading">
+            <h3><i data-lucide="inbox" style="width:14px; height:14px; vertical-align:-2px;"></i> Recent Inbox</h3>
+            <span class="vw-block-count">${inbox.length} most recent</span>
+          </div>
+          ${renderInboxList(inbox)}
+        </div>
+      </div>
+    `;
+
+    lucide.createIcons();
+    attachQueueListener();
+  }
+
+  function renderOutstandingList(items) {
+    if (!items || items.length === 0) {
+      return '<div class="empty" style="padding:1.5rem;">All PDFs are linked to article notes.</div>';
+    }
+    const rows = items.map((item) => {
+      const url = obsidianUrl(`01_Sources/PDFs/${item.pdf}`);
+      const meta = [
+        item.size_kb != null ? `${item.size_kb} KB` : null,
+        item.mtime ? fmtRelDate(item.mtime) : null,
+      ].filter(Boolean).join(' · ');
+      return `
+        <div class="vw-list-item">
+          <div class="vw-item-title"><a href="${url}">${escapeHtml(item.pdf)}</a></div>
+          <div class="vw-item-meta">${escapeHtml(meta)}</div>
+        </div>
+      `;
+    }).join('');
+    return `<div class="vw-list tall">${rows}</div>`;
+  }
+
+  const READING_STATUSES = ['to-read', 'reading', 'read', 'finished'];
+  const READING_STATUS_RANK = { 'to-read': 0, reading: 1, read: 2, finished: 3 };
+  const DONE_STATUSES = new Set(['read', 'finished']);
+
+  function renderReadingQueueList(items) {
+    if (!items || items.length === 0) {
+      return '<div class="empty" style="padding:1.5rem;">Reading queue is empty.</div>';
+    }
+    const sorted = [...items].sort(
+      (a, b) => (READING_STATUS_RANK[a.status] ?? 99) - (READING_STATUS_RANK[b.status] ?? 99)
+    );
+    const disabledAttr = isReadOnly ? ' disabled' : '';
+    const rows = sorted.map((item) => {
+      const url = obsidianUrl(`01_Sources/Articles/${item.slug}.md`);
+      const tag = item.kind ? `<span class="vw-tag">${escapeHtml(item.kind)}</span>` : '';
+      const meta = item.added ? `added ${escapeHtml(item.added)}` : '';
+      const slugAttr = escapeHtml(item.slug);
+      const isDone = DONE_STATUSES.has(item.status);
+      const optionsHtml = READING_STATUSES
+        .map((s) => `<option value="${s}"${s === item.status ? ' selected' : ''}>${s}</option>`)
+        .join('');
+      return `
+        <div class="vw-list-item${isDone ? ' done' : ''}" data-slug="${slugAttr}">
+          <select class="vw-status" data-status="${item.status}"${disabledAttr}
+                  aria-label="Reading status for ${slugAttr}">${optionsHtml}</select>
+          <div class="vw-item-title"><a href="${url}">${escapeHtml(item.slug)}</a></div>
+          ${tag}
+          <div class="vw-item-meta">${meta}</div>
+        </div>
+      `;
+    }).join('');
+    return `<div class="vw-list tall" id="reading-queue-list">${rows}</div>`;
+  }
+
+  // Event-delegated change handler for queue dropdowns. Wired once after
+  // each Vault Watch render so re-renders don't accumulate listeners.
+  function attachQueueListener() {
+    const list = document.getElementById('reading-queue-list');
+    if (!list || list.dataset.listenerAttached === '1') return;
+    list.dataset.listenerAttached = '1';
+    list.addEventListener('change', (e) => {
+      const select = e.target;
+      if (!(select instanceof HTMLSelectElement) || !select.classList.contains('vw-status')) return;
+      const row = select.closest('.vw-list-item');
+      const slug = row && row.dataset.slug;
+      if (!slug) return;
+      console.log('[reading-queue] change', { slug, value: select.value });
+      setQueueStatus(select, slug);
+    });
+  }
+
+  async function setQueueStatus(select, slug) {
+    if (isReadOnly) return;
+    const newStatus = select.value;
+    const previousStatus = select.dataset.status;
+    if (newStatus === previousStatus) return;
+
+    const row = select.closest('.vw-list-item');
+    select.disabled = true;
+    setStatus(`Setting ${slug} → ${newStatus}…`);
+
+    try {
+      const res = await fetch(API + '/api/reading-queue/status', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ slug, status: newStatus }),
+      });
+      const data = await res.json();
+
+      if (!res.ok || !data.ok) throw new Error(data.error || 'status update failed');
+
+      // Update visuals + cached snapshot from the server's authoritative copy.
+      select.dataset.status = newStatus;
+      row.classList.toggle('done', DONE_STATUSES.has(newStatus));
+
+      if (data.queue && dashboardData && dashboardData.vault_watch) {
+        dashboardData.vault_watch.reading_queue = data.queue;
+        renderVaultWatchKpis(dashboardData.vault_watch);
+      }
+
+      const note = data.articleUpdated
+        ? 'queue + source note updated'
+        : data.articleExists
+          ? 'queue updated (source note already at target status)'
+          : 'queue updated (no matching source note)';
+      setStatus(`${slug} → ${newStatus} — ${note}`, 'success');
+    } catch (err) {
+      // Revert the dropdown visually
+      select.value = previousStatus;
+      setStatus(`Status update failed for ${slug}: ${err.message}`, 'error');
+    } finally {
+      select.disabled = false;
+    }
+  }
+
+  // Patch the three KPI cards atop Vault Watch without re-rendering the body,
+  // so the user's scroll position survives.
+  function renderVaultWatchKpis(vw) {
+    const body = document.getElementById('vault-watch-body');
+    if (!body) return;
+    const kpis = body.querySelectorAll('.kpi-row .kpi-card');
+    if (kpis.length < 2) return;
+    const rq = vw.reading_queue;
+    const queueValue = kpis[1].querySelector('.kpi-value');
+    const queueMetric = kpis[1].querySelector('.kpi-metric');
+    if (queueValue) queueValue.textContent = String(rq.to_read);
+    if (queueMetric)
+      queueMetric.textContent = `${rq.in_progress} reading · ${rq.done} done · ${rq.total} total`;
+
+    // Also update the block heading count.
+    const blockCounts = body.querySelectorAll('.vw-block-count');
+    if (blockCounts[1]) {
+      blockCounts[1].textContent = `${rq.to_read} to read · ${rq.in_progress} reading · ${rq.done} done`;
+    }
+  }
+
+  function renderDailyNotesList(items) {
+    if (!items || items.length === 0) {
+      return '<div class="empty" style="padding:1.5rem;">No daily notes.</div>';
+    }
+    const rows = items.map((item) => {
+      const url = obsidianUrl(`06_Meta/Daily/${item.name}.md`);
+      const sizeKb = item.size_bytes != null ? Math.max(1, Math.round(item.size_bytes / 1024)) : null;
+      const meta = sizeKb != null ? `${sizeKb} KB` : '';
+      return `
+        <div class="vw-list-item">
+          <div class="vw-item-title"><a href="${url}">${escapeHtml(item.name)}</a></div>
+          <div class="vw-item-meta">${meta}</div>
+        </div>
+      `;
+    }).join('');
+    return `<div class="vw-list">${rows}</div>`;
+  }
+
+  function renderInboxList(items) {
+    if (!items || items.length === 0) {
+      return '<div class="empty" style="padding:1.5rem;">Inbox is empty.</div>';
+    }
+    const rows = items.map((item) => {
+      const url = obsidianUrl(`00_Inbox/${item.name}.md`);
+      const meta = item.mtime ? fmtRelDate(item.mtime) : '';
+      return `
+        <div class="vw-list-item">
+          <div class="vw-item-title"><a href="${url}">${escapeHtml(item.name)}</a></div>
+          <div class="vw-item-meta">${escapeHtml(meta)}</div>
+        </div>
+      `;
+    }).join('');
+    return `<div class="vw-list">${rows}</div>`;
   }
 
   // ── Writing progress (Phase 4 stub) ──────────

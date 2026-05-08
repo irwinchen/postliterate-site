@@ -11,7 +11,7 @@
  */
 
 import { createServer } from 'node:http';
-import { readFileSync, existsSync } from 'node:fs';
+import { readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { spawn } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
@@ -32,6 +32,11 @@ import {
   generateProjectStatus,
 } from './blog-lib.mjs';
 import { refresh } from './dashboard/refresh.mjs';
+import {
+  getVaultWatch,
+  setReadingQueueItemStatus,
+  READING_STATUSES,
+} from './dashboard/sources/vault-watch.mjs';
 
 const __dirname = fileURLToPath(new URL('.', import.meta.url));
 const PORT = 4322;
@@ -275,6 +280,48 @@ async function handleRequest(req, res) {
       const content = readFileSync(snapshotPath, 'utf8');
       res.writeHead(200, { 'Content-Type': 'application/json' });
       res.end(content);
+      return;
+    }
+
+    // POST /api/reading-queue/status — set a queue item's status + article frontmatter
+    if (method === 'POST' && path === '/api/reading-queue/status') {
+      if (READ_ONLY) { json(res, { error: 'Server is in read-only mode' }, 403); return; }
+      const body = await readBody(req);
+      if (
+        !body ||
+        typeof body.slug !== 'string' ||
+        typeof body.status !== 'string' ||
+        !READING_STATUSES.includes(body.status)
+      ) {
+        json(
+          res,
+          { error: `slug (string) and status (one of: ${READING_STATUSES.join(', ')}) are required` },
+          400
+        );
+        return;
+      }
+      try {
+        const result = setReadingQueueItemStatus(body.slug, body.status);
+
+        // Patch snapshots/latest.json in place so reloads stay in sync
+        const snapshotPath = join(__dirname, 'dashboard/snapshots/latest.json');
+        let queue = null;
+        if (existsSync(snapshotPath)) {
+          try {
+            const snap = JSON.parse(readFileSync(snapshotPath, 'utf8'));
+            const fresh = await getVaultWatch();
+            snap.vault_watch = fresh;
+            writeFileSync(snapshotPath, JSON.stringify(snap, null, 2), 'utf8');
+            queue = fresh.reading_queue;
+          } catch (e) {
+            console.warn(`  reading-queue snapshot patch failed — ${e.message}`);
+          }
+        }
+
+        json(res, { ok: true, ...result, queue });
+      } catch (err) {
+        json(res, { error: err.message }, 500);
+      }
       return;
     }
 

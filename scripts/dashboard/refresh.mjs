@@ -21,6 +21,7 @@ import { writeFileSync, mkdirSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { getCards } from './sources/cards.mjs';
+import { getVaultWatch } from './sources/vault-watch.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const SNAPSHOTS_DIR = join(__dirname, 'snapshots');
@@ -47,6 +48,19 @@ export async function refresh() {
     console.log(`  Cards: ${snapshot.cards.total} loaded.`);
   } catch (err) {
     console.warn(`  Warning: cards failed — ${err.message}`);
+  }
+
+  // Phase 3 — Vault Watch
+  try {
+    snapshot.vault_watch = await getVaultWatch();
+    const vw = snapshot.vault_watch;
+    console.log(
+      `  Vault Watch: ${vw.outstanding_sources.count} outstanding source(s), ` +
+        `${vw.reading_queue.unread} unread in queue, ` +
+        `${vw.recent_daily_notes.length} recent daily notes.`
+    );
+  } catch (err) {
+    console.warn(`  Warning: vault-watch failed — ${err.message}`);
   }
 
   const outPath = join(SNAPSHOTS_DIR, 'latest.json');

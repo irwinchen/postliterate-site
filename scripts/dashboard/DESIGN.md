@@ -69,9 +69,14 @@ Editing happens on the MacBook clone. Push to GitHub. Mini pulls within 30 min (
 ## Phases (task list — fill back in if it's empty)
 
 - Step 0 — Mini deployment. **Done.** Mini is hosting at `mediaserver.local:4322`.
-- Phase 1 — Scaffolding. New `scripts/dashboard/` dir, `refresh.mjs` stub, snapshot file format, three new admin.mjs routes (`/dashboard`, `/api/dashboard`, `/api/refresh`), empty shell in admin-ui.html with tabs.
-- Phase 2 — Cards browser (sidebar from INDEX.md, reader pane, Obsidian deep link).
-- Phase 3 — Vault Watch (outstanding-sources detector, reading queue, recent activity).
+- Phase 1 — Scaffolding. **Done (2026-05-08).** `scripts/dashboard/` created; `refresh.mjs` stub; `snapshots/latest.json`; routes `/api/config`, `/dashboard`, `/api/dashboard`, `/api/refresh` added to `admin.mjs`; `READ_ONLY` + `HOST` env vars; Dashboard/Cards/Vault Watch/Writing/Reminders tabs + Refresh button in `admin-ui.html`. READ_ONLY intentionally NOT set on the Mini (Irwin's call — LAN is trusted).
+- Phase 2 — Cards browser. **Done (2026-05-08).** `scripts/dashboard/sources/cards.mjs` parses INDEX.md and reads all card files. Snapshot includes `{ total, sections, content }`. UI: sidebar grouped by Part → Chapter, reader pane with marked-rendered body, wikilink styling, Obsidian deep link. 74 cards loaded as of this writing.
+- Phase 3 — Vault Watch. **Done (2026-05-08).** `scripts/dashboard/sources/vault-watch.mjs` covers four sub-streams:
+  - **Outstanding sources** — diff `01_Sources/PDFs/` against PDFs claimed by article frontmatter (`pdf: "[[Filename.pdf]]"`). 62 outstanding of 116 PDFs as of this writing.
+  - **Reading queue** — checkbox parser over `01_Sources/READING_QUEUE.md`. Extracts slug, italic kind, and `added MM-DD-YYYY` per line. 53 unread / 53 total.
+  - **Recent daily notes** — newest 7 from `06_Meta/Daily/` (sorted by `MM-DD-YYYY` filename, not mtime).
+  - **Recent inbox** — newest 6 `.md` from `00_Inbox/` by mtime.
+  UI: KPI row (outstanding/queue/latest daily), then Outstanding + Queue full-width lists, then a 2-col Daily/Inbox grid. Every row links via `obsidian://open?vault=PostLiterate&file=...` so clicks open the right note in Obsidian on whichever machine the dashboard is being viewed from. New `.vw-*` CSS block in `admin-ui.html`. KPI overview unchanged — still counts non-null sections.
 - Phase 4 — Writing Progress (four counters, snapshot writer, sparklines).
 - Phase 5 — Reminders (TASKS.md parser).
 - Phase 6 — Activity summaries (Cowork sessions, Claude.ai exports, vault session digests, blog/git, all summarized via Haiku). Most novel — saved for last.
@@ -84,10 +89,15 @@ Editing happens on the MacBook clone. Push to GitHub. Mini pulls within 30 min (
 - **Don't touch `publish.sh`** — flagged legacy in the project CLAUDE.md.
 - **Don't auto-commit.** User reviews before push (per their global CLAUDE.md).
 - **Source Transparency Protocol applies** to anything that ends up rendered as content (not infrastructure). Probably not relevant here, but mentioned for completeness.
-- **Mini's clone is read-only.** Phase 1 should add the `READ_ONLY` flag and disable the dangerous routes when set.
+- **Mini's clone is read-only by default** — `READ_ONLY=1` env var gates publish/unpublish/delete. Currently NOT set on the Mini (intentional — LAN is trusted). The flag and route guards are implemented and ready.
+- **Vault path** — `process.env.VAULT_PATH || join(homedir(), 'vaults/PostLiterate')`. Works on both MacBook and Mini. When testing in a non-standard environment, set `VAULT_PATH` explicitly.
+- **`marked` CDN** — added to `admin-ui.html` via `cdn.jsdelivr.net/npm/marked@12`. Card bodies are parsed through `marked.parse()` then wikilinks (`[[...]]`) are post-processed into styled `<span class="wikilink">` elements.
+- **`snapshots/latest.json`** is committed as a seed file. It gets overwritten on every refresh. Historical snapshots (`YYYY-MM-DD-HHmm.json`) are not yet implemented — Phase 4 adds them.
+- **Other work is happening in this repo** (brain-3d component and elsewhere in `src/`). Dashboard work is isolated to `scripts/dashboard/`, `scripts/admin.mjs`, and `scripts/admin-ui.html`. Always `git pull` before starting a phase.
 
 ## Open questions deferred to later phases
 
-- Card status field — does the cards-by-status panel (Phase 4) make sense, or do cards not have a `status:` frontmatter field yet? Inspect a representative card before building this panel.
+- Card status field — cards do NOT have a `status:` frontmatter field as of Phase 2. Any cards-by-status panel would need to derive status from content or add the field first.
 - Chrome-MCP claude.ai scraper — Phase 6 ingests manually-exported chats. Automating that via Chrome MCP is a possible Phase 10. Not in current scope.
 - HTTPS / auth on the Mini — not needed today. Add when we expose beyond the LAN.
+- `snapshots/latest.json` in git — currently tracked (seed file). Consider adding `scripts/dashboard/snapshots/*.json` to `.gitignore` once the Mini is reliably refreshing on startup, so generated data doesn't create noise in commits.
