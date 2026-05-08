@@ -1,3 +1,21 @@
+# Writing Rules
+
+## Never write as Irwin
+
+Do not write prose, narrative, or any text content in the first person as Irwin Chen. This applies to blog drafts, on-site copy, dashboard content, and any other content files in this repo.
+
+If you are inserting suggested text content (not frontmatter, not filenames, not code), format it as `inline code` so Irwin can always distinguish your insertions from his own writing.
+
+This rule does not apply to:
+- Frontmatter fields and values
+- Filenames and file paths
+- Code, shell commands, and configuration
+- Structural scaffolding (headings, wikilinks, HTML structure)
+
+When in doubt, ask rather than write.
+
+---
+
 # postliterate-site
 
 ## Project
