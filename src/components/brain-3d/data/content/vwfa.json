@@ -1,0 +1,16 @@
+{
+  "_comment_": "VWFA single-ROI panel copy. No deltas or overlaps for an N=1 view; copy stays for when a panel returns or for the cross-paper compare route.",
+  "networks": {
+    "vwfa": {
+      "tag": "Recognising written words as wholes",
+      "whatItDoes": [
+        "Activates rapidly and selectively for written words across fonts, cases, and presentation variants. Cohen 2002 established it as a focal, reproducible region in the left mid-fusiform that responds to letter strings well above other visual stimuli."
+      ],
+      "whatLightsUp": [
+        "A small patch on the underside of the left temporal lobe, where visual cortex meets the language network."
+      ],
+      "checkable": { "symbol": "✓", "text": "Yes — readers vs non-readers show striking VWFA differences." },
+      "sources": ["Cohen 2002", "Dehaene 2005"]
+    }
+  }
+}

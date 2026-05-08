@@ -1,0 +1,18 @@
+{
+  "slug": "vwfa",
+  "name": "Visual Word Form Area",
+  "subtitle": "VWFA — left mid-fusiform (Cohen 2002 / Dehaene 2005)",
+  "papers": ["cohen-2002", "dehaene-2005"],
+  "networks": {
+    "vwfa": {
+      "displayNum": "VWFA",
+      "label": "Visual Word Form Area",
+      "color": "#549E44",
+      "source": "Cohen 2002 / Dehaene 2005",
+      "parcels": ["cohen2002.VWFA"]
+    }
+  },
+  "networkOrder": ["vwfa"],
+  "uiMode": "single-roi",
+  "defaultNetwork": "vwfa"
+}

@@ -84,5 +84,19 @@
     "title": "Dissociable intrinsic connectivity networks for salience processing and executive control",
     "venue": "Journal of Neuroscience",
     "doi": "10.1523/JNEUROSCI.5587-06.2007"
+  },
+  "cohen-2002": {
+    "authors": "Cohen et al.",
+    "year": 2002,
+    "title": "Language-specific tuning of visual cortex? Functional properties of the Visual Word Form Area",
+    "venue": "Brain",
+    "doi": "10.1093/brain/awf094"
+  },
+  "dehaene-2005": {
+    "authors": "Dehaene et al.",
+    "year": 2005,
+    "title": "The neural code for written words: a proposal",
+    "venue": "Trends in Cognitive Sciences",
+    "doi": "10.1016/j.tics.2005.05.004"
   }
 }

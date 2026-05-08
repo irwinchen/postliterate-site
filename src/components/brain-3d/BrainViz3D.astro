@@ -72,18 +72,30 @@ if (!contentConfig) throw new Error('BrainViz3D: contentConfig prop is required'
   }
 
   // === Build the chips ===
+  // For multi-network views the chip is an interactive button; for an N=1 view
+  // (e.g. VWFA) the network is permanently active, so the chip becomes a static
+  // label — no click target, no Compare/All controls, no vestigial UI.
+  const isMulti = view.networkOrder.length > 1;
   const chipsRoot = root.querySelector('[data-bind="chips"]');
   for (const id of view.networkOrder) {
     const net = view.networks[id];
-    const btn = document.createElement('button');
-    btn.className = 'brain-3d__chip';
-    btn.dataset.network = id;
-    btn.innerHTML = `<span class="brain-3d__chip-num">${net.displayNum ?? ''}</span> ${net.label}`;
-    btn.style.setProperty('--chip-color', net.color);
-    chipsRoot.appendChild(btn);
+    if (isMulti) {
+      const btn = document.createElement('button');
+      btn.className = 'brain-3d__chip';
+      btn.dataset.network = id;
+      btn.innerHTML = `<span class="brain-3d__chip-num">${net.displayNum ?? ''}</span> ${net.label}`;
+      btn.style.setProperty('--chip-color', net.color);
+      chipsRoot.appendChild(btn);
+    } else {
+      const label = document.createElement('div');
+      label.className = 'brain-3d__chip brain-3d__chip--static is-active';
+      label.innerHTML = `<span class="brain-3d__chip-num">${net.displayNum ?? ''}</span> ${net.label}`;
+      label.style.setProperty('--chip-color', net.color);
+      label.setAttribute('aria-label', `Active network: ${net.label}`);
+      chipsRoot.appendChild(label);
+    }
   }
 
-  const isMulti = view.networkOrder.length > 1;
   if (isMulti) {
     const compareBtn = document.createElement('button');
     compareBtn.className = 'brain-3d__chip brain-3d__chip--aux';
@@ -440,6 +452,10 @@ if (!contentConfig) throw new Error('BrainViz3D: contentConfig prop is required'
     background: var(--fg);
     color: var(--bg);
     border-color: var(--fg);
+  }
+  /* Static chip used by single-ROI views — looks active but is not a button */
+  .brain-3d__chip--static {
+    cursor: default;
   }
 
   /* Leader-line overlay (positioned over the entire component) */
