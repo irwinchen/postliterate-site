@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>org.postliterate.git-pull</string>
+
+  <!--
+    Runs deploy/mini/git-pull.sh every 30 minutes to keep the Mini's
+    read-only mirror current. The script is fast-forward-only and will
+    abort loudly rather than mangle a divergent working tree.
+  -->
+
+  <key>ProgramArguments</key>
+  <array>
+    <string>/bin/bash</string>
+    <string>@REPO_ROOT@/deploy/mini/git-pull.sh</string>
+  </array>
+
+  <key>WorkingDirectory</key>
+  <string>@REPO_ROOT@</string>
+
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>HOME</key>
+    <string>@HOME@</string>
+    <!-- gh and git credential helpers may be in homebrew. -->
+    <key>PATH</key>
+    <string>@NODE_DIR@:/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin</string>
+  </dict>
+
+  <!-- Run at load (so first install pulls immediately) and every 30 min. -->
+  <key>RunAtLoad</key>
+  <true/>
+
+  <key>StartInterval</key>
+  <integer>1800</integer>
+
+  <key>StandardOutPath</key>
+  <string>@LOG_DIR@/git-pull.log</string>
+
+  <key>StandardErrorPath</key>
+  <string>@LOG_DIR@/git-pull.log</string>
+</dict>
+</plist>

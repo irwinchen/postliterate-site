@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>org.postliterate.dashboard</string>
+
+  <!--
+    Runs the admin dashboard server on :4322, bound to all interfaces so
+    the MacBook can reach it over LAN/Tailscale. Restarts on crash.
+    Templated values are filled in by deploy/mini/install.sh:
+      @NODE_BIN@   absolute path to node binary
+      @NODE_DIR@   directory containing node + npm
+      @REPO_ROOT@  absolute path to the postliterate-site clone
+      @HOME@       user home directory
+      @LOG_DIR@    absolute path to log directory
+  -->
+
+  <key>ProgramArguments</key>
+  <array>
+    <string>@NODE_BIN@</string>
+    <string>@REPO_ROOT@/scripts/admin.mjs</string>
+  </array>
+
+  <key>WorkingDirectory</key>
+  <string>@REPO_ROOT@</string>
+
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>NODE_ENV</key>
+    <string>production</string>
+    <key>HOME</key>
+    <string>@HOME@</string>
+    <key>PATH</key>
+    <string>@NODE_DIR@:/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin</string>
+  </dict>
+
+  <key>RunAtLoad</key>
+  <true/>
+
+  <key>KeepAlive</key>
+  <dict>
+    <key>SuccessfulExit</key>
+    <false/>
+    <key>Crashed</key>
+    <true/>
+  </dict>
+
+  <!-- Throttle restarts so a tight crash loop doesn't burn CPU. -->
+  <key>ThrottleInterval</key>
+  <integer>10</integer>
+
+  <key>StandardOutPath</key>
+  <string>@LOG_DIR@/dashboard.out.log</string>
+
+  <key>StandardErrorPath</key>
+  <string>@LOG_DIR@/dashboard.err.log</string>
+
+  <!-- Don't run more than one instance. -->
+  <key>AbandonProcessGroup</key>
+  <false/>
+</dict>
+</plist>
