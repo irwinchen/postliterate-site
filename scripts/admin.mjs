@@ -11,7 +11,7 @@
  */
 
 import { createServer } from 'node:http';
-import { readFileSync } from 'node:fs';
+import { readFileSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { spawn } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
@@ -31,10 +31,17 @@ import {
   urlSlug,
   generateProjectStatus,
 } from './blog-lib.mjs';
+import { refresh } from './dashboard/refresh.mjs';
 
 const __dirname = fileURLToPath(new URL('.', import.meta.url));
 const PORT = 4322;
 const DEV_PORT = 4321;
+
+// ── Environment flags ─────────────────────────────────────────────────
+// READ_ONLY=1  disables publish / unpublish / delete routes (set on Mini).
+// HOST         bind address — set to 127.0.0.1 on MacBook to avoid LAN exposure.
+const READ_ONLY = process.env.READ_ONLY === '1';
+const HOST = process.env.HOST || undefined; // undefined → Node default (all interfaces)
 
 // Track whether this admin process started the dev server
 let devServerProcess = null;
@@ -163,6 +170,7 @@ async function handleRequest(req, res) {
 
     // POST /api/publish — publish a post
     if (method === 'POST' && path === '/api/publish') {
+      if (READ_ONLY) { json(res, { error: 'Server is in read-only mode' }, 403); return; }
       const body = await readBody(req);
       if (!body.slug) {
         json(res, { error: 'slug is required' }, 400);
@@ -178,6 +186,7 @@ async function handleRequest(req, res) {
 
     // POST /api/unpublish — unpublish a post
     if (method === 'POST' && path === '/api/unpublish') {
+      if (READ_ONLY) { json(res, { error: 'Server is in read-only mode' }, 403); return; }
       const body = await readBody(req);
       if (!body.slug) {
         json(res, { error: 'slug is required' }, 400);
@@ -193,6 +202,7 @@ async function handleRequest(req, res) {
 
     // POST /api/delete — delete a draft from vault
     if (method === 'POST' && path === '/api/delete') {
+      if (READ_ONLY) { json(res, { error: 'Server is in read-only mode' }, 403); return; }
       const body = await readBody(req);
       if (!body.slug) {
         json(res, { error: 'slug is required' }, 400);
@@ -240,6 +250,45 @@ async function handleRequest(req, res) {
       }
       return;
     }
+
+    // GET /api/config — client configuration flags
+    if (method === 'GET' && path === '/api/config') {
+      json(res, { readOnly: READ_ONLY });
+      return;
+    }
+
+    // GET /dashboard — serve dashboard UI (same HTML, tab selected by hash)
+    if (method === 'GET' && path === '/dashboard') {
+      const html = readFileSync(join(__dirname, 'admin-ui.html'), 'utf8');
+      res.writeHead(200, { 'Content-Type': 'text/html' });
+      res.end(html);
+      return;
+    }
+
+    // GET /api/dashboard — serve latest snapshot
+    if (method === 'GET' && path === '/api/dashboard') {
+      const snapshotPath = join(__dirname, 'dashboard/snapshots/latest.json');
+      if (!existsSync(snapshotPath)) {
+        json(res, { error: 'No snapshot yet — run a refresh' }, 404);
+        return;
+      }
+      const content = readFileSync(snapshotPath, 'utf8');
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.end(content);
+      return;
+    }
+
+    // POST /api/refresh — regenerate dashboard snapshot on demand
+    if (method === 'POST' && path === '/api/refresh') {
+      try {
+        const snapshot = await refresh();
+        json(res, { ok: true, refreshed_at: snapshot.refreshed_at });
+      } catch (err) {
+        json(res, { error: err.message }, 500);
+      }
+      return;
+    }
+
     // 404
     json(res, { error: 'Not found' }, 404);
   } catch (err) {
@@ -251,18 +300,32 @@ async function handleRequest(req, res) {
 
 const server = createServer(handleRequest);
 
-server.listen(PORT, () => {
-  // Refresh dashboard data on startup
-  try {
-    generateProjectStatus();
-    console.log('  Dashboard data refreshed.');
-  } catch (err) {
-    console.log(`  Warning: could not refresh dashboard data — ${err.message}`);
+server.listen(PORT, HOST, () => {
+  const bindAddr = HOST ? HOST : '0.0.0.0';
+  const localUrl = `http://localhost:${PORT}`;
+
+  if (READ_ONLY) {
+    console.log('  Running in READ-ONLY mode (publish/unpublish/delete disabled).');
   }
 
-  console.log(`\n  Blog admin running at http://localhost:${PORT}\n`);
-  // Open browser
-  spawn('open', [`http://localhost:${PORT}`], { stdio: 'ignore' });
+  // Refresh legacy project-status data
+  try {
+    generateProjectStatus();
+    console.log('  Project status refreshed.');
+  } catch (err) {
+    console.log(`  Warning: could not refresh project status — ${err.message}`);
+  }
+
+  // Refresh dashboard snapshot
+  refresh()
+    .then(() => console.log('  Dashboard snapshot refreshed.'))
+    .catch((err) => console.log(`  Warning: could not refresh dashboard snapshot — ${err.message}`));
+
+  console.log(`\n  Blog admin running at ${localUrl}  (bound to ${bindAddr})\n`);
+  // Only open browser when not in read-only mode (i.e. on the MacBook)
+  if (!READ_ONLY) {
+    spawn('open', [localUrl], { stdio: 'ignore' });
+  }
 });
 
 // Cleanup on exit

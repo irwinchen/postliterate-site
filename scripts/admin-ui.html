@@ -522,16 +522,26 @@
 <body>
 
 <header>
-  <h1>Post-Literate <span>Admin</span></h1>
-  <div class="dev-server-status">
-    <span>Dev Server:</span>
-    <span class="status-dot" id="devDot"></span>
-    <span id="devLabel">checking...</span>
-    <button class="dev-server-btn" id="devToggle" onclick="toggleDevServer()">...</button>
+  <h1>Post-Literate <span>Admin</span> <span id="readOnlyBadge" style="display:none; font-size:0.65rem; font-weight:600; font-family:'Sono',monospace; color:var(--muted); border:1.5px solid var(--muted); padding:0.15rem 0.45rem; vertical-align:middle; text-transform:uppercase; letter-spacing:0.06em;">read-only</span></h1>
+  <div style="display:flex; align-items:center; gap:1rem;">
+    <div class="dev-server-status">
+      <span>Dev Server:</span>
+      <span class="status-dot" id="devDot"></span>
+      <span id="devLabel">checking...</span>
+      <button class="dev-server-btn" id="devToggle" onclick="toggleDevServer()">...</button>
+    </div>
+    <button class="dev-server-btn" id="refreshBtn" onclick="runRefresh()" title="Regenerate dashboard snapshot">
+      <i data-lucide="refresh-cw"></i> Refresh
+    </button>
   </div>
 </header>
 
 <nav class="section-nav">
+  <a href="#dashboard-section">Dashboard</a>
+  <a href="#cards-section">Cards</a>
+  <a href="#vault-watch-section">Vault Watch</a>
+  <a href="#writing-section">Writing</a>
+  <a href="#reminders-section">Reminders</a>
   <a href="#posts-section">Posts</a>
   <a href="#pipeline-section">Pipeline</a>
   <a href="#opportunities-section">Opportunities</a>
@@ -540,6 +550,62 @@
 </nav>
 
 <main>
+
+  <!-- ── Dashboard overview ───────────────────────────────────────── -->
+  <section class="dashboard-section" id="dashboard-section">
+    <button class="section-toggle" onclick="toggleSection('dashboard-section')">
+      <h2 class="section-heading">Dashboard</h2>
+      <i data-lucide="chevron-down"></i>
+    </button>
+    <div class="section-body" id="dashboard-body">
+      <div class="loading">Loading dashboard snapshot...</div>
+    </div>
+  </section>
+
+  <!-- ── Cards browser ────────────────────────────────────────────── -->
+  <section class="dashboard-section" id="cards-section">
+    <button class="section-toggle" onclick="toggleSection('cards-section')">
+      <h2 class="section-heading">Cards</h2>
+      <i data-lucide="chevron-down"></i>
+    </button>
+    <div class="section-body" id="cards-body">
+      <div class="loading">Loading cards...</div>
+    </div>
+  </section>
+
+  <!-- ── Vault Watch ───────────────────────────────────────────────── -->
+  <section class="dashboard-section" id="vault-watch-section">
+    <button class="section-toggle" onclick="toggleSection('vault-watch-section')">
+      <h2 class="section-heading">Vault Watch</h2>
+      <i data-lucide="chevron-down"></i>
+    </button>
+    <div class="section-body" id="vault-watch-body">
+      <div class="loading">Loading vault watch...</div>
+    </div>
+  </section>
+
+  <!-- ── Writing progress ──────────────────────────────────────────── -->
+  <section class="dashboard-section" id="writing-section">
+    <button class="section-toggle" onclick="toggleSection('writing-section')">
+      <h2 class="section-heading">Writing</h2>
+      <i data-lucide="chevron-down"></i>
+    </button>
+    <div class="section-body" id="writing-body">
+      <div class="loading">Loading writing progress...</div>
+    </div>
+  </section>
+
+  <!-- ── Reminders ─────────────────────────────────────────────────── -->
+  <section class="dashboard-section" id="reminders-section">
+    <button class="section-toggle" onclick="toggleSection('reminders-section')">
+      <h2 class="section-heading">Reminders</h2>
+      <i data-lucide="chevron-down"></i>
+    </button>
+    <div class="section-body" id="reminders-body">
+      <div class="loading">Loading reminders...</div>
+    </div>
+  </section>
+
   <section class="dashboard-section" id="posts-section">
     <button class="section-toggle" onclick="toggleSection('posts-section')">
       <h2 class="section-heading">Posts</h2>
@@ -767,14 +833,18 @@
       let actions = '';
       if (p.status === 'published' && p.location === 'content') {
         actions += `<button class="btn" onclick="postAction('view',${i})"><i data-lucide="external-link"></i> View</button>`;
-        if (p.needsRepublish) {
-          actions += `<button class="btn btn-accent" onclick="postAction('republish',${i})"><i data-lucide="refresh-cw"></i> Republish</button>`;
+        if (!isReadOnly) {
+          if (p.needsRepublish) {
+            actions += `<button class="btn btn-accent" onclick="postAction('republish',${i})"><i data-lucide="refresh-cw"></i> Republish</button>`;
+          }
+          actions += `<button class="btn btn-accent" onclick="postAction('delete',${i})"><i data-lucide="trash-2"></i> Delete</button>`;
         }
-        actions += `<button class="btn btn-accent" onclick="postAction('delete',${i})"><i data-lucide="trash-2"></i> Delete</button>`;
       } else {
         actions += `<button class="btn" onclick="postAction('preview',${i})"><i data-lucide="eye"></i> Preview</button>`;
-        actions += `<button class="btn btn-accent" onclick="postAction('publish',${i})"><i data-lucide="rocket"></i> Publish</button>`;
-        actions += `<button class="btn btn-accent" onclick="postAction('deleteDraft',${i})"><i data-lucide="trash-2"></i> Delete</button>`;
+        if (!isReadOnly) {
+          actions += `<button class="btn btn-accent" onclick="postAction('publish',${i})"><i data-lucide="rocket"></i> Publish</button>`;
+          actions += `<button class="btn btn-accent" onclick="postAction('deleteDraft',${i})"><i data-lucide="trash-2"></i> Delete</button>`;
+        }
       }
 
       const dateStr = p.date ? `<div class="post-date">${p.date}</div>` : '';
@@ -1242,11 +1312,167 @@
 
   sections.forEach(s => navObserver.observe(s));
 
+  // ── Config (READ_ONLY flag) ──────────────────
+  let isReadOnly = false;
+
+  async function fetchConfig() {
+    try {
+      const res = await fetch(API + '/api/config');
+      const data = await res.json();
+      isReadOnly = !!data.readOnly;
+      if (isReadOnly) {
+        document.getElementById('readOnlyBadge').style.display = 'inline';
+        // Disable all destructive buttons that may already be rendered
+        applyReadOnly();
+      }
+    } catch { /* non-fatal */ }
+  }
+
+  function applyReadOnly() {
+    if (!isReadOnly) return;
+    // Hide publish / unpublish / delete buttons throughout the UI
+    document.querySelectorAll(
+      '[onclick*="confirmPublish"],[onclick*="confirmRepublish"],[onclick*="confirmDelete"],[onclick*="confirmUnpublish"],[onclick*="confirmDeleteDraft"]'
+    ).forEach(btn => { btn.style.display = 'none'; });
+  }
+
+  // ── Dashboard snapshot ───────────────────────
+  let dashboardData = null;
+
+  async function fetchDashboard() {
+    try {
+      const res = await fetch(API + '/api/dashboard');
+      if (!res.ok) throw new Error('not available');
+      dashboardData = await res.json();
+      renderDashboardOverview(dashboardData);
+      renderCards(dashboardData);
+      renderVaultWatch(dashboardData);
+      renderWriting(dashboardData);
+      renderReminders(dashboardData);
+    } catch {
+      renderDashboardEmpty();
+    }
+  }
+
+  function renderDashboardEmpty() {
+    const msg = '<div class="empty">No snapshot yet — click Refresh to generate one.</div>';
+    ['dashboard-body', 'cards-body', 'vault-watch-body', 'writing-body', 'reminders-body'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.innerHTML = msg;
+    });
+  }
+
+  function fmtTime(iso) {
+    if (!iso) return '—';
+    return new Date(iso).toLocaleString();
+  }
+
+  // ── Dashboard overview ───────────────────────
+  function renderDashboardOverview(data) {
+    const el = document.getElementById('dashboard-body');
+    if (!data || !data.refreshed_at) {
+      el.innerHTML = '<div class="empty">No snapshot yet — click Refresh.</div>';
+      return;
+    }
+
+    // Count non-null sections
+    const sections = ['cards', 'vault_watch', 'writing', 'reminders', 'activity'];
+    const ready = sections.filter(k => data[k] !== null).length;
+
+    el.innerHTML = `
+      <div class="kpi-row" style="grid-template-columns: repeat(3, 1fr);">
+        <div class="kpi-card">
+          <div class="kpi-label">Last Refresh</div>
+          <div class="kpi-value" style="font-size:1.1rem;">${fmtTime(data.refreshed_at)}</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Sections Ready</div>
+          <div class="kpi-value">${ready} <span style="font-size:1rem; color:var(--muted);">/ ${sections.length}</span></div>
+          <div class="kpi-metric">Phases 2–6 populate these</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Mode</div>
+          <div class="kpi-value" style="font-size:1.1rem; color:${isReadOnly ? 'var(--muted)' : 'var(--green)'};">${isReadOnly ? 'Read-only' : 'Full'}</div>
+        </div>
+      </div>
+      <p style="font-size:0.85rem; color:var(--muted); margin-top:0.5rem;">
+        Sections below will populate as Phases 2–6 are built.
+        Use the <strong>Refresh</strong> button above to regenerate the snapshot on demand.
+      </p>
+    `;
+    lucide.createIcons();
+  }
+
+  // ── Cards (Phase 2 stub) ─────────────────────
+  function renderCards(data) {
+    const el = document.getElementById('cards-body');
+    if (!data || data.cards === null) {
+      el.innerHTML = '<div class="empty">Cards browser not yet available — coming in Phase 2.</div>';
+      return;
+    }
+    // Phase 2 will replace this
+    el.innerHTML = '<div class="empty">Cards data present but renderer not yet implemented.</div>';
+  }
+
+  // ── Vault Watch (Phase 3 stub) ───────────────
+  function renderVaultWatch(data) {
+    const el = document.getElementById('vault-watch-body');
+    if (!data || data.vault_watch === null) {
+      el.innerHTML = '<div class="empty">Vault Watch not yet available — coming in Phase 3.</div>';
+      return;
+    }
+    el.innerHTML = '<div class="empty">Vault Watch data present but renderer not yet implemented.</div>';
+  }
+
+  // ── Writing progress (Phase 4 stub) ──────────
+  function renderWriting(data) {
+    const el = document.getElementById('writing-body');
+    if (!data || data.writing === null) {
+      el.innerHTML = '<div class="empty">Writing progress not yet available — coming in Phase 4.</div>';
+      return;
+    }
+    el.innerHTML = '<div class="empty">Writing data present but renderer not yet implemented.</div>';
+  }
+
+  // ── Reminders (Phase 5 stub) ─────────────────
+  function renderReminders(data) {
+    const el = document.getElementById('reminders-body');
+    if (!data || data.reminders === null) {
+      el.innerHTML = '<div class="empty">Reminders not yet available — coming in Phase 5.</div>';
+      return;
+    }
+    el.innerHTML = '<div class="empty">Reminders data present but renderer not yet implemented.</div>';
+  }
+
+  // ── On-demand refresh ────────────────────────
+  async function runRefresh() {
+    const btn = document.getElementById('refreshBtn');
+    btn.disabled = true;
+    setStatus('Refreshing dashboard snapshot...');
+    try {
+      const res = await fetch(API + '/api/refresh', { method: 'POST' });
+      const data = await res.json();
+      if (data.ok) {
+        setStatus('Snapshot refreshed at ' + fmtTime(data.refreshed_at), 'success');
+        await fetchDashboard();
+      } else {
+        setStatus('Refresh failed: ' + (data.error || 'unknown'), 'error');
+      }
+    } catch (err) {
+      setStatus('Refresh failed: ' + err.message, 'error');
+    } finally {
+      btn.disabled = false;
+      lucide.createIcons();
+    }
+  }
+
   // ── Init ────────────────────────────────────
   lucide.createIcons();
+  fetchConfig();
   fetchPosts();
   fetchDevStatus();
   fetchProjectStatus();
+  fetchDashboard();
   pollTimer = setInterval(() => {
     fetchPosts();
     fetchDevStatus();
