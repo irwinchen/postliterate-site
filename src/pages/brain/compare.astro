@@ -3,7 +3,6 @@ import BrainCompare3D from '../../components/brain-3d/BrainCompare3D.astro';
 import fourModes from '../../components/brain-3d/data/views/four-modes.json';
 import tripleNetwork from '../../components/brain-3d/data/views/triple-network.json';
 import vwfa from '../../components/brain-3d/data/views/vwfa.json';
-import presets from '../../components/brain-3d/data/compare-presets.json';
 
 const viewConfigs = [fourModes, tripleNetwork, vwfa];
 
@@ -40,7 +39,6 @@ const initialActive = [
   <body>
     <BrainCompare3D
       viewConfigs={viewConfigs}
-      presets={presets}
       initialActive={initialActive}
     />
   </body>

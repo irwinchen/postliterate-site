@@ -4,7 +4,7 @@ import papersRaw from './data/registry/papers.json';
 import BrainHeader from './BrainHeader.astro';
 import '../../styles/brain-3d.css';
 
-const { viewConfigs, presets, initialActive, title } = Astro.props;
+const { viewConfigs, initialActive, title } = Astro.props;
 if (!Array.isArray(viewConfigs) || viewConfigs.length === 0) {
   throw new Error('BrainCompare3D: viewConfigs prop must be a non-empty array');
 }
@@ -23,7 +23,6 @@ if (!Array.isArray(viewConfigs) || viewConfigs.length === 0) {
 
   <aside class="brain-3d__rightcol brain-3d__rightcol--compare">
     <nav class="brain-3d__chip-groups" data-bind="chip-groups" aria-label="Network selector"></nav>
-    <section class="brain-3d__presets" data-bind="presets" aria-label="Contrast pair presets"></section>
   </aside>
 
   <svg class="brain-3d__leaders" data-bind="leaders" aria-hidden="true"></svg>
@@ -34,7 +33,6 @@ if (!Array.isArray(viewConfigs) || viewConfigs.length === 0) {
   rawParcels: parcelsRaw,
   rawPapers: papersRaw,
   viewConfigs,
-  presets: presets ?? { presets: [] },
   initialActive: initialActive ?? [],
 }}>
   import { loadParcelRegistry } from '/src/lib/brain-viz/parcel-registry.js';
@@ -72,57 +70,30 @@ if (!Array.isArray(viewConfigs) || viewConfigs.length === 0) {
   const registry = loadParcelRegistry(rawParcels);
   const compare = loadCompare({ viewConfigs, registry, papersRaw: rawPapers });
 
-  // Translate any UI-friendly preset shape ({view, network}) into the state's
-  // internal (viewSlug, networkId) tuples; drop entries that don't resolve.
-  function normalizePresetActive(active) {
+  // Translate UI-friendly initialActive ({view, network}) into state-internal
+  // (viewSlug, networkId) tuples; drop entries that don't resolve.
+  function normalizeActive(active) {
     const out = [];
     for (const item of active ?? []) {
       const viewSlug = item.viewSlug ?? item.view;
       const networkId = item.networkId ?? item.network;
       if (!viewSlug || !networkId) continue;
       const compositeId = `${viewSlug}:${networkId}`;
-      if (!compare.networks[compositeId]) continue; // skip unresolved
+      if (!compare.networks[compositeId]) continue;
       out.push({ viewSlug, networkId });
     }
     return out;
   }
 
   const crossState = createCrossPaperState({
-    initialActive: normalizePresetActive(initialActive),
+    initialActive: normalizeActive(initialActive),
   });
   const glossaryState = createGlossaryState();
 
-  // Expose every active network's color as --mode-<compositeId> for any future
-  // CSS hooks; chip elements set --chip-color directly so this is belt-and-braces.
+  // Expose every network's color as --mode-<compositeId> for any future CSS
+  // hooks; chip elements set --chip-color directly so this is belt-and-braces.
   for (const [id, net] of Object.entries(compare.networks)) {
     root.style.setProperty(`--mode-${id}`, net.color);
-  }
-
-  // === Presets row ===
-  const presetsRoot = root.querySelector('[data-bind="presets"]');
-  if (presets.presets && presets.presets.length > 0) {
-    const presetsLabel = document.createElement('div');
-    presetsLabel.className = 'brain-3d__presets-label';
-    presetsLabel.textContent = 'Contrast pairs';
-    presetsRoot.appendChild(presetsLabel);
-
-    for (const preset of presets.presets) {
-      const resolved = normalizePresetActive(preset.active);
-      if (resolved.length === 0) continue; // depends on views not loaded
-      const btn = document.createElement('button');
-      btn.type = 'button';
-      btn.className = 'brain-3d__preset';
-      btn.dataset.presetId = preset.id;
-      btn.textContent = preset.label;
-      if (preset.subtitle) btn.title = preset.subtitle;
-      btn.addEventListener('click', () => {
-        crossState.setAll(resolved);
-        glossaryState.clear();
-      });
-      presetsRoot.appendChild(btn);
-    }
-  } else {
-    presetsRoot.style.display = 'none';
   }
 
   // === Chip groups (one section per view) ===
@@ -378,8 +349,8 @@ if (!Array.isArray(viewConfigs) || viewConfigs.length === 0) {
       "glossary center rightcol";
   }
 
-  /* Right column on /brain/compare hosts presets above the chip grid. Make it
-     a bit wider than the single-view shell since we need room for paper labels. */
+  /* Right column on /brain/compare. A bit wider than the single-view shell
+     since we need room for paper labels. */
   .brain-3d__rightcol--compare {
     grid-area: rightcol;
     padding: 1.25rem 1.25rem 1.25rem 0.75rem;
@@ -389,38 +360,6 @@ if (!Array.isArray(viewConfigs) || viewConfigs.length === 0) {
     overflow-y: auto;
     overscroll-behavior: contain;
     scrollbar-gutter: stable;
-  }
-
-  .brain-3d__presets {
-    display: grid;
-    gap: 0.4rem;
-  }
-  .brain-3d__presets-label {
-    font-size: 0.75rem;
-    font-weight: 600;
-    color: var(--fg, #ece7d6);
-    padding-block-end: 0.25rem;
-  }
-  .brain-3d__preset {
-    appearance: none;
-    background: transparent;
-    border: 1px solid var(--border, rgba(255, 255, 255, 0.10));
-    color: var(--fg, #ece7d6);
-    font: inherit;
-    font-size: 0.7rem;
-    text-align: start;
-    padding: 0.45rem 0.6rem;
-    border-radius: 3px;
-    cursor: pointer;
-    transition: background-color 150ms, border-color 150ms;
-  }
-  .brain-3d__preset:hover {
-    background: rgba(255, 255, 255, 0.04);
-    border-color: rgba(255, 255, 255, 0.20);
-  }
-  .brain-3d__preset:focus-visible {
-    outline: 2px solid var(--fg, #ece7d6);
-    outline-offset: 2px;
   }
 
   .brain-3d__chip-groups {
@@ -456,8 +395,7 @@ if (!Array.isArray(viewConfigs) || viewConfigs.length === 0) {
     margin-block-start: 0.5rem;
   }
 
-  /* Mobile: stack the right column under the canvas; presets and chips share
-     the same vertical flow as in the single-view layout. */
+  /* Mobile: stack the right column under the canvas. */
   @media (max-width: 720px) {
     .brain-3d--compare {
       grid-template-rows: auto auto 1fr auto;
