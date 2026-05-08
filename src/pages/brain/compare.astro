@@ -1,0 +1,47 @@
+---
+import BrainCompare3D from '../../components/brain-3d/BrainCompare3D.astro';
+import fourModes from '../../components/brain-3d/data/views/four-modes.json';
+import tripleNetwork from '../../components/brain-3d/data/views/triple-network.json';
+import vwfa from '../../components/brain-3d/data/views/vwfa.json';
+import presets from '../../components/brain-3d/data/compare-presets.json';
+
+const viewConfigs = [fourModes, tripleNetwork, vwfa];
+
+// Default landing state per plan §D4: Four Modes M03 + Triple Network DMN + VWFA.
+// Demonstrates the cross-paper value out of the gate (language vs DMN vs focal ROI).
+const initialActive = [
+  { view: 'four-modes', network: 'm3' },
+  { view: 'triple-network', network: 'dmn' },
+  { view: 'vwfa', network: 'vwfa' },
+];
+---
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Compare — Brain Viz</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Literata:ital,wght@0,400;0,500;0,700;1,400&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+    <style>
+      :root { color-scheme: dark; }
+      html, body {
+        margin: 0;
+        padding: 0;
+        background: #0a0a0a;
+        font-family: 'Outfit', system-ui, sans-serif;
+        color: #ece7d6;
+        overflow: hidden;
+        block-size: 100%;
+      }
+    </style>
+  </head>
+  <body>
+    <BrainCompare3D
+      viewConfigs={viewConfigs}
+      presets={presets}
+      initialActive={initialActive}
+    />
+  </body>
+</html>

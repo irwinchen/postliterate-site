@@ -7,7 +7,7 @@
     "vwfa": {
       "displayNum": "VWFA",
       "label": "Visual Word Form Area",
-      "color": "#549E44",
+      "color": "#E8C547",
       "source": "Cohen 2002 / Dehaene 2005",
       "parcels": ["cohen2002.VWFA"]
     }

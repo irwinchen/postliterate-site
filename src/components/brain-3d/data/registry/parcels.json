@@ -37,5 +37,5 @@
 
   "_comment_vwfa_": "VWFA parcel (Phase C). Cohen 2002 reports the Visual Word Form Area as a focal patch on the left mid-fusiform gyrus, approx MNI (-43, -54, -12). Small radius reflects its reported focal extent (~5mm cluster).",
 
-  "cohen2002.VWFA":   { "label": "VWFA",                  "atlas": "vwfa-cohen-2002", "hemisphere": "L", "centroid": [-0.42, -0.30, -0.45], "radius": 0.04, "provenance": "hand-tuned", "group": "temporal-ventral", "layCue": "bottom of the brain, left side, where vision meets meaning" }
+  "cohen2002.VWFA":   { "label": "VWFA",                  "atlas": "vwfa-cohen-2002", "hemisphere": "L", "centroid": [-0.43, -0.35, -0.30], "radius": 0.04, "provenance": "hand-tuned", "group": "temporal-ventral", "layCue": "bottom of the brain, left side, where vision meets meaning" }
 }

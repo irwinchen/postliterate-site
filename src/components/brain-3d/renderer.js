@@ -231,6 +231,39 @@ export function createBrainRenderer({ canvas, view, viewState }) {
     return canvas.getBoundingClientRect();
   }
 
+  // === Anatomical direction anchors ===
+  // Six fixed 3D points just outside the brain mesh (mesh ≈ ±1.0 after auto-fit).
+  // Projecting these per frame gives shells subtle direction labels that follow
+  // camera rotation. The depth value is in NDC [-1, 1] where < 0 is in front of
+  // origin (toward camera) — shells use it to fade labels rotated to the back.
+  const DIRECTION_ANCHOR_RADIUS = 1.2;
+  const DIRECTION_ANCHORS = [
+    { id: 'right',     pos: [ DIRECTION_ANCHOR_RADIUS, 0, 0 ], label: 'right' },
+    { id: 'left',      pos: [-DIRECTION_ANCHOR_RADIUS, 0, 0 ], label: 'left' },
+    { id: 'superior',  pos: [0,  DIRECTION_ANCHOR_RADIUS, 0 ], label: 'top · superior' },
+    { id: 'inferior',  pos: [0, -DIRECTION_ANCHOR_RADIUS, 0 ], label: 'bottom · inferior' },
+    { id: 'anterior',  pos: [0, 0,  DIRECTION_ANCHOR_RADIUS ], label: 'front · anterior' },
+    { id: 'posterior', pos: [0, 0, -DIRECTION_ANCHOR_RADIUS ], label: 'back · posterior' },
+  ];
+
+  function getDirectionScreenPositions() {
+    const w = canvas.clientWidth;
+    const h = canvas.clientHeight;
+    const out = [];
+    for (const d of DIRECTION_ANCHORS) {
+      projectVec.set(...d.pos).project(camera);
+      out.push({
+        id: d.id,
+        label: d.label,
+        x: (projectVec.x * 0.5 + 0.5) * w,
+        y: (-projectVec.y * 0.5 + 0.5) * h,
+        depth: projectVec.z,
+        onScreen: projectVec.z >= -1 && projectVec.z <= 1,
+      });
+    }
+    return out;
+  }
+
   // === Emissive update logic ===
   function recomputeEmissives() {
     const activeNetworks = viewState.activeNetworks();
@@ -333,6 +366,7 @@ export function createBrainRenderer({ canvas, view, viewState }) {
 
   return {
     getParcelScreenPosition,
+    getDirectionScreenPositions,
     getCanvasRect,
     onAfterRender(fn) {
       afterRenderCallbacks.add(fn);

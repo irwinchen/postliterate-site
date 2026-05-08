@@ -1,0 +1,227 @@
+/* Base layout and primitives shared by every /brain/* page.
+ * Imported by BrainViz3D.astro (single-view shell) and BrainCompare3D.astro
+ * (cross-paper shell). Keep this file framework-agnostic plain CSS so Astro
+ * can dedupe a single asset across all routes. */
+
+.brain-3d {
+  color-scheme: dark;
+  --bg: #0a0a0a;
+  --fg: #ece7d6;
+  --muted: #888;
+  --faint: #555;
+  --border: rgba(255, 255, 255, 0.10);
+  background: var(--bg);
+  color: var(--fg);
+  block-size: 100dvh;
+  inline-size: 100vw;
+  display: grid;
+  grid-template-columns: 220px 1fr 280px;
+  grid-template-rows: auto 1fr;
+  grid-template-areas:
+    "header   header header"
+    "glossary center rightcol";
+  font-family: 'Outfit', system-ui, sans-serif;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Glossary (left column) */
+.brain-3d__glossary {
+  grid-area: glossary;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+  padding: 1.25rem 0.75rem 1.25rem 1.25rem;
+}
+.brain-3d__glossary-list {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.brain-3d__gloss-group {
+  border-block-end: 1px solid var(--border);
+  padding-block-end: 0.5rem;
+}
+.brain-3d__gloss-group[open] .brain-3d__gloss-group-name::after {
+  transform: rotate(0deg);
+}
+.brain-3d__gloss-group-name {
+  list-style: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5rem 0.25rem;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  color: var(--fg);
+}
+.brain-3d__gloss-group-name::-webkit-details-marker {
+  display: none;
+}
+.brain-3d__gloss-group-name::after {
+  content: '▼';
+  font-size: 0.6rem;
+  color: var(--muted);
+  transform: rotate(-90deg);
+  transition: transform 200ms ease;
+}
+.brain-3d__gloss-entries {
+  display: grid;
+  gap: 0;
+}
+.brain-3d__gloss-entry {
+  appearance: none;
+  background: transparent;
+  border: none;
+  color: var(--faint);
+  font: inherit;
+  font-size: 0.7rem;
+  text-align: start;
+  cursor: pointer;
+  padding: 0.4rem 0.5rem;
+  inline-size: 100%;
+  transition: background-color 150ms, color 150ms;
+}
+.brain-3d__gloss-entry:hover {
+  color: var(--fg);
+  background: rgba(255, 255, 255, 0.04);
+}
+.brain-3d__gloss-entry:focus-visible {
+  outline: 2px solid var(--fg);
+  outline-offset: -2px;
+}
+.brain-3d__gloss-entry.is-faded {
+  opacity: 0.35;
+}
+.brain-3d__gloss-entry.is-inspected {
+  color: var(--fg);
+  background: rgba(255, 255, 255, 0.10);
+  font-weight: 600;
+}
+
+/* Center (canvas) */
+.brain-3d__center {
+  grid-area: center;
+  min-inline-size: 0;
+  position: relative;
+}
+.brain-3d__canvas {
+  inline-size: 100%;
+  block-size: 100%;
+  display: block;
+  cursor: grab;
+}
+.brain-3d__canvas:active { cursor: grabbing; }
+
+/* Right column (chips top) */
+.brain-3d__rightcol {
+  grid-area: rightcol;
+  padding: 1.25rem 1.25rem 1.25rem 0.75rem;
+  display: grid;
+  align-content: start;
+  gap: 0.75rem;
+}
+.brain-3d__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  align-items: flex-start;
+}
+.brain-3d__chip {
+  --chip-color: #888;
+  appearance: none;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--fg);
+  font: inherit;
+  font-size: 0.7rem;
+  padding: 0.35rem 0.6rem;
+  border-radius: 3px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  border-inline-start: 3px solid var(--chip-color);
+  transition: background-color 200ms, color 200ms;
+}
+.brain-3d__chip:focus-visible {
+  outline: 2px solid var(--chip-color);
+  outline-offset: 2px;
+}
+.brain-3d__chip.is-active {
+  background: var(--chip-color);
+  color: white;
+  border-color: var(--chip-color);
+}
+.brain-3d__chip-num {
+  font-weight: 600;
+  font-size: 0.6rem;
+  letter-spacing: 0.14em;
+  opacity: 0.65;
+}
+.brain-3d__chip--aux {
+  border-inline-start-width: 1px;
+  --chip-color: var(--border);
+}
+.brain-3d__chip--aux.is-active {
+  background: var(--fg);
+  color: var(--bg);
+  border-color: var(--fg);
+}
+/* Static chip used by single-ROI views — looks active but is not a button */
+.brain-3d__chip--static {
+  cursor: default;
+}
+
+/* Leader-line overlay (positioned over the entire component) */
+.brain-3d__leaders {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  pointer-events: none;
+}
+.brain-3d__leaders * {
+  pointer-events: none;
+}
+.brain-3d__leader {
+  stroke: rgba(216, 146, 51, 0.85);
+  stroke-width: 1.25;
+  fill: none;
+}
+.brain-3d__leader-dot {
+  fill: rgba(216, 146, 51, 0.95);
+  stroke: rgba(0, 0, 0, 0.4);
+  stroke-width: 1;
+}
+
+/* Anatomical direction labels — projected from fixed 3D anchors so they
+ * follow camera rotation. */
+.brain-3d__direction {
+  font-family: 'Outfit', system-ui, sans-serif;
+  font-size: 0.65rem;
+  font-weight: 500;
+  fill: var(--fg, #ece7d6);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  pointer-events: none;
+  user-select: none;
+}
+
+/* Mobile collapse */
+@media (max-width: 720px) {
+  .brain-3d {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto 1fr auto;
+    grid-template-areas:
+      "header"
+      "rightcol"
+      "center"
+      "glossary";
+  }
+  .brain-3d__glossary {
+    max-block-size: 40dvh;
+    border-block-start: 1px solid var(--border);
+  }
+}

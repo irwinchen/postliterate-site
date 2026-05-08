@@ -1,0 +1,38 @@
+---
+const { title = 'Brain — a reference map' } = Astro.props;
+---
+
+<header class="brain-3d__header" aria-label="Brain visualization header">
+  <h1 class="brain-3d__title">{title}</h1>
+  <nav class="brain-3d__topnav" aria-label="Brain navigation">
+    <slot name="nav" />
+  </nav>
+</header>
+
+<style is:global>
+  .brain-3d__header {
+    grid-area: header;
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.85rem 1.25rem;
+    border-block-end: 1px solid var(--border, rgba(255, 255, 255, 0.10));
+  }
+  .brain-3d__title {
+    margin: 0;
+    font-family: 'Outfit', system-ui, sans-serif;
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: var(--fg, #ece7d6);
+    text-wrap: balance;
+  }
+  .brain-3d__topnav {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+  .brain-3d__topnav:empty {
+    display: none;
+  }
+</style>
