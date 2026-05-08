@@ -5,21 +5,21 @@
   "papers": ["parsons-2001", "paunov-2022", "lipkin-2022", "yeo-2011", "hasson-2016", "chiong-2013"],
   "networks": {
     "m1": {
-      "displayNum": "01",
+      "displayNum": "1",
       "label": "Logical Reasoning",
       "color": "#3B6DB4",
       "source": "Parsons & Osherson 2001",
       "parcels": ["dk.lh-frontal-coarse", "dk.lh-parietal-coarse"]
     },
     "m2": {
-      "displayNum": "02",
+      "displayNum": "2",
       "label": "Estimating Likelihoods",
       "color": "#549E44",
       "source": "Parsons & Osherson 2001",
       "parcels": ["dk.rh-frontal-coarse", "dk.rh-parietal-coarse"]
     },
     "m3": {
-      "displayNum": "03",
+      "displayNum": "3",
       "label": "Language",
       "color": "#D89233",
       "source": "Paunov 2022 / Lipkin 2022 atlas",
@@ -32,7 +32,7 @@
       ]
     },
     "m4": {
-      "displayNum": "04",
+      "displayNum": "4",
       "label": "Imagining Other Minds",
       "color": "#E53E33",
       "source": "Paunov 2022 / Hasson 2016 / Yeo 2011",

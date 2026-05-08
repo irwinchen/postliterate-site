@@ -46,6 +46,7 @@ export function loadParcelRegistry(raw) {
       ...(def.layCue !== undefined ? { layCue: def.layCue } : {}),
       ...(def.group !== undefined ? { group: def.group } : {}),
       ...(def.sourceMesh !== undefined ? { sourceMesh: def.sourceMesh } : {}),
+      ...(def.note !== undefined ? { note: def.note } : {}),
     };
   }
 

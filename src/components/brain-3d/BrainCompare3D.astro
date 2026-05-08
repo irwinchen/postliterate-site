@@ -27,6 +27,7 @@ if (!Array.isArray(viewConfigs) || viewConfigs.length === 0) {
   </aside>
 
   <svg class="brain-3d__leaders" data-bind="leaders" aria-hidden="true"></svg>
+  <div class="brain-3d__tooltip" data-bind="tooltip" role="tooltip" aria-hidden="true"></div>
 </div>
 
 <script type="module" define:vars={{
@@ -40,6 +41,7 @@ if (!Array.isArray(viewConfigs) || viewConfigs.length === 0) {
   import { loadCompare } from '/src/lib/brain-viz/compare-loader.js';
   import { createCrossPaperState } from '/src/lib/brain-viz/cross-paper-state.js';
   import { createGlossaryState } from '/src/lib/brain-viz/glossary-state.js';
+  import { pickContrastText } from '/src/lib/brain-viz/emissive.js';
   import { createBrainRenderer } from '/src/components/brain-3d/renderer.js';
 
   const GROUP_NAMES = {
@@ -65,6 +67,7 @@ if (!Array.isArray(viewConfigs) || viewConfigs.length === 0) {
   const root = document.querySelector('[data-component="brain-compare-3d"]');
   const canvas = root.querySelector('.brain-3d__canvas');
   const leadersSvg = root.querySelector('[data-bind="leaders"]');
+  const tooltipEl = root.querySelector('[data-bind="tooltip"]');
 
   const registry = loadParcelRegistry(rawParcels);
   const compare = loadCompare({ viewConfigs, registry, papersRaw: rawPapers });
@@ -151,6 +154,7 @@ if (!Array.isArray(viewConfigs) || viewConfigs.length === 0) {
       btn.dataset.networkId = net.originalId;
       btn.innerHTML = `<span class="brain-3d__chip-num">${net.displayNum ?? ''}</span> ${net.label}`;
       btn.style.setProperty('--chip-color', net.color);
+      btn.style.setProperty('--chip-text-color', pickContrastText(net.color));
       row.appendChild(btn);
     }
     group.appendChild(row);
@@ -166,6 +170,43 @@ if (!Array.isArray(viewConfigs) || viewConfigs.length === 0) {
     glossaryState.clear();
   });
   groupsRoot.appendChild(clearBtn);
+
+  // === Glossary tooltip ===
+  // Single floating element reused across hovers; positioned by JS to the right
+  // of the focused entry, vertically centred, clamped to the component bounds.
+  function showTooltipFor(parcelId, anchorEl) {
+    const parcel = registry.byId(parcelId);
+    if (!parcel?.note) {
+      hideTooltip();
+      return;
+    }
+    const titleEl = document.createElement('div');
+    titleEl.className = 'brain-3d__tooltip-title';
+    titleEl.textContent = parcel.label;
+    const bodyEl = document.createElement('div');
+    bodyEl.className = 'brain-3d__tooltip-body';
+    bodyEl.textContent = parcel.note;
+    while (tooltipEl.firstChild) tooltipEl.removeChild(tooltipEl.firstChild);
+    tooltipEl.appendChild(titleEl);
+    tooltipEl.appendChild(bodyEl);
+
+    // Make tooltip measurable before final positioning.
+    tooltipEl.style.transform = 'translate(0, 0)';
+    tooltipEl.classList.add('is-visible');
+    tooltipEl.setAttribute('aria-hidden', 'false');
+
+    const aRect = anchorEl.getBoundingClientRect();
+    const rRect = root.getBoundingClientRect();
+    const tRect = tooltipEl.getBoundingClientRect();
+    const x = aRect.right - rRect.left + 10;
+    let y = aRect.top - rRect.top + (aRect.height - tRect.height) / 2;
+    y = Math.max(8, Math.min(rRect.height - tRect.height - 8, y));
+    tooltipEl.style.transform = `translate(${x}px, ${y}px)`;
+  }
+  function hideTooltip() {
+    tooltipEl.classList.remove('is-visible');
+    tooltipEl.setAttribute('aria-hidden', 'true');
+  }
 
   // === Glossary panel (same structure as BrainViz3D) ===
   const allParcels = registry.parcels();
@@ -205,8 +246,11 @@ if (!Array.isArray(viewConfigs) || viewConfigs.length === 0) {
       btn.dataset.parcelId = parcel.id;
       if (!inThisView) btn.classList.add('is-faded');
       btn.textContent = parcel.label;
-      if (parcel.layCue) btn.title = parcel.layCue;
       btn.addEventListener('click', () => glossaryState.inspect(parcel.id));
+      btn.addEventListener('mouseenter', () => showTooltipFor(parcel.id, btn));
+      btn.addEventListener('mouseleave', hideTooltip);
+      btn.addEventListener('focus', () => showTooltipFor(parcel.id, btn));
+      btn.addEventListener('blur', hideTooltip);
       entriesWrap.appendChild(btn);
       glossaryEntryEls.set(parcel.id, btn);
     }

@@ -16,6 +16,15 @@ export function hexToRgb(hex) {
   };
 }
 
+// Pick a foreground color (white or black) that reads against the given hex.
+// Uses Rec. 601 perceived brightness; threshold 0.65 keeps white on every
+// network color in the current palette except the bright VWFA yellow.
+export function pickContrastText(hex, light = '#ffffff', dark = '#0a0a0a') {
+  const { r, g, b } = hexToRgb(hex);
+  const lum = 0.299 * r + 0.587 * g + 0.114 * b;
+  return lum > 0.65 ? dark : light;
+}
+
 // Given the modes a parcel belongs to and which modes are currently active,
 // compute the additive emissive color with √N intensity tapering.
 //
