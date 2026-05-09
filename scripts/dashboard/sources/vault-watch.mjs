@@ -67,6 +67,37 @@ function fileMeta(dir, name) {
   }
 }
 
+// Read a short preview of a note: strip YAML frontmatter, drop the
+// leading H1 (which usually duplicates the filename), strip wikilink
+// brackets, then take the first ~maxChars of joined prose. Returns
+// null for unreadable or empty files.
+function notePreview(filePath, maxChars = 220) {
+  let text;
+  try {
+    text = readFileSync(filePath, 'utf8');
+  } catch {
+    return null;
+  }
+  let body = text.replace(/^---\r?\n[\s\S]*?\r?\n---\r?\n?/, '');
+  // Drop a leading H1 (and any blank lines before it).
+  body = body.replace(/^\s*#\s+[^\n]*\n+/, '');
+  // Strip simple markdown noise: heading markers, leading list markers,
+  // [[wikilinks]] (keep alias if present), bare URLs in inline code.
+  const cleaned = body
+    .split(/\r?\n/)
+    .map((line) => line.replace(/^#{1,6}\s+/, '').replace(/^\s*[-*+]\s+/, ''))
+    .filter((line) => line.trim().length > 0)
+    .join(' ')
+    .replace(/\[\[([^|\]]+)\|([^\]]+)\]\]/g, '$2')
+    .replace(/\[\[([^\]]+)\]\]/g, '$1')
+    .replace(/`([^`]+)`/g, '$1')
+    .replace(/\s+/g, ' ')
+    .trim();
+  if (!cleaned) return null;
+  if (cleaned.length <= maxChars) return cleaned;
+  return cleaned.slice(0, maxChars).replace(/\s+\S*$/, '') + '…';
+}
+
 // ── Outstanding sources ────────────────────────────────────────
 //
 // A source note "claims" a PDF when its frontmatter has
@@ -242,14 +273,16 @@ function getRecentConcepts(limit = 6) {
   return files
     .map((name) => {
       const meta = fileMeta(CONCEPTS_DIR, name);
-      return {
-        name: name.replace(/\.md$/, ''),
-        mtime: meta.mtime,
-        size_bytes: meta.size_bytes,
-      };
+      return { name, mtime: meta.mtime, size_bytes: meta.size_bytes };
     })
     .sort((a, b) => (b.mtime || '').localeCompare(a.mtime || ''))
-    .slice(0, limit);
+    .slice(0, limit)
+    .map((entry) => ({
+      name: entry.name.replace(/\.md$/, ''),
+      mtime: entry.mtime,
+      size_bytes: entry.size_bytes,
+      preview: notePreview(join(CONCEPTS_DIR, entry.name)),
+    }));
 }
 
 // ── Recent inbox items ─────────────────────────────────────────
@@ -258,14 +291,16 @@ function getRecentInbox(limit = 6) {
   return files
     .map((name) => {
       const meta = fileMeta(INBOX_DIR, name);
-      return {
-        name: name.replace(/\.md$/, ''),
-        mtime: meta.mtime,
-        size_bytes: meta.size_bytes,
-      };
+      return { name, mtime: meta.mtime, size_bytes: meta.size_bytes };
     })
     .sort((a, b) => (b.mtime || '').localeCompare(a.mtime || ''))
-    .slice(0, limit);
+    .slice(0, limit)
+    .map((entry) => ({
+      name: entry.name.replace(/\.md$/, ''),
+      mtime: entry.mtime,
+      size_bytes: entry.size_bytes,
+      preview: notePreview(join(INBOX_DIR, entry.name)),
+    }));
 }
 
 // ── Mutation helpers ───────────────────────────────────────────
