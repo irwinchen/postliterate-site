@@ -25,6 +25,9 @@ import { getVaultWatch } from './sources/vault-watch.mjs';
 import { getWritingProgress } from './sources/writing-progress.mjs';
 import { getTodos } from './sources/todos.mjs';
 import { getGitActivity } from './sources/git-activity.mjs';
+import { getCoworkSessions } from './sources/cowork-sessions.mjs';
+import { getClaudeExports } from './sources/claude-exports.mjs';
+import { getVaultSessions } from './sources/vault-sessions.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const SNAPSHOTS_DIR = join(__dirname, 'snapshots');
@@ -90,9 +93,11 @@ export async function refresh() {
     console.warn(`  Warning: todos failed — ${err.message}`);
   }
 
-  // Phase 6 (Slice 1) — Git activity (summarized via Ollama when available)
+  // Phase 6 — Activity streams (each summarized via Ollama when available)
+  snapshot.activity = {};
+
   try {
-    snapshot.activity = { git: await getGitActivity() };
+    snapshot.activity.git = await getGitActivity();
     const a = snapshot.activity.git;
     const totalCommits = a.days.reduce((sum, d) => sum + d.commits.length, 0);
     const summarized = a.days.filter((d) => d.summary).length;
@@ -103,6 +108,33 @@ export async function refresh() {
     );
   } catch (err) {
     console.warn(`  Warning: git-activity failed — ${err.message}`);
+  }
+
+  try {
+    snapshot.activity.cowork = await getCoworkSessions();
+    const c = snapshot.activity.cowork;
+    const summarized = c.sessions.filter((s) => s.summary).length;
+    console.log(
+      `  Activity (cowork): ${c.sessions.length} session(s) — ${summarized}/${c.sessions.length} summarized.`
+    );
+  } catch (err) {
+    console.warn(`  Warning: cowork-sessions failed — ${err.message}`);
+  }
+
+  try {
+    snapshot.activity.claude_exports = await getClaudeExports();
+    const e = snapshot.activity.claude_exports;
+    console.log(`  Activity (claude.ai exports): ${e.exports.length} file(s).`);
+  } catch (err) {
+    console.warn(`  Warning: claude-exports failed — ${err.message}`);
+  }
+
+  try {
+    snapshot.activity.vault_sessions = await getVaultSessions();
+    const v = snapshot.activity.vault_sessions;
+    console.log(`  Activity (vault sessions): ${v.sessions.length} digest(s).`);
+  } catch (err) {
+    console.warn(`  Warning: vault-sessions failed — ${err.message}`);
   }
 
   const outPath = join(SNAPSHOTS_DIR, 'latest.json');
