@@ -2903,6 +2903,11 @@
       if (data.ok) {
         setStatus('Snapshot refreshed at ' + fmtTime(data.refreshed_at), 'success');
         await fetchDashboard();
+      } else if (res.status === 409 && data.already_running) {
+        // Another refresh (startup or in-flight) is still going. Don't
+        // treat as an error; first-time summarization can take minutes.
+        const startedAt = data.started_at ? ' (started ' + fmtTime(data.started_at) + ')' : '';
+        setStatus('A refresh is already running' + startedAt + ' — wait for it to finish, then reload.');
       } else {
         setStatus('Refresh failed: ' + (data.error || 'unknown'), 'error');
       }

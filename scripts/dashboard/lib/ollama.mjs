@@ -13,7 +13,10 @@
 
 const HOST = process.env.OLLAMA_HOST || 'http://localhost:11434';
 const MODEL = process.env.OLLAMA_MODEL || null;
-const TIMEOUT_MS = Number(process.env.OLLAMA_TIMEOUT_MS) || 180_000;
+// Per-call timeout. Generous for normal generation (gemma4:e4b is ~10-30s
+// for these prompt sizes) but short enough to bail quickly on a hung call
+// instead of blocking a refresh for minutes per stuck session.
+const TIMEOUT_MS = Number(process.env.OLLAMA_TIMEOUT_MS) || 90_000;
 
 export function getOllamaConfig() {
   return { host: HOST, model: MODEL, timeoutMs: TIMEOUT_MS };

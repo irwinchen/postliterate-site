@@ -51,6 +51,12 @@ const HOST = process.env.HOST || undefined; // undefined → Node default (all i
 
 // Track whether this admin process started the dev server
 let devServerProcess = null;
+
+// Concurrent-refresh guard. While set, /api/refresh returns 409 instead
+// of starting a second refresh that would race with the first on the
+// snapshot file write. Cleared in the route handler's finally block (and
+// at the end of the startup-refresh below).
+let refreshInFlight = null;
 let adminStartedDevServer = false;
 
 // ── Helpers ──────────────────────────────────────────────────────────
@@ -385,11 +391,29 @@ async function handleRequest(req, res) {
 
     // POST /api/refresh — regenerate dashboard snapshot on demand
     if (method === 'POST' && path === '/api/refresh') {
+      if (refreshInFlight) {
+        // 409 Conflict — well-defined "request can't proceed because of
+        // current resource state". UI watches for this and shows a
+        // different status message.
+        json(
+          res,
+          {
+            error: 'A refresh is already in progress. Please wait for it to finish.',
+            already_running: true,
+            started_at: refreshInFlight.startedAt,
+          },
+          409
+        );
+        return;
+      }
+      refreshInFlight = { startedAt: new Date().toISOString() };
       try {
         const snapshot = await refresh();
         json(res, { ok: true, refreshed_at: snapshot.refreshed_at });
       } catch (err) {
         json(res, { error: err.message }, 500);
+      } finally {
+        refreshInFlight = null;
       }
       return;
     }
@@ -421,10 +445,13 @@ server.listen(PORT, HOST, () => {
     console.log(`  Warning: could not refresh project status — ${err.message}`);
   }
 
-  // Refresh dashboard snapshot
+  // Refresh dashboard snapshot. Take the lock so a fast manual /api/refresh
+  // landing in the first ~minute of startup can't race with this one.
+  refreshInFlight = { startedAt: new Date().toISOString(), source: 'startup' };
   refresh()
     .then(() => console.log('  Dashboard snapshot refreshed.'))
-    .catch((err) => console.log(`  Warning: could not refresh dashboard snapshot — ${err.message}`));
+    .catch((err) => console.log(`  Warning: could not refresh dashboard snapshot — ${err.message}`))
+    .finally(() => { refreshInFlight = null; });
 
   console.log(`\n  Blog admin running at ${localUrl}  (bound to ${bindAddr})\n`);
   // Only open browser when not in read-only mode (i.e. on the MacBook)
