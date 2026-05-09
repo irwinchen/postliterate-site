@@ -30,6 +30,7 @@ import { join } from 'node:path';
 import { homedir } from 'node:os';
 
 const VAULT = process.env.VAULT_PATH || join(homedir(), 'vaults/PostLiterate');
+const SOURCES_DIR = join(VAULT, '01_Sources');
 const PDFS_DIR = join(VAULT, '01_Sources/PDFs');
 const ARTICLES_DIR = join(VAULT, '01_Sources/Articles');
 const READING_QUEUE_PATH = join(VAULT, '01_Sources/READING_QUEUE.md');
@@ -68,45 +69,65 @@ function fileMeta(dir, name) {
 
 // ── Outstanding sources ────────────────────────────────────────
 //
-// An article note "claims" a PDF when its frontmatter has
+// A source note "claims" a PDF when its frontmatter has
 //   pdf: "[[Filename.pdf]]"
-// We parse only the frontmatter region (between the first --- pair)
-// to avoid false positives from PDF references in body content.
+// (or a bare/quoted filename ending in .pdf). We walk every .md file
+// under 01_Sources/ except the PDFs/ subdir itself — so notes in
+// Articles/, Books/, Reports/, Podcasts/, Videos/, Transcripts/,
+// Literature Notes/, Clippings/, and any future subfolders all count.
 //
-function getOutstandingSources() {
-  const pdfs = safeListFiles(PDFS_DIR, /\.pdf$/i);
-  const articles = safeListFiles(ARTICLES_DIR, /\.md$/i);
-
-  const linked = new Set();
-  for (const articleFile of articles) {
-    let text;
+function walkSourceNotes() {
+  const out = [];
+  const stack = [SOURCES_DIR];
+  while (stack.length) {
+    const dir = stack.pop();
+    let entries;
     try {
-      text = readFileSync(join(ARTICLES_DIR, articleFile), 'utf8');
+      entries = readdirSync(dir, { withFileTypes: true });
     } catch {
       continue;
     }
+    for (const entry of entries) {
+      if (entry.name === 'PDFs') continue; // never recurse into the PDFs leaf
+      const full = join(dir, entry.name);
+      if (entry.isDirectory()) {
+        stack.push(full);
+      } else if (entry.isFile() && /\.md$/i.test(entry.name)) {
+        out.push(full);
+      }
+    }
+  }
+  return out;
+}
 
-    const fm = text.match(/^---\r?\n([\s\S]*?)\r?\n---/);
-    if (!fm) continue;
+function extractLinkedPdf(text) {
+  const fm = text.match(/^---\r?\n([\s\S]*?)\r?\n---/);
+  if (!fm) return null;
+  const pdfLine = fm[1].match(/^pdf\s*:\s*(.*)$/m);
+  if (!pdfLine) return null;
+  const val = pdfLine[1].trim();
+  if (!val) return null;
+  const wikilink = val.match(/\[\[([^\]]+\.pdf)\]\]/i);
+  if (wikilink) return wikilink[1].trim();
+  const cleaned = val.replace(/^["']|["']$/g, '').trim();
+  if (cleaned.toLowerCase().endsWith('.pdf')) return cleaned;
+  return null;
+}
 
-    const pdfLine = fm[1].match(/^pdf\s*:\s*(.*)$/m);
-    if (!pdfLine) continue;
+function getOutstandingSources() {
+  const pdfs = safeListFiles(PDFS_DIR, /\.pdf$/i);
+  const sourceNotes = walkSourceNotes();
 
-    const val = pdfLine[1].trim();
-    if (!val) continue;
-
-    // Most common shape: "[[Filename.pdf]]"
-    const wikilink = val.match(/\[\[([^\]]+\.pdf)\]\]/i);
-    if (wikilink) {
-      linked.add(wikilink[1].trim());
+  const linked = new Set();
+  for (const notePath of sourceNotes) {
+    let text;
+    try {
+      text = readFileSync(notePath, 'utf8');
+    } catch {
       continue;
     }
-
-    // Fallback: bare or quoted filename
-    const cleaned = val.replace(/^["']|["']$/g, '').trim();
-    if (cleaned.toLowerCase().endsWith('.pdf')) {
-      linked.add(cleaned);
-    }
+    const linkedPdf = extractLinkedPdf(text);
+    if (linkedPdf) linked.add(linkedPdf);
   }
 
   const items = pdfs
@@ -124,7 +145,7 @@ function getOutstandingSources() {
   return {
     count: items.length,
     pdfs_total: pdfs.length,
-    articles_total: articles.length,
+    source_notes_total: sourceNotes.length,
     items,
   };
 }

@@ -23,6 +23,7 @@ import { fileURLToPath } from 'node:url';
 import { getCards } from './sources/cards.mjs';
 import { getVaultWatch } from './sources/vault-watch.mjs';
 import { getWritingProgress } from './sources/writing-progress.mjs';
+import { getTodos } from './sources/todos.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const SNAPSHOTS_DIR = join(__dirname, 'snapshots');
@@ -74,6 +75,18 @@ export async function refresh() {
     );
   } catch (err) {
     console.warn(`  Warning: writing-progress failed — ${err.message}`);
+  }
+
+  // Phase 5 — Reminders (TASKS.md)
+  try {
+    snapshot.reminders = await getTodos();
+    const r = snapshot.reminders;
+    console.log(
+      `  Reminders: ${r.open} open · ${r.done} done · ` +
+        `${r.overdue} overdue · ${r.due_today} due today.`
+    );
+  } catch (err) {
+    console.warn(`  Warning: todos failed — ${err.message}`);
   }
 
   const outPath = join(SNAPSHOTS_DIR, 'latest.json');

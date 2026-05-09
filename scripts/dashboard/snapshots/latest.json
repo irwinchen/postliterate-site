@@ -1,5 +1,5 @@
 {
-  "refreshed_at": "2026-05-09T00:12:13.851Z",
+  "refreshed_at": "2026-05-09T00:38:52.761Z",
   "cards": {
     "total": 74,
     "sections": [
@@ -1357,9 +1357,9 @@
   },
   "vault_watch": {
     "outstanding_sources": {
-      "count": 62,
+      "count": 57,
       "pdfs_total": 112,
-      "articles_total": 75,
+      "source_notes_total": 156,
       "items": [
         {
           "pdf": "Yao_Belin_Scheepers_2011_JoCN.pdf",
@@ -1447,21 +1447,6 @@
           "mtime": "2026-05-06T18:00:07.890Z"
         },
         {
-          "pdf": "OECD2019_PISA2018_AssessmentFramework.pdf",
-          "size_kb": 6520,
-          "mtime": "2026-05-05T15:24:54.172Z"
-        },
-        {
-          "pdf": "OECD2023_PISA2022_Vol_II.pdf",
-          "size_kb": 20565,
-          "mtime": "2026-05-05T15:24:53.122Z"
-        },
-        {
-          "pdf": "OECD2023_PISA2022_Vol_I.pdf",
-          "size_kb": 23861,
-          "mtime": "2026-05-05T15:24:42.346Z"
-        },
-        {
           "pdf": "decline_of_reading_survey.pdf",
           "size_kb": 5172,
           "mtime": "2026-05-05T14:12:01.428Z"
@@ -1547,11 +1532,6 @@
           "mtime": "2026-04-15T15:20:17.278Z"
         },
         {
-          "pdf": "Luria1976_CognitiveDevelopment.pdf",
-          "size_kb": 8659,
-          "mtime": "2026-04-14T21:02:38.017Z"
-        },
-        {
           "pdf": "cognitive_surrender.pdf",
           "size_kb": 1868,
           "mtime": "2026-04-01T19:50:21.849Z"
@@ -1632,11 +1612,6 @@
           "mtime": "2026-01-12T18:31:50.556Z"
         },
         {
-          "pdf": "wolf2018_reader_come_home.pdf",
-          "size_kb": 5856,
-          "mtime": "2026-01-01T22:13:08.584Z"
-        },
-        {
           "pdf": "The bias of communication -- Harold Innis.pdf",
           "size_kb": 10909,
           "mtime": "2025-12-11T17:02:43.606Z"
@@ -1674,14 +1649,14 @@
       ]
     },
     "reading_queue": {
-      "total": 53,
+      "total": 55,
       "by_status": {
-        "to-read": 45,
+        "to-read": 47,
         "reading": 4,
         "read": 4,
         "finished": 0
       },
-      "to_read": 45,
+      "to_read": 47,
       "in_progress": 4,
       "done": 4,
       "items": [
@@ -2002,6 +1977,18 @@
           "kind": "web-column",
           "added": "05-08-2026",
           "status": "to-read"
+        },
+        {
+          "slug": "Liu2026 AI Assistance Reduces Persistence",
+          "kind": "paper",
+          "added": "05-08-2026",
+          "status": "to-read"
+        },
+        {
+          "slug": "Cutler2024 When Do Geneticists Believe the Human Brain Evolved",
+          "kind": "article",
+          "added": "05-08-2026",
+          "status": "to-read"
         }
       ]
     },
@@ -2115,7 +2102,7 @@
     ]
   },
   "writing": {
-    "captured_at": "2026-05-09T00:12:13.948Z",
+    "captured_at": "2026-05-09T00:38:52.856Z",
     "today": "2026-05-09",
     "counts": {
       "cards": {
@@ -2132,7 +2119,7 @@
       },
       "daily": {
         "files": 126,
-        "words": 39589
+        "words": 39590
       },
       "ideas": {
         "files": 25,
@@ -2158,7 +2145,7 @@
       ],
       "daily": [
         39589,
-        39589
+        39590
       ],
       "ideas": [
         9574,
@@ -2175,8 +2162,8 @@
         "d30": 0
       },
       "daily": {
-        "d7": 0,
-        "d30": 0
+        "d7": 1,
+        "d30": 1
       },
       "ideas": {
         "d7": 0,
@@ -2184,6 +2171,28 @@
       }
     }
   },
-  "reminders": null,
+  "reminders": {
+    "total": 1,
+    "open": 1,
+    "done": 0,
+    "overdue": 0,
+    "due_today": 0,
+    "sections": [
+      {
+        "heading": null,
+        "level": 0,
+        "items": [
+          {
+            "line": 1,
+            "indent": 0,
+            "done": false,
+            "text": "Finish Postliterate Dashboard Phase 1",
+            "due": null,
+            "tags": []
+          }
+        ]
+      }
+    ]
+  },
   "activity": null
 }

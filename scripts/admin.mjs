@@ -37,6 +37,7 @@ import {
   setReadingQueueItemStatus,
   READING_STATUSES,
 } from './dashboard/sources/vault-watch.mjs';
+import { getTodos, toggleTodo } from './dashboard/sources/todos.mjs';
 
 const __dirname = fileURLToPath(new URL('.', import.meta.url));
 const PORT = 4322;
@@ -343,6 +344,39 @@ async function handleRequest(req, res) {
         }
 
         json(res, { ok: true, ...result, queue });
+      } catch (err) {
+        json(res, { error: err.message }, 500);
+      }
+      return;
+    }
+
+    // POST /api/todos/toggle — flip a TASKS.md checkbox
+    if (method === 'POST' && path === '/api/todos/toggle') {
+      if (READ_ONLY) { json(res, { error: 'Server is in read-only mode' }, 403); return; }
+      const body = await readBody(req);
+      if (!body || typeof body.line !== 'number' || typeof body.done !== 'boolean') {
+        json(res, { error: 'line (number, 1-indexed) and done (boolean) are required' }, 400);
+        return;
+      }
+      try {
+        const result = toggleTodo(body.line, body.done);
+
+        // Patch snapshots/latest.json so reloads see the new state.
+        const snapshotPath = join(__dirname, 'dashboard/snapshots/latest.json');
+        let reminders = null;
+        if (existsSync(snapshotPath)) {
+          try {
+            const snap = JSON.parse(readFileSync(snapshotPath, 'utf8'));
+            const fresh = await getTodos();
+            snap.reminders = fresh;
+            writeFileSync(snapshotPath, JSON.stringify(snap, null, 2), 'utf8');
+            reminders = fresh;
+          } catch (e) {
+            console.warn(`  todos snapshot patch failed — ${e.message}`);
+          }
+        }
+
+        json(res, { ok: true, ...result, reminders });
       } catch (err) {
         json(res, { error: err.message }, 500);
       }

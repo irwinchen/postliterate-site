@@ -722,6 +722,155 @@
       padding: 0.05em 0.28em;
     }
 
+    /* ── Reminders / TASKS.md ────────────────── */
+    .todo-layout {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 1.5rem;
+      align-items: start;
+    }
+
+    .todo-content {
+      min-inline-size: 0;
+    }
+
+    .todo-summary {
+      font-family: 'Sono', monospace;
+      font-size: 0.75rem;
+      color: var(--muted);
+      margin-block-end: 0.75rem;
+    }
+
+    .todo-edit-card {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.55rem;
+      padding: 1rem;
+      border: 1.5px solid var(--border);
+      color: var(--fg);
+      text-decoration: none;
+      transition: background 0.12s, color 0.12s;
+    }
+
+    .todo-edit-card:hover,
+    .todo-edit-card:focus-visible {
+      background: var(--fg);
+      color: var(--bg);
+    }
+
+    .todo-edit-card:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
+
+    .todo-edit-card svg {
+      inline-size: 28px;
+      block-size: 28px;
+      display: block;
+    }
+
+    .todo-edit-label {
+      font-family: 'Outfit', system-ui, sans-serif;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    .todo-edit-sub {
+      font-family: 'Sono', monospace;
+      font-size: 0.7rem;
+      opacity: 0.65;
+    }
+
+    .todo-section {
+      margin-block-end: 1.25rem;
+    }
+
+    .todo-section:last-child {
+      margin-block-end: 0;
+    }
+
+    .todo-section-heading {
+      font-family: 'Outfit', system-ui, sans-serif;
+      font-weight: 600;
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--muted);
+      margin-block-end: 0.5rem;
+    }
+
+    .todo-list {
+      border: 1.5px solid var(--border);
+    }
+
+    .todo-row {
+      display: flex;
+      align-items: center;
+      gap: 0.65rem;
+      padding: 0.55rem 0.75rem;
+      border-block-end: 1px solid var(--border-subtle);
+      font-size: 0.9rem;
+      line-height: 1.35;
+    }
+
+    .todo-row:last-child {
+      border-block-end: none;
+    }
+
+    .todo-row.done .todo-text {
+      color: var(--muted);
+      text-decoration: line-through;
+    }
+
+    .todo-check {
+      flex-shrink: 0;
+      inline-size: 1.05rem;
+      block-size: 1.05rem;
+      accent-color: var(--accent);
+      cursor: pointer;
+      margin: 0;
+    }
+
+    .todo-check:disabled {
+      cursor: not-allowed;
+      opacity: 0.5;
+    }
+
+    .todo-text {
+      flex: 1;
+      min-inline-size: 0;
+      word-break: break-word;
+    }
+
+    .todo-due {
+      font-family: 'Sono', monospace;
+      font-size: 0.7rem;
+      color: var(--muted);
+      flex-shrink: 0;
+      padding: 0.05rem 0.4rem;
+      border: 1px solid var(--border-subtle);
+    }
+
+    .todo-due-today {
+      color: var(--blue);
+      border-color: var(--blue);
+    }
+
+    .todo-due-overdue {
+      color: var(--accent);
+      border-color: var(--accent);
+    }
+
+    .todo-tag {
+      font-family: 'Sono', monospace;
+      font-size: 0.7rem;
+      color: var(--muted);
+      flex-shrink: 0;
+    }
+
     /* ── Writing progress ────────────────────── */
     .writing-card {
       display: flex;
@@ -884,6 +1033,7 @@
     @media (max-width: 768px) {
       .kpi-row { grid-template-columns: repeat(2, 1fr); }
       .vw-grid { grid-template-columns: 1fr; }
+      .todo-layout { grid-template-columns: 1fr; }
       .section-nav {
         overflow-x: auto;
         scrollbar-width: none;
@@ -1850,7 +2000,7 @@
     }
 
     const vw = data.vault_watch;
-    const os = vw.outstanding_sources || { count: 0, items: [], pdfs_total: 0, articles_total: 0 };
+    const os = vw.outstanding_sources || { count: 0, items: [], pdfs_total: 0, source_notes_total: 0 };
     const rq = vw.reading_queue || { total: 0, unread: 0, read: 0, items: [] };
     const dailyNotes = vw.recent_daily_notes || [];
     const concepts = vw.recent_concepts || [];
@@ -1866,7 +2016,7 @@
         <div class="kpi-card">
           <div class="kpi-label">Outstanding PDFs</div>
           <div class="kpi-value" style="color:${os.count > 0 ? 'var(--accent)' : 'var(--green)'};">${os.count}</div>
-          <div class="kpi-metric">${linkedTotal} linked of ${os.pdfs_total} total · ${os.articles_total} article notes</div>
+          <div class="kpi-metric">${linkedTotal} linked of ${os.pdfs_total} total · ${os.source_notes_total} source notes</div>
         </div>
         <div class="kpi-card">
           <div class="kpi-label">Reading Queue</div>
@@ -2233,14 +2383,143 @@
     }
   }
 
-  // ── Reminders (Phase 5 stub) ─────────────────
+  // ── Reminders (Phase 5) ──────────────────────
   function renderReminders(data) {
     const el = document.getElementById('reminders-body');
-    if (!data || data.reminders === null) {
-      el.innerHTML = '<div class="empty">Reminders not yet available — coming in Phase 5.</div>';
+    if (!data || !data.reminders) {
+      el.innerHTML = '<div class="empty">Reminders not yet available — click Refresh.</div>';
       return;
     }
-    el.innerHTML = '<div class="empty">Reminders data present but renderer not yet implemented.</div>';
+
+    const r = data.reminders;
+    const editUrl = obsidianUrl('06_Meta/TASKS.md');
+
+    let contentHtml;
+    if (r.total === 0) {
+      contentHtml = '<div class="empty">No reminders in TASKS.md.</div>';
+    } else {
+      let sectionsHtml = '';
+      for (const section of r.sections) {
+        if (section.items.length === 0) continue;
+        const headingHtml = section.heading
+          ? `<h3 class="todo-section-heading">${escapeHtml(section.heading)}</h3>`
+          : '';
+        const rowsHtml = section.items.map((item) => renderTodoRow(item, 0)).join('');
+        sectionsHtml += `<div class="todo-section">${headingHtml}<div class="todo-list">${rowsHtml}</div></div>`;
+      }
+      contentHtml = sectionsHtml;
+    }
+
+    const summary = r.total > 0
+      ? `${r.open} open · ${r.done} done${r.overdue > 0 ? ` · <span style="color:var(--accent);">${r.overdue} overdue</span>` : ''}${r.due_today > 0 ? ` · ${r.due_today} due today` : ''}`
+      : 'inbox zero';
+
+    el.innerHTML = `
+      <div class="todo-layout">
+        <div class="todo-content">
+          <div class="todo-summary">${summary}</div>
+          ${contentHtml}
+        </div>
+        <a class="todo-edit-card" href="${editUrl}" aria-label="Edit TASKS.md in Obsidian">
+          ${OBSIDIAN_ICON_SVG}
+          <span class="todo-edit-label">Edit in Obsidian</span>
+          <span class="todo-edit-sub">06_Meta/TASKS.md</span>
+        </a>
+      </div>
+    `;
+
+    attachTodoListener();
+  }
+
+  function renderTodoRow(item, depth) {
+    const todayStr = new Date().toISOString().slice(0, 10);
+    let dueClass = '';
+    let dueLabel = '';
+    if (item.due) {
+      if (!item.done && item.due < todayStr) dueClass = 'todo-due-overdue';
+      else if (!item.done && item.due === todayStr) dueClass = 'todo-due-today';
+      dueLabel = `<span class="todo-due ${dueClass}">${escapeHtml(item.due)}</span>`;
+    }
+    const tagsLabel = (item.tags || []).map((t) => `<span class="todo-tag">#${escapeHtml(t)}</span>`).join(' ');
+    const disabled = isReadOnly ? 'disabled' : '';
+    const indentStyle = depth > 0 ? `padding-inline-start: ${0.75 + depth * 1.25}rem;` : '';
+
+    let childrenHtml = '';
+    if (item.children && item.children.length) {
+      childrenHtml = item.children.map((c) => renderTodoRow(c, depth + 1)).join('');
+    }
+
+    return `
+      <div class="todo-row${item.done ? ' done' : ''}" data-line="${item.line}" style="${indentStyle}">
+        <input type="checkbox" class="todo-check" ${item.done ? 'checked' : ''} ${disabled}
+               aria-label="${escapeHtml(item.text)}">
+        <div class="todo-text">${escapeHtml(item.text)}</div>
+        ${dueLabel}
+        ${tagsLabel}
+      </div>
+      ${childrenHtml}
+    `;
+  }
+
+  function attachTodoListener() {
+    const body = document.getElementById('reminders-body');
+    if (!body || body.dataset.listenerAttached === '1') return;
+    body.dataset.listenerAttached = '1';
+    body.addEventListener('change', (e) => {
+      const cb = e.target;
+      if (!(cb instanceof HTMLInputElement) || !cb.classList.contains('todo-check')) return;
+      const row = cb.closest('.todo-row');
+      const line = row && Number(row.dataset.line);
+      if (!line) return;
+      console.log('[todos] change', { line, done: cb.checked });
+      toggleTodoItem(cb, line);
+    });
+  }
+
+  async function toggleTodoItem(checkbox, line) {
+    if (isReadOnly) return;
+    const wantDone = checkbox.checked;
+    const row = checkbox.closest('.todo-row');
+
+    checkbox.disabled = true;
+    setStatus(`${wantDone ? 'Marking done' : 'Reopening'} task on line ${line}…`);
+
+    try {
+      const res = await fetch(API + '/api/todos/toggle', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ line, done: wantDone }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.ok) throw new Error(data.error || 'toggle failed');
+
+      row.classList.toggle('done', wantDone);
+
+      if (data.reminders && dashboardData) {
+        dashboardData.reminders = data.reminders;
+        renderReminderSummary(data.reminders);
+      }
+
+      setStatus(`Task ${wantDone ? 'completed' : 'reopened'} (line ${line})`, 'success');
+    } catch (err) {
+      checkbox.checked = !wantDone;
+      setStatus(`Toggle failed: ${err.message}`, 'error');
+    } finally {
+      checkbox.disabled = false;
+    }
+  }
+
+  function renderReminderSummary(r) {
+    const summary = document.querySelector('#reminders-body .todo-summary');
+    if (!summary) return;
+    if (r.total === 0) {
+      summary.textContent = 'inbox zero';
+      return;
+    }
+    const parts = [`${r.open} open`, `${r.done} done`];
+    if (r.overdue > 0) parts.push(`<span style="color:var(--accent);">${r.overdue} overdue</span>`);
+    if (r.due_today > 0) parts.push(`${r.due_today} due today`);
+    summary.innerHTML = parts.join(' · ');
   }
 
   // ── On-demand refresh ────────────────────────
