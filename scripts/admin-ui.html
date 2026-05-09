@@ -755,6 +755,15 @@
       gap: 0.4rem;
     }
 
+    .rw-stream-count {
+      font-family: 'Sono', monospace;
+      font-size: 0.65rem;
+      font-weight: 400;
+      letter-spacing: 0;
+      text-transform: none;
+      opacity: 0.85;
+    }
+
     .rw-day {
       border: 1.5px solid var(--border);
       padding: 0.85rem 1rem;
@@ -2775,9 +2784,14 @@
 
     // Claude.ai exports — only render if non-empty.
     if (claudeExports.exports.length > 0) {
+      const matchedTotal = claudeExports.matched_total || claudeExports.exports.length;
+      const sourceLabel = claudeExports.source ? ` from ${escapeHtml(claudeExports.source)}` : '';
+      const countLabel = matchedTotal > claudeExports.exports.length
+        ? `<span class="rw-stream-count">showing ${claudeExports.exports.length} of ${matchedTotal}${sourceLabel}</span>`
+        : `<span class="rw-stream-count">${claudeExports.exports.length} chat${claudeExports.exports.length === 1 ? '' : 's'}${sourceLabel}</span>`;
       streams.push(`
         <div class="rw-stream">
-          <h3 class="rw-stream-heading"><i data-lucide="messages-square" style="width:14px;height:14px;vertical-align:-2px;"></i> Claude.ai chat exports</h3>
+          <h3 class="rw-stream-heading"><i data-lucide="messages-square" style="width:14px;height:14px;vertical-align:-2px;"></i> Claude.ai chat exports ${countLabel}</h3>
           ${claudeExports.exports.map((e) => renderClaudeExport(e)).join('')}
         </div>
       `);
