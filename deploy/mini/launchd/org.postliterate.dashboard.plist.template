@@ -39,7 +39,7 @@
       OLLAMA_HOST defaults to http://localhost:11434 if unset.
     -->
     <key>OLLAMA_MODEL</key>
-    <string>gemma3:12b</string>
+    <string>gemma4:e4b</string>
   </dict>
 
   <key>RunAtLoad</key>
