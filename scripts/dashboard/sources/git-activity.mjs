@@ -92,8 +92,9 @@ function groupByDay(commits) {
 const SYSTEM_PROMPT =
   "You summarize a single day of git commits across two repos for a writing+coding project called 'After the Book'. " +
   "The repos are: 'site' (a public-facing Astro/Vercel site for postliterate.org) and 'vault' (an Obsidian vault holding book drafts, daily notes, and source notes). " +
-  "Focus on what was built, refactored, or written. Group related commits. Skip mechanical noise like merges, formatting, or version bumps. " +
-  "Output 1–3 short bullets, plain prose, no preamble, no headers, no quoting commit hashes.";
+  "Focus on what was built, refactored, or written. Group related commits. Skip mechanical noise like merges, formatting, or version bumps.\n\n" +
+  "Output exactly 1–3 markdown bullets, ONE PER LINE, each starting with '- ' (dash + space). " +
+  "Each bullet is one short sentence. No preamble, no headers, no commit hashes, no asterisks.";
 
 function buildPrompt(date, commits) {
   const lines = commits.map((c) => `- [${c.repo}] ${c.subject}`).join('\n');

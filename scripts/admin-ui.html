@@ -783,15 +783,43 @@
       color: var(--muted);
     }
 
+    .rw-day-body {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.25rem;
+      align-items: start;
+    }
+
     .rw-summary {
       font-family: 'Literata', Georgia, serif;
       font-size: 0.9rem;
       line-height: 1.45;
       color: var(--fg);
-      padding: 0.5rem 0.75rem;
+      padding: 0.6rem 0.9rem;
       border-inline-start: 3px solid var(--accent);
       background: var(--hover-bg-soft);
-      margin-block-end: 0.65rem;
+      text-wrap: pretty;
+    }
+
+    .rw-summary > :first-child { margin-block-start: 0; }
+    .rw-summary > :last-child  { margin-block-end: 0; }
+
+    .rw-summary ul,
+    .rw-summary ol {
+      padding-inline-start: 1.1rem;
+      margin: 0;
+    }
+
+    .rw-summary li {
+      margin-block-end: 0.35rem;
+    }
+
+    .rw-summary li:last-child {
+      margin-block-end: 0;
+    }
+
+    .rw-summary p {
+      margin-block: 0.4rem;
     }
 
     .rw-commits {
@@ -1149,6 +1177,7 @@
       .kpi-row { grid-template-columns: repeat(2, 1fr); }
       .vw-grid { grid-template-columns: 1fr; }
       .todo-layout { grid-template-columns: 1fr; }
+      .rw-day-body { grid-template-columns: 1fr; }
       .section-nav {
         overflow-x: auto;
         scrollbar-width: none;
@@ -2649,6 +2678,25 @@
     summary.innerHTML = parts.join(' · ');
   }
 
+  // Normalize and markdown-render an Ollama summary so bullets render
+  // as a real <ul>. Older cached summaries from gemma3 came back as
+  // "* foo * bar * baz" on one line — split those before parsing.
+  function renderSummaryMarkdown(raw) {
+    if (!raw) return '';
+    let text = raw.trim();
+    // If the summary has bullets glued together with " * " or " - ",
+    // break them onto their own lines first.
+    text = text.replace(/\s+\*\s+/g, '\n* ').replace(/\s+-\s+/g, '\n- ');
+    // Trim a leading bullet marker so we don't get an empty first item.
+    text = text.replace(/^[*-]\s+/, '* ');
+    if (typeof marked === 'undefined') {
+      // Conservative fallback if marked failed to load.
+      const safe = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      return `<pre style="white-space:pre-wrap; margin:0;">${safe}</pre>`;
+    }
+    return marked.parse(text);
+  }
+
   // ── Recent Work / Activity feed (Phase 6, Slice 1) ──
   function renderRecentWork(data) {
     const el = document.getElementById('recent-work-body');
@@ -2685,10 +2733,11 @@
   }
 
   function renderActivityDay(day) {
-    const dateStr = new Date(day.date).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
-    const summaryHtml = day.summary
-      ? `<div class="rw-summary">${escapeHtml(day.summary)}</div>`
-      : '';
+    // day.date is a YYYY-MM-DD string. Parse as a LOCAL date — using
+    // new Date('YYYY-MM-DD') would treat it as UTC midnight, which can
+    // shift the displayed weekday/day in non-UTC timezones.
+    const [yy, mm, dd] = day.date.split('-').map(Number);
+    const dateStr = new Date(yy, mm - 1, dd).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
     const commitRows = day.commits.map((c) => {
       const repoBadge = `<span class="rw-repo-badge rw-repo-${escapeHtml(c.repo)}">${escapeHtml(c.repo)}</span>`;
       return `
@@ -2700,14 +2749,21 @@
       `;
     }).join('');
 
+    const commitsCol = `<div class="rw-commits">${commitRows}</div>`;
+    const bodyHtml = day.summary
+      ? `<div class="rw-day-body">
+           <div class="rw-summary">${renderSummaryMarkdown(day.summary)}</div>
+           ${commitsCol}
+         </div>`
+      : commitsCol;
+
     return `
       <div class="rw-day">
         <div class="rw-day-heading">
           <span class="rw-day-date">${dateStr}</span>
           <span class="rw-day-meta">${day.date} · ${day.commits.length} commit${day.commits.length === 1 ? '' : 's'}</span>
         </div>
-        ${summaryHtml}
-        <div class="rw-commits">${commitRows}</div>
+        ${bodyHtml}
       </div>
     `;
   }
