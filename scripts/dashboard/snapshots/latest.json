@@ -1,5 +1,5 @@
 {
-  "refreshed_at": "2026-05-09T00:38:52.761Z",
+  "refreshed_at": "2026-05-09T01:28:30.984Z",
   "cards": {
     "total": 74,
     "sections": [
@@ -1357,20 +1357,10 @@
   },
   "vault_watch": {
     "outstanding_sources": {
-      "count": 57,
-      "pdfs_total": 112,
+      "count": 41,
+      "pdfs_total": 99,
       "source_notes_total": 156,
       "items": [
-        {
-          "pdf": "Yao_Belin_Scheepers_2011_JoCN.pdf",
-          "size_kb": 219,
-          "mtime": "2026-05-08T14:33:33.335Z"
-        },
-        {
-          "pdf": "Saygin_2016_NatureNeuro.pdf",
-          "size_kb": 1089,
-          "mtime": "2026-05-08T13:57:21.234Z"
-        },
         {
           "pdf": "Saygin2025 - Connectivity.pdf",
           "size_kb": 997,
@@ -1397,24 +1387,9 @@
           "mtime": "2026-05-08T12:33:44.651Z"
         },
         {
-          "pdf": "Chen-VWFA-part-of-language-and-attention-circuitry.pdf",
-          "size_kb": 1743,
-          "mtime": "2026-05-08T12:21:22.779Z"
-        },
-        {
           "pdf": "fnhum-20-1687121.pdf",
           "size_kb": 257,
           "mtime": "2026-05-07T14:17:09.834Z"
-        },
-        {
-          "pdf": "Benso+et+al.+2025+Frontiers.pdf",
-          "size_kb": 981,
-          "mtime": "2026-05-07T13:05:06.440Z"
-        },
-        {
-          "pdf": "Isko2026 - Singing Mouse.pdf",
-          "size_kb": 13760,
-          "mtime": "2026-05-07T12:05:50.150Z"
         },
         {
           "pdf": "Saxe2003_TheoryOfMindTPJ.pdf",
@@ -1425,26 +1400,6 @@
           "pdf": "Fedorenko2010_NewMethodfMRILanguageROIs.pdf",
           "size_kb": 2241,
           "mtime": "2026-05-06T20:19:13.325Z"
-        },
-        {
-          "pdf": "Parvizi2026 - Functional_Architecture.pdf",
-          "size_kb": 3218,
-          "mtime": "2026-05-06T18:03:46.295Z"
-        },
-        {
-          "pdf": "Paunov_et_al_2019_JNeurophys.pdf",
-          "size_kb": 4440,
-          "mtime": "2026-05-06T18:02:40.860Z"
-        },
-        {
-          "pdf": "mineroff2018_default_mode_networks.pdf",
-          "size_kb": 1615,
-          "mtime": "2026-05-06T18:01:26.057Z"
-        },
-        {
-          "pdf": "Ogawa2025_neural_correlates.pdf",
-          "size_kb": 3036,
-          "mtime": "2026-05-06T18:00:07.890Z"
         },
         {
           "pdf": "decline_of_reading_survey.pdf",
@@ -1482,11 +1437,6 @@
           "mtime": "2026-04-23T13:18:20.938Z"
         },
         {
-          "pdf": "Claude Sonnet 4.6 System Card.pdf",
-          "size_kb": 9138,
-          "mtime": "2026-04-22T20:20:00.511Z"
-        },
-        {
           "pdf": "how_ai_use_impacts_skill_formation.pdf",
           "size_kb": 2793,
           "mtime": "2026-04-22T20:03:35.763Z"
@@ -1495,26 +1445,6 @@
           "pdf": "Left-Right_reasoning.pdf",
           "size_kb": 693,
           "mtime": "2026-04-20T19:25:29.951Z"
-        },
-        {
-          "pdf": "mangen a_2013_reading_linear_texts_on_paper_ve_14552.pdf",
-          "size_kb": 192,
-          "mtime": "2026-04-19T22:15:06.949Z"
-        },
-        {
-          "pdf": "scribner-cole-1978-unpackaging-literacy.pdf",
-          "size_kb": 1023,
-          "mtime": "2026-04-19T16:59:38.276Z"
-        },
-        {
-          "pdf": "PARRY - Culture  Literacy  and L2 Reading.pdf",
-          "size_kb": 151,
-          "mtime": "2026-04-17T12:04:09.452Z"
-        },
-        {
-          "pdf": "1993 - Street - The new literacy studies  guest editorial.pdf",
-          "size_kb": 1246,
-          "mtime": "2026-04-17T02:15:20.187Z"
         },
         {
           "pdf": "LamdanYasnitsky2016.pdf",
@@ -1542,11 +1472,6 @@
           "mtime": "2026-03-24T17:59:58.999Z"
         },
         {
-          "pdf": "Sharma2024 UnderstandingSycophancy.pdf",
-          "size_kb": 1351,
-          "mtime": "2026-03-24T17:48:21.726Z"
-        },
-        {
           "pdf": "00-Distinguishing cause from effect _ many deficits associated with developmental dyslexia may be.pdf",
           "size_kb": 1806,
           "mtime": "2026-03-19T13:00:18.000Z"
@@ -1570,11 +1495,6 @@
           "pdf": "AI-Admissions-Key-Findings_Final_2024.07.08.pdf",
           "size_kb": 1699,
           "mtime": "2026-03-09T14:25:23.718Z"
-        },
-        {
-          "pdf": "Stiegler_Pharmakon.pdf",
-          "size_kb": 149,
-          "mtime": "2026-03-06T15:29:10.667Z"
         },
         {
           "pdf": "TimeDiscounting.pdf",
@@ -2102,7 +2022,7 @@
     ]
   },
   "writing": {
-    "captured_at": "2026-05-09T00:38:52.856Z",
+    "captured_at": "2026-05-09T01:28:31.212Z",
     "today": "2026-05-09",
     "counts": {
       "cards": {
@@ -2194,5 +2114,234 @@
       }
     ]
   },
-  "activity": null
+  "activity": {
+    "git": {
+      "ollama_available": false,
+      "model": null,
+      "days": [
+        {
+          "date": "2026-05-08",
+          "commits": [
+            {
+              "repo": "site",
+              "sha": "62fc3c3",
+              "date": "2026-05-08",
+              "iso": "2026-05-08T20:48:59-04:00",
+              "author": "irwinchen",
+              "subject": "Phase 5: Reminders (TASKS.md) + outstanding-sources widening"
+            },
+            {
+              "repo": "site",
+              "sha": "844fd10",
+              "date": "2026-05-08",
+              "iso": "2026-05-08T20:17:14-04:00",
+              "author": "irwinchen",
+              "subject": "Phase 4: Writing Progress + dashboard polish (dark mode, Obsidian icon, concepts)"
+            },
+            {
+              "repo": "site",
+              "sha": "6367177",
+              "date": "2026-05-08",
+              "iso": "2026-05-08T19:31:47-04:00",
+              "author": "irwinchen",
+              "subject": "Add writing rules: never write as Irwin, inline code for suggested content"
+            },
+            {
+              "repo": "site",
+              "sha": "2449e0b",
+              "date": "2026-05-08",
+              "iso": "2026-05-08T19:22:11-04:00",
+              "author": "irwinchen",
+              "subject": "Phase 3: Vault Watch + reading-queue status workflow"
+            },
+            {
+              "repo": "site",
+              "sha": "6cd6967",
+              "date": "2026-05-08",
+              "iso": "2026-05-08T16:42:31-04:00",
+              "author": "irwinchen",
+              "subject": "refactor(brain-viz): remove contrast-pair presets"
+            },
+            {
+              "repo": "site",
+              "sha": "57ecb20",
+              "date": "2026-05-08",
+              "iso": "2026-05-08T16:33:01-04:00",
+              "author": "irwinchen",
+              "subject": "Phase 2: cards browser"
+            },
+            {
+              "repo": "site",
+              "sha": "d189606",
+              "date": "2026-05-08",
+              "iso": "2026-05-08T16:24:33-04:00",
+              "author": "irwinchen",
+              "subject": "Phase 1: dashboard scaffolding"
+            },
+            {
+              "repo": "site",
+              "sha": "5084101",
+              "date": "2026-05-08",
+              "iso": "2026-05-08T16:03:13-04:00",
+              "author": "irwinchen",
+              "subject": "Add dashboard design notes for cross-session handoff"
+            },
+            {
+              "repo": "site",
+              "sha": "33ebd69",
+              "date": "2026-05-08",
+              "iso": "2026-05-08T15:49:08-04:00",
+              "author": "irwinchen",
+              "subject": "Add Mac Mini deployment (launchd service + git-pull timer)"
+            },
+            {
+              "repo": "site",
+              "sha": "b6bd2bf",
+              "date": "2026-05-08",
+              "iso": "2026-05-08T11:39:59-04:00",
+              "author": "irwinchen",
+              "subject": "feat(brain-viz): glossary tooltips + chip polish"
+            },
+            {
+              "repo": "site",
+              "sha": "deb4de4",
+              "date": "2026-05-08",
+              "iso": "2026-05-08T10:39:08-04:00",
+              "author": "irwinchen",
+              "subject": "feat(brain-viz): Phase D — cross-paper compare, 7-color palette, direction labels"
+            }
+          ],
+          "summary": null
+        },
+        {
+          "date": "2026-05-07",
+          "commits": [
+            {
+              "repo": "site",
+              "sha": "7cf68fa",
+              "date": "2026-05-07",
+              "iso": "2026-05-07T21:05:25-04:00",
+              "author": "irwinchen",
+              "subject": "feat(brain-viz): Phase C — VWFA single-ROI view (Cohen 2002)"
+            },
+            {
+              "repo": "site",
+              "sha": "2f5783f",
+              "date": "2026-05-07",
+              "iso": "2026-05-07T16:41:21-04:00",
+              "author": "irwinchen",
+              "subject": "fix(brain-viz): triple-network parcel labels + centroid positions"
+            },
+            {
+              "repo": "site",
+              "sha": "f173fe1",
+              "date": "2026-05-07",
+              "iso": "2026-05-07T16:22:56-04:00",
+              "author": "irwinchen",
+              "subject": "feat(brain-viz): Phase B — Triple Network view (CEN/DMN/SN)"
+            },
+            {
+              "repo": "site",
+              "sha": "5f6f8c5",
+              "date": "2026-05-07",
+              "iso": "2026-05-07T16:20:40-04:00",
+              "author": "irwinchen",
+              "subject": "feat(brain-viz): Phase A — view-agnostic architecture + glossary + leader lines"
+            }
+          ],
+          "summary": null
+        },
+        {
+          "date": "2026-05-06",
+          "commits": [
+            {
+              "repo": "site",
+              "sha": "33ae345",
+              "date": "2026-05-06",
+              "iso": "2026-05-06T20:10:37-04:00",
+              "author": "irwinchen",
+              "subject": "perf: pre-decimate brain meshes offline (15% retention)"
+            },
+            {
+              "repo": "site",
+              "sha": "cce5b85",
+              "date": "2026-05-06",
+              "iso": "2026-05-06T17:26:58-04:00",
+              "author": "irwinchen",
+              "subject": "add: brain modes 3D — interactive figure for the four cognitive modes"
+            }
+          ],
+          "summary": null
+        },
+        {
+          "date": "2026-05-05",
+          "commits": [
+            {
+              "repo": "site",
+              "sha": "eb4d3c2",
+              "date": "2026-05-05",
+              "iso": "2026-05-05T15:00:10-04:00",
+              "author": "irwinchen",
+              "subject": "republish: thoth-the-original-tech-bro"
+            },
+            {
+              "repo": "site",
+              "sha": "01e4465",
+              "date": "2026-05-05",
+              "iso": "2026-05-05T14:59:15-04:00",
+              "author": "irwinchen",
+              "subject": "republish: thoth-the-original-tech-bro"
+            },
+            {
+              "repo": "site",
+              "sha": "d41fe10",
+              "date": "2026-05-05",
+              "iso": "2026-05-05T14:54:20-04:00",
+              "author": "irwinchen",
+              "subject": "republish: Why hearing an author talk about their book isn't the same as reading it"
+            },
+            {
+              "repo": "site",
+              "sha": "e8ac572",
+              "date": "2026-05-05",
+              "iso": "2026-05-05T14:54:17-04:00",
+              "author": "irwinchen",
+              "subject": "republish: the-skeptics-window"
+            },
+            {
+              "repo": "site",
+              "sha": "d956f67",
+              "date": "2026-05-05",
+              "iso": "2026-05-05T14:54:15-04:00",
+              "author": "irwinchen",
+              "subject": "republish: my-path-to-ai"
+            },
+            {
+              "repo": "site",
+              "sha": "ed089a2",
+              "date": "2026-05-05",
+              "iso": "2026-05-05T14:54:10-04:00",
+              "author": "irwinchen",
+              "subject": "republish: i-could-never-explain-what-i-did"
+            }
+          ],
+          "summary": null
+        },
+        {
+          "date": "2026-05-04",
+          "commits": [
+            {
+              "repo": "site",
+              "sha": "c0fbc3e",
+              "date": "2026-05-04",
+              "iso": "2026-05-04T08:10:11-04:00",
+              "author": "irwinchen",
+              "subject": "redesign: new homepage — Virgil lockup, chronological archive layout"
+            }
+          ],
+          "summary": null
+        }
+      ]
+    }
+  }
 }

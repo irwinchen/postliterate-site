@@ -24,6 +24,7 @@ import { getCards } from './sources/cards.mjs';
 import { getVaultWatch } from './sources/vault-watch.mjs';
 import { getWritingProgress } from './sources/writing-progress.mjs';
 import { getTodos } from './sources/todos.mjs';
+import { getGitActivity } from './sources/git-activity.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const SNAPSHOTS_DIR = join(__dirname, 'snapshots');
@@ -87,6 +88,21 @@ export async function refresh() {
     );
   } catch (err) {
     console.warn(`  Warning: todos failed — ${err.message}`);
+  }
+
+  // Phase 6 (Slice 1) — Git activity (summarized via Ollama when available)
+  try {
+    snapshot.activity = { git: await getGitActivity() };
+    const a = snapshot.activity.git;
+    const totalCommits = a.days.reduce((sum, d) => sum + d.commits.length, 0);
+    const summarized = a.days.filter((d) => d.summary).length;
+    console.log(
+      `  Activity (git): ${totalCommits} commit(s) over ${a.days.length} day(s) — ` +
+        `Ollama ${a.ollama_available ? `up (${a.model})` : 'unavailable, raw rendering'} · ` +
+        `${summarized}/${a.days.length} summarized.`
+    );
+  } catch (err) {
+    console.warn(`  Warning: git-activity failed — ${err.message}`);
   }
 
   const outPath = join(SNAPSHOTS_DIR, 'latest.json');

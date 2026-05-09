@@ -33,6 +33,13 @@
     <string>@HOME@</string>
     <key>PATH</key>
     <string>@NODE_DIR@:/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin</string>
+    <!--
+      Ollama config for Phase 6 activity summaries. Leave OLLAMA_MODEL
+      unset to disable summarization (sources fall back to raw rendering).
+      OLLAMA_HOST defaults to http://localhost:11434 if unset.
+    -->
+    <key>OLLAMA_MODEL</key>
+    <string>gemma3:12b</string>
   </dict>
 
   <key>RunAtLoad</key>

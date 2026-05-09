@@ -722,6 +722,121 @@
       padding: 0.05em 0.28em;
     }
 
+    /* ── Recent Work / Activity feed ─────────── */
+    .rw-header {
+      font-family: 'Sono', monospace;
+      font-size: 0.7rem;
+      color: var(--muted);
+      margin-block-end: 1rem;
+    }
+
+    .rw-llm-tag {
+      display: inline-block;
+      font-family: 'Sono', monospace;
+      font-size: 0.65rem;
+      padding: 0.05rem 0.45rem;
+      text-transform: lowercase;
+      border: 1px solid var(--border-subtle);
+    }
+
+    .rw-llm-tag-up   { color: var(--green); border-color: var(--green); }
+    .rw-llm-tag-down { color: var(--muted); }
+
+    .rw-stream-heading {
+      font-family: 'Outfit', system-ui, sans-serif;
+      font-weight: 600;
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--muted);
+      margin-block-end: 0.75rem;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .rw-day {
+      border: 1.5px solid var(--border);
+      padding: 0.85rem 1rem;
+      margin-block-end: 0.75rem;
+    }
+
+    .rw-day:last-child { margin-block-end: 0; }
+
+    .rw-day-heading {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 1rem;
+      margin-block-end: 0.5rem;
+    }
+
+    .rw-day-date {
+      font-family: 'Outfit', system-ui, sans-serif;
+      font-weight: 700;
+      font-size: 0.95rem;
+    }
+
+    .rw-day-meta {
+      font-family: 'Sono', monospace;
+      font-size: 0.7rem;
+      color: var(--muted);
+    }
+
+    .rw-summary {
+      font-family: 'Literata', Georgia, serif;
+      font-size: 0.9rem;
+      line-height: 1.45;
+      color: var(--fg);
+      padding: 0.5rem 0.75rem;
+      border-inline-start: 3px solid var(--accent);
+      background: var(--hover-bg-soft);
+      margin-block-end: 0.65rem;
+    }
+
+    .rw-commits {
+      display: flex;
+      flex-direction: column;
+      gap: 0.3rem;
+    }
+
+    .rw-commit {
+      display: flex;
+      align-items: baseline;
+      gap: 0.6rem;
+      font-size: 0.82rem;
+      line-height: 1.4;
+    }
+
+    .rw-repo-badge {
+      flex-shrink: 0;
+      font-family: 'Sono', monospace;
+      font-size: 0.62rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      padding: 0.05rem 0.4rem;
+      border: 1px solid var(--border-subtle);
+      color: var(--muted);
+      min-inline-size: 3.4rem;
+      text-align: center;
+    }
+
+    .rw-repo-site  { color: var(--blue);  border-color: var(--blue); }
+    .rw-repo-vault { color: var(--green); border-color: var(--green); }
+
+    .rw-sha {
+      font-family: 'Sono', monospace;
+      font-size: 0.7rem;
+      color: var(--muted);
+      flex-shrink: 0;
+    }
+
+    .rw-commit-subject {
+      flex: 1;
+      min-inline-size: 0;
+      word-break: break-word;
+    }
+
     /* ── Reminders / TASKS.md ────────────────── */
     .todo-layout {
       display: grid;
@@ -1070,6 +1185,7 @@
   <a href="#vault-watch-section">Vault Watch</a>
   <a href="#writing-section">Writing</a>
   <a href="#reminders-section">Reminders</a>
+  <a href="#recent-work-section">Recent Work</a>
   <a href="#posts-section">Posts</a>
   <a href="#pipeline-section">Pipeline</a>
   <a href="#opportunities-section">Opportunities</a>
@@ -1131,6 +1247,16 @@
     </button>
     <div class="section-body" id="reminders-body">
       <div class="loading">Loading reminders...</div>
+    </div>
+  </section>
+
+  <section class="dashboard-section" id="recent-work-section">
+    <button class="section-toggle" onclick="toggleSection('recent-work-section')">
+      <h2 class="section-heading">Recent Work</h2>
+      <i data-lucide="chevron-down"></i>
+    </button>
+    <div class="section-body" id="recent-work-body">
+      <div class="loading">Loading recent work...</div>
     </div>
   </section>
 
@@ -1793,6 +1919,7 @@
       renderVaultWatch(dashboardData);
       renderWriting(dashboardData);
       renderReminders(dashboardData);
+      renderRecentWork(dashboardData);
     } catch {
       renderDashboardEmpty();
     }
@@ -1800,7 +1927,7 @@
 
   function renderDashboardEmpty() {
     const msg = '<div class="empty">No snapshot yet — click Refresh to generate one.</div>';
-    ['dashboard-body', 'cards-body', 'vault-watch-body', 'writing-body', 'reminders-body'].forEach(id => {
+    ['dashboard-body', 'cards-body', 'vault-watch-body', 'writing-body', 'reminders-body', 'recent-work-body'].forEach(id => {
       const el = document.getElementById(id);
       if (el) el.innerHTML = msg;
     });
@@ -2520,6 +2647,69 @@
     if (r.overdue > 0) parts.push(`<span style="color:var(--accent);">${r.overdue} overdue</span>`);
     if (r.due_today > 0) parts.push(`${r.due_today} due today`);
     summary.innerHTML = parts.join(' · ');
+  }
+
+  // ── Recent Work / Activity feed (Phase 6, Slice 1) ──
+  function renderRecentWork(data) {
+    const el = document.getElementById('recent-work-body');
+    if (!el) return;
+    const activity = data && data.activity;
+    if (!activity) {
+      el.innerHTML = '<div class="empty">No activity data yet — click Refresh.</div>';
+      return;
+    }
+
+    const git = activity.git || { ollama_available: false, model: null, days: [] };
+
+    const headerBits = [];
+    headerBits.push(`<span>${git.days.reduce((s, d) => s + d.commits.length, 0)} commits · ${git.days.length} day${git.days.length === 1 ? '' : 's'}</span>`);
+    if (git.ollama_available && git.model) {
+      headerBits.push(`<span class="rw-llm-tag rw-llm-tag-up">summarized via ${escapeHtml(git.model)}</span>`);
+    } else {
+      headerBits.push(`<span class="rw-llm-tag rw-llm-tag-down">Ollama unavailable — raw rendering</span>`);
+    }
+
+    const dayBlocks = git.days.length === 0
+      ? '<div class="empty">No commits in the last 7 days.</div>'
+      : git.days.map((day) => renderActivityDay(day)).join('');
+
+    el.innerHTML = `
+      <div class="rw-header">${headerBits.join(' · ')}</div>
+      <div class="rw-stream">
+        <h3 class="rw-stream-heading"><i data-lucide="git-commit-horizontal" style="width:14px;height:14px;vertical-align:-2px;"></i> Git activity</h3>
+        ${dayBlocks}
+      </div>
+    `;
+
+    lucide.createIcons();
+  }
+
+  function renderActivityDay(day) {
+    const dateStr = new Date(day.date).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
+    const summaryHtml = day.summary
+      ? `<div class="rw-summary">${escapeHtml(day.summary)}</div>`
+      : '';
+    const commitRows = day.commits.map((c) => {
+      const repoBadge = `<span class="rw-repo-badge rw-repo-${escapeHtml(c.repo)}">${escapeHtml(c.repo)}</span>`;
+      return `
+        <div class="rw-commit">
+          ${repoBadge}
+          <code class="rw-sha">${escapeHtml(c.sha)}</code>
+          <div class="rw-commit-subject">${escapeHtml(c.subject)}</div>
+        </div>
+      `;
+    }).join('');
+
+    return `
+      <div class="rw-day">
+        <div class="rw-day-heading">
+          <span class="rw-day-date">${dateStr}</span>
+          <span class="rw-day-meta">${day.date} · ${day.commits.length} commit${day.commits.length === 1 ? '' : 's'}</span>
+        </div>
+        ${summaryHtml}
+        <div class="rw-commits">${commitRows}</div>
+      </div>
+    `;
   }
 
   // ── On-demand refresh ────────────────────────
