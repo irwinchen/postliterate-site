@@ -19,7 +19,7 @@ A web dashboard for the *After the Book* project. Twice-daily auto-refresh
 
 **Hosting:** Mac Mini M4 (`mediaserver.local:4322`). Always on, vault is synced there. Reachable from MacBook over LAN today; Tailscale later if/when remote access matters.
 
-**Repo location on Mini:** `~/Documents/postliterate-site` — read-only mirror, fast-forward-only `git pull` every 30 min via launchd timer (`org.postliterate.git-pull`). Edits/publishes continue from MacBook; GitHub is canonical.
+**Repo location on Mini:** `~/Documents/postliterate-site`. As of 2026-05-09 the Mini is also a primary dev host (running Claude Code locally so summaries reflect production data and Ollama is on-machine), so the auto git-pull timer is **off by default**. Sync manually via `deploy/mini/git-pull.sh` when MacBook commits need to land. Re-enable the timer with `INSTALL_GITPULL=1 deploy/mini/install.sh` if you flip back to MacBook-primary dev. GitHub is canonical.
 
 **Service:** existing `scripts/admin.mjs` extended with new routes. Runs under launchd as `org.postliterate.dashboard`. Logs at `~/Library/Logs/postliterate-mini/`.
 
