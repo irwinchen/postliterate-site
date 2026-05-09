@@ -14,14 +14,30 @@
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --bg: #F3EFE1;
-      --fg: #1a1a1a;
-      --accent: #E53E33;
-      --blue: #3B6DB4;
-      --green: #549E44;
-      --border: #1a1a1a;
-      --muted: #6b6b6b;
+      color-scheme: light dark;
+
+      /* Auto-flips with prefers-color-scheme. Forced overrides via
+         [data-theme="dark|light"] below. Palette aligns with the
+         site's global.css. */
+      --bg:           light-dark(#F3EFE1, #1a1a1a);
+      --fg:           light-dark(#1a1a1a, #c8c8c8);
+      --accent:       light-dark(#E53E33, #ff6b5e);
+      --blue:         light-dark(#3B6DB4, #6b9fd4);
+      --green:        light-dark(#549E44, #7bc46a);
+      --border:       light-dark(#1a1a1a, #4a4a4a);
+      --muted:        light-dark(#6b6b6b, #a0a0a0);
+
+      --border-subtle:    light-dark(#ccc,                          #3a3a3a);
+      --hover-bg:         light-dark(rgba(0,0,0,0.04),              rgba(255,255,255,0.06));
+      --hover-bg-soft:    light-dark(rgba(0,0,0,0.03),              rgba(255,255,255,0.05));
+      --hover-bg-strong:  light-dark(rgba(0,0,0,0.06),              rgba(255,255,255,0.09));
+      --warning:          light-dark(#d48800,                       #e8a83c);
+      --modal-overlay:    light-dark(rgba(0,0,0,0.4),               rgba(0,0,0,0.65));
+      --wikilink-bg:      light-dark(rgba(59,109,180,0.08),         rgba(107,159,212,0.18));
     }
+
+    [data-theme="dark"]  { color-scheme: dark; }
+    [data-theme="light"] { color-scheme: light; }
 
     body {
       font-family: 'Literata', Georgia, serif;
@@ -135,7 +151,7 @@
     .dashboard-section {
       padding-block-end: 2rem;
       margin-block-end: 2rem;
-      border-block-end: 1px solid #ccc;
+      border-block-end: 1px solid var(--border-subtle);
     }
 
     .dashboard-section:last-child {
@@ -210,7 +226,7 @@
 
     tbody td {
       padding: 0.65rem 0.5rem;
-      border-block-end: 1px solid #ccc;
+      border-block-end: 1px solid var(--border-subtle);
       vertical-align: middle;
     }
 
@@ -251,7 +267,7 @@
     .badge-in-progress { color: var(--blue); }
     .badge-backlog { color: var(--muted); }
     .badge-high { color: var(--accent); }
-    .badge-medium { color: #d48800; }
+    .badge-medium { color: var(--warning); }
     .badge-low { color: var(--blue); }
 
     .location {
@@ -319,7 +335,7 @@
     .footer-actions {
       margin-block-start: 1.5rem;
       padding-block-start: 1rem;
-      border-block-start: 1px solid #ccc;
+      border-block-start: 1px solid var(--border-subtle);
     }
 
     /* ── KPI row ─────────────────────────────── */
@@ -361,32 +377,7 @@
     }
 
     .kpi-metric.good { color: var(--green); }
-    .kpi-metric.warning { color: #d48800; }
-
-    /* ── Chart row ───────────────────────────── */
-    .chart-row {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 1rem;
-      margin-block-end: 1.5rem;
-    }
-
-    .chart-container {
-      border: 1.5px solid var(--border);
-      padding: 1rem;
-      background: transparent;
-      display: flex;
-      flex-direction: column;
-    }
-
-    .chart-container .section-heading {
-      margin-block-end: 0.75rem;
-    }
-
-    .chart-container canvas {
-      flex: 1;
-      max-height: 220px;
-    }
+    .kpi-metric.warning { color: var(--warning); }
 
     /* ── Blocker list ────────────────────────── */
     .blocker-list {
@@ -398,7 +389,7 @@
       justify-content: space-between;
       align-items: baseline;
       padding: 0.5rem 0;
-      border-block-end: 1px solid #ccc;
+      border-block-end: 1px solid var(--border-subtle);
     }
 
     .blocker-item:last-child {
@@ -473,7 +464,7 @@
       display: none;
       position: fixed;
       inset: 0;
-      background: rgba(0,0,0,0.4);
+      background: var(--modal-overlay);
       z-index: 100;
       align-items: center;
       justify-content: center;
@@ -534,7 +525,7 @@
     }
 
     .cards-sidebar-section {
-      border-block-end: 1px solid #ccc;
+      border-block-end: 1px solid var(--border-subtle);
     }
 
     .cards-sidebar-section-header {
@@ -556,7 +547,7 @@
       user-select: none;
     }
 
-    .cards-sidebar-section-header:hover { color: var(--fg); background: rgba(0,0,0,0.03); }
+    .cards-sidebar-section-header:hover { color: var(--fg); background: var(--hover-bg-soft); }
 
     .cards-sidebar-section-header svg {
       width: 11px;
@@ -577,6 +568,7 @@
       gap: 0.35rem;
       padding: 0.3rem 0.75rem 0.3rem 1.1rem;
       cursor: pointer;
+      font-family: 'Outfit', system-ui, sans-serif;
       font-size: 0.8rem;
       line-height: 1.35;
       color: var(--fg);
@@ -586,7 +578,7 @@
       text-align: left;
     }
 
-    .cards-sidebar-entry:hover { background: rgba(0,0,0,0.04); }
+    .cards-sidebar-entry:hover { background: var(--hover-bg); }
 
     .cards-sidebar-entry.active {
       background: var(--fg);
@@ -619,9 +611,17 @@
     }
 
     .card-reader-header {
+      display: flex;
+      align-items: flex-start;
+      gap: 1rem;
       margin-block-end: 1rem;
       padding-block-end: 0.75rem;
-      border-block-end: 1px solid #ccc;
+      border-block-end: 1px solid var(--border-subtle);
+    }
+
+    .card-reader-textblock {
+      flex: 1;
+      min-inline-size: 0;
     }
 
     .card-reader-title {
@@ -639,7 +639,37 @@
       font-family: 'Sono', monospace;
       font-size: 0.72rem;
       color: var(--muted);
-      margin-block-end: 0.65rem;
+    }
+
+    /* Obsidian deep-link button (icon-only). Uses an inline SVG so the
+       fill picks up currentColor for hover-flip styling. */
+    .obsidian-btn {
+      flex-shrink: 0;
+      display: inline-grid;
+      place-items: center;
+      inline-size: 32px;
+      block-size: 32px;
+      border: 1.5px solid var(--border);
+      color: var(--fg);
+      text-decoration: none;
+      transition: background 0.12s, color 0.12s;
+    }
+
+    .obsidian-btn:hover,
+    .obsidian-btn:focus-visible {
+      background: var(--fg);
+      color: var(--bg);
+    }
+
+    .obsidian-btn:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
+
+    .obsidian-btn svg {
+      inline-size: 18px;
+      block-size: 18px;
+      display: block;
     }
 
     .card-reader-body {
@@ -666,7 +696,7 @@
 
     .card-reader-body hr {
       border: none;
-      border-block-start: 1px solid #ccc;
+      border-block-start: 1px solid var(--border-subtle);
       margin-block: 1.25em;
     }
 
@@ -680,7 +710,7 @@
     .card-reader-body code {
       font-family: 'Sono', monospace;
       font-size: 0.82em;
-      background: rgba(0,0,0,0.06);
+      background: var(--hover-bg-strong);
       padding: 0.1em 0.3em;
     }
 
@@ -688,8 +718,32 @@
       font-family: 'Sono', monospace;
       font-size: 0.82em;
       color: var(--blue);
-      background: rgba(59,109,180,0.08);
+      background: var(--wikilink-bg);
       padding: 0.05em 0.28em;
+    }
+
+    /* ── Writing progress ────────────────────── */
+    .writing-card {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .sparkline-wrap {
+      block-size: 44px;
+      margin-block-start: 0.6rem;
+      position: relative;
+    }
+
+    .sparkline-wrap canvas {
+      inline-size: 100% !important;
+      block-size: 100% !important;
+    }
+
+    .writing-footer {
+      font-family: 'Sono', monospace;
+      font-size: 0.7rem;
+      color: var(--muted);
+      margin-block-start: 0.5rem;
     }
 
     /* ── Vault Watch ─────────────────────────── */
@@ -741,7 +795,7 @@
       align-items: baseline;
       gap: 0.75rem;
       padding: 0.5rem 0.75rem;
-      border-block-end: 1px solid #ccc;
+      border-block-end: 1px solid var(--border-subtle);
       font-size: 0.85rem;
       line-height: 1.35;
     }
@@ -829,7 +883,6 @@
     /* ── Responsive ──────────────────────────── */
     @media (max-width: 768px) {
       .kpi-row { grid-template-columns: repeat(2, 1fr); }
-      .chart-row { grid-template-columns: 1fr; }
       .vw-grid { grid-template-columns: 1fr; }
       .section-nav {
         overflow-x: auto;
@@ -1009,9 +1062,12 @@
 <script>
   const API = '';
   let pollTimer = null;
-  let opportunitiesChart = null;
-  let velocityChart = null;
   let currentPosts = [];
+
+  // Obsidian gem icon — extracted from obsidian.md/images/obsidian-logo-text-black.svg
+  // by dropping the wordmark path. Uses currentColor so it inherits the host
+  // element's color and flips on hover.
+  const OBSIDIAN_ICON_SVG = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 25" fill="currentColor" aria-hidden="true"><path d="M7 14.6a12 12 0 0 1 2.8-.6 10 10 0 0 1 .5-8.8l.4-.7a32.9 32.9 0 0 0 .9-2.3v-1c-.1-.4-.3-.7-.7-1.1-.6-.2-1.1 0-1.6.3L4.2 5.1c-.3.2-.5.6-.6 1l-.4 3a14.6 14.6 0 0 1 3.7 5.5Zm-4-4.2-.1.3-2.8 6c-.2.7-.1 1.4.4 1.9L4.8 23a8.7 8.7 0 0 0 .8-8.7c-.7-1.8-1.9-3.2-2.6-4Z"/><path d="M5.8 23.5H6a23.8 23.8 0 0 1 7.4 1.4c1.2.4 2.3-.5 2.5-1.7a7 7 0 0 1 .8-2.7c-.8-2-1.6-3.2-2.6-4a5 5 0 0 0-2.9-1.3c-1.6-.2-3 .2-4 .5.6 2.3.4 5-1.4 7.8Z"/><path d="m17.4 19.3 2-3c0-.4 0-.7-.2-1a18 18 0 0 1-2-3.5c-.7-1.4-.7-3.5-.8-4.6 0-.4 0-.7-.3-1l-3.4-4.3v.6L12 4l-.5 1-.3.6A11 11 0 0 0 10 9.4c0 1.3 0 2.8.9 4.7h.4c1.1.2 2.3.6 3.5 1.6 1 .8 1.8 2 2.5 3.6Z"/></svg>';
 
   // ── Status bar ──────────────────────────────
   function setStatus(msg, type = '') {
@@ -1402,101 +1458,14 @@
     }
     html += '</div>';
 
-    html += `
-      <div class="chart-row">
-        <div class="chart-container">
-          <div class="section-heading">Readiness</div>
-          <canvas id="opportunities-chart"></canvas>
-        </div>
-        <div class="chart-container">
-          <div class="section-heading">Velocity (7 days)</div>
-          <canvas id="velocity-chart"></canvas>
-        </div>
-      </div>
-    `;
-
     document.getElementById('pipeline-body').innerHTML = html;
-    renderCharts(data);
   }
 
-  function renderCharts(data) {
-    if (opportunitiesChart) opportunitiesChart.destroy();
-    if (velocityChart) velocityChart.destroy();
-
-    const opportunities = data.blog_opportunities || [];
-    const published = (data.blog_status || []).filter(b => b.status === 'published');
-
-    // Readiness bar chart
-    if (opportunities.length > 0) {
-      const scores = opportunities.map(o => {
-        if (o.status === 'ready') return 95;
-        if (o.status === 'in-progress') return 65;
-        return 35;
-      });
-
-      opportunitiesChart = new Chart(document.getElementById('opportunities-chart'), {
-        type: 'bar',
-        data: {
-          labels: opportunities.map(o => o.title.length > 18 ? o.title.substring(0, 18) + '...' : o.title),
-          datasets: [{
-            data: scores,
-            backgroundColor: '#3B6DB4',
-            borderWidth: 0,
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: { legend: { display: false } },
-          scales: {
-            y: { beginAtZero: true, max: 100, grid: { color: '#ccc' } },
-            x: { grid: { display: false } }
-          }
-        }
-      });
-    }
-
-    // Velocity line chart
-    const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-    const publishedData = new Array(7).fill(0);
-    published.forEach(post => {
-      if (post.date_published) {
-        const dayOfWeek = new Date(post.date_published).getDay();
-        publishedData[dayOfWeek]++;
-      }
-    });
-
-    velocityChart = new Chart(document.getElementById('velocity-chart'), {
-      type: 'line',
-      data: {
-        labels: days,
-        datasets: [{
-          data: publishedData,
-          borderColor: '#E53E33',
-          backgroundColor: '#E53E3320',
-          borderWidth: 2,
-          fill: true,
-          tension: 0.4,
-          pointRadius: 4,
-          pointBackgroundColor: '#E53E33',
-          pointBorderColor: '#F3EFE1',
-          pointBorderWidth: 2
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: { legend: { display: false } },
-        scales: {
-          y: { beginAtZero: true, ticks: { stepSize: 1 }, grid: { color: '#ccc' } },
-          x: { grid: { display: false } }
-        }
-      }
-    });
-  }
-
-  // ── Obsidian URI helper ─────────────────────
-  function obsidianUrl(sourceVaultNote) {
+  // Map a project-status opportunity ref like "vault-daily-20260508"
+  // to an obsidian:// URL pointing at the corresponding daily note.
+  // (The general-purpose obsidianUrl() lives further down in the Vault
+  // Watch code; the two were colliding by name.)
+  function obsidianUrlFromDailyNoteRef(sourceVaultNote) {
     if (!sourceVaultNote) return null;
     const dateStr = sourceVaultNote.replace('vault-daily-', '');
     if (dateStr.length !== 8) return null;
@@ -1533,7 +1502,7 @@
 
       for (const opp of opps) {
         const badgeClass = 'badge-' + (opp.status || 'backlog');
-        const vaultUrl = obsidianUrl(opp.source_vault_note);
+        const vaultUrl = obsidianUrlFromDailyNoteRef(opp.source_vault_note);
         const vaultLink = vaultUrl
           ? `<a class="btn" href="${vaultUrl}"><i data-lucide="book-open"></i> Vault</a>`
           : '<span class="location">—</span>';
@@ -1821,9 +1790,11 @@
 
     reader.innerHTML = `
       <div class="card-reader-header">
-        <div class="card-reader-title">${escapeHtml(card.title)}</div>
-        <div class="card-reader-meta">${metaParts.map(escapeHtml).join(' · ')}</div>
-        <a class="btn" href="${obsidianUrl}"><i data-lucide="book-open"></i> Open in Obsidian</a>
+        <div class="card-reader-textblock">
+          <div class="card-reader-title">${escapeHtml(card.title)}</div>
+          <div class="card-reader-meta">${metaParts.map(escapeHtml).join(' · ')}</div>
+        </div>
+        <a class="obsidian-btn" href="${obsidianUrl}" aria-label="Open in Obsidian" title="Open in Obsidian">${OBSIDIAN_ICON_SVG}</a>
       </div>
       <div class="card-reader-body">${renderCardBody(card.body)}</div>
     `;
@@ -1882,6 +1853,7 @@
     const os = vw.outstanding_sources || { count: 0, items: [], pdfs_total: 0, articles_total: 0 };
     const rq = vw.reading_queue || { total: 0, unread: 0, read: 0, items: [] };
     const dailyNotes = vw.recent_daily_notes || [];
+    const concepts = vw.recent_concepts || [];
     const inbox = vw.recent_inbox || [];
 
     const linkedTotal = Math.max(0, os.pdfs_total - os.count);
@@ -1927,10 +1899,10 @@
       <div class="vw-grid">
         <div class="vw-block">
           <div class="vw-block-heading">
-            <h3><i data-lucide="calendar-days" style="width:14px; height:14px; vertical-align:-2px;"></i> Recent Daily Notes</h3>
-            <span class="vw-block-count">${dailyNotes.length} most recent</span>
+            <h3><i data-lucide="lightbulb" style="width:14px; height:14px; vertical-align:-2px;"></i> Recent Concepts</h3>
+            <span class="vw-block-count">${concepts.length} most recent</span>
           </div>
-          ${renderDailyNotesList(dailyNotes)}
+          ${renderConceptsList(concepts)}
         </div>
         <div class="vw-block">
           <div class="vw-block-heading">
@@ -2082,18 +2054,17 @@
     }
   }
 
-  function renderDailyNotesList(items) {
+  function renderConceptsList(items) {
     if (!items || items.length === 0) {
-      return '<div class="empty" style="padding:1.5rem;">No daily notes.</div>';
+      return '<div class="empty" style="padding:1.5rem;">No concept notes.</div>';
     }
     const rows = items.map((item) => {
-      const url = obsidianUrl(`06_Meta/Daily/${item.name}.md`);
-      const sizeKb = item.size_bytes != null ? Math.max(1, Math.round(item.size_bytes / 1024)) : null;
-      const meta = sizeKb != null ? `${sizeKb} KB` : '';
+      const url = obsidianUrl(`02_Concepts/${item.name}.md`);
+      const meta = item.mtime ? fmtRelDate(item.mtime) : '';
       return `
         <div class="vw-list-item">
           <div class="vw-item-title"><a href="${url}">${escapeHtml(item.name)}</a></div>
-          <div class="vw-item-meta">${meta}</div>
+          <div class="vw-item-meta">${escapeHtml(meta)}</div>
         </div>
       `;
     }).join('');
@@ -2117,14 +2088,149 @@
     return `<div class="vw-list">${rows}</div>`;
   }
 
-  // ── Writing progress (Phase 4 stub) ──────────
+  // ── Writing progress (Phase 4) ───────────────
+  let _writingCharts = [];
+
+  function fmtNum(n) {
+    return (n || 0).toLocaleString();
+  }
+
+  function fmtDelta(d) {
+    if (d == null) return null;
+    if (d === 0) return '±0';
+    return (d > 0 ? '+' : '') + d.toLocaleString();
+  }
+
   function renderWriting(data) {
     const el = document.getElementById('writing-body');
-    if (!data || data.writing === null) {
-      el.innerHTML = '<div class="empty">Writing progress not yet available — coming in Phase 4.</div>';
+    if (!data || !data.writing) {
+      el.innerHTML = '<div class="empty">Writing progress not yet available — click Refresh.</div>';
       return;
     }
-    el.innerHTML = '<div class="empty">Writing data present but renderer not yet implemented.</div>';
+
+    _writingCharts.forEach((c) => { try { c.destroy(); } catch {} });
+    _writingCharts = [];
+
+    const w = data.writing;
+    const c = w.counts;
+    const s = w.sparklines || { dates: [], cards: [], blog: [], daily: [], ideas: [] };
+    const d = w.deltas || {};
+    const historyDays = s.dates.length;
+
+    const cards = [
+      {
+        key: 'cards',
+        label: 'Cards',
+        words: c.cards.words,
+        meta: `${c.cards.files} files`,
+        delta: d.cards?.d7,
+        color: 'var(--accent)',
+        series: s.cards,
+      },
+      {
+        key: 'blog',
+        label: 'Blog',
+        words: c.blog.words,
+        meta: `${c.blog.published_files} published · ${c.blog.draft_files} draft${c.blog.draft_files === 1 ? '' : 's'}`,
+        delta: d.blog?.d7,
+        color: 'var(--blue)',
+        series: s.blog,
+      },
+      {
+        key: 'daily',
+        label: 'Daily Notes',
+        words: c.daily.words,
+        meta: `${c.daily.files} entries`,
+        delta: d.daily?.d7,
+        color: 'var(--green)',
+        series: s.daily,
+      },
+      {
+        key: 'ideas',
+        label: 'Ideas',
+        words: c.ideas.words,
+        meta: `${c.ideas.inbox_files} inbox · ${c.ideas.literature_files} lit`,
+        delta: d.ideas?.d7,
+        color: 'var(--muted)',
+        series: s.ideas,
+      },
+    ];
+
+    el.innerHTML = `
+      <div class="kpi-row" style="grid-template-columns: repeat(4, 1fr);">
+        ${cards.map((card) => {
+          const deltaStr = fmtDelta(card.delta);
+          const deltaCls = card.delta == null ? '' : card.delta > 0 ? 'good' : card.delta < 0 ? 'warning' : '';
+          const deltaHtml = deltaStr ? ` <span class="kpi-metric ${deltaCls}" style="display:inline; font-size:0.75rem;">${deltaStr} / 7d</span>` : '';
+          return `
+            <div class="kpi-card writing-card">
+              <div class="kpi-label">${escapeHtml(card.label)}</div>
+              <div class="kpi-value">${fmtNum(card.words)}</div>
+              <div class="kpi-metric">${escapeHtml(card.meta)}${deltaHtml}</div>
+              <div class="sparkline-wrap">
+                <canvas class="sparkline" data-key="${card.key}"></canvas>
+              </div>
+            </div>
+          `;
+        }).join('')}
+      </div>
+      <p class="writing-footer">
+        Captured ${fmtTime(w.captured_at)} ·
+        ${historyDays === 1 ? 'first capture today — sparklines fill in as snapshots accumulate' : `${historyDays} day${historyDays === 1 ? '' : 's'} of history`}
+      </p>
+    `;
+
+    // Render one Chart.js sparkline per card.
+    const rootStyles = getComputedStyle(document.documentElement);
+    const fgFallback = rootStyles.getPropertyValue('--fg').trim();
+    for (const card of cards) {
+      const canvas = el.querySelector(`canvas[data-key="${card.key}"]`);
+      if (!canvas) continue;
+
+      // If only one data point (or none), draw a flat marker so the
+      // sparkline area isn't empty.
+      const labels = s.dates.length > 0 ? s.dates : [w.today || ''];
+      const dataPts = card.series.length > 0 ? card.series : [card.words];
+      const cssVarName = card.color.replace(/var\(|\)/g, '');
+      const borderColor = rootStyles.getPropertyValue(cssVarName).trim() || fgFallback;
+
+      const ctx = canvas.getContext('2d');
+      const chart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels,
+          datasets: [{
+            data: dataPts,
+            borderColor,
+            borderWidth: 1.5,
+            pointRadius: dataPts.length === 1 ? 3 : 0,
+            pointHoverRadius: 4,
+            tension: 0.25,
+            fill: false,
+          }],
+        },
+        options: {
+          animation: false,
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              displayColors: false,
+              callbacks: {
+                title: (items) => items[0].label,
+                label: (item) => `${fmtNum(item.parsed.y)} words`,
+              },
+            },
+          },
+          scales: {
+            x: { display: false },
+            y: { display: false, beginAtZero: false },
+          },
+        },
+      });
+      _writingCharts.push(chart);
+    }
   }
 
   // ── Reminders (Phase 5 stub) ─────────────────
@@ -2170,6 +2276,13 @@
     fetchPosts();
     fetchDevStatus();
   }, 10000);
+
+  // Chart.js bakes colors into the canvas at construction time, so we
+  // re-render the sparklines when the system color scheme flips.
+  // (Pure-CSS sections — Vault Watch, Cards, KPI cards — update on their own.)
+  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+    if (dashboardData) renderWriting(dashboardData);
+  });
 </script>
 
 </body>

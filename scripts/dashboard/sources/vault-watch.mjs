@@ -35,6 +35,7 @@ const ARTICLES_DIR = join(VAULT, '01_Sources/Articles');
 const READING_QUEUE_PATH = join(VAULT, '01_Sources/READING_QUEUE.md');
 const DAILY_DIR = join(VAULT, '06_Meta/Daily');
 const INBOX_DIR = join(VAULT, '00_Inbox');
+const CONCEPTS_DIR = join(VAULT, '02_Concepts');
 
 // ── Filesystem helpers ─────────────────────────────────────────
 function safeListFiles(dir, pattern) {
@@ -214,6 +215,22 @@ function getRecentDailyNotes(limit = 7) {
     .slice(0, limit);
 }
 
+// ── Recent concepts ────────────────────────────────────────────
+function getRecentConcepts(limit = 6) {
+  const files = safeListFiles(CONCEPTS_DIR, /\.md$/);
+  return files
+    .map((name) => {
+      const meta = fileMeta(CONCEPTS_DIR, name);
+      return {
+        name: name.replace(/\.md$/, ''),
+        mtime: meta.mtime,
+        size_bytes: meta.size_bytes,
+      };
+    })
+    .sort((a, b) => (b.mtime || '').localeCompare(a.mtime || ''))
+    .slice(0, limit);
+}
+
 // ── Recent inbox items ─────────────────────────────────────────
 function getRecentInbox(limit = 6) {
   const files = safeListFiles(INBOX_DIR, /\.md$/);
@@ -378,6 +395,7 @@ export async function getVaultWatch() {
     outstanding_sources: getOutstandingSources(),
     reading_queue: getReadingQueue(),
     recent_daily_notes: getRecentDailyNotes(),
+    recent_concepts: getRecentConcepts(),
     recent_inbox: getRecentInbox(),
   };
 }

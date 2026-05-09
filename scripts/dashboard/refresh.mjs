@@ -22,6 +22,7 @@ import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { getCards } from './sources/cards.mjs';
 import { getVaultWatch } from './sources/vault-watch.mjs';
+import { getWritingProgress } from './sources/writing-progress.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const SNAPSHOTS_DIR = join(__dirname, 'snapshots');
@@ -56,11 +57,23 @@ export async function refresh() {
     const vw = snapshot.vault_watch;
     console.log(
       `  Vault Watch: ${vw.outstanding_sources.count} outstanding source(s), ` +
-        `${vw.reading_queue.unread} unread in queue, ` +
+        `${vw.reading_queue.to_read} to-read in queue, ` +
         `${vw.recent_daily_notes.length} recent daily notes.`
     );
   } catch (err) {
     console.warn(`  Warning: vault-watch failed — ${err.message}`);
+  }
+
+  // Phase 4 — Writing progress
+  try {
+    snapshot.writing = await getWritingProgress();
+    const w = snapshot.writing.counts;
+    console.log(
+      `  Writing: ${w.cards.words} cards · ${w.blog.words} blog · ` +
+        `${w.daily.words} daily · ${w.ideas.words} ideas (${snapshot.writing.sparklines.dates.length} day(s) of history).`
+    );
+  } catch (err) {
+    console.warn(`  Warning: writing-progress failed — ${err.message}`);
   }
 
   const outPath = join(SNAPSHOTS_DIR, 'latest.json');

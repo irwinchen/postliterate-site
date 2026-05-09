@@ -77,7 +77,12 @@ Editing happens on the MacBook clone. Push to GitHub. Mini pulls within 30 min (
   - **Recent daily notes** — newest 7 from `06_Meta/Daily/` (sorted by `MM-DD-YYYY` filename, not mtime).
   - **Recent inbox** — newest 6 `.md` from `00_Inbox/` by mtime.
   UI: KPI row (outstanding/queue/latest daily), then Outstanding + Queue full-width lists, then a 2-col Daily/Inbox grid. Every row links via `obsidian://open?vault=PostLiterate&file=...` so clicks open the right note in Obsidian on whichever machine the dashboard is being viewed from. New `.vw-*` CSS block in `admin-ui.html`. KPI overview unchanged — still counts non-null sections.
-- Phase 4 — Writing Progress (four counters, snapshot writer, sparklines).
+- Phase 4 — Writing Progress. **Done (2026-05-08).** `scripts/dashboard/sources/writing-progress.mjs` produces four word/file counters and a 30-day sparkline series:
+  - **cards**: `06_Meta/Book/Cards/*.md` — 80 files, 15,132 words at first capture.
+  - **blog**: `src/content/blog/*.mdx` (published) + `07_Blog/*.md` (drafts not yet published) — 14 files / 14,878 words.
+  - **daily**: `06_Meta/Daily/*.md` — 126 files / 39,589 words.
+  - **ideas**: `00_Inbox/*.md` + `01_Sources/Literature Notes/*.md` — 25 files / 9,574 words.
+  Word counting strips YAML frontmatter then splits on whitespace. Each refresh writes one daily archive at `scripts/dashboard/snapshots/writing/YYYY-MM-DD.json` (overwritten if today's already exists). Sparkline data is reconstructed by reading up to 30 days of archives. The archive directory is gitignored (`scripts/dashboard/snapshots/writing/`). 7-day and 30-day deltas are computed and surfaced beside each KPI as `+N / 7d`. UI: 4-col KPI row in the existing Writing tab, each card has a Chart.js line sparkline (44px tall, no axes/grid, color-matched to the counter — accent / blue / green / muted). Single-data-point captures render as a dot until the second day's archive arrives.
 - Phase 5 — Reminders (TASKS.md parser).
 - Phase 6 — Activity summaries (Cowork sessions, Claude.ai exports, vault session digests, blog/git, all summarized via Haiku). Most novel — saved for last.
 - Phase 7 — MacBook hourly Cowork digest job (writes to `vault/06_Meta/Sessions/`).

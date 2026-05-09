@@ -270,6 +270,30 @@ async function handleRequest(req, res) {
       return;
     }
 
+    // GET /dashboard/assets/<file> — static assets (icons, images).
+    // Path-traversal guard: only direct children of the assets dir.
+    if (method === 'GET' && path.startsWith('/dashboard/assets/')) {
+      const name = path.slice('/dashboard/assets/'.length);
+      if (!/^[\w.-]+$/.test(name)) { json(res, { error: 'invalid asset name' }, 400); return; }
+      const assetPath = join(__dirname, 'dashboard/assets', name);
+      if (!existsSync(assetPath)) { json(res, { error: 'not found' }, 404); return; }
+      const ext = name.split('.').pop().toLowerCase();
+      const contentType = {
+        svg: 'image/svg+xml',
+        png: 'image/png',
+        jpg: 'image/jpeg',
+        jpeg: 'image/jpeg',
+        webp: 'image/webp',
+        ico: 'image/x-icon',
+      }[ext] || 'application/octet-stream';
+      res.writeHead(200, {
+        'Content-Type': contentType,
+        'Cache-Control': 'public, max-age=86400',
+      });
+      res.end(readFileSync(assetPath));
+      return;
+    }
+
     // GET /api/dashboard — serve latest snapshot
     if (method === 'GET' && path === '/api/dashboard') {
       const snapshotPath = join(__dirname, 'dashboard/snapshots/latest.json');

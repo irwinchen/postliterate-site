@@ -1,5 +1,5 @@
 {
-  "refreshed_at": "2026-05-08T23:14:01.284Z",
+  "refreshed_at": "2026-05-09T00:12:13.851Z",
   "cards": {
     "total": 74,
     "sections": [
@@ -710,7 +710,7 @@
         "created": "2026-04-21",
         "updated": "2026-04-21",
         "sources": [],
-        "body": "Evidence of the shift\n- subtitles on\n- skip to recipe\n- tl;dr\n- SEO\n- decline in reading\n- Trump\n- attack on education\n- YouTube\n- TikTok, short form video"
+        "body": "Evidence of the shift\n- subtitles on [[Subtitles as orality]]\n- skip to recipe\n- tl;dr\n- SEO\n- decline in reading [[decline_of_reading_survey.pdf]], [[Bone2025 The Decline in Reading for Pleasure]]\n- Trump\n- attack on education\n- YouTube\n- TikTok, short form video"
       },
       "falling-off-the-wagon": {
         "title": "Falling off the wagon",
@@ -2049,6 +2049,38 @@
         "size_bytes": 63
       }
     ],
+    "recent_concepts": [
+      {
+        "name": "the-reading-spectrum",
+        "mtime": "2026-05-08T15:15:44.311Z",
+        "size_bytes": 18759
+      },
+      {
+        "name": "reading-faces-reading-letters",
+        "mtime": "2026-05-08T13:17:05.133Z",
+        "size_bytes": 26137
+      },
+      {
+        "name": "Four Cognitive Modes",
+        "mtime": "2026-05-06T18:11:15.979Z",
+        "size_bytes": 12900
+      },
+      {
+        "name": "reader-as-memory-palace",
+        "mtime": "2026-04-24T18:10:24.517Z",
+        "size_bytes": 17377
+      },
+      {
+        "name": "Bi-literate",
+        "mtime": "2026-04-23T02:09:48.863Z",
+        "size_bytes": 3373
+      },
+      {
+        "name": "double-bind",
+        "mtime": "2026-04-22T17:53:01.292Z",
+        "size_bytes": 8148
+      }
+    ],
     "recent_inbox": [
       {
         "name": "Vowel Shift is evidence of orality vs literacy",
@@ -2082,7 +2114,76 @@
       }
     ]
   },
-  "writing": null,
+  "writing": {
+    "captured_at": "2026-05-09T00:12:13.948Z",
+    "today": "2026-05-09",
+    "counts": {
+      "cards": {
+        "files": 80,
+        "words": 15143
+      },
+      "blog": {
+        "files": 14,
+        "words": 14878,
+        "published_files": 12,
+        "published_words": 10930,
+        "draft_files": 2,
+        "draft_words": 3948
+      },
+      "daily": {
+        "files": 126,
+        "words": 39589
+      },
+      "ideas": {
+        "files": 25,
+        "words": 9574,
+        "inbox_files": 17,
+        "inbox_words": 2848,
+        "literature_files": 8,
+        "literature_words": 6726
+      }
+    },
+    "sparklines": {
+      "dates": [
+        "2026-05-08",
+        "2026-05-09"
+      ],
+      "cards": [
+        15132,
+        15143
+      ],
+      "blog": [
+        14878,
+        14878
+      ],
+      "daily": [
+        39589,
+        39589
+      ],
+      "ideas": [
+        9574,
+        9574
+      ]
+    },
+    "deltas": {
+      "cards": {
+        "d7": 11,
+        "d30": 11
+      },
+      "blog": {
+        "d7": 0,
+        "d30": 0
+      },
+      "daily": {
+        "d7": 0,
+        "d30": 0
+      },
+      "ideas": {
+        "d7": 0,
+        "d30": 0
+      }
+    }
+  },
   "reminders": null,
   "activity": null
 }
