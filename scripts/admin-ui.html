@@ -107,6 +107,29 @@
       color: var(--bg);
     }
 
+    .last-refreshed {
+      font-family: 'Sono', monospace;
+      font-size: 0.75rem;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+
+    .dev-server-btn.refreshing {
+      background: var(--fg);
+      color: var(--bg);
+      cursor: progress;
+      opacity: 1;
+    }
+
+    .dev-server-btn.refreshing svg {
+      animation: spin 0.9s linear infinite;
+    }
+
+    @keyframes spin {
+      from { transform: rotate(0deg); }
+      to   { transform: rotate(360deg); }
+    }
+
     /* ── Section nav ─────────────────────────── */
     .section-nav {
       display: flex;
@@ -203,6 +226,30 @@
 
     .dashboard-section.collapsed .section-toggle {
       margin-block-end: 0;
+    }
+
+    /* ── Working title hero ──────────────────── */
+    .thesis-hero {
+      padding-block: 0.5rem 0.25rem;
+    }
+
+    .thesis-hero .thesis-title {
+      font-family: 'Literata', Georgia, serif;
+      font-weight: 700;
+      font-size: clamp(1.6rem, 3.2vw, 2.2rem);
+      line-height: 1.15;
+      letter-spacing: -0.01em;
+      margin-block-end: 1rem;
+      text-wrap: balance;
+    }
+
+    .thesis-hero .thesis-statement {
+      font-family: 'Literata', Georgia, serif;
+      font-size: 1.05rem;
+      line-height: 1.55;
+      color: var(--fg);
+      max-inline-size: 60ch;
+      text-wrap: pretty;
     }
 
     /* ── Table ───────────────────────────────── */
@@ -610,6 +657,31 @@
       font-size: 0.9rem;
     }
 
+    /* Mobile-only "← Cards" back button inside the reader. Hidden on
+       desktop, shown by the @media (max-width: 768px) block. */
+    .cards-back-mobile {
+      display: none;
+      align-items: center;
+      gap: 0.4rem;
+      font-family: 'Outfit', system-ui, sans-serif;
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      padding: 0.45rem 0.7rem;
+      border: 1.5px solid var(--border);
+      background: transparent;
+      color: var(--fg);
+      cursor: pointer;
+      margin-block-end: 0.75rem;
+      align-self: flex-start;
+    }
+
+    .cards-back-mobile svg {
+      inline-size: 14px;
+      block-size: 14px;
+    }
+
     .card-reader-header {
       display: flex;
       align-items: flex-start;
@@ -883,6 +955,30 @@
       padding: 0.4rem 0.85rem;
       border-inline-start: 3px solid var(--border-subtle);
       text-wrap: pretty;
+    }
+
+    /* Mobile-only "Show N commits" toggle inside a Recent Work day card.
+       Hidden on desktop; the @media block flips it on. */
+    .rw-mobile-toggle {
+      display: none;
+      align-items: center;
+      gap: 0.35rem;
+      font-family: 'Outfit', system-ui, sans-serif;
+      font-size: 0.7rem;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      padding: 0.35rem 0.6rem;
+      border: 1px solid var(--border-subtle);
+      background: transparent;
+      color: var(--muted);
+      cursor: pointer;
+      margin-block-start: 0.5rem;
+    }
+
+    .rw-mobile-toggle:hover {
+      color: var(--fg);
+      border-color: var(--fg);
     }
 
     .rw-stream + .rw-stream {
@@ -1269,21 +1365,167 @@
     }
 
     /* ── Responsive ──────────────────────────── */
+
+    /* Phone-first sweep: one section visible at a time, KPI rows stacked,
+       tables flatten to card lists, lists/buttons get bigger touch targets.
+       The desktop layout is unaffected outside this block. */
     @media (max-width: 768px) {
-      .kpi-row { grid-template-columns: repeat(2, 1fr); }
-      .vw-grid { grid-template-columns: 1fr; }
-      .todo-layout { grid-template-columns: 1fr; }
-      .rw-day-body { grid-template-columns: 1fr; }
+      main {
+        padding: 1rem;
+        padding-block-end: 4rem;
+      }
+
+      /* Section nav becomes the mobile tab strip — sticky, scrollable,
+         larger taps. Active tab still gets the accent underline from the
+         base .section-nav a.active rule. */
       .section-nav {
         overflow-x: auto;
+        overflow-y: hidden;
         scrollbar-width: none;
+        padding-inline: 0.5rem;
+        /* Touch gestures inside the strip pan horizontally only — without
+           this the OS treats vertical drags as page-scroll and the nav
+           appears to drift vertically. overscroll-behavior keeps the
+           scroll chain from leaking into the page. */
+        touch-action: pan-x;
+        overscroll-behavior-x: contain;
       }
+      .section-nav::-webkit-scrollbar { display: none; }
+      .section-nav a {
+        padding: 0.85rem 1rem;
+        font-size: 0.8rem;
+        flex-shrink: 0;
+      }
+
+      /* One section at a time. JS toggles .mobile-active on whichever
+         section is selected; everything else collapses out of the flow.
+         The body must show even if .collapsed was persisted from desktop. */
+      .dashboard-section {
+        display: none;
+        padding-block-end: 0;
+        margin-block-end: 0;
+        border-block-end: none;
+      }
+      .dashboard-section.mobile-active { display: block; }
+      .dashboard-section.mobile-active .section-body { display: block; }
+
+      /* No collapse affordance on mobile — tabs handle navigation. */
+      .section-toggle { cursor: default; pointer-events: none; }
+      .section-toggle svg { display: none; }
+
+      /* KPI grids: stack 1-col on phones for readability over density. */
+      .kpi-row { grid-template-columns: 1fr !important; }
+
+      /* Vault Watch + Reminders layout. */
+      .vw-grid { grid-template-columns: 1fr; }
+      .todo-layout { grid-template-columns: 1fr; }
+      .vw-list-item {
+        padding: 0.7rem 0.75rem;
+        flex-wrap: wrap;
+      }
+      .vw-item-meta {
+        flex-basis: 100%;
+        padding-block-start: 0.15rem;
+      }
+      .vw-card-preview {
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+      }
+
+      /* Reminders touch targets. */
+      .todo-row { min-block-size: 44px; }
+      .todo-check { inline-size: 1.4rem; block-size: 1.4rem; }
+
+      /* Writing-progress: sparklines slightly shorter to keep the panel
+         from stretching with 1-col KPI cards. */
+      .sparkline-wrap { block-size: 36px; }
+
+      /* Recent Work: per-day commit list collapses behind a toggle. The
+         button is hidden on desktop via display:none on .rw-mobile-toggle
+         in the base CSS (defined alongside other .rw-* rules). */
+      .rw-day-body { grid-template-columns: 1fr; }
+      .rw-mobile-toggle { display: inline-flex; }
+      .rw-day .rw-commits.rw-commits-collapsed { display: none; }
+
+      /* Cards browser: list ↔ reader takeover. By default the list shows;
+         tapping an entry adds .reader-active to the browser, which swaps
+         to the reader, and the back button returns to the list. */
       .cards-browser {
         grid-template-columns: 1fr;
-        grid-template-rows: 220px 1fr;
+        grid-template-rows: auto;
         max-height: none;
+        min-height: 0;
+        block-size: auto;
       }
-      .cards-sidebar { border-inline-end: none; border-block-end: 1.5px solid var(--border); }
+      .cards-browser .cards-sidebar {
+        border-inline-end: none;
+        border-block-end: 1.5px solid var(--border);
+        max-block-size: calc(100dvh - 14rem);
+      }
+      .cards-browser.reader-active .cards-sidebar { display: none; }
+      .cards-browser:not(.reader-active) .cards-reader { display: none; }
+      .cards-back-mobile { display: inline-flex; }
+      .cards-sidebar-entry { padding: 0.55rem 0.85rem; }
+
+      /* Posts table → cards. Hide thead, stack each row vertically with
+         a soft separator. The action <td> wraps its buttons. */
+      #posts-section table thead { display: none; }
+      #posts-section table tr {
+        display: block;
+        border-block-end: 1px solid var(--border-subtle);
+        padding-block: 0.85rem;
+      }
+      #posts-section table td {
+        display: block;
+        padding: 0.15rem 0;
+        border-block-end: none;
+      }
+      #posts-section table .actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.4rem;
+        padding-block-start: 0.4rem;
+      }
+
+      /* Opportunities table → cards (same pattern). */
+      #opportunities-body table thead { display: none; }
+      #opportunities-body table tr {
+        display: block;
+        border-block-end: 1px solid var(--border-subtle);
+        padding-block: 0.85rem;
+      }
+      #opportunities-body table td {
+        display: block;
+        padding: 0.15rem 0;
+        border-block-end: none;
+      }
+      #opportunities-body .concept-text { max-width: none; }
+
+      /* Touch-target sweep for inline controls. */
+      .btn { padding: 0.55rem 0.85rem; }
+      .vw-status { padding: 0.35rem 0.6rem; }
+
+      /* Working title hero stays compact. */
+      .thesis-hero { padding-block: 0.25rem; }
+    }
+
+    /* Narrow phones (≤480px): pack the header into two rows so the
+       lastRefreshed chip + Refresh button don't squeeze the title. */
+    @media (max-width: 480px) {
+      header {
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        padding: 0.75rem 1rem;
+      }
+      header > div:last-child {
+        flex-basis: 100%;
+        justify-content: flex-end;
+        flex-wrap: wrap;
+      }
+      .dev-server-status > span:first-child { display: none; }
+      .last-refreshed { font-size: 0.7rem; }
     }
   </style>
 </head>
@@ -1298,6 +1540,7 @@
       <span id="devLabel">checking...</span>
       <button class="dev-server-btn" id="devToggle" onclick="toggleDevServer()">...</button>
     </div>
+    <span id="lastRefreshed" class="last-refreshed" title="Snapshot timestamp">—</span>
     <button class="dev-server-btn" id="refreshBtn" onclick="runRefresh()" title="Regenerate dashboard snapshot">
       <i data-lucide="refresh-cw"></i> Refresh
     </button>
@@ -1306,10 +1549,10 @@
 
 <nav class="section-nav">
   <a href="#dashboard-section">Dashboard</a>
+  <a href="#reminders-section">Reminders</a>
   <a href="#cards-section">Cards</a>
   <a href="#vault-watch-section">Vault Watch</a>
   <a href="#writing-section">Writing</a>
-  <a href="#reminders-section">Reminders</a>
   <a href="#recent-work-section">Recent Work</a>
   <a href="#posts-section">Posts</a>
   <a href="#pipeline-section">Pipeline</a>
@@ -1319,14 +1562,28 @@
 
 <main>
 
-  <!-- ── Dashboard overview ───────────────────────────────────────── -->
+  <!-- ── Dashboard / Working title ───────────────────────────────── -->
   <section class="dashboard-section" id="dashboard-section">
     <button class="section-toggle" onclick="toggleSection('dashboard-section')">
       <h2 class="section-heading">Dashboard</h2>
       <i data-lucide="chevron-down"></i>
     </button>
     <div class="section-body" id="dashboard-body">
-      <div class="loading">Loading dashboard snapshot...</div>
+      <div class="thesis-hero">
+        <h1 class="thesis-title">After the Book: AI and Synthetic Orality in the Post-Literate Age</h1>
+        <p class="thesis-statement">Writing rewired the human brain. AI is now triggering another shift — pulling on circuits that predate literacy itself. <em>After the Book</em> looks at what we stand to lose, and what it will take to keep thinking for ourselves.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Reminders ─────────────────────────────────────────────────── -->
+  <section class="dashboard-section" id="reminders-section">
+    <button class="section-toggle" onclick="toggleSection('reminders-section')">
+      <h2 class="section-heading">Reminders</h2>
+      <i data-lucide="chevron-down"></i>
+    </button>
+    <div class="section-body" id="reminders-body">
+      <div class="loading">Loading reminders...</div>
     </div>
   </section>
 
@@ -1360,17 +1617,6 @@
     </button>
     <div class="section-body" id="writing-body">
       <div class="loading">Loading writing progress...</div>
-    </div>
-  </section>
-
-  <!-- ── Reminders ─────────────────────────────────────────────────── -->
-  <section class="dashboard-section" id="reminders-section">
-    <button class="section-toggle" onclick="toggleSection('reminders-section')">
-      <h2 class="section-heading">Reminders</h2>
-      <i data-lucide="chevron-down"></i>
-    </button>
-    <div class="section-body" id="reminders-body">
-      <div class="loading">Loading reminders...</div>
     </div>
   </section>
 
@@ -1936,6 +2182,10 @@
   const sections = document.querySelectorAll('.dashboard-section');
 
   const navObserver = new IntersectionObserver((entries) => {
+    // On mobile only one section is visible (the switcher manages
+    // .active itself), so skip — otherwise the show/hide of sections
+    // on tab change would race against scroll-driven highlighting.
+    if (typeof isMobileLayout === 'function' && isMobileLayout()) return;
     for (const entry of entries) {
       if (entry.isIntersecting) {
         navLinks.forEach(link => {
@@ -1979,7 +2229,7 @@
       const res = await fetch(API + '/api/dashboard');
       if (!res.ok) throw new Error('not available');
       dashboardData = await res.json();
-      renderDashboardOverview(dashboardData);
+      updateLastRefreshed(dashboardData && dashboardData.refreshed_at);
       renderCards(dashboardData);
       renderVaultWatch(dashboardData);
       renderWriting(dashboardData);
@@ -1992,7 +2242,7 @@
 
   function renderDashboardEmpty() {
     const msg = '<div class="empty">No snapshot yet — click Refresh to generate one.</div>';
-    ['dashboard-body', 'cards-body', 'vault-watch-body', 'writing-body', 'reminders-body', 'recent-work-body'].forEach(id => {
+    ['cards-body', 'vault-watch-body', 'writing-body', 'reminders-body', 'recent-work-body'].forEach(id => {
       const el = document.getElementById(id);
       if (el) el.innerHTML = msg;
     });
@@ -2003,40 +2253,29 @@
     return new Date(iso).toLocaleString();
   }
 
-  // ── Dashboard overview ───────────────────────
-  function renderDashboardOverview(data) {
-    const el = document.getElementById('dashboard-body');
-    if (!data || !data.refreshed_at) {
-      el.innerHTML = '<div class="empty">No snapshot yet — click Refresh.</div>';
-      return;
-    }
+  // Compact timestamp for the header chip: today → "9:32 PM",
+  // older → "May 9, 9:32 PM". Avoids the full toLocaleString().
+  function fmtTimeCompact(iso) {
+    if (!iso) return '—';
+    const d = new Date(iso);
+    if (isNaN(d.getTime())) return '—';
+    const sameDay = (() => {
+      const now = new Date();
+      return d.getFullYear() === now.getFullYear() &&
+             d.getMonth() === now.getMonth() &&
+             d.getDate() === now.getDate();
+    })();
+    const time = d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+    if (sameDay) return time;
+    const date = d.toLocaleDateString([], { month: 'short', day: 'numeric' });
+    return `${date}, ${time}`;
+  }
 
-    // Count non-null sections
-    const sections = ['cards', 'vault_watch', 'writing', 'reminders', 'activity'];
-    const ready = sections.filter(k => data[k] !== null).length;
-
-    el.innerHTML = `
-      <div class="kpi-row" style="grid-template-columns: repeat(3, 1fr);">
-        <div class="kpi-card">
-          <div class="kpi-label">Last Refresh</div>
-          <div class="kpi-value" style="font-size:1.1rem;">${fmtTime(data.refreshed_at)}</div>
-        </div>
-        <div class="kpi-card">
-          <div class="kpi-label">Sections Ready</div>
-          <div class="kpi-value">${ready} <span style="font-size:1rem; color:var(--muted);">/ ${sections.length}</span></div>
-          <div class="kpi-metric">Phases 2–6 populate these</div>
-        </div>
-        <div class="kpi-card">
-          <div class="kpi-label">Mode</div>
-          <div class="kpi-value" style="font-size:1.1rem; color:${isReadOnly ? 'var(--muted)' : 'var(--green)'};">${isReadOnly ? 'Read-only' : 'Full'}</div>
-        </div>
-      </div>
-      <p style="font-size:0.85rem; color:var(--muted); margin-top:0.5rem;">
-        Sections below will populate as Phases 2–6 are built.
-        Use the <strong>Refresh</strong> button above to regenerate the snapshot on demand.
-      </p>
-    `;
-    lucide.createIcons();
+  function updateLastRefreshed(iso) {
+    const el = document.getElementById('lastRefreshed');
+    if (!el) return;
+    el.textContent = iso ? `Refreshed ${fmtTimeCompact(iso)}` : '—';
+    if (iso) el.title = new Date(iso).toLocaleString();
   }
 
   // ── Cards browser (Phase 2) ──────────────────
@@ -2131,6 +2370,7 @@
       metaParts.push(`${card.sources.length} source${card.sources.length === 1 ? '' : 's'}`);
 
     reader.innerHTML = `
+      <button type="button" class="cards-back-mobile" onclick="clearMobileReader()" aria-label="Back to cards list"><i data-lucide="arrow-left"></i> Cards</button>
       <div class="card-reader-header">
         <div class="card-reader-textblock">
           <div class="card-reader-title">${escapeHtml(card.title)}</div>
@@ -2143,6 +2383,11 @@
 
     lucide.createIcons();
     reader.scrollTop = 0;
+    // Mobile-only effect: switch the cards browser into reader-takeover
+    // mode so the sidebar list hides and the reader becomes full-width.
+    // The class is a no-op on desktop (no rule outside @media).
+    const browser = document.querySelector('.cards-browser');
+    if (browser) browser.classList.add('reader-active');
   }
 
   function renderCardBody(rawMarkdown) {
@@ -2192,13 +2437,13 @@
     }
 
     const vw = data.vault_watch;
-    const os = vw.outstanding_sources || { count: 0, items: [], pdfs_total: 0, source_notes_total: 0 };
+    const os = vw.outstanding_sources || { count: 0, items: [], items_total: 0, source_notes_total: 0 };
     const rq = vw.reading_queue || { total: 0, unread: 0, read: 0, items: [] };
     const dailyNotes = vw.recent_daily_notes || [];
     const concepts = vw.recent_concepts || [];
     const inbox = vw.recent_inbox || [];
 
-    const linkedTotal = Math.max(0, os.pdfs_total - os.count);
+    const linkedTotal = Math.max(0, os.items_total - os.count);
     const oldestOutstanding = os.items.length > 0
       ? os.items[os.items.length - 1].mtime
       : null;
@@ -2206,9 +2451,9 @@
     el.innerHTML = `
       <div class="kpi-row" style="grid-template-columns: repeat(3, 1fr);">
         <div class="kpi-card">
-          <div class="kpi-label">Outstanding PDFs</div>
+          <div class="kpi-label">Outstanding Sources</div>
           <div class="kpi-value" style="color:${os.count > 0 ? 'var(--accent)' : 'var(--green)'};">${os.count}</div>
-          <div class="kpi-metric">${linkedTotal} linked of ${os.pdfs_total} total · ${os.source_notes_total} source notes</div>
+          <div class="kpi-metric">${linkedTotal} linked of ${os.items_total} items · ${os.source_notes_total} source notes</div>
         </div>
         <div class="kpi-card">
           <div class="kpi-label">Reading Queue</div>
@@ -2225,7 +2470,7 @@
       <div class="vw-block">
         <div class="vw-block-heading">
           <h3><i data-lucide="file-warning" style="width:14px; height:14px; vertical-align:-2px;"></i> Outstanding Sources</h3>
-          <span class="vw-block-count">${os.count} PDF${os.count === 1 ? '' : 's'} without an article note${oldestOutstanding ? ' · oldest ' + fmtRelDate(oldestOutstanding) : ''}</span>
+          <span class="vw-block-count">${os.count} item${os.count === 1 ? '' : 's'} without a source note${oldestOutstanding ? ' · oldest ' + fmtRelDate(oldestOutstanding) : ''}</span>
         </div>
         ${renderOutstandingList(os.items)}
       </div>
@@ -2262,17 +2507,19 @@
 
   function renderOutstandingList(items) {
     if (!items || items.length === 0) {
-      return '<div class="empty" style="padding:1.5rem;">All PDFs are linked to article notes.</div>';
+      return '<div class="empty" style="padding:1.5rem;">All items have a source note.</div>';
     }
     const rows = items.map((item) => {
-      const url = obsidianUrl(`01_Sources/PDFs/${item.pdf}`);
+      const url = obsidianUrl(item.path);
       const meta = [
         item.size_kb != null ? `${item.size_kb} KB` : null,
         item.mtime ? fmtRelDate(item.mtime) : null,
       ].filter(Boolean).join(' · ');
+      const kind = item.kind ? `<span class="vw-tag">${escapeHtml(item.kind)}</span>` : '';
       return `
         <div class="vw-list-item">
-          <div class="vw-item-title"><a href="${url}">${escapeHtml(item.pdf)}</a></div>
+          ${kind}
+          <div class="vw-item-title"><a href="${url}">${escapeHtml(item.name)}</a></div>
           <div class="vw-item-meta">${escapeHtml(meta)}</div>
         </div>
       `;
@@ -2887,7 +3134,15 @@
       `;
     }).join('');
 
-    const commitsCol = `<div class="rw-commits">${commitRows}</div>`;
+    // Wrap commits in a toggle wrapper. The button is hidden on desktop
+    // (.rw-mobile-toggle defaults to display:none) and the collapsed class
+    // is a no-op on desktop too — so on a wide screen the list shows
+    // unconditionally. On mobile the button reveals the list.
+    const showLabel = `Show ${day.commits.length} commit${day.commits.length === 1 ? '' : 's'}`;
+    const toggleBtn = day.commits.length > 0
+      ? `<button type="button" class="rw-mobile-toggle" onclick="toggleRwCommits(this)" data-show="${showLabel}" data-hide="Hide commits">${showLabel}</button>`
+      : '';
+    const commitsCol = `<div class="rw-commits-wrap">${toggleBtn}<div class="rw-commits rw-commits-collapsed">${commitRows}</div></div>`;
     const bodyHtml = day.summary
       ? `<div class="rw-day-body">
            <div class="rw-summary">${renderSummaryMarkdown(day.summary)}</div>
@@ -2909,8 +3164,15 @@
   // ── On-demand refresh ────────────────────────
   async function runRefresh() {
     const btn = document.getElementById('refreshBtn');
+    const originalLabel = btn.innerHTML;
     btn.disabled = true;
-    setStatus('Refreshing dashboard snapshot...');
+    btn.classList.add('refreshing');
+    btn.innerHTML = '<i data-lucide="refresh-cw"></i> Refreshing…';
+    lucide.createIcons();
+    setStatus('Refreshing dashboard snapshot... (~45s — Ollama summarising)');
+    // Hold the visible spinner for at least this long so a fast response
+    // (e.g. 409 already_running) doesn't flash by unnoticed.
+    const minHold = new Promise((r) => setTimeout(r, 400));
     try {
       const res = await fetch(API + '/api/refresh', { method: 'POST' });
       const data = await res.json();
@@ -2928,9 +3190,97 @@
     } catch (err) {
       setStatus('Refresh failed: ' + err.message, 'error');
     } finally {
+      await minHold;
+      btn.classList.remove('refreshing');
       btn.disabled = false;
+      btn.innerHTML = originalLabel;
       lucide.createIcons();
     }
+  }
+
+  // ── Mobile section switcher ──────────────────
+  // Below the breakpoint, only one .dashboard-section shows at a time;
+  // the section-nav repurposes as a tab strip. State persists in
+  // localStorage and is reflected in location.hash so the back button +
+  // deep links work. Above the breakpoint these helpers no-op.
+  const MOBILE_QUERY = window.matchMedia('(max-width: 768px)');
+  function isMobileLayout() { return MOBILE_QUERY.matches; }
+
+  function setMobileActiveSection(targetId) {
+    if (!targetId || !document.getElementById(targetId)) {
+      targetId = 'reminders-section';
+    }
+    document.querySelectorAll('.dashboard-section').forEach((s) => {
+      s.classList.toggle('mobile-active', s.id === targetId);
+    });
+    document.querySelectorAll('.section-nav a').forEach((a) => {
+      a.classList.toggle('active', a.getAttribute('href') === '#' + targetId);
+    });
+    try { localStorage.setItem('mobileActiveSection', targetId); } catch {}
+    if (location.hash !== '#' + targetId) {
+      history.replaceState(null, '', '#' + targetId);
+    }
+    const activeLink = document.querySelector('.section-nav a.active');
+    if (activeLink && activeLink.scrollIntoView) {
+      activeLink.scrollIntoView({ block: 'nearest', inline: 'center' });
+    }
+  }
+
+  function clearMobileSectionSelection() {
+    document.querySelectorAll('.dashboard-section').forEach((s) => {
+      s.classList.remove('mobile-active');
+    });
+  }
+
+  function applyMobileMode() {
+    if (isMobileLayout()) {
+      const fromHash = location.hash.replace(/^#/, '') || null;
+      let fromStorage = null;
+      try { fromStorage = localStorage.getItem('mobileActiveSection'); } catch {}
+      setMobileActiveSection(fromHash || fromStorage || 'reminders-section');
+    } else {
+      clearMobileSectionSelection();
+    }
+  }
+
+  MOBILE_QUERY.addEventListener('change', applyMobileMode);
+
+  window.addEventListener('hashchange', () => {
+    if (!isMobileLayout()) return;
+    const id = location.hash.replace(/^#/, '');
+    if (id && document.getElementById(id)) setMobileActiveSection(id);
+  });
+
+  document.querySelectorAll('.section-nav a').forEach((a) => {
+    a.addEventListener('click', (e) => {
+      if (!isMobileLayout()) return;
+      e.preventDefault();
+      const id = a.getAttribute('href').replace(/^#/, '');
+      setMobileActiveSection(id);
+      window.scrollTo({ top: 0, behavior: 'instant' });
+    });
+  });
+
+  // Cards browser back-button handler. No-op on desktop because the
+  // .reader-active class has no styling outside @media. Reset card
+  // selection so re-tapping the same entry still feels live.
+  function clearMobileReader() {
+    const browser = document.querySelector('.cards-browser');
+    if (browser) browser.classList.remove('reader-active');
+    document.querySelectorAll('.cards-sidebar-entry.active').forEach((el) => {
+      el.classList.remove('active');
+    });
+  }
+
+  // Recent Work per-day commits toggle. Hidden on desktop; on mobile the
+  // commits list defaults collapsed and this flips the class + label.
+  function toggleRwCommits(btn) {
+    const list = btn.nextElementSibling;
+    if (!list || !list.classList.contains('rw-commits')) return;
+    const collapsed = list.classList.toggle('rw-commits-collapsed');
+    btn.textContent = collapsed
+      ? (btn.dataset.show || 'Show commits')
+      : (btn.dataset.hide || 'Hide commits');
   }
 
   // ── Init ────────────────────────────────────
@@ -2940,6 +3290,7 @@
   fetchDevStatus();
   fetchProjectStatus();
   fetchDashboard();
+  applyMobileMode();
   pollTimer = setInterval(() => {
     fetchPosts();
     fetchDevStatus();

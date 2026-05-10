@@ -2,19 +2,24 @@
  * vault-watch.mjs — Phase 3
  *
  * Surfaces "what needs attention in the vault":
- *   - Outstanding sources: PDFs in 01_Sources/PDFs/ with no Article note linking them
+ *   - Outstanding sources: raw artifacts in watched 01_Sources/ subfolders
+ *     (and loose files in the root) that no `type: source` Source Note
+ *     references via frontmatter wikilink.
  *   - Reading queue: parsed from 01_Sources/READING_QUEUE.md
  *   - Recent daily notes (06_Meta/Daily/)
  *   - Recent inbox items (00_Inbox/)
  *
- * Article notes link to PDFs via frontmatter `pdf: "[[Filename.pdf]]"`.
- * Anything in 01_Sources/PDFs/ that isn't referenced that way is "outstanding".
+ * Source Note schema: a `.md` whose YAML frontmatter contains `type: source`
+ * (Articles, Books, Reports, Podcasts, Videos, Literature Notes all share
+ * this). A Source Note "claims" an item when any frontmatter wikilink
+ * `[[Target]]` resolves to that item's filename (with or without extension).
+ * Generalises the original `pdf: "[[Foo.pdf]]"` convention.
  *
  * Output shape:
  * {
  *   outstanding_sources: {
- *     count, pdfs_total, articles_total,
- *     items: [{ pdf, size_kb, mtime }]
+ *     count, items_total, source_notes_total,
+ *     items: [{ path, name, kind, size_kb, mtime }]
  *   },
  *   reading_queue: {
  *     total, unread, read,
@@ -26,17 +31,30 @@
  */
 
 import { readFileSync, readdirSync, statSync, existsSync, writeFileSync } from 'node:fs';
-import { join } from 'node:path';
+import { join, relative } from 'node:path';
 import { homedir } from 'node:os';
 
 const VAULT = process.env.VAULT_PATH || join(homedir(), 'vaults/PostLiterate');
 const SOURCES_DIR = join(VAULT, '01_Sources');
-const PDFS_DIR = join(VAULT, '01_Sources/PDFs');
 const ARTICLES_DIR = join(VAULT, '01_Sources/Articles');
 const READING_QUEUE_PATH = join(VAULT, '01_Sources/READING_QUEUE.md');
 const DAILY_DIR = join(VAULT, '06_Meta/Daily');
 const INBOX_DIR = join(VAULT, '00_Inbox');
 const CONCEPTS_DIR = join(VAULT, '02_Concepts');
+
+// Subfolders of 01_Sources/ whose contents should be tracked as source items.
+// `kind` doubles as the display label / badge text in the dashboard UI.
+const SOURCE_KIND_DIRS = [
+  { kind: 'PDFs',        rel: 'PDFs' },
+  { kind: 'Podcasts',    rel: 'Podcasts' },
+  { kind: 'Reports',     rel: 'Reports' },
+  { kind: 'Clippings',   rel: 'Clippings' },
+  { kind: 'Transcripts', rel: 'Transcripts' },
+  { kind: 'Videos',      rel: 'Videos' },
+];
+
+// Filenames in 01_Sources/ that are infrastructure, not source items.
+const ITEM_SKIP_NAMES = new Set(['READING_QUEUE.md', '.DS_Store']);
 
 // ── Filesystem helpers ─────────────────────────────────────────
 function safeListFiles(dir, pattern) {
@@ -100,14 +118,17 @@ function notePreview(filePath, maxChars = 220) {
 
 // ── Outstanding sources ────────────────────────────────────────
 //
-// A source note "claims" a PDF when its frontmatter has
-//   pdf: "[[Filename.pdf]]"
-// (or a bare/quoted filename ending in .pdf). We walk every .md file
-// under 01_Sources/ except the PDFs/ subdir itself — so notes in
-// Articles/, Books/, Reports/, Podcasts/, Videos/, Transcripts/,
-// Literature Notes/, Clippings/, and any future subfolders all count.
+// An item is a file (any extension) inside one of SOURCE_KIND_DIRS or a
+// loose file in 01_Sources/ root. An item is "outstanding" when no
+// `type: source` Source Note's frontmatter wikilinks it.
 //
-function walkSourceNotes() {
+// Source Notes themselves (`.md` with frontmatter `type: source`) are not
+// items — they ARE the note. Other `.md` files (e.g. `type: clipping` or
+// no frontmatter) ARE items, and stay outstanding until a Source Note is
+// written that references them.
+
+// Walk every .md under 01_Sources/ recursively. Returns absolute paths.
+function walkAllNotes() {
   const out = [];
   const stack = [SOURCES_DIR];
   while (stack.length) {
@@ -119,7 +140,7 @@ function walkSourceNotes() {
       continue;
     }
     for (const entry of entries) {
-      if (entry.name === 'PDFs') continue; // never recurse into the PDFs leaf
+      if (entry.name.startsWith('.')) continue;
       const full = join(dir, entry.name);
       if (entry.isDirectory()) {
         stack.push(full);
@@ -131,52 +152,121 @@ function walkSourceNotes() {
   return out;
 }
 
-function extractLinkedPdf(text) {
-  const fm = text.match(/^---\r?\n([\s\S]*?)\r?\n---/);
-  if (!fm) return null;
-  const pdfLine = fm[1].match(/^pdf\s*:\s*(.*)$/m);
-  if (!pdfLine) return null;
-  const val = pdfLine[1].trim();
-  if (!val) return null;
-  const wikilink = val.match(/\[\[([^\]]+\.pdf)\]\]/i);
-  if (wikilink) return wikilink[1].trim();
-  const cleaned = val.replace(/^["']|["']$/g, '').trim();
-  if (cleaned.toLowerCase().endsWith('.pdf')) return cleaned;
-  return null;
+// Pull the YAML frontmatter block (between leading ---/---), or null.
+function extractFrontmatterBlock(text) {
+  const m = text.match(/^---\r?\n([\s\S]*?)\r?\n---/);
+  return m ? m[1] : null;
+}
+
+// True iff frontmatter declares `type: source`. Quotes/spacing tolerant.
+function isSourceNote(fmBlock) {
+  if (!fmBlock) return false;
+  const m = fmBlock.match(/^type\s*:\s*(.*)$/m);
+  if (!m) return false;
+  const val = m[1].trim().replace(/^["']|["']$/g, '').toLowerCase();
+  return val === 'source';
+}
+
+// Collect every `[[Target]]` wikilink target appearing anywhere in the
+// frontmatter block, regardless of which key it sits under. For each
+// target we register both the literal value and its stem (filename
+// without final extension), lowercased — this lets us match a Source
+// Note that wrote `[[Foo.pdf]]` against an item `Foo.pdf`, and also a
+// note that wrote a bare `[[Foo]]` against any extension-mate.
+function collectClaimedNames(fmBlock, sink) {
+  if (!fmBlock) return;
+  for (const match of fmBlock.matchAll(/\[\[([^\]|]+)(?:\|[^\]]*)?\]\]/g)) {
+    const target = match[1].trim();
+    if (!target) continue;
+    sink.add(target.toLowerCase());
+    const stem = target.replace(/\.[^./\\]+$/, '');
+    if (stem !== target) sink.add(stem.toLowerCase());
+  }
+}
+
+// True if either the item's full filename or its stem is in the claimed
+// set. Names normalized to lowercase before lookup.
+function isItemClaimed(filename, claimed) {
+  const fn = filename.toLowerCase();
+  if (claimed.has(fn)) return true;
+  const stem = fn.replace(/\.[^./\\]+$/, '');
+  return claimed.has(stem);
+}
+
+// List items in a single watched dir (non-recursive). Returns absolute
+// paths. Skips dotfiles and infrastructure names.
+function listWatchedDir(absDir) {
+  if (!existsSync(absDir)) return [];
+  let entries;
+  try {
+    entries = readdirSync(absDir, { withFileTypes: true });
+  } catch {
+    return [];
+  }
+  return entries
+    .filter((e) => e.isFile())
+    .map((e) => e.name)
+    .filter((n) => !n.startsWith('.') && !ITEM_SKIP_NAMES.has(n))
+    .map((n) => join(absDir, n));
 }
 
 function getOutstandingSources() {
-  const pdfs = safeListFiles(PDFS_DIR, /\.pdf$/i);
-  const sourceNotes = walkSourceNotes();
-
-  const linked = new Set();
-  for (const notePath of sourceNotes) {
+  // 1. Find every .md with type:source and harvest claimed wikilink targets.
+  const allNotes = walkAllNotes();
+  const sourceNotePaths = new Set();
+  const claimed = new Set();
+  for (const notePath of allNotes) {
     let text;
     try {
       text = readFileSync(notePath, 'utf8');
     } catch {
       continue;
     }
-    const linkedPdf = extractLinkedPdf(text);
-    if (linkedPdf) linked.add(linkedPdf);
+    const fmBlock = extractFrontmatterBlock(text);
+    if (!isSourceNote(fmBlock)) continue;
+    sourceNotePaths.add(notePath);
+    collectClaimedNames(fmBlock, claimed);
   }
 
-  const items = pdfs
-    .filter((name) => !linked.has(name))
-    .map((name) => {
-      const m = fileMeta(PDFS_DIR, name);
+  // 2. Enumerate candidate items: each watched subfolder + loose root.
+  const candidates = [];
+  for (const { kind, rel } of SOURCE_KIND_DIRS) {
+    const absDir = join(SOURCES_DIR, rel);
+    for (const full of listWatchedDir(absDir)) {
+      candidates.push({ full, kind });
+    }
+  }
+  for (const full of listWatchedDir(SOURCES_DIR)) {
+    candidates.push({ full, kind: 'Loose' });
+  }
+
+  // 3. Filter to items lacking a claiming Source Note. Source Notes
+  //    themselves are not items — they ARE the note.
+  const items = candidates
+    .filter(({ full }) => !sourceNotePaths.has(full))
+    .filter(({ full }) => !isItemClaimed(full.split('/').pop(), claimed))
+    .map(({ full, kind }) => {
+      const name = full.split('/').pop();
+      let s;
+      try {
+        s = statSync(full);
+      } catch {
+        s = null;
+      }
       return {
-        pdf: name,
-        size_kb: m.size_bytes != null ? Math.round(m.size_bytes / 1024) : null,
-        mtime: m.mtime,
+        path: relative(VAULT, full),
+        name,
+        kind,
+        size_kb: s ? Math.round(s.size / 1024) : null,
+        mtime: s ? new Date(s.mtimeMs).toISOString() : null,
       };
     })
     .sort((a, b) => (b.mtime || '').localeCompare(a.mtime || ''));
 
   return {
     count: items.length,
-    pdfs_total: pdfs.length,
-    source_notes_total: sourceNotes.length,
+    items_total: candidates.length,
+    source_notes_total: sourceNotePaths.size,
     items,
   };
 }
