@@ -1,0 +1,110 @@
+---
+import CorpusTreemap from '../components/corpus-treemap/CorpusTreemap.astro';
+---
+
+<!doctype html>
+<html lang="en" data-theme="light">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="An interactive breakdown of what AI language models actually train on — web crawls, code, books, forums, and more." />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <title>What do AI models train on? | Post-Literate</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Alegreya:ital,wght@0,400;0,500;1,400&family=Outfit:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+
+    <style>
+      *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+      :root {
+        color-scheme: light;
+        --background: #F3EFE1;
+        --text: #2C2C2C;
+        --text-secondary: #666;
+        --text-tertiary: #999;
+        --accent: #E53E33;
+        --border-subtle: rgba(0,0,0,0.1);
+        --bg-subtle: rgba(0,0,0,0.02);
+        --bg-highlight: rgba(229,62,51,0.05);
+      }
+      [data-theme="dark"] {
+        color-scheme: dark;
+        --background: #1a1a1a;
+        --text: #c8c8c8;
+        --text-secondary: #a0a0a0;
+        --text-tertiary: #707070;
+        --accent: #ff6b5e;
+        --border-subtle: rgba(255,255,255,0.1);
+        --bg-subtle: rgba(255,255,255,0.03);
+        --bg-highlight: rgba(255,107,94,0.08);
+      }
+
+      html, body {
+        height: 100%;
+        overflow: hidden;
+        background: var(--background);
+        color: var(--text);
+        font-family: 'Outfit', system-ui, sans-serif;
+      }
+
+      .page-shell {
+        display: flex;
+        flex-direction: column;
+        height: 100dvh;
+      }
+
+      .page-nav {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        padding: 0 20px;
+        height: 40px;
+        border-bottom: 1px solid var(--border-subtle);
+        flex-shrink: 0;
+        font-size: 13px;
+      }
+      .page-nav a {
+        color: var(--text-secondary);
+        text-decoration: none;
+      }
+      .page-nav a:hover { color: var(--accent); }
+      .page-nav-sep {
+        color: var(--text-tertiary);
+      }
+
+      .figure-wrap {
+        flex: 1;
+        min-height: 0;
+        overflow: hidden;
+      }
+
+      .figure-wrap > * {
+        height: 100%;
+      }
+    </style>
+
+    <script is:inline>
+      (function() {
+        var saved = localStorage.getItem('theme') || 'light';
+        document.documentElement.setAttribute('data-theme', saved);
+      })();
+    </script>
+  </head>
+  <body>
+    <div class="page-shell">
+      <nav class="page-nav">
+        <a href="/">Post-Literate</a>
+        <span class="page-nav-sep">›</span>
+        <span>What do AI models train on?</span>
+      </nav>
+      <div class="figure-wrap">
+        <CorpusTreemap />
+      </div>
+    </div>
+  </body>
+</html>
