@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Modal mockup — new palette</title>
+<style>
+  :root { color-scheme: light dark; }
+  body { margin: 0; font-family: -apple-system, system-ui, sans-serif; background: #f3efe1; color: #1a1a1a; padding: 24px; }
+  h1 { font-weight: 500; font-size: 18px; margin: 0 0 4px; }
+  p.caption { margin: 0 0 16px; color: #666; font-size: 13px; }
+  .stage { background: #fff; border: 1px solid #ddd; padding: 16px; margin-bottom: 16px; }
+  .stage h2 { font-size: 11px; font-weight: 600; margin: 0 0 8px; color: #888; letter-spacing: 0.05em; text-transform: uppercase; }
+  svg.canvas { width: 100%; max-width: 1000px; height: auto; display: block; margin: 0 auto; }
+  .container-circle { fill: rgba(0,0,0,0.03); stroke: rgba(0,0,0,0.15); stroke-width: 1.5; pointer-events: none; }
+  .bubble-fill { stroke: #f3efe1; stroke-width: 2; cursor: pointer; }
+  .bubble-label { font-size: 13px; fill: #fff; pointer-events: none; font-weight: 500; }
+  .bubble-pct { font-size: 11px; fill: rgba(255,255,255,0.78); pointer-events: none; font-weight: 400; }
+
+  .stage--modal .bg-group {
+    filter: grayscale(1) blur(6px) brightness(1.1);
+    opacity: 0.18;
+    transition: filter 300ms ease-out, opacity 300ms ease-out;
+  }
+  .panel-rect { fill: rgba(255,255,255,0.92); stroke: rgba(0,0,0,0.08); stroke-width: 1; }
+  .close-btn { fill: rgba(0,0,0,0.06); cursor: pointer; }
+  .close-x { stroke: #333; stroke-width: 2; stroke-linecap: round; }
+  .selector { font-size: 13px; padding: 4px 8px; margin-right: 8px; }
+</style>
+</head>
+<body>
+<h1>Modal mockup — new palette</h1>
+<p class="caption">Top: root state with container circle. Bottom: modal-open state — pick a category to see its drill-in.</p>
+
+<div class="stage">
+  <h2>Root state</h2>
+  <svg class="canvas" id="svg-root" viewBox="0 0 1000 700"></svg>
+</div>
+
+<div class="stage stage--modal" id="modal-stage">
+  <h2>Modal-open state (mockup)</h2>
+  <div style="margin-bottom: 8px;">
+    <label style="font-size: 13px;">Drilled-into category:
+      <select class="selector" id="parent-select"></select>
+    </label>
+  </div>
+  <svg class="canvas" id="svg-modal" viewBox="0 0 1000 700"></svg>
+</div>
+
+<script>
+const DATA = {"root":{"canvas":{"viewBox":[0,0,1000,700]},"container":{"x":500,"y":350,"r":310.07069986410545},"cells":[{"id":"web","label":"The Web","value":38,"color":"#809B57","isUnknown":false,"hasChildren":true,"x":381.3794507791521,"y":358.8595646805729,"r":160.14415506111203,"index":0,"vy":2.4509777762496916e-8,"vx":-0.0000011131838288795365},{"id":"logic","label":"Code & Math","value":18,"color":"#7B5567","isUnknown":false,"hasChildren":true,"x":653.7409700031344,"y":358.0370823047338,"r":110.21876657527815,"index":1,"vy":1.6129513727045009e-7,"vx":0.0000026267326232125363},{"id":"academic","label":"Academic Papers","value":10,"color":"#5BA7A3","isUnknown":false,"hasChildren":true,"x":558.2753170636902,"y":527.3483648040861,"r":82.15221815283456,"index":2,"vy":0.000004538528209356053,"vx":8.215270869557742e-7},{"id":"books","label":"Books","value":8,"color":"#E2A82B","isUnknown":false,"hasChildren":true,"x":555.697967234891,"y":200.33095495432275,"r":73.47917771685212,"index":3,"vy":-0.0000042504504795085135,"vx":9.899620806138547e-7},{"id":"forums","label":"Forums & Q&A","value":8,"color":"#8E2A3A","isUnknown":false,"hasChildren":true,"x":425.7822707636322,"y":127.4580692760074,"r":73.47917771685212,"index":4,"vy":-0.000004941835600073992,"vx":-0.0000027456731458805743},{"id":"wiki","label":"Wikipedia","value":6,"color":"#C5B746","isUnknown":false,"hasChildren":true,"x":420.64803835110183,"y":581.1972284292281,"r":63.63483455198537,"index":5,"vy":0.000005204744519651686,"vx":-0.000002724807504866713},{"id":"legal","label":"Legal & Government","value":4,"color":"#6F8088","isUnknown":false,"hasChildren":true,"x":683.0771297250567,"y":196.5031015862227,"r":51.957624839597585,"index":6,"vy":-0.000003173338228694292,"vx":0.000004235940209899251},{"id":"multilingual","label":"Multilingual","value":4,"color":"#E29487","isUnknown":false,"hasChildren":true,"x":694.0060928060592,"y":517.1991122961958,"r":51.957624839597585,"index":7,"vy":0.000003861899835195078,"vx":0.000004078685428478246},{"id":"transcripts","label":"Transcripts","value":2,"color":"#B57480","isUnknown":false,"hasChildren":true,"x":321.60441401331013,"y":169.17137831817502,"r":36.73958885842606,"index":8,"vy":-0.000003665222312721969,"vx":-0.0000050945793966122275},{"id":"synthetic","label":"Synthetic Data","value":1,"color":"#A8B570","isUnknown":false,"hasChildren":true,"x":337.896437662705,"y":541.8879948560934,"r":25.978812419798793,"index":9,"vy":0.000003822478615716855,"vx":-0.0000044679373040552},{"id":"unknown","label":"Unknown","value":1,"color":"#383838","isUnknown":true,"hasChildren":true,"x":524.4449029027044,"y":103.80660502000563,"r":25.978812419798793,"index":10,"vy":-0.0000059763186822028556,"vx":-9.845001702393311e-7}]},"web":{"canvas":{"viewBox":[0,0,1000,700]},"parent":{"id":"web","label":"The Web","color":"#809B57","value":38,"x":381.3794507791521,"y":358.8595646805729,"r":160.14415506111203,"openX":500,"openY":350,"openR":270,"transform":{"scale":1.6859809831771024,"tx":-142.99850138817817,"ty":-255.0304016826592}},"cells":[{"id":"web-crawl","label":"Web Crawls","value":20,"color":"#809B57","isUnknown":false,"hasChildren":false,"x":396.46191927203125,"y":304.5609726198448,"r":155.9356805285782},{"id":"web-news","label":"News Articles","value":9,"color":"#809B57","isUnknown":false,"hasChildren":false,"x":657.9966898186362,"y":304.5609726198448,"r":104.60483453387734},{"id":"web-blog","label":"Blogs & Personal Sites","value":9,"color":"#809B57","isUnknown":false,"hasChildren":false,"x":573.5228552216629,"y":497.0443775292182,"r":104.60483453387734}]},"logic":{"canvas":{"viewBox":[0,0,1000,700]},"parent":{"id":"logic","label":"Code & Math","color":"#7B5567","value":18,"x":653.7409700031344,"y":358.0370823047338,"r":110.21876657527815,"openX":500,"openY":350,"openR":270,"transform":{"scale":2.4496735754667793,"tx":-1101.4519794166988,"ty":-527.0739795591309}},"cells":[{"id":"logic-github","label":"Code (GitHub)","value":10,"color":"#7B5567","isUnknown":false,"hasChildren":false,"x":395.47570113410086,"y":350,"r":164.48122599597934},{"id":"logic-stackoverflow","label":"Stack Overflow","value":4,"color":"#7B5567","isUnknown":false,"hasChildren":false,"x":664.9784635650401,"y":350,"r":104.02706129683837},{"id":"logic-arxiv-math","label":"arXiv Math/CS","value":2,"color":"#7B5567","isUnknown":false,"hasChildren":false,"x":577.0660985652673,"y":505.4417987529009,"r":73.55824046990307},{"id":"logic-mathoverflow","label":"MathOverflow","value":2,"color":"#7B5567","isUnknown":false,"hasChildren":false,"x":577.0660985652673,"y":194.55820124709905,"r":73.55824046990307}]},"academic":{"canvas":{"viewBox":[0,0,1000,700]},"parent":{"id":"academic","label":"Academic Papers","color":"#5BA7A3","value":10,"x":558.2753170636902,"y":527.3483648040861,"r":82.15221815283456,"openX":500,"openY":350,"openR":270,"transform":{"scale":3.2865819824572076,"tx":-1334.8175983121089,"ty":-1383.17363424338}},"cells":[{"id":"academic-arxiv-recursive","label":"AI/CS Papers","value":5,"color":"#5BA7A3","isUnknown":false,"hasChildren":false,"x":382.97040651923334,"y":332.24514937761387,"r":150.63691769111193},{"id":"academic-pubmed","label":"Biomedical / PubMed","value":3,"color":"#5BA7A3","isUnknown":false,"hasChildren":false,"x":651.2845133635486,"y":332.24514937761387,"r":116.68285470833877},{"id":"academic-other","label":"Other Disciplines","value":2,"color":"#5BA7A3","isUnknown":false,"hasChildren":false,"x":546.2235841567374,"y":517.4725693806657,"r":95.27115192224524}]},"books":{"canvas":{"viewBox":[0,0,1000,700]},"parent":{"id":"books","label":"Books","color":"#E2A82B","value":8,"x":555.697967234891,"y":200.33095495432275,"r":73.47917771685212,"openX":500,"openY":350,"openR":270,"transform":{"scale":3.6745103632001683,"tx":-1541.9179394138748,"ty":-386.1181700494451}},"cells":[{"id":"books-gutenberg","label":"Public Domain","value":3,"color":"#E2A82B","isUnknown":false,"hasChildren":false,"x":348.19610670077475,"y":350,"r":117.20163156265319},{"id":"books-books3","label":"Copyrighted Books","value":5,"color":"#E2A82B","isUnknown":false,"hasChildren":false,"x":617.698869131714,"y":350,"r":151.30665573016447}]},"forums":{"canvas":{"viewBox":[0,0,1000,700]},"parent":{"id":"forums","label":"Forums & Q&A","color":"#8E2A3A","value":8,"x":425.7822707636322,"y":127.4580692760074,"r":73.47917771685212,"openX":500,"openY":350,"openR":270,"transform":{"scale":3.6745103632001683,"tx":-1064.5413663878664,"ty":-118.34599642817415}},"cells":[{"id":"forums-reddit-good","label":"Reddit (curated)","value":5,"color":"#8E2A3A","isUnknown":false,"hasChildren":false,"x":382.301130868286,"y":350,"r":151.30665573016447},{"id":"forums-stackoverflow","label":"StackExchange / Forums","value":3,"color":"#8E2A3A","isUnknown":false,"hasChildren":false,"x":651.8038932992253,"y":350,"r":117.20163156265319}]},"wiki":{"canvas":{"viewBox":[0,0,1000,700]},"parent":{"id":"wiki","label":"Wikipedia","color":"#C5B746","value":6,"x":420.64803835110183,"y":581.1972284292281,"r":63.63483455198537,"openX":500,"openY":350,"openR":270,"transform":{"scale":4.242959094667374,"tx":-1284.7924199757979,"ty":-2115.9960661592645}},"cells":[{"id":"wiki-english","label":"English Wikipedia","value":4,"color":"#C5B746","isUnknown":false,"hasChildren":false,"x":388.28298822468275,"y":350,"r":157.2885130865612},{"id":"wiki-tamil","label":"Other Languages","value":2,"color":"#C5B746","isUnknown":false,"hasChildren":false,"x":657.785750655622,"y":350,"r":111.21977420625646}]},"legal":{"canvas":{"viewBox":[0,0,1000,700]},"parent":{"id":"legal","label":"Legal & Government","color":"#6F8088","value":4,"x":683.0771297250567,"y":196.5031015862227,"r":51.957624839597585,"openX":500,"openY":350,"openR":270,"transform":{"scale":5.196542390718166,"tx":-3049.639260746349,"ty":-671.1366973004044}},"cells":[{"id":"legal-freelaw","label":"Court Opinions","value":2,"color":"#6F8088","isUnknown":false,"hasChildren":false,"x":365.2486187845304,"y":350,"r":134.25414364640883},{"id":"legal-patent","label":"Patents","value":2,"color":"#6F8088","isUnknown":false,"hasChildren":false,"x":634.7513812154696,"y":350,"r":134.25414364640883}]},"multilingual":{"canvas":{"viewBox":[0,0,1000,700]},"parent":{"id":"multilingual","label":"Multilingual","color":"#E29487","value":4,"x":694.0060928060592,"y":517.1991122961958,"r":51.957624839597585,"openX":500,"openY":350,"openR":270,"transform":{"scale":5.196542390718166,"tx":-3106.4320806833725,"ty":-2337.647111488987}},"cells":[{"id":"multilingual-europarl","label":"Europarl / EU Docs","value":2,"color":"#E29487","isUnknown":false,"hasChildren":false,"x":365.2486187845304,"y":350,"r":134.25414364640883},{"id":"multilingual-cc100","label":"CC-100 / Other","value":2,"color":"#E29487","isUnknown":false,"hasChildren":false,"x":634.7513812154696,"y":350,"r":134.25414364640883}]},"transcripts":{"canvas":{"viewBox":[0,0,1000,700]},"parent":{"id":"transcripts","label":"Transcripts","color":"#B57480","value":2,"x":321.60441401331013,"y":169.17137831817502,"r":36.73958885842606,"openX":500,"openY":350,"openR":270,"transform":{"scale":7.349020726400337,"tx":-1863.4775042856509,"ty":-893.2439655739806}},"cells":[{"id":"transcripts-youtube","label":"YouTube Captions","value":1.2,"color":"#B57480","isUnknown":false,"hasChildren":false,"x":378.8110414405389,"y":350,"r":147.81656630241739},{"id":"transcripts-opensubs","label":"Subtitles","value":0.8,"color":"#B57480","isUnknown":false,"hasChildren":false,"x":648.3138038714782,"y":350,"r":120.69172099040033}]},"synthetic":{"canvas":{"viewBox":[0,0,1000,700]},"parent":{"id":"synthetic","label":"Synthetic Data","color":"#A8B570","value":1,"x":337.896437662705,"y":541.8879948560934,"r":25.978812419798793,"openX":500,"openY":350,"openR":270,"transform":{"scale":10.393084781436333,"tx":-3011.78632397381,"ty":-5281.887872581914}},"cells":[{"id":"synthetic-rstar","label":"Synthetic Reasoning","value":1,"color":"#A8B570","isUnknown":false,"hasChildren":false,"x":500,"y":350,"r":269.00369003690037}]},"unknown":{"canvas":{"viewBox":[0,0,1000,700]},"parent":{"id":"unknown","label":"Unknown","color":"#383838","value":1,"x":524.4449029027044,"y":103.80660502000563,"r":25.978812419798793,"openX":500,"openY":350,"openR":270,"transform":{"scale":10.393084781436333,"tx":-4950.600339059952,"ty":-728.8708468459929}},"cells":[{"id":"unknown-proprietary","label":"Proprietary / Undisclosed","value":1,"color":"#383838","isUnknown":true,"hasChildren":false,"x":500,"y":350,"r":269.00369003690037}]}};
+const SVG_NS = 'http://www.w3.org/2000/svg';
+
+function el(tag, attrs = {}, text) {
+  const e = document.createElementNS(SVG_NS, tag);
+  for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v);
+  if (text != null) e.textContent = text;
+  return e;
+}
+function labelMode(r) {
+  if (r >= 50) return 'full';
+  if (r >= 28) return 'label';
+  return 'none';
+}
+
+const ROOT_TOTAL = DATA['root'].cells.reduce((s, c) => s + c.value, 0);
+function rootPct(v) { return (v / ROOT_TOTAL * 100).toFixed(1) + '%'; }
+
+function renderBubbles(svg, bubbles, opts = {}) {
+  for (const c of bubbles) {
+    const mode = labelMode(c.r);
+    svg.appendChild(el('circle', {
+      cx: c.x, cy: c.y, r: c.r, fill: c.color || '#888', class: 'bubble-fill',
+    }));
+    if (mode !== 'none') {
+      svg.appendChild(el('text', {
+        x: c.x, y: mode === 'full' ? c.y - 4 : c.y,
+        'text-anchor': 'middle', 'dominant-baseline': 'middle',
+        class: 'bubble-label',
+      }, c.label));
+    }
+    if (mode === 'full' && opts.pctFn) {
+      svg.appendChild(el('text', {
+        x: c.x, y: c.y + 16,
+        'text-anchor': 'middle', 'dominant-baseline': 'middle',
+        class: 'bubble-pct',
+      }, opts.pctFn(c.value)));
+    }
+  }
+}
+
+function renderRoot() {
+  const j = DATA['root'];
+  const svg = document.getElementById('svg-root');
+  svg.innerHTML = '';
+  svg.appendChild(el('circle', { cx: j.container.x, cy: j.container.y, r: j.container.r, class: 'container-circle' }));
+  renderBubbles(svg, j.cells, { pctFn: rootPct });
+}
+
+function renderModal(parentId) {
+  const root = DATA['root'];
+  const modal = DATA[parentId];
+  const svg = document.getElementById('svg-modal');
+  svg.innerHTML = '';
+
+  const bg = el('g', { class: 'bg-group' });
+  bg.appendChild(el('circle', { cx: root.container.x, cy: root.container.y, r: root.container.r, class: 'container-circle' }));
+  renderBubbles(bg, root.cells, { pctFn: rootPct });
+  svg.appendChild(bg);
+
+  const m = el('g', { class: 'modal-group' });
+  m.appendChild(el('circle', {
+    cx: modal.parent.openX, cy: modal.parent.openY, r: modal.parent.openR,
+    fill: modal.parent.color || '#888', class: 'bubble-fill',
+    style: 'stroke: rgba(255,255,255,0.5); stroke-width: 1.5;',
+  }));
+  renderBubbles(m, modal.cells, {});
+
+  const panelX = 800, panelY = 80, panelW = 230, panelH = 540;
+  m.appendChild(el('rect', { x: panelX, y: panelY, width: panelW, height: panelH, class: 'panel-rect' }));
+  m.appendChild(el('text', { x: panelX + 18, y: panelY + 36, style: 'font-size: 20px; font-weight: 700; fill: ' + (modal.parent.color || '#888') + ';' }, modal.parent.label));
+  m.appendChild(el('text', { x: panelX + 18, y: panelY + 60, style: 'font-size: 13px; fill: #888;' }, modal.parent.value + '% of pre-training tokens'));
+  m.appendChild(el('text', { x: panelX + 18, y: panelY + 100, style: 'font-size: 12px; fill: #444;' }, '[description]'));
+  m.appendChild(el('text', { x: panelX + 18, y: panelY + 130, style: 'font-size: 12px; fill: #444;' }, '[bullets]'));
+  m.appendChild(el('text', { x: panelX + 18, y: panelY + 160, style: 'font-size: 12px; fill: #444;' }, '[screenshot]'));
+
+  const cx = panelX + panelW - 20, cy = panelY + 20, r = 14;
+  m.appendChild(el('circle', { cx, cy, r, class: 'close-btn' }));
+  m.appendChild(el('line', { x1: cx - 5, y1: cy - 5, x2: cx + 5, y2: cy + 5, class: 'close-x' }));
+  m.appendChild(el('line', { x1: cx + 5, y1: cy - 5, x2: cx - 5, y2: cy + 5, class: 'close-x' }));
+
+  svg.appendChild(m);
+}
+
+const PARENTS = DATA['root'].cells.filter(c => c.hasChildren);
+const sel = document.getElementById('parent-select');
+for (const p of PARENTS) {
+  const opt = document.createElement('option');
+  opt.value = p.id;
+  opt.textContent = p.label + ' (' + p.value + '%)';
+  sel.appendChild(opt);
+}
+sel.addEventListener('change', () => renderModal(sel.value));
+
+renderRoot();
+renderModal(PARENTS[0].id);
+</script>
+</body>
+</html>

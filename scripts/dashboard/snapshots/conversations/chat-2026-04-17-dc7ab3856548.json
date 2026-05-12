@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "id": "dc7ab385-6548-492c-84ab-b85a0ab01ecd",
+  "type": "chat",
+  "project_label": null,
+  "project_path": null,
+  "title": "Connecting content to PostLiterate thesis",
+  "started_at": "2026-04-17T12:06:08.282361Z",
+  "last_activity_at": "2026-04-17T13:00:59.561036Z",
+  "message_count": 4,
+  "first_prompt": "Summarize this for me, high level, also relate it to my PostLIterate book thesis.",
+  "summary": "Irwin was attempting to relate the academic concept of L2 reading strategies to his broader theoretical framework, *PostLiterate*. The conversation began with the assistant summarizing the Parry paper, which contrasted the top-down reading strategies of Nigerian students with the bottom-up parsing employed by university-educated teachers in China. When Irwin sought further clarification, the assistant defined L2 as meaning second language.",
+  "summary_status": "ready",
+  "artifacts": [],
+  "source_ref": {
+    "kind": "chat",
+    "uuid": "dc7ab385-6548-492c-84ab-b85a0ab01ecd",
+    "source_key": "c9ce4e6e|dc7ab385-6548-492c-84ab-b85a0ab01ecd|2026-04-17T13:00:59.561036Z",
+    "slim_cache": "snapshots/claude-archive/postliterate.json"
+  },
+  "ingested_at": "2026-05-12T12:32:38.146Z"
+}

@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "id": "881b805a-f814-48a3-824a-0cddfbc1bddf",
+  "type": "chat",
+  "project_label": null,
+  "project_path": null,
+  "title": "Choosing a technology stack for interactive Synthetic Orality project",
+  "started_at": "2025-11-25T18:36:55.829430Z",
+  "last_activity_at": "2025-11-27T14:02:29.036956Z",
+  "message_count": 140,
+  "first_prompt": "I want you to think through an idea with me. It’s something that’s been rattling around in my head since I’ve been working on my Synthetic Orality project — I initially thought about making it a tradi",
+  "summary": "Irwin was attempting to determine the optimal technology stack and structural framework for his interactive \"Synthetic Orality\" project, ensuring the presentation format was antithetical to a traditional book. The discussion covered using Ghost with custom themes, integrating features like margin notes, and exploring membership layers via Memberstack. The conversation then shifted to analyzing the project's content, specifically the MOCs and files within his local Obsidian vault, which required troubleshooting the setup of a filesystem MCP server to gain access.",
+  "summary_status": "ready",
+  "artifacts": [],
+  "source_ref": {
+    "kind": "chat",
+    "uuid": "881b805a-f814-48a3-824a-0cddfbc1bddf",
+    "source_key": "c9ce4e6e|881b805a-f814-48a3-824a-0cddfbc1bddf|2025-11-27T14:02:29.036956Z",
+    "slim_cache": "snapshots/claude-archive/postliterate.json"
+  },
+  "ingested_at": "2026-05-12T12:32:38.258Z"
+}

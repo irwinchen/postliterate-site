@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "id": "45e858cf-7964-44a7-9166-8a347a5e3784",
+  "type": "chat",
+  "project_label": null,
+  "project_path": null,
+  "title": "Threading KnoxGear mic shock mount bands",
+  "started_at": "2025-12-19T13:36:38.566758Z",
+  "last_activity_at": "2025-12-19T13:41:45.460385Z",
+  "message_count": 10,
+  "first_prompt": "I need help threading the bands for this KnoxGear mic shock mount.",
+  "summary": "Irwin was trying to understand the precise physical process of threading the elastic bands onto a KnoxGear microphone shock mount. The conversation first established that the shorter band should be placed on the front and the longer band on the back, but the discussion evolved into a clarification of the term \"thread,\" which the assistant defined as weaving or routing the band through the slots. After reviewing the mount's structure, the assistant provided a detailed, step-by-step instruction to feed the shorter band into the left slot and then across to the right slot.",
+  "summary_status": "ready",
+  "artifacts": [],
+  "source_ref": {
+    "kind": "chat",
+    "uuid": "45e858cf-7964-44a7-9166-8a347a5e3784",
+    "source_key": "c9ce4e6e|45e858cf-7964-44a7-9166-8a347a5e3784|2025-12-19T13:41:45.460385Z",
+    "slim_cache": "snapshots/claude-archive/postliterate.json"
+  },
+  "ingested_at": "2026-05-12T12:32:38.245Z"
+}

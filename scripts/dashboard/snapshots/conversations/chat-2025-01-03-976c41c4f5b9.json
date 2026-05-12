@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "id": "976c41c4-f5b9-4e80-8540-7cf678a4d46a",
+  "type": "chat",
+  "project_label": null,
+  "project_path": null,
+  "title": "Configuring image paths and removing duplication in Obsidian blog posts",
+  "started_at": "2025-01-03T15:26:38.610543Z",
+  "last_activity_at": "2025-01-03T15:28:38.575656Z",
+  "message_count": 6,
+  "first_prompt": "I need you to use MCP filesystem to look in my Obsidian vault for two particular things. First, read the DEPLOYMENT docs in linkblog to determine where images should be stored in the MD files to be us",
+  "summary": "Irwin needed assistance configuring image paths and eliminating content duplication within his Obsidian blog posts. The conversation began with the assistant needing access to the vault directories to analyze the `DEPLOYMENT docs` in `linkblog` and the `obsidian-blogger-template.js` file. After confirming access, the assistant determined the `DEPLOYMENT docs` did not specify image storage rules, but following Irwin's instruction to apply changes, the assistant successfully updated the script to correctly handle images and prevent content duplication.",
+  "summary_status": "ready",
+  "artifacts": [],
+  "source_ref": {
+    "kind": "chat",
+    "uuid": "976c41c4-f5b9-4e80-8540-7cf678a4d46a",
+    "source_key": "c9ce4e6e|976c41c4-f5b9-4e80-8540-7cf678a4d46a|2025-01-03T15:28:38.575656Z",
+    "slim_cache": "snapshots/claude-archive/postliterate.json"
+  },
+  "ingested_at": "2026-05-12T12:32:39.353Z"
+}

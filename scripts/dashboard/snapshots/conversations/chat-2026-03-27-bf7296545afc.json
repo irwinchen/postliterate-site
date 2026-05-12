@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "id": "bf729654-5afc-4490-bc28-9df657c3f12c",
+  "type": "chat",
+  "project_label": null,
+  "project_path": null,
+  "title": "Using iA Writer for book drafting in Obsidian vault",
+  "started_at": "2026-03-25T22:49:08.290681Z",
+  "last_activity_at": "2026-03-27T13:04:09.795768Z",
+  "message_count": 22,
+  "first_prompt": "I’m thinking of using iAWriter on my iPad to write the actual text for the book, instead of writing it in Obsidian. I can paste the text into finished chapter files as I’m done. How will this impact t",
+  "summary": "The conversation centered on how Irwin could use iA Writer for its superior writing experience while ensuring that the resulting chapter drafts did not break the structural integrity or the knowledge graph of his Obsidian vault. They established best practices for file management, including using YAML frontmatter for titles and adopting simple naming conventions like `ch01_draft.md` to keep the file structure clean. Ultimately, after troubleshooting iCloud sync issues, the assistant advised against moving the entire vault to iCloud, recommending instead that Irwin keep his primary vault on Obsidian Sync and use a separate, dedicated iCloud folder for drafting chapters that would later be copy-pasted into the main vault.",
+  "summary_status": "ready",
+  "artifacts": [],
+  "source_ref": {
+    "kind": "chat",
+    "uuid": "bf729654-5afc-4490-bc28-9df657c3f12c",
+    "source_key": "c9ce4e6e|bf729654-5afc-4490-bc28-9df657c3f12c|2026-03-27T13:04:09.795768Z",
+    "slim_cache": "snapshots/claude-archive/postliterate.json"
+  },
+  "ingested_at": "2026-05-12T12:32:38.167Z"
+}

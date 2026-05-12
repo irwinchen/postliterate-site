@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "id": "0d472574-9f5d-4172-9c3a-b0b326630c6d",
+  "type": "chat",
+  "project_label": null,
+  "project_path": null,
+  "title": "Interactive \"After the Book\" positioning and technology review",
+  "started_at": "2025-12-09T18:24:42.863520Z",
+  "last_activity_at": "2025-12-12T19:03:00.556716Z",
+  "message_count": 134,
+  "first_prompt": "I'm developing this as an interactive for \"After the Book\". Give me an honest critique of the way this is positioned (in terms of the title) as well as what technologies are included. Are there any on",
+  "summary": "The conversation centered on how to visually represent the complex relationship between orality, literacy, and modern technology, specifically addressing the duration and cultural function of these modes. The discussion evolved from critiquing the initial title and timeline to refining the argument around orality's long-term dominance versus literacy's relative \"blip,\" eventually shifting focus to the role of communication in maintaining collective memory and moral coherence. The exchange concluded with a critical assessment of AI, noting the tension between the technology's commercial development and the need for ethical, value-driven design.",
+  "summary_status": "ready",
+  "artifacts": [],
+  "source_ref": {
+    "kind": "chat",
+    "uuid": "0d472574-9f5d-4172-9c3a-b0b326630c6d",
+    "source_key": "c9ce4e6e|0d472574-9f5d-4172-9c3a-b0b326630c6d|2025-12-12T19:03:00.556716Z",
+    "slim_cache": "snapshots/claude-archive/postliterate.json"
+  },
+  "ingested_at": "2026-05-12T12:32:38.249Z"
+}

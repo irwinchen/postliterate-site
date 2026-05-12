@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "id": "905322ed-d53d-49eb-a68b-9ab559d157d6",
+  "type": "chat",
+  "project_label": null,
+  "project_path": null,
+  "title": "Accessing Obsidian Vault Securely",
+  "started_at": "2024-12-13T23:45:23.215624Z",
+  "last_activity_at": "2024-12-13T23:49:00.323847Z",
+  "message_count": 10,
+  "first_prompt": "Can you use MCP to access my Obsidian vault?",
+  "summary": "Irwin was attempting to determine if the AI could access and analyze private, local files stored on his computer, specifically his Obsidian vault and directories like `/",
+  "summary_status": "ready",
+  "artifacts": [],
+  "source_ref": {
+    "kind": "chat",
+    "uuid": "905322ed-d53d-49eb-a68b-9ab559d157d6",
+    "source_key": "c9ce4e6e|905322ed-d53d-49eb-a68b-9ab559d157d6|2024-12-13T23:49:00.323847Z",
+    "slim_cache": "snapshots/claude-archive/postliterate.json"
+  },
+  "ingested_at": "2026-05-12T12:32:39.881Z"
+}

@@ -1,0 +1,226 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 920" role="img" aria-label="ISOTYPE-style pictogram chart of PISA 2022 OECD-average reading proficiency. 100 stylized figures arranged in four rows by Morais's literacy taxonomy: 7 with components of creative literacy, 17 at argumentative literacy, 25 at productive literacy, 51 below the productive level.">
+  <title>Reading literacy among OECD 15-year-olds, by level (PISA 2022)</title>
+  <desc>An ISOTYPE-style population pictogram. Each of 100 figures represents one percent of the OECD average. The figures are arranged in four rows from top to bottom: 7 blue figures for those with creative-literacy components (PISA Levels 5 and 6), 17 red figures for argumentative literacy (PISA Level 4), 25 green figures for productive literacy (PISA Level 3), and 51 gray figures for those below the productive level (PISA Level 2 and below). Annotation notes that argumentative literacy or higher fell from 29 of 100 in 2015 to 24 of 100 in 2022.</desc>
+  <defs>
+    <symbol id="person" viewBox="0 0 8 20" preserveAspectRatio="xMidYMid meet">
+      <circle cx="4" cy="3" r="2.4"/>
+      <path d="M 0.8,6 L 7.2,6 L 6.5,18 L 1.5,18 Z"/>
+    </symbol>
+    <style type="text/css"><![CDATA[
+      @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&amp;family=Literata:ital,wght@0,400;0,500;1,400&amp;family=Sono:wght@400;500;600;700&amp;display=swap');
+      .title { font-family: 'Outfit', sans-serif; font-weight: 700; font-size: 28px; fill: #1a1a1a; }
+      .subtitle { font-family: 'Literata', serif; font-style: italic; font-size: 14px; fill: #4a4a4a; }
+      .legend { font-family: 'Outfit', sans-serif; font-weight: 500; font-size: 12px; letter-spacing: 0.04em; fill: #6b6b6b; }
+      .row-name { font-family: 'Outfit', sans-serif; font-weight: 700; font-size: 15px; letter-spacing: 0.06em; text-transform: uppercase; }
+      .row-pisa { font-family: 'Literata', serif; font-style: italic; font-size: 12px; fill: #4a4a4a; }
+      .row-count { font-family: 'Sono', monospace; font-weight: 700; font-size: 28px; }
+      .row-count-sub { font-family: 'Sono', monospace; font-weight: 400; font-size: 11px; fill: #6b6b6b; }
+      .subbreak { font-family: 'Sono', monospace; font-size: 10.5px; fill: #6b6b6b; }
+      .annot-title { font-family: 'Outfit', sans-serif; font-weight: 700; font-size: 16px; letter-spacing: 0.05em; text-transform: uppercase; fill: #E53E33; }
+      .annot-body { font-family: 'Literata', serif; font-size: 13px; fill: #1a1a1a; }
+      .footnote { font-family: 'Literata', serif; font-size: 11px; fill: #6b6b6b; }
+    ]]></style>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="920" fill="#F3EFE1"/>
+
+  <!-- Title -->
+  <text x="60" y="56" class="title">Reading literacy among OECD 15-year-olds, by level</text>
+  <text x="60" y="82" class="subtitle">Each figure represents 1 of every 100 students. Source: PISA 2022, OECD average.</text>
+
+  <!-- Legend / key -->
+  <g transform="translate(60, 105)">
+    <use href="#person" x="0" y="0" width="14" height="28" fill="#3B6DB4"/>
+    <text x="22" y="20" class="legend">Creative components (L5–6)</text>
+    <use href="#person" x="220" y="0" width="14" height="28" fill="#E53E33"/>
+    <text x="242" y="20" class="legend">Argumentative (L4)</text>
+    <use href="#person" x="400" y="0" width="14" height="28" fill="#549E44"/>
+    <text x="422" y="20" class="legend">Productive (L3)</text>
+    <use href="#person" x="580" y="0" width="14" height="28" fill="#6b6b6b"/>
+    <text x="602" y="20" class="legend">Below productive (≤L2)</text>
+    <text x="800" y="20" class="legend">Each ▮ = 1% of OECD 15-year-olds</text>
+  </g>
+
+  <!-- ============ ROW 1: Creative components (7 figures, blue) ============ -->
+  <g>
+    <text x="60" y="180" class="row-name" fill="#3B6DB4">With creative components</text>
+    <text x="60" y="200" class="row-pisa">PISA Levels 5 and 6</text>
+    <text x="60" y="232" class="row-count" fill="#3B6DB4">7</text>
+    <text x="92" y="232" class="row-count-sub">in 100</text>
+  </g>
+  <g fill="#3B6DB4">
+    <use href="#person" x="320" y="180" width="14" height="28"/>
+    <use href="#person" x="336" y="180" width="14" height="28"/>
+    <use href="#person" x="352" y="180" width="14" height="28"/>
+    <use href="#person" x="368" y="180" width="14" height="28"/>
+    <use href="#person" x="384" y="180" width="14" height="28"/>
+    <use href="#person" x="400" y="180" width="14" height="28"/>
+    <use href="#person" x="416" y="180" width="14" height="28"/>
+  </g>
+
+  <!-- ============ ROW 2: Argumentative (17 figures, red highlight) ============ -->
+  <!-- Background highlight band -->
+  <rect x="40" y="270" width="1140" height="68" fill="#E53E33" fill-opacity="0.07"/>
+  <g>
+    <text x="60" y="298" class="row-name" fill="#E53E33">Argumentative literacy</text>
+    <text x="60" y="318" class="row-pisa">PISA Level 4 — the buffer this book defends</text>
+    <text x="60" y="350" class="row-count" fill="#E53E33">17</text>
+    <text x="92" y="350" class="row-count-sub">in 100</text>
+  </g>
+  <g fill="#E53E33">
+    <use href="#person" x="320" y="298" width="14" height="28"/>
+    <use href="#person" x="336" y="298" width="14" height="28"/>
+    <use href="#person" x="352" y="298" width="14" height="28"/>
+    <use href="#person" x="368" y="298" width="14" height="28"/>
+    <use href="#person" x="384" y="298" width="14" height="28"/>
+    <use href="#person" x="400" y="298" width="14" height="28"/>
+    <use href="#person" x="416" y="298" width="14" height="28"/>
+    <use href="#person" x="432" y="298" width="14" height="28"/>
+    <use href="#person" x="448" y="298" width="14" height="28"/>
+    <use href="#person" x="464" y="298" width="14" height="28"/>
+    <use href="#person" x="480" y="298" width="14" height="28"/>
+    <use href="#person" x="496" y="298" width="14" height="28"/>
+    <use href="#person" x="512" y="298" width="14" height="28"/>
+    <use href="#person" x="528" y="298" width="14" height="28"/>
+    <use href="#person" x="544" y="298" width="14" height="28"/>
+    <use href="#person" x="560" y="298" width="14" height="28"/>
+    <use href="#person" x="576" y="298" width="14" height="28"/>
+  </g>
+
+  <!-- ============ ROW 3: Productive (25 figures, green) ============ -->
+  <g>
+    <text x="60" y="408" class="row-name" fill="#549E44">Productive literacy</text>
+    <text x="60" y="428" class="row-pisa">PISA Level 3</text>
+    <text x="60" y="460" class="row-count" fill="#549E44">25</text>
+    <text x="92" y="460" class="row-count-sub">in 100</text>
+  </g>
+  <g fill="#549E44">
+    <use href="#person" x="320" y="408" width="14" height="28"/>
+    <use href="#person" x="336" y="408" width="14" height="28"/>
+    <use href="#person" x="352" y="408" width="14" height="28"/>
+    <use href="#person" x="368" y="408" width="14" height="28"/>
+    <use href="#person" x="384" y="408" width="14" height="28"/>
+    <use href="#person" x="400" y="408" width="14" height="28"/>
+    <use href="#person" x="416" y="408" width="14" height="28"/>
+    <use href="#person" x="432" y="408" width="14" height="28"/>
+    <use href="#person" x="448" y="408" width="14" height="28"/>
+    <use href="#person" x="464" y="408" width="14" height="28"/>
+    <use href="#person" x="480" y="408" width="14" height="28"/>
+    <use href="#person" x="496" y="408" width="14" height="28"/>
+    <use href="#person" x="512" y="408" width="14" height="28"/>
+    <use href="#person" x="528" y="408" width="14" height="28"/>
+    <use href="#person" x="544" y="408" width="14" height="28"/>
+    <use href="#person" x="560" y="408" width="14" height="28"/>
+    <use href="#person" x="576" y="408" width="14" height="28"/>
+    <use href="#person" x="592" y="408" width="14" height="28"/>
+    <use href="#person" x="608" y="408" width="14" height="28"/>
+    <use href="#person" x="624" y="408" width="14" height="28"/>
+    <use href="#person" x="640" y="408" width="14" height="28"/>
+    <use href="#person" x="656" y="408" width="14" height="28"/>
+    <use href="#person" x="672" y="408" width="14" height="28"/>
+    <use href="#person" x="688" y="408" width="14" height="28"/>
+    <use href="#person" x="704" y="408" width="14" height="28"/>
+  </g>
+
+  <!-- ============ ROW 4: Below productive (51 figures, gray w/ shaded sub-bands) ============ -->
+  <g>
+    <text x="60" y="518" class="row-name" fill="#4a4a4a">Below productive level</text>
+    <text x="60" y="538" class="row-pisa">PISA Level 2 (baseline) and below</text>
+    <text x="60" y="570" class="row-count" fill="#4a4a4a">51</text>
+    <text x="92" y="570" class="row-count-sub">in 100</text>
+  </g>
+  <!-- L2 band (24 figures, darker gray) -->
+  <g fill="#5a5a5a">
+    <use href="#person" x="320" y="518" width="14" height="28"/>
+    <use href="#person" x="336" y="518" width="14" height="28"/>
+    <use href="#person" x="352" y="518" width="14" height="28"/>
+    <use href="#person" x="368" y="518" width="14" height="28"/>
+    <use href="#person" x="384" y="518" width="14" height="28"/>
+    <use href="#person" x="400" y="518" width="14" height="28"/>
+    <use href="#person" x="416" y="518" width="14" height="28"/>
+    <use href="#person" x="432" y="518" width="14" height="28"/>
+    <use href="#person" x="448" y="518" width="14" height="28"/>
+    <use href="#person" x="464" y="518" width="14" height="28"/>
+    <use href="#person" x="480" y="518" width="14" height="28"/>
+    <use href="#person" x="496" y="518" width="14" height="28"/>
+    <use href="#person" x="512" y="518" width="14" height="28"/>
+    <use href="#person" x="528" y="518" width="14" height="28"/>
+    <use href="#person" x="544" y="518" width="14" height="28"/>
+    <use href="#person" x="560" y="518" width="14" height="28"/>
+    <use href="#person" x="576" y="518" width="14" height="28"/>
+    <use href="#person" x="592" y="518" width="14" height="28"/>
+    <use href="#person" x="608" y="518" width="14" height="28"/>
+    <use href="#person" x="624" y="518" width="14" height="28"/>
+    <use href="#person" x="640" y="518" width="14" height="28"/>
+    <use href="#person" x="656" y="518" width="14" height="28"/>
+    <use href="#person" x="672" y="518" width="14" height="28"/>
+    <use href="#person" x="688" y="518" width="14" height="28"/>
+  </g>
+  <!-- L1a band (17 figures, medium gray) -->
+  <g fill="#7e7e7e">
+    <use href="#person" x="704" y="518" width="14" height="28"/>
+    <use href="#person" x="720" y="518" width="14" height="28"/>
+    <use href="#person" x="736" y="518" width="14" height="28"/>
+    <use href="#person" x="752" y="518" width="14" height="28"/>
+    <use href="#person" x="768" y="518" width="14" height="28"/>
+    <use href="#person" x="784" y="518" width="14" height="28"/>
+    <use href="#person" x="800" y="518" width="14" height="28"/>
+    <use href="#person" x="816" y="518" width="14" height="28"/>
+    <use href="#person" x="832" y="518" width="14" height="28"/>
+    <use href="#person" x="848" y="518" width="14" height="28"/>
+    <use href="#person" x="864" y="518" width="14" height="28"/>
+    <use href="#person" x="880" y="518" width="14" height="28"/>
+    <use href="#person" x="896" y="518" width="14" height="28"/>
+    <use href="#person" x="912" y="518" width="14" height="28"/>
+    <use href="#person" x="928" y="518" width="14" height="28"/>
+    <use href="#person" x="944" y="518" width="14" height="28"/>
+    <use href="#person" x="960" y="518" width="14" height="28"/>
+  </g>
+  <!-- L1b band (8 figures, lighter gray) -->
+  <g fill="#a0a0a0">
+    <use href="#person" x="976" y="518" width="14" height="28"/>
+    <use href="#person" x="992" y="518" width="14" height="28"/>
+    <use href="#person" x="1008" y="518" width="14" height="28"/>
+    <use href="#person" x="1024" y="518" width="14" height="28"/>
+    <use href="#person" x="1040" y="518" width="14" height="28"/>
+    <use href="#person" x="1056" y="518" width="14" height="28"/>
+    <use href="#person" x="1072" y="518" width="14" height="28"/>
+    <use href="#person" x="1088" y="518" width="14" height="28"/>
+  </g>
+  <!-- L1c band (2 figures, lightest gray) -->
+  <g fill="#c0c0c0">
+    <use href="#person" x="1104" y="518" width="14" height="28"/>
+    <use href="#person" x="1120" y="518" width="14" height="28"/>
+  </g>
+
+  <!-- Sub-band labels under row 4 -->
+  <g>
+    <line x1="320" y1="554" x2="694" y2="554" stroke="#5a5a5a" stroke-width="1.5"/>
+    <text x="507" y="572" class="subbreak" text-anchor="middle">L2 baseline (24)</text>
+
+    <line x1="704" y1="554" x2="970" y2="554" stroke="#7e7e7e" stroke-width="1.5"/>
+    <text x="837" y="572" class="subbreak" text-anchor="middle">L1a (17)</text>
+
+    <line x1="976" y1="554" x2="1098" y2="554" stroke="#a0a0a0" stroke-width="1.5"/>
+    <text x="1037" y="572" class="subbreak" text-anchor="middle">L1b (8)</text>
+
+    <line x1="1104" y1="554" x2="1134" y2="554" stroke="#c0c0c0" stroke-width="1.5"/>
+    <text x="1119" y="572" class="subbreak" text-anchor="middle">L1c (2)</text>
+  </g>
+
+  <!-- ============ ANNOTATION: 2015 → 2022 trend ============ -->
+  <g transform="translate(60, 660)">
+    <rect x="0" y="0" width="1080" height="100" fill="#FBE6E3" stroke="#E53E33" stroke-width="1.5"/>
+    <text x="20" y="28" class="annot-title">The trend, 2015 → 2022</text>
+    <text x="20" y="56" class="annot-body">Argumentative literacy or higher (Levels 4 + 5 + 6 combined) was <tspan font-family="Sono" font-weight="700" fill="#E53E33">29 of 100</tspan> in PISA 2015.</text>
+    <text x="20" y="76" class="annot-body">It is now <tspan font-family="Sono" font-weight="700" fill="#E53E33">24 of 100</tspan>. Five fewer students per hundred reach the buffer this chapter defends — in seven years.</text>
+  </g>
+
+  <!-- Footer -->
+  <line x1="60" y1="800" x2="1140" y2="800" stroke="#cfcabb" stroke-width="1"/>
+  <text x="60" y="826" class="footnote">Sources: OECD (2023), <tspan font-style="italic">PISA 2022 Results (Volume I)</tspan>, Table I.B1.3.2 (proficiency-level percentages, OECD average).</text>
+  <text x="60" y="844" class="footnote">Morais, J. (2018), <tspan font-style="italic">Literacy and democracy</tspan>, Lang. Cogn. Neurosci., for the conceptual mapping of his three levels onto PISA Levels 3, 4, and 5+.</text>
+  <text x="60" y="862" class="footnote">Pictogram method after Otto Neurath / Marie Reidemeister / Gerd Arntz (Vienna Method, 1920s–30s); each figure = 1 in 100.</text>
+  <text x="60" y="884" class="footnote">Note: percentages rounded to nearest integer for one-figure-per-percent representation. "Below L1c" (~0.2%) rounds to 0 figures and is omitted.</text>
+</svg>

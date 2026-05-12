@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8" />
+<title>Phase 3 preview — bubble cluster, no container</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  color-scheme: light;
+  --background: #F3EFE1;
+  --text: #2C2C2C;
+  --text-secondary: #666;
+  --text-tertiary: #999;
+  --accent: #E53E33;
+  --border-subtle: rgba(0,0,0,0.1);
+}
+html, body { block-size: 100%; overflow: hidden; background: var(--background); color: var(--text); font-family: 'Outfit', system-ui, sans-serif; }
+.page-shell { display: flex; flex-direction: column; block-size: 100dvh; }
+.page-nav { display: flex; align-items: center; gap: 16px; padding-inline: 20px; block-size: 40px; border-block-end: 1px solid var(--border-subtle); flex-shrink: 0; font-size: 13px; }
+.page-nav a { color: var(--text-secondary); text-decoration: none; }
+.page-nav a:hover { color: var(--accent); }
+.page-nav-sep { color: var(--text-tertiary); }
+.page-nav-staging { margin-inline-start: auto; font-size: 11px; color: var(--text-tertiary); font-style: italic; }
+.figure-wrap { flex: 1; min-block-size: 0; overflow: hidden; }
+.figure-wrap > * { block-size: 100%; }
+.cv-wrap { display: grid; grid-template-rows: auto 1fr auto; block-size: 100%; padding-block: 20px; padding-inline: clamp(16px, 4vw, 48px); row-gap: 8px; color: var(--text); }
+.cv-header { display: flex; flex-wrap: wrap; align-items: baseline; gap: 16px; }
+.cv-title { font-size: clamp(20px, 2.2vw, 30px); font-weight: 500; margin: 0; letter-spacing: -0.01em; line-height: 1.2; }
+.cv-caveat { font-size: 12px; color: var(--text-tertiary); font-style: italic; margin: 0; }
+.cv-stage { display: grid; place-items: center; min-block-size: 0; min-inline-size: 0; overflow: hidden; }
+.cv-svg { inline-size: 100%; block-size: 100%; max-inline-size: 1200px; display: block; }
+.cv-bubble-fill { stroke: var(--background); stroke-width: 2; }
+.cv-bubble-label { font-size: clamp(11px, 1.05vw, 15px); fill: #fff; pointer-events: none; font-weight: 500; }
+.cv-bubble-pct { font-size: clamp(9px, 0.85vw, 12px); fill: rgba(255,255,255,0.78); pointer-events: none; font-weight: 400; }
+.cv-sources { font-size: 11px; color: var(--text-tertiary); text-align: center; padding-block: 8px; }
+.cv-sources-label { font-weight: 600; margin-inline-end: 4px; }
+</style>
+</head>
+<body>
+<div class="page-shell">
+  <nav class="page-nav">
+    <a href="/">Post-Literate</a>
+    <span class="page-nav-sep">›</span>
+    <span>What do AI models train on?</span>
+    <span class="page-nav-staging">brain-shaped staging — no container</span>
+  </nav>
+  <div class="figure-wrap">
+    <div class="cv-wrap">
+      <header class="cv-header">
+        <h1 class="cv-title">What does an AI model actually train on?</h1>
+        <p class="cv-caveat">Illustrative composite — no single model uses exactly this mix.</p>
+      </header>
+      <div class="cv-stage">
+        <svg class="cv-svg" viewBox="0 0 1000 700" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Pre-training corpus visualized as a cluster of bubbles">
+          <g class="cv-bubbles"><g class="cv-bubble"><circle cx="387.6650419909094" cy="355.73232531175495" r="162.58527515150698" fill="#3B6DB4" class="cv-bubble-fill" /><text x="387.6650419909094" y="351.73232531175495" text-anchor="middle" dominant-baseline="middle" class="cv-bubble-label">The Web</text><text x="387.6650419909094" y="371.73232531175495" text-anchor="middle" dominant-baseline="middle" class="cv-bubble-pct">38.0%</text></g><g class="cv-bubble"><circle cx="663.1486622045252" cy="355.2714299002223" r="111.89886064629054" fill="#549E44" class="cv-bubble-fill" /><text x="663.1486622045252" y="351.2714299002223" text-anchor="middle" dominant-baseline="middle" class="cv-bubble-label">Code & Math</text><text x="663.1486622045252" y="371.2714299002223" text-anchor="middle" dominant-baseline="middle" class="cv-bubble-pct">18.0%</text></g><g class="cv-bubble"><circle cx="566.4731736777948" cy="526.1187007823931" r="83.40448633662724" fill="#7B4FA8" class="cv-bubble-fill" /><text x="566.4731736777948" y="522.1187007823931" text-anchor="middle" dominant-baseline="middle" class="cv-bubble-label">Academic Papers</text><text x="566.4731736777948" y="542.1187007823931" text-anchor="middle" dominant-baseline="middle" class="cv-bubble-pct">10.0%</text></g><g class="cv-bubble"><circle cx="564.3006986726007" cy="195.94610840824132" r="74.59924043086038" fill="#C5782A" class="cv-bubble-fill" /><text x="564.3006986726007" y="191.94610840824132" text-anchor="middle" dominant-baseline="middle" class="cv-bubble-label">Books</text><text x="564.3006986726007" y="211.94610840824132" text-anchor="middle" dominant-baseline="middle" class="cv-bubble-pct">8.0%</text></g><g class="cv-bubble"><circle cx="433.5597096322913" cy="122.01140729887071" r="74.59924043086038" fill="#D94F35" class="cv-bubble-fill" /><text x="433.5597096322913" y="118.01140729887071" text-anchor="middle" dominant-baseline="middle" class="cv-bubble-label">Forums & Q&A</text><text x="433.5597096322913" y="138.01140729887072" text-anchor="middle" dominant-baseline="middle" class="cv-bubble-pct">8.0%</text></g><g class="cv-bubble"><circle cx="427.6961213446559" cy="580.3835301229874" r="64.60483731614826" fill="#2B8FA5" class="cv-bubble-fill" /><text x="427.6961213446559" y="576.3835301229874" text-anchor="middle" dominant-baseline="middle" class="cv-bubble-label">Wikipedia</text><text x="427.6961213446559" y="596.3835301229874" text-anchor="middle" dominant-baseline="middle" class="cv-bubble-pct">6.0%</text></g><g class="cv-bubble"><circle cx="692.5965605029496" cy="192.26160697252615" r="52.74962878002703" fill="#7A7065" class="cv-bubble-fill" /><text x="692.5965605029496" y="188.26160697252615" text-anchor="middle" dominant-baseline="middle" class="cv-bubble-label">Legal & Government</text><text x="692.5965605029496" y="208.26160697252615" text-anchor="middle" dominant-baseline="middle" class="cv-bubble-pct">4.0%</text></g><g class="cv-bubble"><circle cx="703.2527983280065" cy="515.9917927801035" r="52.74962878002703" fill="#C8A020" class="cv-bubble-fill" /><text x="703.2527983280065" y="511.99179278010354" text-anchor="middle" dominant-baseline="middle" class="cv-bubble-label">Multilingual</text><text x="703.2527983280065" y="531.9917927801035" text-anchor="middle" dominant-baseline="middle" class="cv-bubble-pct">4.0%</text></g><g class="cv-bubble"><circle cx="328.6450478224939" cy="163.71327484774048" r="37.29962021543019" fill="#B84A8C" class="cv-bubble-fill" /><text x="328.6450478224939" y="163.71327484774048" text-anchor="middle" dominant-baseline="middle" class="cv-bubble-label">Transcripts</text></g><g class="cv-bubble"><circle cx="344.6857891819533" cy="540.7662695877898" r="26.374814390013515" fill="#1AAE9F" class="cv-bubble-fill" /></g><g class="cv-bubble"><circle cx="532.8874332281969" cy="98.93116743676848" r="26.374814390013515" fill="#1C1C1C" class="cv-bubble-fill" /></g></g>
+        </svg>
+      </div>
+      <footer class="cv-sources">
+        <span class="cv-sources-label">Sources:</span>
+        <span>The Pile (EleutherAI) [SECONDARY-ONLY]</span> ·
+        <span>Dolma v1.7 (AI2) [SECONDARY-ONLY]</span> ·
+        <span>Llama 3.1 Tech Report (Meta) [PRIMARY-PARTIAL]</span> ·
+        <span>FMTI 2025 (Stanford HAI) [SECONDARY-ONLY]</span>
+      </footer>
+    </div>
+  </div>
+</div>
+</body>
+</html>

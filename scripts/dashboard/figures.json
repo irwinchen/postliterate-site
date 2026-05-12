@@ -1,0 +1,50 @@
+[
+  {
+    "id": "literacy-level-mapping",
+    "title": "Literacy Levels — Mapping",
+    "credit": "after Morais et al.",
+    "page": "/dashboard/figures/pisa-level-mapping.svg",
+    "images": [
+      { "file": "pisa-level-mapping.svg" }
+    ]
+  },
+  {
+    "id": "literacy-isotype",
+    "title": "Literacy Levels — Isotype",
+    "credit": "after Morais et al.",
+    "page": "/dashboard/figures/pisa-isotype.svg",
+    "images": [
+      { "file": "pisa-isotype.svg" }
+    ]
+  },
+  {
+    "id": "brain-visualiser",
+    "title": "Brain Visualiser",
+    "page": "/brain",
+    "images": [
+      { "file": "brain-3d.png" }
+    ]
+  },
+  {
+    "id": "timeline",
+    "title": "Timeline of Human Communication",
+    "images": [
+      { "file": "timeline.png" }
+    ]
+  },
+  {
+    "id": "virgil",
+    "title": "Virgil iOS App",
+    "images": [
+      { "file": "virgil-home.png", "caption": "Home" },
+      { "file": "virgil-reader.png", "caption": "Reader" }
+    ]
+  },
+  {
+    "id": "virgil-reader-extension",
+    "title": "Virgil Reader (Browser Extension)",
+    "images": [
+      { "file": "virgil-reader-extension.png" }
+    ]
+  }
+]

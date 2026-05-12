@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "id": "f12ba4c2-1809-4fd1-9bd6-7d5d6191b7cd",
+  "type": "chat",
+  "project_label": null,
+  "project_path": null,
+  "title": "Orality in Digital Communication",
+  "started_at": "2025-09-04T13:28:55.198792Z",
+  "last_activity_at": "2025-09-04T17:44:12.832167Z",
+  "message_count": 18,
+  "first_prompt": "I need a comprehensive roundup of writing and thinking around orality and its expression and relation to technology, especially social media and AI.",
+  "summary": "Irwin was seeking a comprehensive academic and practical overview of how orality, building on the foundational theories of Walter Ong and Marshall McLuhan, manifests in contemporary digital technologies like AI and social media. The conversation progressed from generating a research report to refining its format, first by adding citations and then by converting those footnotes into clickable hyperlinks. The discussion then expanded to include the connection between orality and hip-hop, eventually concluding with a request for non-academic discussions of orality found on platforms like YouTube.",
+  "summary_status": "ready",
+  "artifacts": [],
+  "source_ref": {
+    "kind": "chat",
+    "uuid": "f12ba4c2-1809-4fd1-9bd6-7d5d6191b7cd",
+    "source_key": "c9ce4e6e|f12ba4c2-1809-4fd1-9bd6-7d5d6191b7cd|2025-09-04T17:44:12.832167Z",
+    "slim_cache": "snapshots/claude-archive/postliterate.json"
+  },
+  "ingested_at": "2026-05-12T12:32:38.998Z"
+}

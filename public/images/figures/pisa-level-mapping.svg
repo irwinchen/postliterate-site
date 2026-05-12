@@ -1,0 +1,184 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1100 820" role="img" aria-label="Side-by-side mapping of Morais's three levels of literacy onto PISA's eight reading proficiency levels, with PISA 2022 OECD-average percentages at each level.">
+  <title>Morais's three levels of literacy mapped onto PISA's eight reading proficiency levels</title>
+  <desc>A side-by-side comparison. The left column groups PISA reading levels into Morais's three categories: creative literacy components (PISA Levels 5 and 6), argumentative literacy (PISA Level 4), productive literacy (PISA Level 3), and below productive (PISA Levels 2, 1a, 1b, 1c, and below). The right column lists each PISA level with its OECD-average percentage of 15-year-olds at that level in PISA 2022. The argumentative literacy band is highlighted to emphasize its alignment with PISA Level 4, not Level 2.</desc>
+  <defs>
+    <style type="text/css"><![CDATA[
+      @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&amp;family=Literata:ital,wght@0,400;0,500;1,400&amp;family=Sono:wght@400;500;600&amp;display=swap');
+      .title { font-family: 'Outfit', sans-serif; font-weight: 700; font-size: 26px; fill: #1a1a1a; }
+      .subtitle { font-family: 'Literata', serif; font-style: italic; font-size: 14px; fill: #4a4a4a; }
+      .colhead { font-family: 'Outfit', sans-serif; font-weight: 600; font-size: 13px; letter-spacing: 0.08em; text-transform: uppercase; fill: #6b6b6b; }
+      .morais-name { font-family: 'Outfit', sans-serif; font-weight: 600; font-size: 18px; fill: #1a1a1a; }
+      .morais-name-light { font-family: 'Outfit', sans-serif; font-weight: 500; font-size: 16px; fill: #6b6b6b; }
+      .morais-desc { font-family: 'Literata', serif; font-size: 12px; fill: #3a3a3a; }
+      .morais-desc-light { font-family: 'Literata', serif; font-size: 12px; font-style: italic; fill: #6b6b6b; }
+      .pisa-level { font-family: 'Outfit', sans-serif; font-weight: 600; font-size: 16px; fill: #1a1a1a; }
+      .pisa-desc { font-family: 'Literata', serif; font-size: 11px; fill: #4a4a4a; }
+      .pisa-pct { font-family: 'Sono', monospace; font-weight: 600; font-size: 18px; fill: #1a1a1a; }
+      .pisa-pct-sub { font-family: 'Sono', monospace; font-weight: 400; font-size: 10px; fill: #6b6b6b; }
+      .annotation { font-family: 'Literata', serif; font-style: italic; font-size: 12px; fill: #4a4a4a; }
+      .footnote { font-family: 'Literata', serif; font-size: 11px; fill: #6b6b6b; }
+      .footnote-bold { font-family: 'Outfit', sans-serif; font-weight: 600; font-size: 11px; fill: #1a1a1a; }
+      .highlight-text { font-family: 'Outfit', sans-serif; font-weight: 700; font-size: 16px; fill: #E53E33; }
+    ]]></style>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1100" height="820" fill="#F3EFE1"/>
+
+  <!-- Title -->
+  <text x="60" y="48" class="title">Reading literacy: Morais's taxonomy meets PISA's scale</text>
+  <text x="60" y="74" class="subtitle">How three conceptual levels map onto eight measured proficiency tiers — and where the OECD's 15-year-olds actually land in 2022.</text>
+
+  <!-- Column headers -->
+  <text x="60" y="118" class="colhead">Morais (2018) — three levels of literacy</text>
+  <text x="700" y="118" class="colhead">PISA 2022 — eight reading proficiency levels</text>
+
+  <!-- ============ MORAIS COLUMN (left) ============ -->
+  <!-- Each band groups one or more PISA rows. Heights match the PISA row layout. -->
+
+  <!-- Creative literacy components band (covers PISA Levels 6 + 5) -->
+  <rect x="60" y="140" width="500" height="124" fill="#3B6DB4" fill-opacity="0.10" stroke="#3B6DB4" stroke-width="1.5"/>
+  <text x="80" y="170" class="morais-name" fill="#3B6DB4">Creative literacy</text>
+  <text x="80" y="192" class="morais-desc-light">(components only — Morais's full Level 3)</text>
+  <text x="80" y="222" class="morais-desc">Generating new knowledge: scientific, literary,</text>
+  <text x="80" y="238" class="morais-desc">philosophical work. Hypothesizing, abstract</text>
+  <text x="80" y="254" class="morais-desc">categorisation, integrating multiple perspectives.</text>
+
+  <!-- Argumentative literacy band (covers PISA Level 4) — HIGHLIGHTED -->
+  <rect x="60" y="266" width="500" height="62" fill="#E53E33" fill-opacity="0.14" stroke="#E53E33" stroke-width="2"/>
+  <text x="80" y="290" class="highlight-text">Argumentative literacy</text>
+  <text x="80" y="312" class="morais-desc">Interpret nuance; use formal knowledge to evaluate; integrate across multiple sources.</text>
+
+  <!-- Productive literacy band (covers PISA Level 3) -->
+  <rect x="60" y="330" width="500" height="62" fill="#549E44" fill-opacity="0.12" stroke="#549E44" stroke-width="1.5"/>
+  <text x="80" y="354" class="morais-name" fill="#549E44">Productive literacy</text>
+  <text x="80" y="376" class="morais-desc">Identify main idea, integrate parts, comprehend in relation to familiar knowledge.</text>
+
+  <!-- Below productive band (covers PISA Levels 2, 1a, 1b, 1c, Below 1c) -->
+  <rect x="60" y="394" width="500" height="312" fill="#9E9E9E" fill-opacity="0.08" stroke="#9E9E9E" stroke-width="1" stroke-dasharray="4 3"/>
+  <text x="80" y="420" class="morais-name-light">Below the productive level</text>
+  <text x="80" y="442" class="morais-desc-light">Morais: "low literacy below the productive level is the more typical situation [worldwide];</text>
+  <text x="80" y="458" class="morais-desc-light">high literates are a clear minority. We are indeed the elite, surrounded by ... the plebs."</text>
+
+  <text x="80" y="494" class="morais-desc">— Can decode, but with effort or only on familiar material</text>
+  <text x="80" y="514" class="morais-desc">— Cannot reliably integrate across multiple sources</text>
+  <text x="80" y="534" class="morais-desc">— Cannot critically evaluate text against external knowledge</text>
+  <text x="80" y="554" class="morais-desc">— Below this: functional illiteracy; UNESCO threshold not met</text>
+
+  <text x="80" y="600" class="annotation">PISA's "baseline" (Level 2) sits inside this band —</text>
+  <text x="80" y="618" class="annotation">it is NOT the same as Morais's Level 2 (argumentative).</text>
+
+  <!-- ============ BRIDGE ZONE (middle) ============ -->
+  <!-- Connector lines from Morais bands to corresponding PISA rows -->
+
+  <!-- Creative → L6 + L5 -->
+  <path d="M 560 200 C 615 200, 615 168, 670 168" fill="none" stroke="#3B6DB4" stroke-width="2" stroke-opacity="0.6"/>
+  <path d="M 560 220 C 615 220, 615 232, 670 232" fill="none" stroke="#3B6DB4" stroke-width="2" stroke-opacity="0.6"/>
+
+  <!-- Argumentative → L4 -->
+  <path d="M 560 297 L 670 297" fill="none" stroke="#E53E33" stroke-width="2.5"/>
+  <polygon points="668,293 678,297 668,301" fill="#E53E33"/>
+
+  <!-- Productive → L3 -->
+  <path d="M 560 361 L 670 361" fill="none" stroke="#549E44" stroke-width="2"/>
+  <polygon points="668,357 678,361 668,365" fill="#549E44"/>
+
+  <!-- Below productive → L2, L1a, L1b, L1c, &lt;1c (faint dashed) -->
+  <path d="M 560 425 C 615 425, 615 425, 670 425" fill="none" stroke="#9E9E9E" stroke-width="1" stroke-dasharray="3 3"/>
+  <path d="M 560 489 C 615 489, 615 489, 670 489" fill="none" stroke="#9E9E9E" stroke-width="1" stroke-dasharray="3 3"/>
+  <path d="M 560 553 C 615 553, 615 553, 670 553" fill="none" stroke="#9E9E9E" stroke-width="1" stroke-dasharray="3 3"/>
+  <path d="M 560 617 C 615 617, 615 617, 670 617" fill="none" stroke="#9E9E9E" stroke-width="1" stroke-dasharray="3 3"/>
+  <path d="M 560 681 C 615 681, 615 681, 670 681" fill="none" stroke="#9E9E9E" stroke-width="1" stroke-dasharray="3 3"/>
+
+  <!-- ============ PISA COLUMN (right) ============ -->
+  <!-- Each row: x=670 to x=1040, width=370, h=60. Top of body y=140. -->
+
+  <!-- Level 6 -->
+  <rect x="670" y="140" width="370" height="60" fill="#FFFFFF" stroke="#cfcabb" stroke-width="1"/>
+  <rect x="670" y="140" width="6" height="60" fill="#3B6DB4"/>
+  <text x="690" y="164" class="pisa-level">Level 6</text>
+  <text x="690" y="184" class="pisa-desc">Comprehend lengthy abstract texts; resolve inter-textual conflicts;</text>
+  <text x="690" y="196" class="pisa-desc">assess source validity using external criteria.</text>
+  <text x="980" y="170" class="pisa-pct" text-anchor="end">1.2%</text>
+  <text x="980" y="186" class="pisa-pct-sub" text-anchor="end">≥698 pts</text>
+
+  <!-- Level 5 -->
+  <rect x="670" y="202" width="370" height="60" fill="#F8F4E5" stroke="#cfcabb" stroke-width="1"/>
+  <rect x="670" y="202" width="6" height="60" fill="#3B6DB4"/>
+  <text x="690" y="226" class="pisa-level">Level 5</text>
+  <text x="690" y="246" class="pisa-desc">Distinguish fact from opinion; assess neutrality and bias;</text>
+  <text x="690" y="258" class="pisa-desc">draw conclusions about the reliability of claims.</text>
+  <text x="980" y="232" class="pisa-pct" text-anchor="end">6.0%</text>
+  <text x="980" y="248" class="pisa-pct-sub" text-anchor="end">≥626 pts</text>
+
+  <!-- Level 4 — HIGHLIGHTED -->
+  <rect x="670" y="266" width="370" height="60" fill="#FBE6E3" stroke="#E53E33" stroke-width="2"/>
+  <rect x="670" y="266" width="6" height="60" fill="#E53E33"/>
+  <text x="690" y="290" class="pisa-level" fill="#E53E33">Level 4 — Argumentative</text>
+  <text x="690" y="310" class="pisa-desc">Interpret nuance; evaluate using formal/public knowledge;</text>
+  <text x="690" y="322" class="pisa-desc">handle long, unfamiliar, multi-source texts.</text>
+  <text x="980" y="296" class="pisa-pct" text-anchor="end" fill="#E53E33">17%</text>
+  <text x="980" y="312" class="pisa-pct-sub" text-anchor="end">≥553 pts</text>
+
+  <!-- Level 3 -->
+  <rect x="670" y="330" width="370" height="60" fill="#F8F4E5" stroke="#cfcabb" stroke-width="1"/>
+  <rect x="670" y="330" width="6" height="60" fill="#549E44"/>
+  <text x="690" y="354" class="pisa-level">Level 3 — Productive</text>
+  <text x="690" y="374" class="pisa-desc">Integrate parts of a text; identify main idea;</text>
+  <text x="690" y="386" class="pisa-desc">understand in relation to familiar knowledge.</text>
+  <text x="980" y="360" class="pisa-pct" text-anchor="end">25%</text>
+  <text x="980" y="376" class="pisa-pct-sub" text-anchor="end">≥480 pts</text>
+
+  <!-- Level 2 -->
+  <rect x="670" y="394" width="370" height="60" fill="#FFFFFF" stroke="#cfcabb" stroke-width="1"/>
+  <rect x="670" y="394" width="6" height="60" fill="#9E9E9E"/>
+  <text x="690" y="418" class="pisa-level">Level 2 <tspan font-style="italic" fill="#6b6b6b">— PISA "baseline"</tspan></text>
+  <text x="690" y="438" class="pisa-desc">Identify main idea in moderate text; basic inferences;</text>
+  <text x="690" y="450" class="pisa-desc">reflect when explicitly cued.</text>
+  <text x="980" y="424" class="pisa-pct" text-anchor="end">24%</text>
+  <text x="980" y="440" class="pisa-pct-sub" text-anchor="end">≥407 pts</text>
+
+  <!-- Level 1a -->
+  <rect x="670" y="458" width="370" height="60" fill="#F8F4E5" stroke="#cfcabb" stroke-width="1"/>
+  <rect x="670" y="458" width="6" height="60" fill="#9E9E9E"/>
+  <text x="690" y="482" class="pisa-level">Level 1a</text>
+  <text x="690" y="502" class="pisa-desc">Literal meaning of short passages; simple connections;</text>
+  <text x="690" y="514" class="pisa-desc">familiar topics.</text>
+  <text x="980" y="488" class="pisa-pct" text-anchor="end">17%</text>
+  <text x="980" y="504" class="pisa-pct-sub" text-anchor="end">≥335 pts</text>
+
+  <!-- Level 1b -->
+  <rect x="670" y="522" width="370" height="60" fill="#FFFFFF" stroke="#cfcabb" stroke-width="1"/>
+  <rect x="670" y="522" width="6" height="60" fill="#9E9E9E"/>
+  <text x="690" y="546" class="pisa-level">Level 1b</text>
+  <text x="690" y="566" class="pisa-desc">Locate explicit information in short texts;</text>
+  <text x="690" y="578" class="pisa-desc">recognize the main theme of very simple material.</text>
+  <text x="980" y="552" class="pisa-pct" text-anchor="end">8%</text>
+  <text x="980" y="568" class="pisa-pct-sub" text-anchor="end">≥262 pts</text>
+
+  <!-- Level 1c -->
+  <rect x="670" y="586" width="370" height="60" fill="#F8F4E5" stroke="#cfcabb" stroke-width="1"/>
+  <rect x="670" y="586" width="6" height="60" fill="#9E9E9E"/>
+  <text x="690" y="610" class="pisa-level">Level 1c <tspan font-style="italic" fill="#6b6b6b">— added in 2018</tspan></text>
+  <text x="690" y="630" class="pisa-desc">Minimal reading literacy: locate single piece of</text>
+  <text x="690" y="642" class="pisa-desc">explicit information in a short, simple text.</text>
+  <text x="980" y="616" class="pisa-pct" text-anchor="end">2%</text>
+  <text x="980" y="632" class="pisa-pct-sub" text-anchor="end">≥189 pts</text>
+
+  <!-- Below Level 1c -->
+  <rect x="670" y="650" width="370" height="56" fill="#FFFFFF" stroke="#cfcabb" stroke-width="1"/>
+  <rect x="670" y="650" width="6" height="56" fill="#9E9E9E"/>
+  <text x="690" y="674" class="pisa-level" fill="#6b6b6b">Below Level 1c</text>
+  <text x="690" y="694" class="pisa-desc">Below all measured proficiencies in PISA reading.</text>
+  <text x="980" y="680" class="pisa-pct" text-anchor="end" fill="#6b6b6b">0.2%</text>
+  <text x="980" y="696" class="pisa-pct-sub" text-anchor="end">&lt;189 pts</text>
+
+  <!-- ============ FOOTER ============ -->
+  <line x1="60" y1="724" x2="1040" y2="724" stroke="#cfcabb" stroke-width="1"/>
+
+  <text x="60" y="748" class="footnote-bold">The empirical pivot</text>
+  <text x="60" y="766" class="footnote">Argumentative literacy (Morais's Level 2) sits at <tspan class="footnote-bold">PISA Level 4</tspan>, not PISA Level 2. Across OECD countries, 24% of 15-year-olds reached Level 4+ in 2022 —</text>
+  <text x="60" y="780" class="footnote">down from 29% in 2015. The buffer was already a minority capacity. It is shrinking, not stable.</text>
+
+  <text x="60" y="806" class="footnote">Sources: Morais, J. (2018), <tspan font-style="italic">Literacy and democracy</tspan>, Lang. Cogn. Neurosci. (level mapping). OECD (2023), <tspan font-style="italic">PISA 2022 Results (Volume I)</tspan>, Tables I.3.3 and I.B1.3.2 (percentages, OECD average).</text>
+</svg>

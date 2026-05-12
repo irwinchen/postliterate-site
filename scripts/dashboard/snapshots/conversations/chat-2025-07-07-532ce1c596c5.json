@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "id": "532ce1c5-96c5-4348-99e7-af39749f2263",
+  "type": "chat",
+  "project_label": null,
+  "project_path": null,
+  "title": "Hiding Obsidian Canvas Grid Dots",
+  "started_at": "2025-07-07T15:46:20.504110Z",
+  "last_activity_at": "2025-07-07T16:07:52.714361Z",
+  "message_count": 6,
+  "first_prompt": "How do I toggle off the background grid dots in Obsidian Canvas?",
+  "summary": "Irwin was attempting to determine how to hide the background grid dots within Obsidian Canvas. The conversation evolved from troubleshooting non-existent built-in settings to confirming that a CSS snippet was required for the fix. Finally, the discussion shifted to export functionality, where the assistant provided instructions for exporting the Canvas as a PNG image.",
+  "summary_status": "ready",
+  "artifacts": [],
+  "source_ref": {
+    "kind": "chat",
+    "uuid": "532ce1c5-96c5-4348-99e7-af39749f2263",
+    "source_key": "c9ce4e6e|532ce1c5-96c5-4348-99e7-af39749f2263|2025-07-07T16:07:52.714361Z",
+    "slim_cache": "snapshots/claude-archive/postliterate.json"
+  },
+  "ingested_at": "2026-05-12T12:32:39.109Z"
+}

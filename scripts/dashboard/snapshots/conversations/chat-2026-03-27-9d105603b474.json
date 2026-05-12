@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "id": "9d105603-b474-481d-b2ce-a5fc471d2a9c",
+  "type": "chat",
+  "project_label": null,
+  "project_path": null,
+  "title": "Whale analogy for orality and literacy",
+  "started_at": "2026-03-27T20:23:04.436704Z",
+  "last_activity_at": "2026-03-27T20:42:12.065017Z",
+  "message_count": 10,
+  "first_prompt": "I’m thinking about using this analogy to try to get the reader to imagine orality and literacy: imagine you’re a whale, you were born in water and it’s all you’ve known, but you breathe air. You actua",
+  "summary": "Irwin was seeking a compelling analogy to help readers grasp the deep tension between orality and literacy, initially proposing the metaphor of a whale that breathes air while living in water. The conversation refined this concept by discarding the complex biological mapping and instead shifting the focus to the experience of diving, suggesting that orality is the effortless surface air while deep reading is the demanding, quiet dive underwater. This final metaphor was deemed effective because it appealed to a broad audience's shared understanding of the surface's noise versus the deep's quiet, regardless of whether they are active divers.",
+  "summary_status": "ready",
+  "artifacts": [],
+  "source_ref": {
+    "kind": "chat",
+    "uuid": "9d105603-b474-481d-b2ce-a5fc471d2a9c",
+    "source_key": "c9ce4e6e|9d105603-b474-481d-b2ce-a5fc471d2a9c|2026-03-27T20:42:12.065017Z",
+    "slim_cache": "snapshots/claude-archive/postliterate.json"
+  },
+  "ingested_at": "2026-05-12T12:32:38.161Z"
+}

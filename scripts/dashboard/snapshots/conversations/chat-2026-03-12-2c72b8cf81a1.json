@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "id": "2c72b8cf-81a1-4441-87bb-1b4161a04e51",
+  "type": "chat",
+  "project_label": null,
+  "project_path": null,
+  "title": "Orality as foundation of human communication",
+  "started_at": "2026-03-12T11:58:20.880278Z",
+  "last_activity_at": "2026-03-12T12:31:25.471208Z",
+  "message_count": 8,
+  "first_prompt": "Is it colonial to say Orality is the foundation of human communication, and Literacy is the foundation of human civilization?\n\nHere’s the thesis statement for Chapter 1: \n## Thesis\n\nOrality is the fou",
+  "summary": "Irwin was working to refine a complex thesis regarding the relationship between orality and literacy, specifically addressing whether claiming literacy as the foundation of civilization was colonial. The conversation established that the stronger argument was not that literacy transformed society, but that it created a specialized cognitive framework used by a minority to build institutions. To solidify this, the assistant confirmed the existing ten-essay structure and agreed to create two new markdown files for the Obsidian vault: one for the Introduction to document the argument's arc, and one for Essay 2, \"The Literacy Bias,\" to seed the refined claim.",
+  "summary_status": "ready",
+  "artifacts": [],
+  "source_ref": {
+    "kind": "chat",
+    "uuid": "2c72b8cf-81a1-4441-87bb-1b4161a04e51",
+    "source_key": "c9ce4e6e|2c72b8cf-81a1-4441-87bb-1b4161a04e51|2026-03-12T12:31:25.471208Z",
+    "slim_cache": "snapshots/claude-archive/postliterate.json"
+  },
+  "ingested_at": "2026-05-12T12:32:38.183Z"
+}

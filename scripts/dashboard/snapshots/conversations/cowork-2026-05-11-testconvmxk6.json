@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "id": "test-conv-mxk60axc",
+  "type": "cowork",
+  "project_label": "site",
+  "project_path": "/tmp/site",
+  "title": "Test",
+  "started_at": "2026-05-11T00:00:00.000Z",
+  "last_activity_at": "2026-05-11T00:00:00.000Z",
+  "message_count": 3,
+  "first_prompt": "hi",
+  "summary": "a summary",
+  "summary_status": "pending",
+  "artifacts": [],
+  "source_ref": {
+    "kind": "cowork",
+    "session_id": "test-conv-mxk60axc",
+    "source_key": "key-a"
+  },
+  "ingested_at": "2026-05-12T17:35:40.158Z"
+}

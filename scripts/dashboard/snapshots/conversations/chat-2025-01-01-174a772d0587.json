@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "id": "174a772d-0587-43bc-bb3e-4ec96e3474f4",
+  "type": "chat",
+  "project_label": null,
+  "project_path": null,
+  "title": "Troubleshooting Obsidian Blog Template",
+  "started_at": "2024-12-31T00:23:42.295062Z",
+  "last_activity_at": "2025-01-01T16:07:53.825254Z",
+  "message_count": 30,
+  "first_prompt": "I have this blog template I want to use for my blog in Obsidian. I'd like it to use the templater function to move any file created with this template into the /Journal/linkblog folder for publishing.",
+  "summary": "Irwin was initially trying to troubleshoot an Obsidian blog template designed to automatically move newly created notes into the `/Journal/linkblog` folder using the Templater plugin. The conversation first focused on debugging the Templater syntax and plugin setup, requiring the user to confirm the plugin was enabled and the template folder was correctly configured. The discussion then broadened to general Git concepts, such as explaining `git remote -v`, before concluding with a detailed guide on setting up the \"Obsidian Git\" plugin to automatically sync the \"linkblog\" folder upon posting.",
+  "summary_status": "ready",
+  "artifacts": [],
+  "source_ref": {
+    "kind": "chat",
+    "uuid": "174a772d-0587-43bc-bb3e-4ec96e3474f4",
+    "source_key": "c9ce4e6e|174a772d-0587-43bc-bb3e-4ec96e3474f4|2025-01-01T16:07:53.825254Z",
+    "slim_cache": "snapshots/claude-archive/postliterate.json"
+  },
+  "ingested_at": "2026-05-12T12:32:39.739Z"
+}

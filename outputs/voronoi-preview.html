@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Modal mockup — bubble cluster, no container</title>
+<style>
+  :root { color-scheme: light dark; }
+  body { margin: 0; font-family: -apple-system, system-ui, sans-serif; background: #f3efe1; color: #1a1a1a; padding: 24px; }
+  h1 { font-weight: 500; font-size: 18px; margin: 0 0 4px; }
+  p.caption { margin: 0 0 16px; color: #666; font-size: 13px; }
+  .stage { background: #fff; border: 1px solid #ddd; padding: 16px; margin-bottom: 16px; }
+  .stage h2 { font-size: 11px; font-weight: 600; margin: 0 0 8px; color: #888; letter-spacing: 0.05em; text-transform: uppercase; }
+  svg.canvas { width: 100%; max-width: 1000px; height: auto; display: block; margin: 0 auto; }
+  .bubble-fill { stroke: #fff; stroke-width: 2; cursor: pointer; }
+  .bubble-label { font-size: 13px; fill: #fff; pointer-events: none; font-weight: 500; }
+  .bubble-pct { font-size: 11px; fill: rgba(255,255,255,0.78); pointer-events: none; font-weight: 400; }
+
+  .stage--modal .bg-group {
+    filter: grayscale(1) blur(6px) brightness(1.1);
+    opacity: 0.18;
+    transition: filter 300ms ease-out, opacity 300ms ease-out;
+  }
+  .panel-rect { fill: rgba(255,255,255,0.92); stroke: rgba(0,0,0,0.08); stroke-width: 1; }
+  .close-btn { fill: rgba(0,0,0,0.06); cursor: pointer; }
+  .close-x { stroke: #333; stroke-width: 2; stroke-linecap: round; }
+  .selector { font-size: 13px; padding: 4px 8px; margin-right: 8px; }
+</style>
+</head>
+<body>
+<h1>Modal mockup — bubble cluster, no container</h1>
+<p class="caption">Top: root state. Bottom: modal-open state — root cluster dims+blurs in the background, parent bubble zooms to canvas center, children pack inside.</p>
+
+<div class="stage">
+  <h2>Root state</h2>
+  <svg class="canvas" id="svg-root" viewBox="0 0 1000 700"></svg>
+</div>
+
+<div class="stage stage--modal" id="modal-stage">
+  <h2>Modal-open state (mockup)</h2>
+  <div style="margin-bottom: 8px;">
+    <label style="font-size: 13px;">Drilled-into category:
+      <select class="selector" id="parent-select"></select>
+    </label>
+  </div>
+  <svg class="canvas" id="svg-modal" viewBox="0 0 1000 700"></svg>
+</div>
+
+<script>
+const DATA = {"voronoi-root":{"canvas":{"viewBox":[0,0,1000,700]},"cells":[{"id":"web","label":"The Web","value":38,"color":"#3B6DB4","isUnknown":false,"hasChildren":true,"x":387.6650419909094,"y":355.73232531175495,"r":162.58527515150698,"index":0,"vy":8.64228799420474e-9,"vx":-8.846448574099376e-7},{"id":"logic","label":"Code & Math","value":18,"color":"#549E44","isUnknown":false,"hasChildren":true,"x":663.1486622045252,"y":355.2714299002223,"r":111.89886064629054,"index":1,"vy":1.242394700567141e-7,"vx":0.000002144476797654712},{"id":"academic","label":"Academic Papers","value":10,"color":"#7B4FA8","isUnknown":false,"hasChildren":true,"x":566.4731736777948,"y":526.1187007823931,"r":83.40448633662724,"index":2,"vy":0.000003656822253060511,"vx":6.788475230605888e-7},{"id":"books","label":"Books","value":8,"color":"#C5782A","isUnknown":false,"hasChildren":true,"x":564.3006986726007,"y":195.94610840824132,"r":74.59924043086038,"index":3,"vy":-0.0000034366411768107377,"vx":8.211794170447903e-7},{"id":"forums","label":"Forums & Q&A","value":8,"color":"#D94F35","isUnknown":false,"hasChildren":true,"x":433.5597096322913,"y":122.01140729887071,"r":74.59924043086038,"index":4,"vy":-0.000004006188669895903,"vx":-0.000002189224479805868},{"id":"wiki","label":"Wikipedia","value":6,"color":"#2B8FA5","isUnknown":false,"hasChildren":true,"x":427.6961213446559,"y":580.3835301229874,"r":64.60483731614826,"index":5,"vy":0.000004194658018543567,"vx":-0.000002180539588993436},{"id":"legal","label":"Legal & Government","value":4,"color":"#7A7065","isUnknown":false,"hasChildren":true,"x":692.5965605029496,"y":192.26160697252615,"r":52.74962878002703,"index":6,"vy":-0.0000025694505399645947,"vx":0.0000034345449131910344},{"id":"multilingual","label":"Multilingual","value":4,"color":"#C8A020","isUnknown":false,"hasChildren":true,"x":703.2527983280065,"y":515.9917927801035,"r":52.74962878002703,"index":7,"vy":0.0000031152734870121788,"vx":0.000003304583840549888},{"id":"transcripts","label":"Transcripts","value":2,"color":"#B84A8C","isUnknown":false,"hasChildren":true,"x":328.6450478224939,"y":163.71327484774048,"r":37.29962021543019,"index":8,"vy":-0.000002994137804164282,"vx":-0.000004086559918160614},{"id":"synthetic","label":"Synthetic Data","value":1,"color":"#1AAE9F","isUnknown":false,"hasChildren":true,"x":344.6857891819533,"y":540.7662695877898,"r":26.374814390013515,"index":9,"vy":0.0000030900697685909146,"vx":-0.0000035825014429500524},{"id":"unknown","label":"Unknown","value":1,"color":"#1C1C1C","isUnknown":true,"hasChildren":true,"x":532.8874332281969,"y":98.93116743676848,"r":26.374814390013515,"index":10,"vy":-0.0000048224241926172645,"vx":-7.713750814848484e-7}]},"voronoi-web":{"canvas":{"viewBox":[0,0,1000,700]},"parent":{"id":"web","label":"The Web","color":"#3B6DB4","value":38,"x":387.6650419909094,"y":355.73232531175495,"r":162.58527515150698,"openX":500,"openY":350,"openR":270,"transform":{"scale":1.6606669930496312,"tx":-143.78253959350252,"ty":-240.75293100602528}},"cells":[{"id":"web-crawl","label":"Web Crawls","value":20,"color":"#3B6DB4","isUnknown":false,"hasChildren":false,"x":395.5032125307948,"y":304.19118482443366,"r":156.836631041537,"index":0,"vy":-6.20237204150659e-7,"vx":-0.0000014148542096547787},{"id":"web-news","label":"News Articles","value":9,"color":"#3B6DB4","isUnknown":false,"hasChildren":false,"x":658.5488697537576,"y":304.08363979488985,"r":105.20921051127911,"index":1,"vy":-0.000001147324376588316,"vx":0.000002366433703754567},{"id":"web-blog","label":"Blogs & Personal Sites","value":9,"color":"#3B6DB4","isUnknown":false,"hasChildren":false,"x":573.6662135111428,"y":497.7137272619241,"r":105.20921051127911,"index":2,"vy":0.0000025177656366380794,"vx":7.597486227279822e-7}]},"voronoi-logic":{"canvas":{"viewBox":[0,0,1000,700]},"parent":{"id":"logic","label":"Code & Math","color":"#549E44","value":18,"x":663.1486622045252,"y":355.2714299002223,"r":111.89886064629054,"openX":500,"openY":350,"openR":270,"transform":{"scale":2.4128932005256347,"tx":-1100.1068979709698,"ty":-507.2320175472661}},"cells":[{"id":"logic-github","label":"Code (GitHub)","value":10,"color":"#549E44","isUnknown":false,"hasChildren":false,"x":399.2002234725612,"y":349.9999999995781,"r":165.39501058484583,"index":0,"vy":1.1216887180545684e-15,"vx":-0.0000012264575685714407},{"id":"logic-stackoverflow","label":"Stack Overflow","value":4,"color":"#549E44","isUnknown":false,"hasChildren":false,"x":670.2000686600624,"y":350.00000000071225,"r":104.60498941515412,"index":1,"vy":-6.546143383402704e-15,"vx":0.0000023795868373663515},{"id":"logic-arxiv-math","label":"arXiv Math/CS","value":2,"color":"#549E44","isUnknown":false,"hasChildren":false,"x":581.7993726578803,"y":506.3052367572065,"r":73.96689736140252,"index":2,"vy":0.0000029708941523838476,"vx":7.251794053709181e-7},{"id":"logic-mathoverflow","label":"MathOverflow","value":2,"color":"#549E44","isUnknown":false,"hasChildren":false,"x":581.7993726591885,"y":193.69476324347812,"r":73.96689736140252,"index":3,"vy":-0.0000029708941449142854,"vx":7.251794193180541e-7}]},"voronoi-academic":{"canvas":{"viewBox":[0,0,1000,700]},"parent":{"id":"academic","label":"Academic Papers","color":"#7B4FA8","value":10,"x":566.4731736777948,"y":526.1187007823931,"r":83.40448633662724,"openX":500,"openY":350,"openR":270,"transform":{"scale":3.23723593129341,"tx":-1333.8073119435696,"ty":-1353.1703622981695}},"cells":[{"id":"academic-arxiv-recursive","label":"AI/CS Papers","value":5,"color":"#7B4FA8","isUnknown":false,"hasChildren":false,"x":386.20194872198044,"y":312.7696396142189,"r":151.49522222537456,"index":0,"vy":-4.813921127028313e-7,"vx":-0.0000015560141589440984},{"id":"academic-pubmed","label":"Biomedical / PubMed","value":3,"color":"#7B4FA8","isUnknown":false,"hasChildren":false,"x":656.0446836168668,"y":312.7075681436629,"r":117.34769454177346,"index":1,"vy":-9.70340372429048e-7,"vx":0.0000025139288856659977},{"id":"academic-other","label":"Other Disciplines","value":2,"color":"#7B4FA8","isUnknown":false,"hasChildren":false,"x":550.4281027697488,"y":499.01454874895876,"r":95.81399137310923,"index":2,"vy":0.000002358685869737964,"vx":1.6648558877228262e-7}]},"voronoi-books":{"canvas":{"viewBox":[0,0,1000,700]},"parent":{"id":"books","label":"Books","color":"#C5782A","value":8,"x":564.3006986726007,"y":195.94610840824132,"r":74.59924043086038,"openX":500,"openY":350,"openR":270,"transform":{"scale":3.6193398007884516,"tx":-1542.3959783184746,"ty":-359.1955489715565}},"cells":[{"id":"books-gutenberg","label":"Public Domain","value":3,"color":"#C5782A","isUnknown":false,"hasChildren":false,"x":330.62513763720705,"y":349.99999999884227,"r":117.85275173800127,"index":0,"vy":-2.1541315785443866e-17,"vx":-0.0000032529756865831616},{"id":"books-books3","label":"Copyrighted Books","value":5,"color":"#C5782A","isUnknown":false,"hasChildren":false,"x":601.6249174176758,"y":350.0000000006947,"r":152.14724826199873,"index":1,"vy":1.3521707930907715e-17,"vx":0.0000018765917157303106}]},"voronoi-forums":{"canvas":{"viewBox":[0,0,1000,700]},"parent":{"id":"forums","label":"Forums & Q&A","color":"#D94F35","value":8,"x":433.5597096322913,"y":122.01140729887071,"r":74.59924043086038,"openX":500,"openY":350,"openR":270,"transform":{"scale":3.6193398007884516,"tx":-1069.199913090436,"ty":-91.60074258701331}},"cells":[{"id":"forums-reddit-good","label":"Reddit (curated)","value":5,"color":"#D94F35","isUnknown":false,"hasChildren":false,"x":398.37508258232424,"y":349.9999999993054,"r":152.14724826199873,"index":0,"vy":-1.3494770853536965e-17,"vx":-0.000001876591721004396},{"id":"forums-stackoverflow","label":"StackExchange / Forums","value":3,"color":"#D94F35","isUnknown":false,"hasChildren":false,"x":669.374862362793,"y":350.00000000115773,"r":117.85275173800127,"index":1,"vy":2.1567187803282295e-17,"vx":0.000003252975695356271}]},"voronoi-wiki":{"canvas":{"viewBox":[0,0,1000,700]},"parent":{"id":"wiki","label":"Wikipedia","color":"#2B8FA5","value":6,"x":427.6961213446559,"y":580.3835301229874,"r":64.60483731614826,"openX":500,"openY":350,"openR":270,"transform":{"scale":4.179253616547879,"tx":-1287.4505619131537,"ty":-2075.5699672513197}},"cells":[{"id":"wiki-english","label":"English Wikipedia","value":4,"color":"#2B8FA5","isUnknown":false,"hasChildren":false,"x":409.6667400731771,"y":349.9999999993825,"r":158.16233815926435,"index":0,"vy":-1.2078838122933582e-17,"vx":-0.0000016479971425829577},{"id":"wiki-tamil","label":"Other Languages","value":2,"color":"#2B8FA5","isUnknown":false,"hasChildren":false,"x":680.6665198536458,"y":350.00000000123504,"r":111.83766184073568,"index":1,"vy":2.298635051769773e-17,"vx":0.00000348157030814205}]},"voronoi-legal":{"canvas":{"viewBox":[0,0,1000,700]},"parent":{"id":"legal","label":"Legal & Government","color":"#7A7065","value":4,"x":692.5965605029496,"y":192.26160697252615,"r":52.74962878002703,"openX":500,"openY":350,"openR":270,"transform":{"scale":5.118519433111765,"tx":-3045.068954240716,"ty":-634.0947715301716}},"cells":[{"id":"legal-freelaw","label":"Court Opinions","value":2,"color":"#7A7065","isUnknown":false,"hasChildren":false,"x":364.50011010976567,"y":349.9999999990735,"r":135,"index":0,"vy":-1.7536894286655537e-17,"vx":-0.000002564783700202686},{"id":"legal-patent","label":"Patents","value":2,"color":"#7A7065","isUnknown":false,"hasChildren":false,"x":635.4998898902343,"y":350.0000000009265,"r":135,"index":1,"vy":1.7536894286655537e-17,"vx":0.0000025647837002024012}]},"voronoi-multilingual":{"canvas":{"viewBox":[0,0,1000,700]},"parent":{"id":"multilingual","label":"Multilingual","color":"#C8A020","value":4,"x":703.2527983280065,"y":515.9917927801035,"r":52.74962878002703,"openX":500,"openY":350,"openR":270,"transform":{"scale":5.118519433111765,"tx":-3099.6131146321304,"ty":-2291.114018671139}},"cells":[{"id":"multilingual-europarl","label":"Europarl / EU Docs","value":2,"color":"#C8A020","isUnknown":false,"hasChildren":false,"x":364.50011010976567,"y":349.9999999990735,"r":135,"index":0,"vy":-1.7536894286655537e-17,"vx":-0.000002564783700202686},{"id":"multilingual-cc100","label":"CC-100 / Other","value":2,"color":"#C8A020","isUnknown":false,"hasChildren":false,"x":635.4998898902343,"y":350.0000000009265,"r":135,"index":1,"vy":1.7536894286655537e-17,"vx":0.0000025647837002024012}]},"voronoi-transcripts":{"canvas":{"viewBox":[0,0,1000,700]},"parent":{"id":"transcripts","label":"Transcripts","color":"#B84A8C","value":2,"x":328.6450478224939,"y":163.71327484774048,"r":37.29962021543019,"openX":500,"openY":350,"openR":270,"transform":{"scale":7.238679601576903,"tx":-1878.9562038319523,"ty":-835.0679431476922}},"cells":[{"id":"transcripts-youtube","label":"YouTube Captions","value":1.2,"color":"#B84A8C","isUnknown":false,"hasChildren":false,"x":391.60008808781254,"y":349.999999999259,"r":148.63776944854192,"index":0,"vy":-1.4277496812453214e-17,"vx":-0.0000020140159600435006},{"id":"transcripts-opensubs","label":"Subtitles","value":0.8,"color":"#B84A8C","isUnknown":false,"hasChildren":false,"x":662.5998678682812,"y":350.00000000111146,"r":121.3622305514581,"index":1,"vy":2.078661249567987e-17,"vx":0.0000031155514273055993}]},"voronoi-synthetic":{"canvas":{"viewBox":[0,0,1000,700]},"parent":{"id":"synthetic","label":"Synthetic Data","color":"#1AAE9F","value":1,"x":344.6857891819533,"y":540.7662695877898,"r":26.374814390013515,"openX":500,"openY":350,"openR":270,"transform":{"scale":10.23703886622353,"tx":-3028.561820490586,"ty":-5185.845319312915}},"cells":[{"id":"synthetic-rstar","label":"Synthetic Reasoning","value":1,"color":"#1AAE9F","isUnknown":false,"hasChildren":false,"x":500,"y":350,"r":270,"index":0,"vy":0,"vx":0}]},"voronoi-unknown":{"canvas":{"viewBox":[0,0,1000,700]},"parent":{"id":"unknown","label":"Unknown","color":"#1C1C1C","value":1,"x":532.8874332281969,"y":98.93116743676848,"r":26.374814390013515,"openX":500,"openY":350,"openR":270,"transform":{"scale":10.23703886622353,"tx":-4955.189365279148,"ty":-662.7622061310666}},"cells":[{"id":"unknown-proprietary","label":"Proprietary / Undisclosed","value":1,"color":"#1C1C1C","isUnknown":true,"hasChildren":false,"x":500,"y":350,"r":270,"index":0,"vy":0,"vx":0}]}};
+const SVG_NS = 'http://www.w3.org/2000/svg';
+
+function el(tag, attrs = {}, text) {
+  const e = document.createElementNS(SVG_NS, tag);
+  for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v);
+  if (text != null) e.textContent = text;
+  return e;
+}
+function labelMode(r) {
+  if (r >= 50) return 'full';
+  if (r >= 28) return 'label';
+  return 'none';
+}
+
+const ROOT_TOTAL = DATA['voronoi-root'].cells.reduce((s, c) => s + c.value, 0);
+function rootPct(v) { return (v / ROOT_TOTAL * 100).toFixed(1) + '%'; }
+
+function renderBubbles(svg, bubbles, opts = {}) {
+  for (const c of bubbles) {
+    const mode = labelMode(c.r);
+    svg.appendChild(el('circle', {
+      cx: c.x, cy: c.y, r: c.r, fill: c.color || '#888', class: 'bubble-fill',
+    }));
+    if (mode !== 'none') {
+      svg.appendChild(el('text', {
+        x: c.x, y: mode === 'full' ? c.y - 4 : c.y,
+        'text-anchor': 'middle', 'dominant-baseline': 'middle',
+        class: 'bubble-label',
+      }, c.label));
+    }
+    if (mode === 'full' && opts.pctFn) {
+      svg.appendChild(el('text', {
+        x: c.x, y: c.y + 16,
+        'text-anchor': 'middle', 'dominant-baseline': 'middle',
+        class: 'bubble-pct',
+      }, opts.pctFn(c.value)));
+    }
+  }
+}
+
+function renderRoot() {
+  const j = DATA['voronoi-root'];
+  const svg = document.getElementById('svg-root');
+  svg.innerHTML = '';
+  renderBubbles(svg, j.cells, { pctFn: rootPct });
+}
+
+function renderModal(parentId) {
+  const root = DATA['voronoi-root'];
+  const modal = DATA['voronoi-' + parentId];
+  const svg = document.getElementById('svg-modal');
+  svg.innerHTML = '';
+
+  const bg = el('g', { class: 'bg-group' });
+  renderBubbles(bg, root.cells, { pctFn: rootPct });
+  svg.appendChild(bg);
+
+  const m = el('g', { class: 'modal-group' });
+  m.appendChild(el('circle', {
+    cx: modal.parent.openX, cy: modal.parent.openY, r: modal.parent.openR,
+    fill: modal.parent.color || '#888', class: 'bubble-fill',
+    style: 'stroke: rgba(255,255,255,0.5); stroke-width: 1.5;',
+  }));
+  renderBubbles(m, modal.cells, {});
+
+  const panelX = 800, panelY = 80, panelW = 230, panelH = 540;
+  m.appendChild(el('rect', { x: panelX, y: panelY, width: panelW, height: panelH, class: 'panel-rect' }));
+  m.appendChild(el('text', { x: panelX + 18, y: panelY + 36, style: 'font-size: 20px; font-weight: 700; fill: ' + (modal.parent.color || '#888') + ';' }, modal.parent.label));
+  m.appendChild(el('text', { x: panelX + 18, y: panelY + 60, style: 'font-size: 13px; fill: #888;' }, modal.parent.value + '% of pre-training tokens'));
+  m.appendChild(el('text', { x: panelX + 18, y: panelY + 100, style: 'font-size: 12px; fill: #444;' }, '[description]'));
+  m.appendChild(el('text', { x: panelX + 18, y: panelY + 130, style: 'font-size: 12px; fill: #444;' }, '[bullets]'));
+  m.appendChild(el('text', { x: panelX + 18, y: panelY + 160, style: 'font-size: 12px; fill: #444;' }, '[screenshot]'));
+
+  const cx = panelX + panelW - 20, cy = panelY + 20, r = 14;
+  m.appendChild(el('circle', { cx, cy, r, class: 'close-btn' }));
+  m.appendChild(el('line', { x1: cx - 5, y1: cy - 5, x2: cx + 5, y2: cy + 5, class: 'close-x' }));
+  m.appendChild(el('line', { x1: cx + 5, y1: cy - 5, x2: cx - 5, y2: cy + 5, class: 'close-x' }));
+
+  svg.appendChild(m);
+}
+
+const PARENTS = DATA['voronoi-root'].cells.filter(c => c.hasChildren);
+const sel = document.getElementById('parent-select');
+for (const p of PARENTS) {
+  const opt = document.createElement('option');
+  opt.value = p.id;
+  opt.textContent = p.label + ' (' + p.value + '%)';
+  sel.appendChild(opt);
+}
+sel.addEventListener('change', () => renderModal(sel.value));
+
+renderRoot();
+renderModal(PARENTS[0].id);
+</script>
+</body>
+</html>

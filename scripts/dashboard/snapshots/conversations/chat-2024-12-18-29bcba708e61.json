@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "id": "29bcba70-8e61-4509-9ab4-2ddbe871ab52",
+  "type": "chat",
+  "project_label": null,
+  "project_path": null,
+  "title": "Organize Obsidian To-Do Lists",
+  "started_at": "2024-12-18T14:07:14.428651Z",
+  "last_activity_at": "2024-12-18T14:08:06.093240Z",
+  "message_count": 4,
+  "first_prompt": "Use MCP filesystem to go into my Obsidian vault and move all of the unchecked To-Dos from yesterday to today's To-Do list.",
+  "summary": "Irwin was attempting to automate the organization of his personal knowledge base by transferring unchecked to-do items from a previous day's journal entry to the current day's entry within his Obsidian vault. After the assistant confirmed access to the vault, Irwin specified the exact location as `Personal/Journal`. The assistant then confirmed the dates (December 17 and December 18, 2024) and prepared to read both files to execute the proposed transfer of unchecked to-dos.",
+  "summary_status": "ready",
+  "artifacts": [],
+  "source_ref": {
+    "kind": "chat",
+    "uuid": "29bcba70-8e61-4509-9ab4-2ddbe871ab52",
+    "source_key": "c9ce4e6e|29bcba70-8e61-4509-9ab4-2ddbe871ab52|2024-12-18T14:08:06.093240Z",
+    "slim_cache": "snapshots/claude-archive/postliterate.json"
+  },
+  "ingested_at": "2026-05-12T12:32:39.851Z"
+}

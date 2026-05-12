@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "id": "0bfc8af8-7c6b-4112-8d75-34be5cae400a",
+  "type": "chat",
+  "project_label": null,
+  "project_path": null,
+  "title": "Orality: Major Cultural Features",
+  "started_at": "2025-09-10T15:59:22.609134Z",
+  "last_activity_at": "2025-09-11T21:57:29.246578Z",
+  "message_count": 28,
+  "first_prompt": "List the major features of orality and examples of each.",
+  "summary": "Irwin was attempting to craft an introductory post for his website, *Orality Online*, seeking a compelling opening statement that would define orality and establish its contemporary importance. The conversation quickly moved past academic definitions, rejecting the standard \"X is not Y\" formulation and instead arguing that the digital medium itself—the \"hybrid monster\" of YouTube and social media—was the central point of discussion. The discussion concluded by refining the final paragraph to shift the focus from specific platforms like TikTok to the larger, more urgent issue of knowledge creation and the potential impact of AI, referencing a *WSJ* article by Greg Ip.",
+  "summary_status": "ready",
+  "artifacts": [],
+  "source_ref": {
+    "kind": "chat",
+    "uuid": "0bfc8af8-7c6b-4112-8d75-34be5cae400a",
+    "source_key": "c9ce4e6e|0bfc8af8-7c6b-4112-8d75-34be5cae400a|2025-09-11T21:57:29.246578Z",
+    "slim_cache": "snapshots/claude-archive/postliterate.json"
+  },
+  "ingested_at": "2026-05-12T12:32:38.348Z"
+}

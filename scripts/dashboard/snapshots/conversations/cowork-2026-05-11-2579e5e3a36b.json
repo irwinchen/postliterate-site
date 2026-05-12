@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "id": "2579e5e3-a36b-49bb-8652-4f96601775f6",
+  "type": "cowork",
+  "project_label": "site",
+  "project_path": "/Users/irwinchen/Documents/postliterate-site",
+  "title": "Do you have the new-source skill?",
+  "started_at": "2026-05-09T21:09:33.979Z",
+  "last_activity_at": "2026-05-11T21:15:48.014Z",
+  "message_count": 18,
+  "first_prompt": "Do you have the new-source skill?",
+  "summary": "The session focused on refining the content structure, source data criteria, and figure linking for the 'After the Book' site. The work began by establishing strict criteria for \"Outstanding",
+  "summary_status": "ready",
+  "artifacts": [],
+  "source_ref": {
+    "kind": "cowork",
+    "session_id": "2579e5e3-a36b-49bb-8652-4f96601775f6",
+    "source_key": "d1f99b54f88bb840",
+    "date": "2026-05-09"
+  },
+  "ingested_at": "2026-05-12T12:32:34.750Z"
+}

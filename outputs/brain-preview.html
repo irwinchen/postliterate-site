@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Brain shape preview — corpus-voronoi</title>
+    <style>
+      :root {
+        color-scheme: light dark;
+      }
+      body {
+        margin: 0;
+        font-family: -apple-system, system-ui, sans-serif;
+        background: #f3efe1;
+        color: #1a1a1a;
+        padding: 24px;
+      }
+      h1 {
+        font-weight: 500;
+        font-size: 18px;
+        margin: 0 0 4px;
+      }
+      p.caption {
+        margin: 0 0 24px;
+        color: #666;
+        font-size: 13px;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+        gap: 16px;
+      }
+      .card {
+        background: #fff;
+        border: 1px solid #ddd;
+        padding: 12px;
+      }
+      .card h2 {
+        font-size: 12px;
+        font-weight: 600;
+        margin: 0 0 8px;
+        color: #888;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+      }
+      .card svg {
+        width: 100%;
+        height: auto;
+        display: block;
+      }
+      .brain {
+        fill: #549e44;
+        stroke: #2f5a26;
+        stroke-width: 2;
+      }
+      .overlay {
+        fill: none;
+        stroke: rgba(0, 0, 0, 0.35);
+        stroke-width: 1.2;
+        stroke-linecap: round;
+      }
+      .axis {
+        stroke: rgba(255, 0, 0, 0.25);
+        stroke-width: 1;
+        stroke-dasharray: 4 4;
+      }
+      .point {
+        fill: rgba(255, 255, 255, 0.6);
+      }
+      .controls {
+        margin-bottom: 16px;
+        font-size: 13px;
+      }
+      label {
+        margin-right: 12px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Brain shape preview</h1>
+    <p class="caption">
+      Procedural left-facing lateral brain silhouette. Each card uses a
+      different seed.
+    </p>
+
+    <div class="grid" id="grid"></div>
+
+    <script type="module">
+      // Inlined copy of brain-shape.js for static preview (no module server).
+      const TAU = Math.PI * 2;
+
+      function mulberry32(seed) {
+        let a = seed >>> 0;
+        return function () {
+          a = (a + 0x6d2b79f5) | 0;
+          let t = a;
+          t = Math.imul(t ^ (t >>> 15), 1 | t);
+          t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+          return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+        };
+      }
+
+      function angularGauss(theta, center, sigma) {
+        let d = theta - center;
+        while (d > Math.PI) d -= TAU;
+        while (d < -Math.PI) d += TAU;
+        return Math.exp(-(d * d) / (2 * sigma * sigma));
+      }
+
+      function brainLateralPolygon(opts = {}) {
+        const {
+          width = 1,
+          height = 1,
+          segments = 48,
+          seed = 1,
+          lumpiness = 0.015,
+          frontalBulge = 0.10,
+          occipitalBulge = 0.04,
+          baseFlatten = 0.05,
+          insetX = 0.05,
+          insetY = 0.10,
+        } = opts;
+
+        const a = 0.5 * width * (1 - 2 * insetX);
+        const b = 0.5 * height * (1 - 2 * insetY);
+
+        const rng = mulberry32(seed);
+        const N_HARMONICS = 3;
+        const harmonics = [];
+        let ampSum = 0;
+        for (let k = 0; k < N_HARMONICS; k++) {
+          const amp = 0.5 + rng() * 0.5;
+          const phase = rng() * TAU;
+          const freq = k + 1;
+          harmonics.push({ amp, phase, freq });
+          ampSum += amp;
+        }
+        const lumpScale = ampSum > 0 ? (lumpiness * a) / ampSum : 0;
+
+        const cx = width / 2;
+        const cy = height / 2;
+        const points = new Array(segments);
+
+        for (let i = 0; i < segments; i++) {
+          const theta = (i / segments) * TAU;
+          const cosT = Math.cos(theta);
+          const sinT = Math.sin(theta);
+
+          const denom = Math.sqrt((b * cosT) ** 2 + (a * sinT) ** 2);
+          const baseR = (a * b) / denom;
+
+          const fb = frontalBulge * a * angularGauss(theta, Math.PI, 0.75);
+          const ob = occipitalBulge * a * angularGauss(theta, 0, 0.65);
+          const flat =
+            -baseFlatten * a * angularGauss(theta, 1.5 * Math.PI, 0.7);
+
+          let lump = 0;
+          for (const h of harmonics) {
+            lump += h.amp * Math.sin(h.freq * theta + h.phase);
+          }
+          lump *= lumpScale;
+
+          const r = baseR + fb + ob + flat + lump;
+          const x = cx + r * cosT;
+          const y = cy - r * sinT;
+          points[i] = [x, y];
+        }
+        return points;
+      }
+
+      // Render N cards at different seeds.
+      const grid = document.getElementById('grid');
+      const W = 380;
+      const H = 280;
+      const seeds = [1, 2, 3, 7, 42, 100];
+      for (const seed of seeds) {
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.innerHTML = `<h2>seed ${seed}</h2>`;
+        const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+        svg.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+
+        const poly = brainLateralPolygon({ width: W, height: H, seed });
+        const polyEl = document.createElementNS(
+          'http://www.w3.org/2000/svg',
+          'polygon',
+        );
+        polyEl.setAttribute(
+          'points',
+          poly.map(([x, y]) => `${x.toFixed(2)},${y.toFixed(2)}`).join(' '),
+        );
+        polyEl.setAttribute('class', 'brain');
+        svg.appendChild(polyEl);
+
+        card.appendChild(svg);
+        grid.appendChild(card);
+      }
+    </script>
+  </body>
+</html>

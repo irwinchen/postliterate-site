@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "id": "4a76e7d7-2a4e-415b-b309-239b139e8986",
+  "type": "chat",
+  "project_label": null,
+  "project_path": null,
+  "title": "Naming a reading app Virgil",
+  "started_at": "2026-02-09T13:58:23.518326Z",
+  "last_activity_at": "2026-02-09T13:59:53.402844Z",
+  "message_count": 4,
+  "first_prompt": "I’m thinking of calling my reading app Virgil. Are there any historical references of Virgil being an owl?",
+  "summary": "Irwin was working to establish a symbolic identity and name for a reading application, initially focusing on the classical poet Virgil. After the assistant clarified that Virgil's primary association is as a guide rather than an owl, the conversation shifted to finding a suitable animal avatar. The assistant subsequently proposed the Owl for its universal symbolism of wisdom, and the Raven, which is associated with knowledge and memory, drawing connections to Norse mythology and Edgar Allan Poe.",
+  "summary_status": "ready",
+  "artifacts": [],
+  "source_ref": {
+    "kind": "chat",
+    "uuid": "4a76e7d7-2a4e-415b-b309-239b139e8986",
+    "source_key": "c9ce4e6e|4a76e7d7-2a4e-415b-b309-239b139e8986|2026-02-09T13:59:53.402844Z",
+    "slim_cache": "snapshots/claude-archive/postliterate.json"
+  },
+  "ingested_at": "2026-05-12T12:32:38.198Z"
+}

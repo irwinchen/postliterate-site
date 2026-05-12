@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "id": "4959a5c6-152e-461f-8a35-22c08c2f7272",
+  "type": "chat",
+  "project_label": null,
+  "project_path": null,
+  "title": "Obsidian todo checkbox syntax",
+  "started_at": "2025-11-27T12:37:31.803472Z",
+  "last_activity_at": "2025-11-27T12:38:52.719953Z",
+  "message_count": 4,
+  "first_prompt": "what’s the syntax to make a todo in obsidian?",
+  "summary": "Irwin was trying to determine the most efficient method for creating and, more importantly, aggregating all outstanding tasks across his entire Obsidian vault. After initially learning the basic checkbox syntax (`- [ ]`), the conversation shifted",
+  "summary_status": "ready",
+  "artifacts": [],
+  "source_ref": {
+    "kind": "chat",
+    "uuid": "4959a5c6-152e-461f-8a35-22c08c2f7272",
+    "source_key": "c9ce4e6e|4959a5c6-152e-461f-8a35-22c08c2f7272|2025-11-27T12:38:52.719953Z",
+    "slim_cache": "snapshots/claude-archive/postliterate.json"
+  },
+  "ingested_at": "2026-05-12T12:32:38.260Z"
+}

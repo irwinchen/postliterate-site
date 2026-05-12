@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "id": "8a414359-f6b0-4511-8926-8aa3a72a80dc",
+  "type": "chat",
+  "project_label": null,
+  "project_path": null,
+  "title": "Morais' literacy framework and Bateson's learning levels",
+  "started_at": "2026-03-21T14:33:00.012940Z",
+  "last_activity_at": "2026-03-22T01:41:41.458151Z",
+  "message_count": 12,
+  "first_prompt": "Read the Morais paper. His ideas on literacy are game-changing for this project. They provide a clarity and clear linkages backed by research to ideas that were present in my outline but not substanti",
+  "summary": "The conversation centered on integrating Morais' literacy framework with Bateson's learning levels to sharpen the book's overall argument regarding the impact of AI on literacy and learning. After revising specific chapters, including 2, 3, 5, and 9, the discussion shifted to defining the book's practical dimension, debating how to frame the distinction between different uses of \"synthetic orality.\" Ultimately, the participants concluded that the book should avoid becoming a self-help guide by instead providing a conceptual framework, maintaining the intellectual register of authors like Pollan and Nguyen.",
+  "summary_status": "ready",
+  "artifacts": [],
+  "source_ref": {
+    "kind": "chat",
+    "uuid": "8a414359-f6b0-4511-8926-8aa3a72a80dc",
+    "source_key": "c9ce4e6e|8a414359-f6b0-4511-8926-8aa3a72a80dc|2026-03-22T01:41:41.458151Z",
+    "slim_cache": "snapshots/claude-archive/postliterate.json"
+  },
+  "ingested_at": "2026-05-12T12:32:38.173Z"
+}

@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "id": "ba6377c8-5255-469a-9afa-53375404a505",
+  "type": "chat",
+  "project_label": null,
+  "project_path": null,
+  "title": "Immersive reading technology in science fiction",
+  "started_at": "2026-01-19T21:41:26.512963Z",
+  "last_activity_at": "2026-01-19T22:10:36.787144Z",
+  "message_count": 18,
+  "first_prompt": "I’d like you to help me find examples of digital books in science fiction literature and film. Examples I can think of: The Diamond Age,  by Neal Stephenson, Dune by Frank Herbert, Star Trek (TNG and ",
+  "summary": "The conversation centered on identifying examples of immersive digital reading interfaces within science fiction, moving beyond simple information display to explore how technology fundamentally changes the act of reading. The discussion expanded globally, considering East Asian and Russian sci-fi, and prompted a specific concern about the loss of beauty when logographic characters are translated into digital formats. The conversation concluded by reviewing specific works like *Serial Experiments Lain* and *Kingdom of Characters*, before finally pivoting to the compelling reading interfaces found in video games, such as the Codex in *Fallout*.",
+  "summary_status": "ready",
+  "artifacts": [],
+  "source_ref": {
+    "kind": "chat",
+    "uuid": "ba6377c8-5255-469a-9afa-53375404a505",
+    "source_key": "c9ce4e6e|ba6377c8-5255-469a-9afa-53375404a505|2026-01-19T22:10:36.787144Z",
+    "slim_cache": "snapshots/claude-archive/postliterate.json"
+  },
+  "ingested_at": "2026-05-12T12:32:38.200Z"
+}

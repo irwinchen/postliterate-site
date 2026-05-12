@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8" />
+<title>Phase 3 preview — new palette</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root { color-scheme: light; --background: #F3EFE1; --text: #2C2C2C; --text-tertiary: #999; --accent: #E53E33; --border-subtle: rgba(0,0,0,0.1); }
+html, body { block-size: 100%; overflow: hidden; background: var(--background); color: var(--text); font-family: 'Outfit', system-ui, sans-serif; }
+.page-shell { display: flex; flex-direction: column; block-size: 100dvh; }
+.page-nav { display: flex; align-items: center; gap: 16px; padding-inline: 20px; block-size: 40px; border-block-end: 1px solid var(--border-subtle); flex-shrink: 0; font-size: 13px; }
+.page-nav a { color: #666; text-decoration: none; }
+.page-nav-sep { color: var(--text-tertiary); }
+.page-nav-staging { margin-inline-start: auto; font-size: 11px; color: var(--text-tertiary); font-style: italic; }
+.figure-wrap { flex: 1; min-block-size: 0; overflow: hidden; }
+.figure-wrap > * { block-size: 100%; }
+.cb-wrap { display: grid; grid-template-rows: auto 1fr auto; block-size: 100%; padding-block: 20px; padding-inline: clamp(16px, 4vw, 48px); row-gap: 8px; color: var(--text); }
+.cb-header { display: flex; flex-wrap: wrap; align-items: baseline; gap: 16px; }
+.cb-title { font-size: clamp(20px, 2.2vw, 30px); font-weight: 500; margin: 0; letter-spacing: -0.01em; line-height: 1.2; }
+.cb-caveat { font-size: 12px; color: var(--text-tertiary); font-style: italic; margin: 0; }
+.cb-stage { display: grid; place-items: center; min-block-size: 0; min-inline-size: 0; overflow: hidden; }
+.cb-svg { inline-size: 100%; block-size: 100%; max-inline-size: 1200px; display: block; }
+.cb-container { fill: rgba(0,0,0,0.03); stroke: rgba(0,0,0,0.15); stroke-width: 1.5; pointer-events: none; }
+.cb-bubble-fill { stroke: var(--background); stroke-width: 2; }
+.cb-bubble-label { font-size: clamp(11px, 1.05vw, 15px); fill: #fff; pointer-events: none; font-weight: 500; }
+.cb-bubble-pct { font-size: clamp(9px, 0.85vw, 12px); fill: rgba(255,255,255,0.78); pointer-events: none; font-weight: 400; }
+.cb-sources { font-size: 11px; color: var(--text-tertiary); text-align: center; padding-block: 8px; }
+.cb-sources-label { font-weight: 600; margin-inline-end: 4px; }
+</style>
+</head>
+<body>
+<div class="page-shell">
+  <nav class="page-nav">
+    <a href="/">Post-Literate</a>
+    <span class="page-nav-sep">›</span>
+    <span>What do AI models train on?</span>
+    <span class="page-nav-staging">staging — new palette</span>
+  </nav>
+  <div class="figure-wrap">
+    <div class="cb-wrap">
+      <header class="cb-header">
+        <h1 class="cb-title">What does an AI model actually train on?</h1>
+        <p class="cb-caveat">Illustrative composite — no single model uses exactly this mix.</p>
+      </header>
+      <div class="cb-stage">
+        <svg class="cb-svg" viewBox="0 0 1000 700" preserveAspectRatio="xMidYMid meet">
+          <circle cx="500" cy="350" r="310.07069986410545" class="cb-container" />
+          <g class="cb-bubbles"><g class="cb-bubble"><circle cx="381.3794507791521" cy="358.8595646805729" r="160.14415506111203" fill="#809B57" class="cb-bubble-fill" /><text x="381.3794507791521" y="354.8595646805729" text-anchor="middle" dominant-baseline="middle" class="cb-bubble-label">The Web</text><text x="381.3794507791521" y="374.8595646805729" text-anchor="middle" dominant-baseline="middle" class="cb-bubble-pct">38.0%</text></g><g class="cb-bubble"><circle cx="653.7409700031344" cy="358.0370823047338" r="110.21876657527815" fill="#7B5567" class="cb-bubble-fill" /><text x="653.7409700031344" y="354.0370823047338" text-anchor="middle" dominant-baseline="middle" class="cb-bubble-label">Code & Math</text><text x="653.7409700031344" y="374.0370823047338" text-anchor="middle" dominant-baseline="middle" class="cb-bubble-pct">18.0%</text></g><g class="cb-bubble"><circle cx="558.2753170636902" cy="527.3483648040861" r="82.15221815283456" fill="#5BA7A3" class="cb-bubble-fill" /><text x="558.2753170636902" y="523.3483648040861" text-anchor="middle" dominant-baseline="middle" class="cb-bubble-label">Academic Papers</text><text x="558.2753170636902" y="543.3483648040861" text-anchor="middle" dominant-baseline="middle" class="cb-bubble-pct">10.0%</text></g><g class="cb-bubble"><circle cx="555.697967234891" cy="200.33095495432275" r="73.47917771685212" fill="#E2A82B" class="cb-bubble-fill" /><text x="555.697967234891" y="196.33095495432275" text-anchor="middle" dominant-baseline="middle" class="cb-bubble-label">Books</text><text x="555.697967234891" y="216.33095495432275" text-anchor="middle" dominant-baseline="middle" class="cb-bubble-pct">8.0%</text></g><g class="cb-bubble"><circle cx="425.7822707636322" cy="127.4580692760074" r="73.47917771685212" fill="#8E2A3A" class="cb-bubble-fill" /><text x="425.7822707636322" y="123.4580692760074" text-anchor="middle" dominant-baseline="middle" class="cb-bubble-label">Forums & Q&A</text><text x="425.7822707636322" y="143.4580692760074" text-anchor="middle" dominant-baseline="middle" class="cb-bubble-pct">8.0%</text></g><g class="cb-bubble"><circle cx="420.64803835110183" cy="581.1972284292281" r="63.63483455198537" fill="#C5B746" class="cb-bubble-fill" /><text x="420.64803835110183" y="577.1972284292281" text-anchor="middle" dominant-baseline="middle" class="cb-bubble-label">Wikipedia</text><text x="420.64803835110183" y="597.1972284292281" text-anchor="middle" dominant-baseline="middle" class="cb-bubble-pct">6.0%</text></g><g class="cb-bubble"><circle cx="683.0771297250567" cy="196.5031015862227" r="51.957624839597585" fill="#6F8088" class="cb-bubble-fill" /><text x="683.0771297250567" y="192.5031015862227" text-anchor="middle" dominant-baseline="middle" class="cb-bubble-label">Legal & Government</text><text x="683.0771297250567" y="212.5031015862227" text-anchor="middle" dominant-baseline="middle" class="cb-bubble-pct">4.0%</text></g><g class="cb-bubble"><circle cx="694.0060928060592" cy="517.1991122961958" r="51.957624839597585" fill="#E29487" class="cb-bubble-fill" /><text x="694.0060928060592" y="513.1991122961958" text-anchor="middle" dominant-baseline="middle" class="cb-bubble-label">Multilingual</text><text x="694.0060928060592" y="533.1991122961958" text-anchor="middle" dominant-baseline="middle" class="cb-bubble-pct">4.0%</text></g><g class="cb-bubble"><circle cx="321.60441401331013" cy="169.17137831817502" r="36.73958885842606" fill="#B57480" class="cb-bubble-fill" /><text x="321.60441401331013" y="169.17137831817502" text-anchor="middle" dominant-baseline="middle" class="cb-bubble-label">Transcripts</text></g><g class="cb-bubble"><circle cx="337.896437662705" cy="541.8879948560934" r="25.978812419798793" fill="#A8B570" class="cb-bubble-fill" /></g><g class="cb-bubble"><circle cx="524.4449029027044" cy="103.80660502000563" r="25.978812419798793" fill="#383838" class="cb-bubble-fill" /></g></g>
+        </svg>
+      </div>
+      <footer class="cb-sources">
+        <span class="cb-sources-label">Sources:</span>
+        <span>The Pile (EleutherAI) [SECONDARY-ONLY]</span> ·
+        <span>Dolma v1.7 (AI2) [SECONDARY-ONLY]</span> ·
+        <span>Llama 3.1 Tech Report (Meta) [PRIMARY-PARTIAL]</span> ·
+        <span>FMTI 2025 (Stanford HAI) [SECONDARY-ONLY]</span>
+      </footer>
+    </div>
+  </div>
+</div>
+</body>
+</html>

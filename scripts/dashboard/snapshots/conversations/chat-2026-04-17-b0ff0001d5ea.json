@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "id": "b0ff0001-d5ea-4269-95ef-1f3d54724de2",
+  "type": "chat",
+  "project_label": null,
+  "project_path": null,
+  "title": "Luria's 1932 Uzbekistan research",
+  "started_at": "2026-04-17T00:06:03.784923Z",
+  "last_activity_at": "2026-04-17T00:16:48.121576Z",
+  "message_count": 6,
+  "first_prompt": "Give me a bulleted summary of this paper and what it concludes about Luria's work in 1932 in Uzbekistan.",
+  "summary": "Irwin was attempting to work through the theoretical conflict between Marxist determinism and Gestalt psychology by analyzing Luria's 1932 research in Uzbekistan. After receiving an initial summary of the Luria-Koffka controversy, Irwin asked the assistant to integrate the analysis into the PostLiter",
+  "summary_status": "ready",
+  "artifacts": [],
+  "source_ref": {
+    "kind": "chat",
+    "uuid": "b0ff0001-d5ea-4269-95ef-1f3d54724de2",
+    "source_key": "c9ce4e6e|b0ff0001-d5ea-4269-95ef-1f3d54724de2|2026-04-17T00:16:48.121576Z",
+    "slim_cache": "snapshots/claude-archive/postliterate.json"
+  },
+  "ingested_at": "2026-05-12T12:32:38.155Z"
+}

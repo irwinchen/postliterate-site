@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "id": "b90c06c4-2a38-42c1-86d7-decceec131f2",
+  "type": "chat",
+  "project_label": null,
+  "project_path": null,
+  "title": "Vygotsky's thought and word for synthetic orality",
+  "started_at": "2026-05-01T03:22:44.718205Z",
+  "last_activity_at": "2026-05-01T03:26:58.821156Z",
+  "message_count": 4,
+  "first_prompt": "What work by Lev Vygotsky would inform the synthetic orality chapter? I’m trying to describe to the reader how LLMs generate the words that simulate intelligence. I know Vygotsky has some relevance he",
+  "summary": "The conversation sought to identify specific works by Lev Vygotsky that could inform a chapter on \"synthetic orality,\" particularly in describing how large language models simulate intelligence through language generation. The discussion evolved by focusing on Vygotsky's key concepts, including inner speech from *Thought and Language* (1934), and the Zone of Proximal Development (ZPD). The assistant clarified that the ZPD measures the gap between what a learner can do alone and what they can achieve with help, arguing that this potential is often missed by conventional testing that only measures already developed, \"fossilized\" knowledge.",
+  "summary_status": "ready",
+  "artifacts": [],
+  "source_ref": {
+    "kind": "chat",
+    "uuid": "b90c06c4-2a38-42c1-86d7-decceec131f2",
+    "source_key": "c9ce4e6e|b90c06c4-2a38-42c1-86d7-decceec131f2|2026-05-01T03:26:58.821156Z",
+    "slim_cache": "snapshots/claude-archive/postliterate.json"
+  },
+  "ingested_at": "2026-05-12T12:32:38.139Z"
+}

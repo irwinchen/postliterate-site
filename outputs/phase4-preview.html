@@ -1,0 +1,258 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8" />
+<title>Phase 4 preview — interactive modal drill-in</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root { color-scheme: light; --background: #F3EFE1; --text: #2C2C2C; --text-secondary: #666; --text-tertiary: #999; --accent: #E53E33; --border-subtle: rgba(0,0,0,0.1); }
+html, body { block-size: 100%; overflow: hidden; background: var(--background); color: var(--text); font-family: 'Outfit', system-ui, sans-serif; }
+.page-shell { display: flex; flex-direction: column; block-size: 100dvh; }
+.page-nav { display: flex; align-items: center; gap: 16px; padding-inline: 20px; block-size: 40px; border-block-end: 1px solid var(--border-subtle); flex-shrink: 0; font-size: 13px; }
+.page-nav a { color: #666; text-decoration: none; }
+.page-nav-sep { color: var(--text-tertiary); }
+.page-nav-staging { margin-inline-start: auto; font-size: 11px; color: var(--text-tertiary); font-style: italic; }
+.figure-wrap { flex: 1; min-block-size: 0; overflow: hidden; }
+.figure-wrap > * { block-size: 100%; }
+
+.cb-wrap { display: grid; grid-template-rows: auto 1fr auto; block-size: 100%; padding-block: 20px; padding-inline: clamp(16px, 4vw, 48px); row-gap: 8px; color: var(--text); }
+.cb-header { display: flex; flex-wrap: wrap; align-items: baseline; gap: 16px; }
+.cb-title { font-size: clamp(20px, 2.2vw, 30px); font-weight: 500; margin: 0; letter-spacing: -0.01em; line-height: 1.2; }
+.cb-caveat { font-size: 12px; color: var(--text-tertiary); font-style: italic; margin: 0; }
+.cb-stage { display: grid; place-items: center; min-block-size: 0; min-inline-size: 0; overflow: hidden; }
+.cb-svg { inline-size: 100%; block-size: 100%; max-inline-size: 1200px; display: block; }
+
+.cb-container { fill: rgba(0,0,0,0.03); stroke: rgba(0,0,0,0.15); stroke-width: 1.5; pointer-events: none; }
+.cb-bubble-fill { stroke: var(--background); stroke-width: 2; }
+.cb-bubble-label { font-size: clamp(11px, 1.05vw, 15px); fill: #fff; pointer-events: none; font-weight: 500; }
+.cb-bubble-pct { font-size: clamp(9px, 0.85vw, 12px); fill: rgba(255,255,255,0.78); pointer-events: none; font-weight: 400; }
+.cb-bubble[data-clickable="true"] { cursor: pointer; }
+.cb-bubble[data-clickable="true"]:hover .cb-bubble-fill,
+.cb-bubble[data-clickable="true"]:focus-visible .cb-bubble-fill { stroke: rgba(255,255,255,0.9); stroke-width: 3; }
+
+.cb-root-layer { transition: filter 250ms ease-out, opacity 250ms ease-out; }
+.cb-wrap[data-modal-open]:not([data-modal-open=""]) .cb-root-layer {
+  filter: grayscale(1) blur(6px) brightness(1.1);
+  opacity: 0.18;
+  pointer-events: none;
+}
+.cb-modal-layer { opacity: 0; visibility: hidden; transition: opacity 250ms ease-out, visibility 0s linear 250ms; }
+.cb-wrap[data-modal-open]:not([data-modal-open=""]) .cb-modal-layer {
+  opacity: 1; visibility: visible; transition: opacity 250ms ease-out, visibility 0s linear 0s;
+}
+
+.cb-modal-parent { stroke: rgba(255,255,255,0.4); stroke-width: 1.5; }
+.cb-modal-child-fill { stroke: rgba(255,255,255,0.5); stroke-width: 2; }
+.cb-modal-child-label { font-size: 13px; fill: #fff; font-weight: 500; pointer-events: none; }
+.cb-modal-child-pct { font-size: 11px; fill: rgba(255,255,255,0.78); pointer-events: none; }
+
+.cb-modal-panel-wrap { overflow: visible; }
+.cb-modal-panel { box-sizing: border-box; background: rgba(255,255,255,0.96); border: 1px solid rgba(0,0,0,0.1); block-size: 100%; padding: 20px 22px 22px 22px; font-family: 'Outfit', system-ui, sans-serif; color: var(--text); position: relative; overflow-y: auto; }
+.cb-modal-close { position: absolute; inset-block-start: 8px; inset-inline-end: 8px; inline-size: 28px; block-size: 28px; padding: 0; border: 0; background: rgba(0,0,0,0.05); color: var(--text); font-size: 18px; line-height: 1; cursor: pointer; transition: background 150ms ease-out; }
+.cb-modal-close:hover, .cb-modal-close:focus-visible { background: rgba(0,0,0,0.12); }
+.cb-modal-swatch { inline-size: 24px; block-size: 4px; margin-block-end: 10px; background: currentColor; }
+.cb-modal-title { font-size: 22px; font-weight: 600; margin: 0 36px 4px 0; letter-spacing: -0.01em; line-height: 1.15; }
+.cb-modal-pct { font-size: 12px; color: var(--text-tertiary); margin: 0 0 14px 0; font-weight: 500; letter-spacing: 0.03em; text-transform: uppercase; }
+.cb-modal-desc { font-size: 14px; line-height: 1.45; color: var(--text); margin: 0 0 14px 0; }
+.cb-modal-bullets { list-style: none; padding: 0; margin: 0 0 14px 0; font-size: 12.5px; line-height: 1.45; color: var(--text-secondary); }
+.cb-modal-bullets li { padding-inline-start: 14px; position: relative; margin-block-end: 6px; }
+.cb-modal-bullets li::before { content: '·'; position: absolute; inset-inline-start: 4px; inset-block-start: -2px; font-weight: 700; color: currentColor; }
+.cb-modal-screenshot { margin: 0; }
+.cb-modal-screenshot-img { inline-size: 100%; block-size: auto; display: block; border: 1px solid rgba(0,0,0,0.1); }
+.cb-modal-screenshot-caption { font-size: 11px; color: var(--text-tertiary); margin-block-start: 6px; font-style: italic; line-height: 1.35; }
+.cb-modal-redacted { font-family: 'Sono', monospace; color: var(--text-tertiary); opacity: 0.55; letter-spacing: -0.05em; margin: 0 0 4px 0; font-size: 12px; }
+.cb-modal-redacted-note { font-size: 11px; color: var(--text-tertiary); margin-block-start: 12px; font-style: italic; }
+
+.cb-sources { font-size: 11px; color: var(--text-tertiary); text-align: center; padding-block: 8px; }
+.cb-sources-label { font-weight: 600; margin-inline-end: 4px; }
+</style>
+</head>
+<body>
+<div class="page-shell">
+  <nav class="page-nav">
+    <a href="/">Post-Literate</a>
+    <span class="page-nav-sep">›</span>
+    <span>What do AI models train on?</span>
+    <span class="page-nav-staging">Phase 4 — interactive drill-in</span>
+  </nav>
+  <div class="figure-wrap">
+    <div class="cb-wrap" data-component="corpus-bubbles" data-modal-open="">
+      <header class="cb-header">
+        <h1 class="cb-title">What does an AI model actually train on?</h1>
+        <p class="cb-caveat">Illustrative composite — no single model uses exactly this mix. Click a bubble to drill in. ESC or × to close.</p>
+      </header>
+      <div class="cb-stage">
+        <svg class="cb-svg" viewBox="0 0 1000 700" preserveAspectRatio="xMidYMid meet" role="img">
+          <g class="cb-root-layer">
+            <circle cx="500" cy="350" r="310.07069986410545" class="cb-container" />
+            <g class="cb-root-bubbles"><g class="cb-bubble" data-id="web" data-clickable="true" role="button" tabindex="0" aria-label="The Web"><circle cx="381.3794507791521" cy="358.8595646805729" r="160.14415506111203" fill="#809B57" class="cb-bubble-fill" /><text x="381.3794507791521" y="354.8595646805729" text-anchor="middle" dominant-baseline="middle" class="cb-bubble-label">The Web</text><text x="381.3794507791521" y="374.8595646805729" text-anchor="middle" dominant-baseline="middle" class="cb-bubble-pct">38.0%</text></g><g class="cb-bubble" data-id="logic" data-clickable="true" role="button" tabindex="0" aria-label="Code & Math"><circle cx="653.7409700031344" cy="358.0370823047338" r="110.21876657527815" fill="#7B5567" class="cb-bubble-fill" /><text x="653.7409700031344" y="354.0370823047338" text-anchor="middle" dominant-baseline="middle" class="cb-bubble-label">Code & Math</text><text x="653.7409700031344" y="374.0370823047338" text-anchor="middle" dominant-baseline="middle" class="cb-bubble-pct">18.0%</text></g><g class="cb-bubble" data-id="academic" data-clickable="true" role="button" tabindex="0" aria-label="Academic Papers"><circle cx="558.2753170636902" cy="527.3483648040861" r="82.15221815283456" fill="#5BA7A3" class="cb-bubble-fill" /><text x="558.2753170636902" y="523.3483648040861" text-anchor="middle" dominant-baseline="middle" class="cb-bubble-label">Academic Papers</text><text x="558.2753170636902" y="543.3483648040861" text-anchor="middle" dominant-baseline="middle" class="cb-bubble-pct">10.0%</text></g><g class="cb-bubble" data-id="books" data-clickable="true" role="button" tabindex="0" aria-label="Books"><circle cx="555.697967234891" cy="200.33095495432275" r="73.47917771685212" fill="#E2A82B" class="cb-bubble-fill" /><text x="555.697967234891" y="196.33095495432275" text-anchor="middle" dominant-baseline="middle" class="cb-bubble-label">Books</text><text x="555.697967234891" y="216.33095495432275" text-anchor="middle" dominant-baseline="middle" class="cb-bubble-pct">8.0%</text></g><g class="cb-bubble" data-id="forums" data-clickable="true" role="button" tabindex="0" aria-label="Forums & Q&A"><circle cx="425.7822707636322" cy="127.4580692760074" r="73.47917771685212" fill="#8E2A3A" class="cb-bubble-fill" /><text x="425.7822707636322" y="123.4580692760074" text-anchor="middle" dominant-baseline="middle" class="cb-bubble-label">Forums & Q&A</text><text x="425.7822707636322" y="143.4580692760074" text-anchor="middle" dominant-baseline="middle" class="cb-bubble-pct">8.0%</text></g><g class="cb-bubble" data-id="wiki" data-clickable="true" role="button" tabindex="0" aria-label="Wikipedia"><circle cx="420.64803835110183" cy="581.1972284292281" r="63.63483455198537" fill="#C5B746" class="cb-bubble-fill" /><text x="420.64803835110183" y="577.1972284292281" text-anchor="middle" dominant-baseline="middle" class="cb-bubble-label">Wikipedia</text><text x="420.64803835110183" y="597.1972284292281" text-anchor="middle" dominant-baseline="middle" class="cb-bubble-pct">6.0%</text></g><g class="cb-bubble" data-id="legal" data-clickable="true" role="button" tabindex="0" aria-label="Legal & Government"><circle cx="683.0771297250567" cy="196.5031015862227" r="51.957624839597585" fill="#6F8088" class="cb-bubble-fill" /><text x="683.0771297250567" y="192.5031015862227" text-anchor="middle" dominant-baseline="middle" class="cb-bubble-label">Legal & Government</text><text x="683.0771297250567" y="212.5031015862227" text-anchor="middle" dominant-baseline="middle" class="cb-bubble-pct">4.0%</text></g><g class="cb-bubble" data-id="multilingual" data-clickable="true" role="button" tabindex="0" aria-label="Multilingual"><circle cx="694.0060928060592" cy="517.1991122961958" r="51.957624839597585" fill="#E29487" class="cb-bubble-fill" /><text x="694.0060928060592" y="513.1991122961958" text-anchor="middle" dominant-baseline="middle" class="cb-bubble-label">Multilingual</text><text x="694.0060928060592" y="533.1991122961958" text-anchor="middle" dominant-baseline="middle" class="cb-bubble-pct">4.0%</text></g><g class="cb-bubble" data-id="transcripts" data-clickable="true" role="button" tabindex="0" aria-label="Transcripts"><circle cx="321.60441401331013" cy="169.17137831817502" r="36.73958885842606" fill="#B57480" class="cb-bubble-fill" /><text x="321.60441401331013" y="169.17137831817502" text-anchor="middle" dominant-baseline="middle" class="cb-bubble-label">Transcripts</text></g><g class="cb-bubble" data-id="synthetic" data-clickable="true" role="button" tabindex="0" aria-label="Synthetic Data"><circle cx="337.896437662705" cy="541.8879948560934" r="25.978812419798793" fill="#A8B570" class="cb-bubble-fill" /></g><g class="cb-bubble" data-id="unknown" data-clickable="true" role="button" tabindex="0" aria-label="Unknown"><circle cx="524.4449029027044" cy="103.80660502000563" r="25.978812419798793" fill="#383838" class="cb-bubble-fill" /></g></g>
+          </g>
+          <g class="cb-modal-layer" aria-hidden="true">
+            <circle class="cb-modal-parent" cx="0" cy="0" r="0" fill="#888" />
+            <g class="cb-modal-children"></g>
+            <foreignObject class="cb-modal-panel-wrap" x="730" y="70" width="260" height="560">
+              <div xmlns="http://www.w3.org/1999/xhtml" class="cb-modal-panel">
+                <button class="cb-modal-close" aria-label="Close drill-in">×</button>
+                <div class="cb-modal-swatch"></div>
+                <h2 class="cb-modal-title"></h2>
+                <p class="cb-modal-pct"></p>
+                <p class="cb-modal-desc"></p>
+                <ul class="cb-modal-bullets"></ul>
+                <figure class="cb-modal-screenshot" hidden>
+                  <img class="cb-modal-screenshot-img" src="" alt="" />
+                  <figcaption class="cb-modal-screenshot-caption"></figcaption>
+                </figure>
+                <div class="cb-modal-unknown" hidden>
+                  <p class="cb-modal-redacted">████████████████████████</p>
+                  <p class="cb-modal-redacted">██████ ████████</p>
+                  <p class="cb-modal-redacted-note">Transparency score: 40/100 (FMTI 2025 average)</p>
+                </div>
+              </div>
+            </foreignObject>
+          </g>
+        </svg>
+      </div>
+      <footer class="cb-sources">
+        <span class="cb-sources-label">Sources:</span>
+        <span>The Pile (EleutherAI) [SECONDARY-ONLY]</span> ·
+        <span>Dolma v1.7 (AI2) [SECONDARY-ONLY]</span> ·
+        <span>Llama 3.1 Tech Report (Meta) [PRIMARY-PARTIAL]</span> ·
+        <span>FMTI 2025 (Stanford HAI) [SECONDARY-ONLY]</span>
+      </footer>
+    </div>
+  </div>
+</div>
+
+<script>
+const drillIns = {"web":{"canvas":{"viewBox":[0,0,1000,700]},"parent":{"id":"web","label":"The Web","color":"#809B57","value":38,"description":"Web crawl data is the dominant ingredient in most large language models — CommonCrawl alone processes roughly 3 billion URLs per month. This category covers everything publicly indexable: news sites, personal blogs, corporate pages, how-to guides, recipe sites, opinion columns, and the vast middle of the internet that is neither expertly written nor entirely disposable.","bullets":["CommonCrawl: petabyte-scale monthly web snapshots going back to 2008","Quality filters (C4, Gopher, OSCAR) discard ~90% of raw crawl data as spam, boilerplate, or near-duplicate","Web text introduces enormous vocabulary diversity but also misinformation, SEO gibberish, and temporal bias"],"screenshot":null,"screenshotCaption":"","isUnknown":false,"x":381.3794507791521,"y":358.8595646805729,"r":160.14415506111203,"openX":500,"openY":350,"openR":270,"transform":{"scale":1.6859809831771024,"tx":-142.99850138817817,"ty":-255.0304016826592}},"cells":[{"id":"web-crawl","label":"Web Crawls","value":20,"description":"Raw CommonCrawl and derived filtered datasets (C4, Gopher, RefinedWeb) — the backbone of almost every large language model. Hundreds of billions of documents spanning the entire accessible internet.","bullets":["C4 (Colossal Cleaned Crawl Corpus): 156GB of filtered English web text","RefinedWeb (Falcon): 5T tokens from CommonCrawl after aggressive deduplication","Dolma's dolmino-mix-1124 allocates 81% of its tokens to web sources"],"screenshot":null,"screenshotCaption":"","color":"#809B57","isUnknown":false,"hasChildren":false,"x":396.46191927203125,"y":304.5609726198448,"r":155.9356805285782},{"id":"web-news","label":"News Articles","value":9,"description":"RealNews, CC-News, and other curated news collections give models structured, factual prose: datelines, bylines, the inverted pyramid, and consistent temporal grounding. News writing is dense with proper nouns, organizations, places, and dates.","bullets":["RealNews (Grover): ~32GB filtered from CommonCrawl, prioritizing credible news outlets","AP, Reuters, BBC: consistently crawled sources with high factual density","Creates temporal bias — events before the training cutoff are systematically over-represented"],"screenshot":"/corpus-treemap/screenshots/web-news.png","screenshotCaption":"AP News — one of the most-indexed wire services in training corpora","color":"#809B57","isUnknown":false,"hasChildren":false,"x":657.9966898186362,"y":304.5609726198448,"r":104.60483453387734},{"id":"web-blog","label":"Blogs & Personal Sites","value":9,"description":"Opinionated, personal, and niche writing — the long tail of the web. Technical blogs, personal essays, hobbyist sites, tutorial posts. Less formal than news, more focused than social media, and uniquely rich in first-person voice.","bullets":["Technical writers like Simon Willison explain how systems work in meticulous, searchable prose","Substack and Ghost have added millions of newsletter-style essays since 2020","Captures informal registers, domain slang, and the 'I figured this out' voice"],"screenshot":"/corpus-treemap/screenshots/web-blog.png","screenshotCaption":"Simon Willison's weblog — canonical high-quality technical writing","color":"#809B57","isUnknown":false,"hasChildren":false,"x":573.5228552216629,"y":497.0443775292182,"r":104.60483453387734}]},"logic":{"canvas":{"viewBox":[0,0,1000,700]},"parent":{"id":"logic","label":"Code & Math","color":"#7B5567","value":18,"description":"Structured, formal, verifiable knowledge. Code has unambiguous semantics — it either runs or it doesn't. Mathematics has proofs. This is where models learn to reason precisely, to work through constraint satisfaction, and to follow chains of implication without drifting. The overrepresentation of code relative to its internet share is intentional: it punches above its weight in teaching formal thinking.","bullets":["GitHub alone hosts 150M+ public repositories across hundreds of programming languages","Mathematical LaTeX source preserves symbolic structure that PDF rendering loses","Code is among the most deduplicated data — boilerplate and generated code is aggressively filtered"],"screenshot":null,"screenshotCaption":"","isUnknown":false,"x":653.7409700031344,"y":358.0370823047338,"r":110.21876657527815,"openX":500,"openY":350,"openR":270,"transform":{"scale":2.4496735754667793,"tx":-1101.4519794166988,"ty":-527.0739795591309}},"cells":[{"id":"logic-github","label":"Code (GitHub)","value":10,"description":"Public repositories on GitHub, GitLab, and similar platforms — the world's largest archive of executable human reasoning. Source code in Python, JavaScript, C, Rust, SQL, Bash, and hundreds of other languages, plus the surrounding metadata: commit messages, README files, docstrings, and issue threads.","bullets":["The Stack (BigCode): 3TB+ of permissively-licensed code filtered for quality and deduplication","Linux kernel: 30+ years, 30M+ lines, contributions from 25,000+ developers — one of the most-analyzed single artifacts","Commit messages and docstrings teach the relationship between code and its intent in natural language"],"screenshot":"/corpus-treemap/screenshots/logic-github.png","screenshotCaption":"Linux kernel on GitHub — 30+ years of collaborative programming","color":"#7B5567","isUnknown":false,"hasChildren":false,"x":395.47570113410086,"y":350,"r":164.48122599597934},{"id":"logic-stackoverflow","label":"Stack Overflow","value":4,"description":"Structured Q&A where programmers ask specific questions and receive voted, curated answers. The format is almost a mini-proof: problem statement, failed attempt, correct solution, explanation of why it works. Error messages paired with fixes are among the most transferable training signals.","bullets":["58M+ questions spanning 170+ programming tags, going back to 2008","Voting surfaces the best explanations, creating a quality signal unavailable in raw crawl data","Error message → solution pairs teach debugging and error interpretation"],"screenshot":"/corpus-treemap/screenshots/logic-stackoverflow.png","screenshotCaption":"Stack Overflow — the internet's most-voted programmer Q&A archive","color":"#7B5567","isUnknown":false,"hasChildren":false,"x":664.9784635650401,"y":350,"r":104.02706129683837},{"id":"logic-arxiv-math","label":"arXiv Math/CS","value":2,"description":"Formal mathematical proofs and theoretical computer science, often in LaTeX source. This gives models the symbolic notation of mathematics — ∀, ∃, ⊢, → — along with proof techniques: induction, contradiction, construction, and the careful use of 'assume' and 'it follows that.'","bullets":["arXiv hosts 2M+ papers in math, CS, physics, and quantitative biology","LaTeX source (not just PDFs) preserves equation structure and symbolic relationships","Proof techniques — induction, contradiction, construction — appear as recurring textual patterns"],"screenshot":"/corpus-treemap/screenshots/logic-arxiv-math.png","screenshotCaption":"arXiv math paper — formal proofs with LaTeX source","color":"#7B5567","isUnknown":false,"hasChildren":false,"x":577.0660985652673,"y":505.4417987529009,"r":73.55824046990307},{"id":"logic-mathoverflow","label":"MathOverflow","value":2,"description":"Expert-level mathematical discussion where PhD researchers ask and answer research-level questions. Among the densest concentrations of formal mathematical reasoning on the open internet — linking symbolic notation to natural-language explanation of why it works.","bullets":["95,000+ questions, predominantly research-level pure and applied mathematics","Experts explaining why proofs fail, the intuition behind theorems, edge cases","Unique for connecting formal notation with conversational mathematical explanation"],"screenshot":"/corpus-treemap/screenshots/logic-mathoverflow.png","screenshotCaption":"MathOverflow — research-level mathematical Q&A","color":"#7B5567","isUnknown":false,"hasChildren":false,"x":577.0660985652673,"y":194.55820124709905,"r":73.55824046990307}]},"academic":{"canvas":{"viewBox":[0,0,1000,700]},"parent":{"id":"academic","label":"Academic Papers","color":"#5BA7A3","value":10,"description":"Scholarly writing from peer-reviewed journals and preprint servers. Academic papers have a distinctive structure — abstract, methods, results, discussion, references — that teaches precise argumentation and hedged claims ('we hypothesize,' 'the data suggest'). The corpus includes everything from computer science to biomedicine to economics.","bullets":["PubMed Central: 7M+ open-access biomedical full texts","arXiv: 2M+ preprints across STEM disciplines","Citation networks teach models the relationship between claims and evidence"],"screenshot":null,"screenshotCaption":"","isUnknown":false,"x":558.2753170636902,"y":527.3483648040861,"r":82.15221815283456,"openX":500,"openY":350,"openR":270,"transform":{"scale":3.2865819824572076,"tx":-1334.8175983121089,"ty":-1383.17363424338}},"cells":[{"id":"academic-arxiv-recursive","label":"AI/CS Papers","value":5,"description":"Computer science and AI preprints — including, recursively, papers about language models trained on data that includes papers about language models. The GPT-4 technical report is in the training data for models trained after it. This creates peculiar epistemic loops.","bullets":["GPT-4 Technical Report (2023): trained-on and training-source simultaneously","Attention Is All You Need (2017): cited 100,000+ times, appears in countless forms in training data","Models trained on descriptions of their own architecture — a strange mirror"],"screenshot":"/corpus-treemap/screenshots/academic-arxiv-recursive.png","screenshotCaption":"GPT-4 Technical Report on arXiv — a paper that became part of the training data for later models","color":"#5BA7A3","isUnknown":false,"hasChildren":false,"x":382.97040651923334,"y":332.24514937761387,"r":150.63691769111193},{"id":"academic-pubmed","label":"Biomedical / PubMed","value":3,"description":"Open-access biomedical literature from PubMed Central — clinical trials, systematic reviews, case studies, molecular biology. Teaches models the grammar of scientific evidence: p-values, confidence intervals, study design, and careful causal hedging.","bullets":["PubMed Central Open Access: 4M+ full-text biomedical papers freely available","Rich in structured data: dosages, diagnoses, genetic markers, outcome measures","Medical language includes Latin, Greek roots, and highly specialized abbreviations"],"screenshot":"/corpus-treemap/screenshots/academic-pubmed.png","screenshotCaption":"PubMed Central — open-access biomedical literature","color":"#5BA7A3","isUnknown":false,"hasChildren":false,"x":651.2845133635486,"y":332.24514937761387,"r":116.68285470833877},{"id":"academic-other","label":"Other Disciplines","value":2,"description":"Social sciences, humanities, economics, physics, and everything else that makes it into open-access repositories. Diverse disciplinary vocabularies and writing conventions.","bullets":["JSTOR Open Access: thousands of humanities and social science papers","SSRN: economics and legal studies preprints","Each discipline brings its own conventions for evidence and argument"],"screenshot":null,"screenshotCaption":"","color":"#5BA7A3","isUnknown":false,"hasChildren":false,"x":546.2235841567374,"y":517.4725693806657,"r":95.27115192224524}]},"books":{"canvas":{"viewBox":[0,0,1000,700]},"parent":{"id":"books","label":"Books","color":"#E2A82B","value":8,"description":"Long-form human thought — the most densely argued, most carefully edited form of written knowledge. Books teach models sustained reasoning across hundreds of pages, narrative coherence, chapter structure, and the thousand-year accumulation of ideas that constitute Western (and increasingly global) intellectual heritage. The legal status of this category is contested.","bullets":["Project Gutenberg: 70,000+ public-domain works — everything before 1928","Books3 / LibGen derivatives: vast collections of copyrighted books scraped without authorization","Long-context coherence: books are the primary training signal for multi-paragraph reasoning"],"screenshot":null,"screenshotCaption":"","isUnknown":false,"x":555.697967234891,"y":200.33095495432275,"r":73.47917771685212,"openX":500,"openY":350,"openR":270,"transform":{"scale":3.6745103632001683,"tx":-1541.9179394138748,"ty":-386.1181700494451}},"cells":[{"id":"books-gutenberg","label":"Public Domain","value":3,"description":"Project Gutenberg, Standard Ebooks, and other collections of works in the public domain — everything published before copyright applied or that has since expired. Austen, Dickens, Darwin, Twain, Du Bois, Wollstonecraft.","bullets":["Project Gutenberg: 70,000+ works, all pre-1928 in the US or author-donated","Standard Ebooks: typographically careful, machine-readable reformatting of Gutenberg texts","Historical prose — Victorian sentences, 18th-century rhetoric — shapes the model's sense of 'formal writing'"],"screenshot":"/corpus-treemap/screenshots/books-gutenberg.png","screenshotCaption":"Project Gutenberg — 70,000+ public domain books, freely available","color":"#E2A82B","isUnknown":false,"hasChildren":false,"x":348.19610670077475,"y":350,"r":117.20163156265319},{"id":"books-books3","label":"Copyrighted Books","value":5,"description":"Books3, LibGen, and similar datasets derived from shadow libraries and pirated scans — millions of copyrighted books scraped and included without author consent. This is the most legally and ethically contested part of the training corpus, and the subject of ongoing litigation.","bullets":["Books3 (The Pile): ~196,640 books scraped from Bibliotik, a private tracker","LibGen: ~4M books, used by several major training runs under contested 'fair use' arguments","Multiple lawsuits filed by authors (Authors Guild, individual writers) against AI companies"],"screenshot":"/corpus-treemap/screenshots/books-books3.png","screenshotCaption":"Internet Archive book digitization — a public-domain adjacent source; Books3 used more opaque piracy channels","color":"#E2A82B","isUnknown":false,"hasChildren":false,"x":617.698869131714,"y":350,"r":151.30665573016447}]},"forums":{"canvas":{"viewBox":[0,0,1000,700]},"parent":{"id":"forums","label":"Forums & Q&A","color":"#8E2A3A","value":8,"description":"Informal discussion and community knowledge — the internet arguing, explaining, commiserating, and helping. Reddit, StackExchange, Hacker News. The tone ranges from thoughtful explanation to flame war, but at its best this category captures how humans actually reason through problems collaboratively and in real time.","bullets":["Reddit: 800M+ posts and comments across 130,000+ active subreddits","StackExchange: 200+ Q&A sites beyond Stack Overflow, covering every domain","The 'explain like I'm five' register — lay explanations of complex topics — comes from here"],"screenshot":null,"screenshotCaption":"","isUnknown":false,"x":425.7822707636322,"y":127.4580692760074,"r":73.47917771685212,"openX":500,"openY":350,"openR":270,"transform":{"scale":3.6745103632001683,"tx":-1064.5413663878664,"ty":-118.34599642817415}},"cells":[{"id":"forums-reddit-good","label":"Reddit (curated)","value":5,"description":"Filtered Reddit, keeping high-karma, high-engagement posts from substantive subreddits. The raw Reddit corpus is huge and low-quality; curated versions (Pushshift + quality filter) keep the 'explain it to me' discussions, in-depth analyses, and expert AMAs.","bullets":["r/explainlikeimfive: lay explanations of complex topics — teaches the skill of analogy","r/AskScience, r/AskHistorians: expert-verified answers, a rare quality signal in forum data","Pushshift Reddit dataset: ~600GB of raw posts; most pipelines filter to <10% of that"],"screenshot":"/corpus-treemap/screenshots/forums-reddit-good.png","screenshotCaption":"r/explainlikeimfive — the 'explain it simply' register that models learned to mimic","color":"#8E2A3A","isUnknown":false,"hasChildren":false,"x":382.301130868286,"y":350,"r":151.30665573016447},{"id":"forums-stackoverflow","label":"StackExchange / Forums","value":3,"description":"The full StackExchange network beyond Stack Overflow: Math, Physics, English Language & Usage, Cooking, Travel, Law, and 200+ other communities. Each site has its own conventions for what a good answer looks like.","bullets":["StackExchange data dump: all 200+ sites, fully public under CC-BY-SA","Math.SE, Physics.SE: semi-formal reasoning in natural language + LaTeX","English Language & Usage, Writing: teaches models about language itself"],"screenshot":"/corpus-treemap/screenshots/forums-stackoverflow.png","screenshotCaption":"Stack Overflow — voted answers create a rare quality signal in forum data","color":"#8E2A3A","isUnknown":false,"hasChildren":false,"x":651.8038932992253,"y":350,"r":117.20163156265319}]},"wiki":{"canvas":{"viewBox":[0,0,1000,700]},"parent":{"id":"wiki","label":"Wikipedia","color":"#C5B746","value":6,"description":"The encyclopedia that trained almost every language model that exists. Wikipedia is written in a distinctive neutral, encyclopedic register — 'X was born in Y and is known for Z' — that has influenced the default voice of AI more than any other single source. It is also available in 300+ languages.","bullets":["English Wikipedia: 6.7M articles, 4.4B words — heavily upweighted in most training runs","Available in 300+ languages, making it the primary signal for multilingual models","The 'Wikipedia voice' — neutral, definitional, present-tense — is now the default AI register"],"screenshot":null,"screenshotCaption":"","isUnknown":false,"x":420.64803835110183,"y":581.1972284292281,"r":63.63483455198537,"openX":500,"openY":350,"openR":270,"transform":{"scale":4.242959094667374,"tx":-1284.7924199757979,"ty":-2115.9960661592645}},"cells":[{"id":"wiki-english","label":"English Wikipedia","value":4,"description":"6.7 million articles covering everything from subatomic particles to obscure 19th-century politicians to every episode of The Simpsons. Heavily upweighted in most training runs because of its density, consistency, and citation discipline.","bullets":["The Pile allocates ~17% to Wikipedia — dramatically more than its internet share","Infoboxes, citation templates, and category trees provide structured metadata","Talk pages and edit histories reveal the social construction of 'neutral' knowledge"],"screenshot":"/corpus-treemap/screenshots/wiki-english.png","screenshotCaption":"English Wikipedia — the single most upweighted source in most training pipelines","color":"#C5B746","isUnknown":false,"hasChildren":false,"x":388.28298822468275,"y":350,"r":157.2885130865612},{"id":"wiki-tamil","label":"Other Languages","value":2,"description":"Wikipedia in 300+ other languages — from Mandarin (1.4M articles) to Tamil (160,000+ articles) to Scots (60,000). These provide the multilingual foundation that allows models to operate in non-English contexts, though data quality and volume vary enormously by language.","bullets":["Tamil Wikipedia: 160,000+ articles; Tamil has 80M+ speakers but far less web presence than its speaker count suggests","Low-resource languages are systematically underrepresented, even in Wikipedia","Multilingual Wikipedia teaches cross-lingual alignment — the same fact in different languages"],"screenshot":"/corpus-treemap/screenshots/wiki-tamil.png","screenshotCaption":"Tamil Wikipedia — representing one of 300+ language editions included in training","color":"#C5B746","isUnknown":false,"hasChildren":false,"x":657.785750655622,"y":350,"r":111.21977420625646}]},"legal":{"canvas":{"viewBox":[0,0,1000,700]},"parent":{"id":"legal","label":"Legal & Government","color":"#6F8088","value":4,"description":"Court opinions, statutes, regulations, patents, and government documents. Legal writing has a distinctive structure: citations, precedent, numbered provisions, 'whereas' clauses, and very careful attention to the exact meaning of words. Government documents include everything from tax forms to Congressional records to administrative agency rulemakings.","bullets":["FreeLaw / CourtListener: 7M+ federal and state court opinions","US Patent and Trademark Office: 11M+ patents going back to 1836","Federal Register: 85+ years of regulatory rulemaking in formal prose"],"screenshot":null,"screenshotCaption":"","isUnknown":false,"x":683.0771297250567,"y":196.5031015862227,"r":51.957624839597585,"openX":500,"openY":350,"openR":270,"transform":{"scale":5.196542390718166,"tx":-3049.639260746349,"ty":-671.1366973004044}},"cells":[{"id":"legal-freelaw","label":"Court Opinions","value":2,"description":"FreeLaw (CourtListener) and the Public Access to Court Electronic Records (PACER) system — millions of federal and state court opinions. Legal reasoning is extraordinarily precise about how language is used: a comma in a statute has been the subject of multimillion-dollar litigation.","bullets":["CourtListener: 7M+ court documents, full text, from all federal circuits","Legal citations teach models formal reference structure: 347 U.S. 483 (1954)","Judicial writing teaches models argument from precedent and distinguishing cases"],"screenshot":"/corpus-treemap/screenshots/legal-freelaw.png","screenshotCaption":"Justia — one of the public portals for freely-accessible US court opinions","color":"#6F8088","isUnknown":false,"hasChildren":false,"x":365.2486187845304,"y":350,"r":134.25414364640883},{"id":"legal-patent","label":"Patents","value":2,"description":"Patents have a unique genre: independent claims, dependent claims, prior art, and specification sections. They teach models highly structured technical description with specific legal requirements about what must be disclosed and how broadly a claim may be drawn.","bullets":["USPTO: 11M+ issued patents, full text searchable back to 1976","Patent claims require precise, exhaustive enumeration of every meaningful component","Prior art sections describe existing technology in controlled, citable form"],"screenshot":"/corpus-treemap/screenshots/legal-patent.png","screenshotCaption":"Google Patents — a public interface for USPTO and international patent full text","color":"#6F8088","isUnknown":false,"hasChildren":false,"x":634.7513812154696,"y":350,"r":134.25414364640883}]},"multilingual":{"canvas":{"viewBox":[0,0,1000,700]},"parent":{"id":"multilingual","label":"Multilingual","color":"#E29487","value":4,"description":"Parallel corpora and multilingual text collections — documents that exist in multiple languages simultaneously. These are essential for training multilingual models because they provide alignment signal: the same meaning expressed in different linguistic forms. European Union documents are among the largest high-quality parallel corpora in the world.","bullets":["Europarl: EU Parliament proceedings in 24 official languages, aligned sentence-by-sentence","CC-100: CommonCrawl filtered for 100 languages, unevenly quality-controlled","OPUS: aggregation of 90+ parallel translation corpora"],"screenshot":null,"screenshotCaption":"","isUnknown":false,"x":694.0060928060592,"y":517.1991122961958,"r":51.957624839597585,"openX":500,"openY":350,"openR":270,"transform":{"scale":5.196542390718166,"tx":-3106.4320806833725,"ty":-2337.647111488987}},"cells":[{"id":"multilingual-europarl","label":"Europarl / EU Docs","value":2,"description":"European Parliament proceedings translated into all 24 EU official languages, sentence-aligned. One of the highest-quality parallel corpora in existence: professional human translators, consistent subject matter, decades of coverage. Essential for multilingual model training.","bullets":["60M+ sentences in 24 languages, professionally translated by EU linguists","Sentence-aligned: the same speech in French, German, Polish, Bulgarian — simultaneously","Subject matter: law, regulation, debate — formal register across all languages"],"screenshot":"/corpus-treemap/screenshots/multilingual-europarl.png","screenshotCaption":"European Parliament — proceedings published in 24 official languages, professionally translated","color":"#E29487","isUnknown":false,"hasChildren":false,"x":365.2486187845304,"y":350,"r":134.25414364640883},{"id":"multilingual-cc100","label":"CC-100 / Other","value":2,"description":"CommonCrawl filtered for 100 languages using language identification — CC-100 (Facebook AI Research) and similar multilingual web corpora. Coverage is uneven: high-resource languages like French and Spanish have billions of tokens; low-resource languages may have only millions.","bullets":["CC-100: 2.5TB of filtered text across 100 languages, widely used for multilingual pretraining","Language distribution is highly unequal — English is 55%+ of indexed web content","Quality varies dramatically by language; some languages have mostly machine-translated content"],"screenshot":null,"screenshotCaption":"","color":"#E29487","isUnknown":false,"hasChildren":false,"x":634.7513812154696,"y":350,"r":134.25414364640883}]},"transcripts":{"canvas":{"viewBox":[0,0,1000,700]},"parent":{"id":"transcripts","label":"Transcripts","color":"#B57480","value":2,"description":"Written records of spoken language — the closest training data gets to the oral register that humans default to in conversation. YouTube auto-captions, professional subtitles, podcast transcripts. This data teaches models how people actually talk: contractions, incomplete sentences, disfluencies, colloquialisms.","bullets":["YouTube Data API: auto-generated captions for hundreds of millions of videos","OpenSubtitles: 3.7M subtitle files across 60+ languages, sourced from film and TV","Spoken language is structurally different from written — simpler syntax, more deixis ('this,' 'here,' 'now')"],"screenshot":null,"screenshotCaption":"","isUnknown":false,"x":321.60441401331013,"y":169.17137831817502,"r":36.73958885842606,"openX":500,"openY":350,"openR":270,"transform":{"scale":7.349020726400337,"tx":-1863.4775042856509,"ty":-893.2439655739806}},"cells":[{"id":"transcripts-youtube","label":"YouTube Captions","value":1.2,"description":"Auto-generated and manually-corrected captions from YouTube videos — lectures, tutorials, commentary, news, cooking shows, interviews. The auto-caption system has reached the point where the transcription errors themselves appear in training data.","bullets":["YouTube hosts 800M+ videos; auto-captions are available for most English content","3Blue1Brown, Khan Academy, MIT OpenCourseWare: lecture content with visual explanations transcribed","YouTube transcripts collapse time — a 20-minute video becomes a 2,000-word document"],"screenshot":"/corpus-treemap/screenshots/transcripts-youtube.png","screenshotCaption":"YouTube — auto-captions from hundreds of millions of videos feed into transcript datasets","color":"#B57480","isUnknown":false,"hasChildren":false,"x":378.8110414405389,"y":350,"r":147.81656630241739},{"id":"transcripts-opensubs","label":"Subtitles","value":0.8,"description":"OpenSubtitles and similar movie/TV subtitle databases — the dialogue of cinema. This is conversational language at its most compressed and intentional: characters speaking in ways that carry story, reveal character, and advance plot.","bullets":["OpenSubtitles: 3.7M files across 60+ languages, covering decades of film and television","Screenplay dialogue teaches the relationship between context and appropriate response","Available in dozens of languages with some alignment across language versions of the same film"],"screenshot":"/corpus-treemap/screenshots/transcripts-opensubs.png","screenshotCaption":"OpenSubtitles — 3.7M subtitle files from film and television worldwide","color":"#B57480","isUnknown":false,"hasChildren":false,"x":648.3138038714782,"y":350,"r":120.69172099040033}]},"synthetic":{"canvas":{"viewBox":[0,0,1000,700]},"parent":{"id":"synthetic","label":"Synthetic Data","color":"#A8B570","value":1,"description":"Text generated by AI models to train other (or future versions of the same) AI models. Synthetic data is used primarily for pre-training augmentation in areas where human-generated data is scarce — especially formal mathematics and structured reasoning. Its use in pretraining is recent (2023+) and growing, though it constitutes a small share of current corpora.","bullets":["rStar-Math: 747K math problems with step-by-step reasoning, generated by LLMs for LLM training","Phi-1, Phi-2, Phi-3 (Microsoft): deliberately trained on AI-generated 'textbook quality' text","Risk of 'model collapse': models trained on synthetic data derived from themselves may degrade over generations"],"screenshot":null,"screenshotCaption":"","isUnknown":false,"x":337.896437662705,"y":541.8879948560934,"r":25.978812419798793,"openX":500,"openY":350,"openR":270,"transform":{"scale":10.393084781436333,"tx":-3011.78632397381,"ty":-5281.887872581914}},"cells":[{"id":"synthetic-rstar","label":"Synthetic Reasoning","value":1,"description":"AI-generated reasoning traces and solutions for mathematics, logic, and coding — designed to teach models the step-by-step decomposition of problems. This is the fastest-growing new category in pre-training data.","bullets":["rStar-Math (Microsoft): 747K math competition problems with Monte Carlo tree search-generated solutions","NuminaMath, DART-Math: augmented math datasets for competition-level problem solving","Recursive self-improvement: a model generates training data that trains a better version of itself"],"screenshot":"/corpus-treemap/screenshots/synthetic-rstar.png","screenshotCaption":"rStar-Math on arXiv — AI-generated mathematical reasoning traces used for training","color":"#A8B570","isUnknown":false,"hasChildren":false,"x":500,"y":350,"r":269.00369003690037}]},"unknown":{"canvas":{"viewBox":[0,0,1000,700]},"parent":{"id":"unknown","label":"Unknown","color":"#383838","value":1,"description":"The part they don't tell you about. Most frontier model training runs include proprietary, licensed, or otherwise undisclosed data. The Foundation Model Transparency Index found that in 2025, the average transparency score for training data was 40 out of 100 — meaning most companies don't fully disclose what they trained on.","bullets":["FMTI 2025: average transparency score 40/100 for training data disclosure","OpenAI, Google, Anthropic: none have fully disclosed their training data composition","Licensing deals with news publishers, content aggregators, and data brokers — amounts undisclosed"],"screenshot":null,"screenshotCaption":"","isUnknown":true,"x":524.4449029027044,"y":103.80660502000563,"r":25.978812419798793,"openX":500,"openY":350,"openR":270,"transform":{"scale":10.393084781436333,"tx":-4950.600339059952,"ty":-728.8708468459929}},"cells":[{"id":"unknown-proprietary","label":"Proprietary / Undisclosed","value":1,"description":"We don't know what's in here. That's the point.","bullets":["███████████████████████████████","Licensing deals with undisclosed third parties","Internal proprietary datasets not subject to public disclosure"],"isUnknown":true,"screenshot":null,"screenshotCaption":"","color":"#383838","hasChildren":false,"x":500,"y":350,"r":269.00369003690037}]}};
+
+function initCorpusBubbles() {
+  const wrap = document.querySelector('[data-component="corpus-bubbles"]');
+  if (!wrap) return;
+
+  const SVG_NS = 'http://www.w3.org/2000/svg';
+  const modalLayer = wrap.querySelector('.cb-modal-layer');
+  const parentCircle = wrap.querySelector('.cb-modal-parent');
+  const childrenGroup = wrap.querySelector('.cb-modal-children');
+  const panel = wrap.querySelector('.cb-modal-panel');
+  const panelTitle = wrap.querySelector('.cb-modal-title');
+  const panelPct = wrap.querySelector('.cb-modal-pct');
+  const panelDesc = wrap.querySelector('.cb-modal-desc');
+  const panelBullets = wrap.querySelector('.cb-modal-bullets');
+  const panelScreenshot = wrap.querySelector('.cb-modal-screenshot');
+  const panelScreenshotImg = wrap.querySelector('.cb-modal-screenshot-img');
+  const panelScreenshotCaption = wrap.querySelector('.cb-modal-screenshot-caption');
+  const panelUnknown = wrap.querySelector('.cb-modal-unknown');
+  const closeBtn = wrap.querySelector('.cb-modal-close');
+
+  function childPct(value, total) {
+    return ((value / total) * 100).toFixed(1) + '%';
+  }
+  function labelModeForChild(r) {
+    if (r >= 40) return 'full';
+    if (r >= 22) return 'label';
+    return 'none';
+  }
+
+  function openModal(id) {
+    const layout = drillIns[id];
+    if (!layout) return;
+    const p = layout.parent;
+    parentCircle.setAttribute('cx', p.openX);
+    parentCircle.setAttribute('cy', p.openY);
+    parentCircle.setAttribute('r', p.openR);
+    parentCircle.setAttribute('fill', p.color || '#888');
+
+    childrenGroup.innerHTML = '';
+    const childTotal = layout.cells.reduce((s, c) => s + c.value, 0);
+    for (const c of layout.cells) {
+      const mode = labelModeForChild(c.r);
+      const g = document.createElementNS(SVG_NS, 'g');
+      g.setAttribute('class', 'cb-modal-child');
+      const circle = document.createElementNS(SVG_NS, 'circle');
+      circle.setAttribute('cx', c.x);
+      circle.setAttribute('cy', c.y);
+      circle.setAttribute('r', c.r);
+      circle.setAttribute('fill', c.color || '#888');
+      circle.setAttribute('class', 'cb-modal-child-fill');
+      g.appendChild(circle);
+      if (mode !== 'none') {
+        const t = document.createElementNS(SVG_NS, 'text');
+        t.setAttribute('x', c.x);
+        t.setAttribute('y', mode === 'full' ? c.y - 4 : c.y);
+        t.setAttribute('text-anchor', 'middle');
+        t.setAttribute('dominant-baseline', 'middle');
+        t.setAttribute('class', 'cb-modal-child-label');
+        t.textContent = c.label;
+        g.appendChild(t);
+      }
+      if (mode === 'full') {
+        const t2 = document.createElementNS(SVG_NS, 'text');
+        t2.setAttribute('x', c.x);
+        t2.setAttribute('y', c.y + 16);
+        t2.setAttribute('text-anchor', 'middle');
+        t2.setAttribute('dominant-baseline', 'middle');
+        t2.setAttribute('class', 'cb-modal-child-pct');
+        t2.textContent = childPct(c.value, childTotal);
+        g.appendChild(t2);
+      }
+      childrenGroup.appendChild(g);
+    }
+
+    panel.style.color = p.color || '#444';
+    panelTitle.textContent = p.label;
+    panelPct.textContent = p.value + '% of pre-training tokens';
+    panelDesc.textContent = p.description || '';
+    panelBullets.innerHTML = '';
+    for (const b of p.bullets || []) {
+      const li = document.createElement('li');
+      li.textContent = b;
+      panelBullets.appendChild(li);
+    }
+    if (p.screenshot) {
+      panelScreenshot.hidden = false;
+      panelScreenshotImg.src = p.screenshot;
+      panelScreenshotImg.alt = p.screenshotCaption || p.label;
+      panelScreenshotCaption.textContent = p.screenshotCaption || '';
+    } else {
+      panelScreenshot.hidden = true;
+    }
+    panelUnknown.hidden = !p.isUnknown;
+
+    wrap.setAttribute('data-modal-open', id);
+    modalLayer.removeAttribute('aria-hidden');
+    closeBtn.focus({ preventScroll: true });
+  }
+
+  function closeModal() {
+    const wasOpen = wrap.getAttribute('data-modal-open');
+    if (!wasOpen) return;
+    wrap.setAttribute('data-modal-open', '');
+    modalLayer.setAttribute('aria-hidden', 'true');
+    const target = wrap.querySelector('.cb-bubble[data-id="' + wasOpen + '"]');
+    if (target) target.focus({ preventScroll: true });
+  }
+
+  for (const bubble of wrap.querySelectorAll('.cb-bubble[data-clickable="true"]')) {
+    const id = bubble.getAttribute('data-id');
+    bubble.addEventListener('click', () => openModal(id));
+    bubble.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openModal(id); }
+    });
+  }
+  closeBtn.addEventListener('click', closeModal);
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && wrap.getAttribute('data-modal-open')) closeModal();
+  });
+}
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initCorpusBubbles);
+} else {
+  initCorpusBubbles();
+}
+</script>
+</body>
+</html>

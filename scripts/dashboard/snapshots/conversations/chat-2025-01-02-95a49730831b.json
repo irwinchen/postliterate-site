@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "id": "95a49730-831b-451e-9150-10f308e757c2",
+  "type": "chat",
+  "project_label": null,
+  "project_path": null,
+  "title": "Identifying MongoDB Usage on Development Macbook",
+  "started_at": "2025-01-02T14:24:20.440728Z",
+  "last_activity_at": "2025-01-02T14:26:29.375535Z",
+  "message_count": 4,
+  "first_prompt": "I'm getting a rather large MongoDB bill. How do I go about finding what application on my development Macbook Pro is hitting MongoDB?",
+  "summary": "Irwin was attempting to determine which specific application running on his development Macbook Pro was responsible for generating a large MongoDB bill. The conversation first covered technical command-line methods, suggesting tools like Activity Monitor and using `lsof -i | grep mongo`. When Irwin focused on the platform itself, the assistant provided guidance on using the MongoDB Atlas dashboard, recommending checking the \"Metrics\" tab, \"Browse Collections,\" and the \"Profiler\" in Performance Advisor to pinpoint the source of the excessive queries.",
+  "summary_status": "ready",
+  "artifacts": [],
+  "source_ref": {
+    "kind": "chat",
+    "uuid": "95a49730-831b-451e-9150-10f308e757c2",
+    "source_key": "c9ce4e6e|95a49730-831b-451e-9150-10f308e757c2|2025-01-02T14:26:29.375535Z",
+    "slim_cache": "snapshots/claude-archive/postliterate.json"
+  },
+  "ingested_at": "2026-05-12T12:32:39.737Z"
+}

@@ -1,0 +1,46 @@
+{
+  "schema_version": 1,
+  "id": "2026-05-11-working-conversations-feed",
+  "type": "debrief",
+  "project_label": "site",
+  "project_path": null,
+  "title": "Designing the unified working-conversations dashboard feed",
+  "started_at": "2026-05-11T00:00:00.000Z",
+  "last_activity_at": "2026-05-11T23:59:59.000Z",
+  "message_count": 32,
+  "first_prompt": null,
+  "summary": "- Replaced two parallel Recent Work streams (cowork + claude.ai exports) with one chronological feed unified by a v1 normalized schema.\n- Added a new session-debriefs source that ingests YAML-fronted markdown produced by the session-debrief skill, with cowork_session_id linking back to the originating CLI session.\n- Hardened artifact extraction from `<antArtifact>` tags with path-traversal guards, size caps, and an admin.mjs route that forces HTML to text/plain.",
+  "summary_status": "ready",
+  "artifacts": [
+    {
+      "name": "conversation-store.mjs",
+      "original_title": "Conversation store helper",
+      "type": "text/javascript",
+      "language": null,
+      "ext": ".mjs",
+      "path": "scripts/dashboard/lib/conversation-store.mjs",
+      "bytes": 0,
+      "message_index": 0,
+      "link_kind": "repo"
+    },
+    {
+      "name": "artifact-extractor.mjs",
+      "original_title": "Artifact extractor helper",
+      "type": "text/javascript",
+      "language": null,
+      "ext": ".mjs",
+      "path": "scripts/dashboard/lib/artifact-extractor.mjs",
+      "bytes": 0,
+      "message_index": 0,
+      "link_kind": "repo"
+    }
+  ],
+  "source_ref": {
+    "kind": "debrief",
+    "markdown_path": "/Users/irwinchen/Documents/postliterate-site/data/session-debriefs/2026-05-11-working-conversations-feed.md",
+    "source_key": "1778540003271.4106|1220",
+    "cowork_session_id": "436de40f-30d8-4b2c-a5a6-19fadd102727",
+    "chat_uuid": null
+  },
+  "ingested_at": "2026-05-11T22:53:27.578Z"
+}
