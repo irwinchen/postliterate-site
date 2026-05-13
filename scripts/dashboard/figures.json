@@ -26,6 +26,14 @@
     ]
   },
   {
+    "id": "corpus",
+    "title": "The Corpus — AI Pre-training Data",
+    "page": "/corpus",
+    "images": [
+      { "file": "corpus.png" }
+    ]
+  },
+  {
     "id": "timeline",
     "title": "Timeline of Human Communication",
     "images": [
