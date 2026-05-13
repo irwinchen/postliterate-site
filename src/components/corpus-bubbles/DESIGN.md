@@ -60,19 +60,16 @@ src/components/corpus-bubbles/
   CorpusBubbles.astro          # shell — SVG render, zoom, panel
 
 src/pages/
-  corpus-bubbles.astro         # staging URL during rollout (/corpus-bubbles)
-  corpus.astro                 # swap target after final approval
+  corpus.astro                 # /corpus — serves CorpusBubbles since the swap
 
 public/corpus-bubbles/
   tree.json                    # full packed hierarchy, all nodes flat
 
 public/corpus-treemap/
-  structure.json               # source-of-truth data
+  structure.json               # source-of-truth data (kept under this path
+                               # because screenshot paths reference it)
   screenshots/                 # category screenshot images
   thumbs/                      # thumbnails
-
-src/components/corpus-treemap/ # OLD squarified treemap, still live on /corpus
-                               # until the swap. Do not edit.
 ```
 
 CSS class prefix: `cb-` (corpus-bubbles).
@@ -290,9 +287,9 @@ depth.
 - **Mobile responsive**: not yet. Panel currently shares the SVG
   viewBox; on narrow screens it'll get cramped. Either stack below
   bubbles on `< 700 px` or render the panel as a separate HTML block.
-- **Swap `/corpus`**: not yet. Update `src/pages/corpus.astro` to use
-  `CorpusBubbles`, then delete the old `CorpusTreemap` files. Single
-  commit when approved.
+- **Swap `/corpus`**: done. `src/pages/corpus.astro` now imports
+  `CorpusBubbles`; the staging page and `CorpusTreemap` component have
+  been deleted.
 
 ## Constraints to remember
 

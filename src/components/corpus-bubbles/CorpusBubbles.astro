@@ -65,10 +65,32 @@ const CONNECTOR_X1 = PANEL_X;
       role="img"
       aria-label="Pre-training corpus visualized as a zoomable cluster of bubbles, each sized by its share of training tokens"
     >
+      <!-- Feathered circle edges signal that these are rough estimates,
+           not precise percentages. Applied per-circle (not per-group) so
+           labels stay crisp. -->
+      <defs>
+        <filter
+          id="cb-feather"
+          x="-15%"
+          y="-15%"
+          width="130%"
+          height="130%"
+          color-interpolation-filters="sRGB"
+        >
+          <feGaussianBlur stdDeviation="3.5" />
+        </filter>
+      </defs>
       <!-- Zoom layer: transform applied on click to scale the focus circle
            into the bubble region. -->
       <g class="cb-zoom-layer">
-        {nodes.map((n) => (
+        {nodes.map((n, i) => {
+          // Per-bubble breathing offsets — duration spread 4.4–6.4s, delay
+          // negative so each bubble starts mid-breath and the cluster feels
+          // alive from frame 0. Deterministic from index so the layout is
+          // stable across renders.
+          const breatheDur = (4.4 + ((i * 0.37) % 2)).toFixed(2);
+          const breatheDelay = -((i * 1.13) % 4).toFixed(2);
+          return (
           <g
             class={`cb-node cb-depth-${n.depth}`}
             data-id={n.id}
@@ -77,6 +99,7 @@ const CONNECTOR_X1 = PANEL_X;
             data-hidden={n.depth >= 2 ? 'true' : undefined}
             tabindex={n.depth === 0 ? undefined : '0'}
             role={n.depth === 0 ? undefined : 'button'}
+            style={`--cb-breathe-dur: ${breatheDur}s; --cb-breathe-delay: ${breatheDelay}s`}
             aria-label={
               n.depth === 0
                 ? 'Whole corpus'
@@ -106,8 +129,25 @@ const CONNECTOR_X1 = PANEL_X;
                 {n.label}
               </text>
             )}
+            {n.depth === 0 && (
+              <text
+                x={n.x}
+                y={n.y - n.r + 38}
+                text-anchor="middle"
+                dominant-baseline="middle"
+                font-family="Outfit, system-ui, sans-serif"
+                font-weight="500"
+                font-size="16"
+                letter-spacing="0.5"
+                fill="var(--text-tertiary)"
+                class="cb-container-label"
+              >
+                The Corpus
+              </text>
+            )}
           </g>
-        ))}
+          );
+        })}
       </g>
 
       <!-- Connector line from panel to focused bubble. y1, x2, y2,
@@ -236,7 +276,54 @@ const CONNECTOR_X1 = PANEL_X;
   }
   .cb-node-fill {
     stroke-width: 1;
-    transition: stroke-width 120ms ease-out;
+    transition:
+      stroke-width 120ms ease-out,
+      opacity 200ms ease-out;
+    /* Feathered edge — stdDeviation in user units, so the blur scales with
+       zoom (deeper zoom shows softer edges, which reinforces "imprecise"). */
+    filter: url(#cb-feather);
+    /* Subtle breathing. Per-bubble duration + delay are set inline so the
+       cluster doesn't pulse in unison. transform-box: fill-box keeps each
+       scale centered on its own circle. */
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: cb-breathe var(--cb-breathe-dur, 5.5s) ease-in-out infinite;
+    animation-delay: var(--cb-breathe-delay, 0s);
+  }
+  @keyframes cb-breathe {
+    0%,
+    100% {
+      transform: scale(1);
+    }
+    50% {
+      transform: scale(1.022);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .cb-node-fill {
+      animation: none;
+    }
+  }
+
+  /* When zoomed into a category, fade the focused d1 itself so the inner
+     children read more strongly. JS sets data-focus on the focused node. */
+  .cb-wrap[data-focus-depth='1'] .cb-node[data-focus='true'] > .cb-node-fill {
+    opacity: 0.5;
+  }
+
+  /* Hover on an inner child at zoomed-in view fades every other visible
+     bubble (siblings + the container d1). `:has()` is supported in all
+     evergreen browsers as of 2023. */
+  .cb-wrap[data-focus-depth='1']
+    .cb-zoom-layer:has(.cb-node[data-depth='2']:hover)
+    .cb-node:not(:hover)
+    > .cb-node-fill {
+    opacity: 0.3;
+  }
+  /* Don't feather the root container — it's a thin stroked outline that
+     would just look fuzzy. */
+  .cb-depth-0 > .cb-node-fill {
+    filter: none;
   }
   .cb-depth-1 > .cb-node-fill {
     stroke: rgba(255, 255, 255, 0.4);
@@ -250,13 +337,14 @@ const CONNECTOR_X1 = PANEL_X;
     stroke: #fff;
     stroke-width: 2;
   }
+  /* Outer container: a subtly-tinted disc that distinguishes the cluster
+     area from the page background in both themes. Both colors come from
+     page-level CSS variables so the dark-theme override (defined on the
+     unscoped <html>) actually reaches them. */
   .cb-depth-0 > .cb-node-fill {
-    fill: rgba(0, 0, 0, 0.04);
-    stroke: rgba(0, 0, 0, 0.18);
-  }
-  [data-theme='dark'] .cb-depth-0 > .cb-node-fill {
-    fill: rgba(255, 255, 255, 0.04);
-    stroke: rgba(255, 255, 255, 0.18);
+    fill: var(--container-fill);
+    stroke: var(--container-stroke);
+    stroke-width: 1.5;
   }
 
   /* Labels — font-size/fill are SVG presentation attributes (set on the
@@ -352,8 +440,11 @@ const CONNECTOR_X1 = PANEL_X;
     list-style: none;
     padding: 0;
     margin: 0 0 8px 0;
-    font-size: 10.5px;
-    line-height: 1.45;
+    /* Mono evokes "data" — each bullet typically cites a dataset or stat. */
+    font-family: 'Sono', ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 10px;
+    line-height: 1.5;
+    letter-spacing: -0.01em;
     color: var(--text-secondary);
   }
   .cb-panel-bullets li {
@@ -586,6 +677,7 @@ const CONNECTOR_X1 = PANEL_X;
     //   focus = d2   → only the leaf itself visible.
     function setNodeVisibility(focusId) {
       const focus = nodesById[focusId];
+      wrap.setAttribute('data-focus-depth', String(focus.depth));
       for (const [id, el] of nodeEls) {
         const n = nodesById[id];
         let visible;
@@ -598,6 +690,8 @@ const CONNECTOR_X1 = PANEL_X;
         }
         if (visible) el.removeAttribute('data-hidden');
         else el.setAttribute('data-hidden', 'true');
+        if (id === focusId) el.setAttribute('data-focus', 'true');
+        else el.removeAttribute('data-focus');
       }
     }
 
