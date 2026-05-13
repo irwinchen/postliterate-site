@@ -1,30 +1,16 @@
 #!/usr/bin/env node
 /**
- * Precompute bubble-pack layouts for the corpus-bubbles figure.
+ * Precompute the d3 zoomable circle-pack layout for the corpus-bubbles
+ * figure.
  *
- * Two layout modes:
+ * The full hierarchy (root → 11 categories → ~30 leaves) is packed in one
+ * pass with `d3.pack()`. Every descendant is positioned inside its parent;
+ * children inherit the parent's palette color so each category reads as a
+ * color family. The renderer ships a single JSON file (`tree.json`) and
+ * handles zoom-on-click via a transform on a wrapping `<g>` — no per-parent
+ * drill-in files, no force compaction.
  *
- *   - **Root cluster (`buildRoot`)** — runs `d3.pack()` to get radii
- *     proportional to value, then runs a `d3-force` simulation with strong
- *     collision avoidance + gentle centering to close the gaps the greedy
- *     pack placement leaves behind. After compaction, computes the smallest
- *     enclosing circle of the cluster (`d3.packEnclose`) and saves it as
- *     the visible container.
- *
- *   - **Drill-in (`buildDrillIn`)** — runs `d3.pack()` alone inside the
- *     parent's open circle. Children come out tangent to each other and
- *     tangent to the parent's boundary (this is what `d3.pack` guarantees
- *     when given a bounding circle). No force compaction — that would pull
- *     children inward and leave a visible gap between them and the parent.
- *
- * Algorithm history: earlier iterations of this figure used
- * `d3-voronoi-treemap` clipped to a brain silhouette. Both the Voronoi
- * algorithm and the brain shape were dropped after iteration; bubble packing
- * read closer to the user's visual references and the algorithm is simpler.
- *
- * Output: one JSON file per layout in `public/corpus-bubbles/`:
- *   - `root.json`          — 11 root bubbles + container circle
- *   - `<parent-id>.json`   — children inscribed in parent's open circle
+ * Output: `public/corpus-bubbles/tree.json` with `{ canvas, region, nodes }`.
  *
  * @module corpus-bubbles/build
  */
@@ -32,8 +18,7 @@
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { hierarchy, pack, packEnclose } from 'd3-hierarchy';
-import { forceSimulation, forceCollide, forceX, forceY } from 'd3-force';
+import { hierarchy, pack } from 'd3-hierarchy';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -49,200 +34,79 @@ const OUTPUT_DIR = join(REPO_ROOT, 'public', 'corpus-bubbles');
 
 // ---------- Configuration ----------
 
-// Canvas coordinate space. Renderer scales via SVG viewBox.
-const CANVAS_W = 1000;
-const CANVAS_H = 700;
+// SVG viewBox. ~16:9 so the chart fills modern viewports with minimal
+// letterboxing under `preserveAspectRatio="xMidYMid meet"`. The renderer
+// reads these back from `tree.json`.
+const CANVAS_W = 1600;
+const CANVAS_H = 900;
 
-// Root cluster: bubble pack initial diameter used for sizing the bubbles
-// proportionally to value. Force compaction below shrinks the effective
-// extent and `packEnclose` finds the actual container radius.
-const ROOT_INITIAL_DIAMETER = 620;
-const ROOT_CX = 500;
-const ROOT_CY = 350;
+// Bubble region: where the packed cluster lives inside the viewBox. Pushed
+// left of canvas center so the sidenote panel has room on the right.
+// `REGION_DIAMETER` is also the size the focus node fills when zoomed in
+// (the renderer interpolates its view to this dimension).
+const REGION_CX = 500;
+const REGION_CY = 450;
+const REGION_DIAMETER = 820;
 
-// Padding between sibling bubbles (passed to `d3.pack().padding(...)` and as
-// extra radius added in `forceCollide`).
-const ROOT_PADDING = 2;
-const CHILD_PADDING = 1;
+const PACK_PADDING = 4;
 
-// Force-compaction iteration count for the root. 500 is overkill but cheap.
-const COMPACT_ITERATIONS = 500;
-
-// Modal open state: when a parent bubble is opened, it scales+translates to
-// a circle of this diameter centered here. Children pack inscribed inside.
-const MODAL_DIAMETER = 540;
-const MODAL_CX = 500;
-const MODAL_CY = 350;
-
-// Color palette override. Keyed by category id from structure.json. Applied
-// at build time so structure.json (used by the older /corpus treemap) stays
-// untouched during staging. Move into structure.json at Phase 7 swap if we
-// keep these colors.
-//
-// First 7 entries are sampled from the user's reference palette (a muted,
-// slightly desaturated set used in an information-design poster). The last
-// 4 (legal, transcripts, synthetic, unknown) are derived to round out the
-// 11 categories while staying within the same warm/muted feel.
+// Color palette by category id. First seven colors come from the user's
+// reference palette (a muted, slightly desaturated set used in an
+// information-design poster); the last four round out the 11 categories.
 const PALETTE = {
-  web: '#809B57',          // sage green
-  logic: '#7B5567',        // plum
-  academic: '#5BA7A3',     // teal
-  books: '#E2A82B',        // gold
-  forums: '#8E2A3A',       // wine
-  wiki: '#C5B746',         // pale olive
-  multilingual: '#E29487', // coral
-  legal: '#6F8088',        // cool gray-blue (derived)
-  transcripts: '#B57480',  // muted rose (derived)
-  synthetic: '#A8B570',    // light sage-yellow (derived)
-  unknown: '#383838',      // charcoal
+  web: '#809B57',
+  logic: '#7B5567',
+  academic: '#5BA7A3',
+  books: '#E2A82B',
+  forums: '#8E2A3A',
+  wiki: '#C5B746',
+  multilingual: '#E29487',
+  legal: '#6F8088',
+  transcripts: '#B57480',
+  synthetic: '#A8B570',
+  unknown: '#383838',
 };
-
-function applyPalette(item) {
-  return { ...item, color: PALETTE[item.id] || item.color };
-}
 
 // ---------- Helpers ----------
 
 /**
- * Build a `d3.hierarchy` from a flat list. Strips nested `children` so
- * `pack()` treats each item as a leaf at depth 1, and captures `hasChildren`
- * onto each leaf so the renderer can show drill-in affordances.
+ * Walk the structure tree and apply the palette: each top-level category
+ * gets its mapped color, and children inherit their parent's color so each
+ * category reads as a single color family at every zoom level.
  */
-function makeHierarchy(items) {
-  const flat = items.map(({ children, ...rest }) => ({
-    ...rest,
-    _hasChildren: Array.isArray(children) && children.length > 0,
-  }));
-  return hierarchy({ children: flat }).sum((d) => d.value || 0);
+function applyPalette(node, inheritedColor) {
+  const color = PALETTE[node.id] || node.color || inheritedColor || null;
+  const out = { ...node, color };
+  if (Array.isArray(node.children)) {
+    out.children = node.children.map((c) => applyPalette(c, color));
+  }
+  return out;
 }
 
 /**
- * Convert a d3.hierarchy leaf node into a plain bubble object for JSON.
- * Preserves the original data fields (description, bullets, screenshot,
- * etc.) so the renderer can show panel content without a separate lookup.
+ * Translate a packed `d3.hierarchy` node into the plain object the renderer
+ * will consume. Keeps the panel content (description, bullets, screenshot)
+ * inline so the renderer needs no secondary lookup.
  */
-function nodeToBubble(node) {
-  const d = node.data;
-  // Skip d3-hierarchy's internal field plus the staging flag.
-  // eslint-disable-next-line no-unused-vars
-  const { _hasChildren, children, ...rest } = d;
+function nodeOut(n, dx, dy, parentId) {
+  const d = n.data;
   return {
-    ...rest,
+    id: d.id,
+    label: d.label || '',
+    value: d.value || 0,
     color: d.color || null,
-    isUnknown: !!d.isUnknown,
-    hasChildren: !!_hasChildren,
-    x: node.x,
-    y: node.y,
-    r: node.r,
-  };
-}
-
-/**
- * Root cluster: pack bubbles proportionally, then force-compact, then find
- * the smallest enclosing circle to use as the visible container.
- */
-function buildRoot(items, cx, cy, initialDiameter, padding) {
-  const root = makeHierarchy(items);
-
-  // Initial pack — produces value-proportional radii. The size sets the
-  // overall scale; the actual cluster extent comes out of compaction.
-  pack().size([initialDiameter, initialDiameter]).padding(padding)(root);
-
-  const nodes = root.children.map((n) => ({
-    ...nodeToBubble(n),
-    // Force sim expects mutable x, y; copy them so the hierarchy stays clean.
-    x: n.x,
-    y: n.y,
-  }));
-
-  // Force compaction: collide with extra padding pushes bubbles apart just
-  // enough to avoid overlap; x/y forces toward the cluster center pull them
-  // together until collision balances the pull. Result: tight pack.
-  const sim = forceSimulation(nodes)
-    .force(
-      'collide',
-      forceCollide((d) => d.r + padding / 2)
-        .strength(1)
-        .iterations(4),
-    )
-    .force('x', forceX(initialDiameter / 2).strength(0.1))
-    .force('y', forceY(initialDiameter / 2).strength(0.1))
-    .stop();
-  for (let i = 0; i < COMPACT_ITERATIONS; i++) sim.tick();
-
-  // Smallest enclosing circle of the compacted cluster — this is the
-  // container we'll render behind the bubbles.
-  const enclose = packEnclose(nodes);
-
-  // Translate so the enclosing circle lands at (cx, cy).
-  const dx = cx - enclose.x;
-  const dy = cy - enclose.y;
-
-  return {
-    container: { x: cx, y: cy, r: enclose.r + padding },
-    cells: nodes.map((n) => ({ ...n, x: n.x + dx, y: n.y + dy })),
-  };
-}
-
-/**
- * Drill-in: pack children inscribed in a circle of the given diameter,
- * centered at (cx, cy). No force compaction — `d3.pack()` already places
- * children tangent to the bounding circle, which is what we want for the
- * modal-open state.
- */
-function buildDrillIn(items, cx, cy, diameter, padding) {
-  const root = makeHierarchy(items);
-  pack().size([diameter, diameter]).padding(padding)(root);
-
-  // Translate from pack's local origin (0..diameter) to canvas coords.
-  const dx = cx - diameter / 2;
-  const dy = cy - diameter / 2;
-
-  return root.children.map((n) => ({
-    ...nodeToBubble(n),
+    depth: n.depth,
+    parentId,
+    childIds: n.children ? n.children.map((c) => c.data.id) : [],
     x: n.x + dx,
     y: n.y + dy,
-  }));
-}
-
-/**
- * Compute the affine transform from a parent's root-state circle to its
- * open-state circle. (Uniform scale + translate; a circle stays a circle.)
- */
-function computeOpenState(parentBubble) {
-  const openR = MODAL_DIAMETER / 2;
-  const scale = openR / parentBubble.r;
-  const tx = MODAL_CX - parentBubble.x * scale;
-  const ty = MODAL_CY - parentBubble.y * scale;
-  return {
-    openX: MODAL_CX,
-    openY: MODAL_CY,
-    openR,
-    transform: { scale, tx, ty },
+    r: n.r,
+    description: d.description || '',
+    bullets: d.bullets || [],
+    screenshot: d.screenshot || null,
+    screenshotCaption: d.screenshotCaption || '',
+    isUnknown: !!d.isUnknown,
   };
-}
-
-/**
- * Lightweight sanity check: every bubble has a positive radius, and π·r² is
- * (within rounding) proportional to value.
- */
-function verify(bubbles, label) {
-  if (bubbles.length === 0) throw new Error(`[${label}] no bubbles produced`);
-  for (const b of bubbles) {
-    if (!Number.isFinite(b.r) || b.r <= 0) {
-      throw new Error(`[${label}] bubble ${b.id} has bad radius ${b.r}`);
-    }
-  }
-  const totalValue = bubbles.reduce((s, b) => s + b.value, 0);
-  const totalArea = bubbles.reduce((s, b) => s + Math.PI * b.r * b.r, 0);
-  let maxErr = 0;
-  for (const b of bubbles) {
-    const expected = b.value / totalValue;
-    const actual = (Math.PI * b.r * b.r) / totalArea;
-    const err = Math.abs(expected - actual) / expected;
-    if (err > maxErr) maxErr = err;
-  }
-  return maxErr;
 }
 
 // ---------- Main ----------
@@ -252,102 +116,40 @@ function main() {
   const structure = JSON.parse(readFileSync(STRUCTURE_PATH, 'utf8'));
   mkdirSync(OUTPUT_DIR, { recursive: true });
 
-  const canvas = { viewBox: [0, 0, CANVAS_W, CANVAS_H] };
+  const colored = applyPalette(structure, null);
 
-  // --- Root ---
-  const rootChildren = structure.children.map(applyPalette);
-  console.log(`Building root (${rootChildren.length} bubbles)...`);
-  const { container, cells: rootCells } = buildRoot(
-    rootChildren,
-    ROOT_CX,
-    ROOT_CY,
-    ROOT_INITIAL_DIAMETER,
-    ROOT_PADDING,
+  // d3.hierarchy + sum + sort, then pack into a circle of REGION_DIAMETER.
+  // d3.pack treats the supplied size as a square — the root circle ends up
+  // tangent to all four edges, so REGION_DIAMETER is also the root diameter.
+  const root = hierarchy(colored)
+    .sum((d) => (d.children && d.children.length ? 0 : d.value || 0))
+    .sort((a, b) => (b.value || 0) - (a.value || 0));
+
+  pack().size([REGION_DIAMETER, REGION_DIAMETER]).padding(PACK_PADDING)(root);
+
+  const dx = REGION_CX - REGION_DIAMETER / 2;
+  const dy = REGION_CY - REGION_DIAMETER / 2;
+
+  const nodes = root.descendants().map((n) =>
+    nodeOut(n, dx, dy, n.parent ? n.parent.data.id : null),
   );
-  const rootErr = verify(rootCells, 'root');
+
+  const out = {
+    canvas: { viewBox: [0, 0, CANVAS_W, CANVAS_H] },
+    region: { cx: REGION_CX, cy: REGION_CY, diameter: REGION_DIAMETER },
+    rootId: root.data.id,
+    nodes,
+  };
+
   writeFileSync(
-    join(OUTPUT_DIR, 'root.json'),
-    JSON.stringify({ canvas, container, cells: rootCells }),
+    join(OUTPUT_DIR, 'tree.json'),
+    JSON.stringify(out),
     'utf8',
   );
-  console.log(
-    `  wrote root.json — container r=${container.r.toFixed(1)}, area err ${(rootErr * 100).toFixed(2)}%`,
-  );
-
-  // --- Drill-ins ---
-  let drilledCount = 0;
-  for (const parent of rootChildren) {
-    if (!parent.children || parent.children.length === 0) continue;
-
-    const rootBubble = rootCells.find((b) => b.id === parent.id);
-    if (!rootBubble) {
-      throw new Error(`No root bubble for parent "${parent.id}"`);
-    }
-    const open = computeOpenState(rootBubble);
-
-    console.log(
-      `Building ${parent.id} drill-in (${parent.children.length} children)...`,
-    );
-
-    // Children inherit the parent's (paletted) color. structure.json
-    // doesn't carry per-child colors.
-    const colored = parent.children.map((c) => ({
-      ...c,
-      color: c.color || parent.color || null,
-    }));
-    const childCells = buildDrillIn(
-      colored,
-      open.openX,
-      open.openY,
-      open.openR * 2,
-      CHILD_PADDING,
-    );
-    const err = verify(childCells, parent.id);
-
-    // Bake panel content into the drill-in JSON. Keeps the renderer
-    // self-contained — it only needs one JSON per modal state, with all
-    // the data needed to draw the bubbles AND the side panel.
-    writeFileSync(
-      join(OUTPUT_DIR, `${parent.id}.json`),
-      JSON.stringify({
-        canvas,
-        parent: {
-          id: parent.id,
-          label: parent.label,
-          color: parent.color || null,
-          value: parent.value,
-          description: parent.description || '',
-          bullets: parent.bullets || [],
-          screenshot: parent.screenshot || null,
-          screenshotCaption: parent.screenshotCaption || '',
-          isUnknown: !!parent.isUnknown,
-          x: rootBubble.x,
-          y: rootBubble.y,
-          r: rootBubble.r,
-          openX: open.openX,
-          openY: open.openY,
-          openR: open.openR,
-          transform: open.transform,
-        },
-        cells: childCells.map((c) => ({
-          ...c,
-          description: c.description || '',
-          bullets: c.bullets || [],
-          screenshot: c.screenshot || null,
-          screenshotCaption: c.screenshotCaption || '',
-        })),
-      }),
-      'utf8',
-    );
-    console.log(
-      `  wrote ${parent.id}.json — area err ${(err * 100).toFixed(2)}%`,
-    );
-    drilledCount++;
-  }
 
   const dt = ((Date.now() - t0) / 1000).toFixed(2);
   console.log(
-    `\nDone. ${1 + drilledCount} layouts written to ${OUTPUT_DIR} in ${dt}s.`,
+    `Done. tree.json (${nodes.length} nodes) written to ${OUTPUT_DIR} in ${dt}s.`,
   );
 }
 
