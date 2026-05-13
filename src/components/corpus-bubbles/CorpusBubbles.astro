@@ -51,9 +51,9 @@ const CONNECTOR_X1 = PANEL_X;
   data-root-id={rootId}
 >
   <header class="cb-header">
-    <h1 class="cb-title">What does an AI model actually train on?</h1>
+    <h1 class="cb-title">“Trained on a large corpus of internet text”</h1>
     <p class="cb-caveat">
-      Illustrative composite — no single model uses exactly this mix.
+      An illustrative estimate of the pre-training data for most AI models
     </p>
   </header>
 
@@ -197,10 +197,10 @@ const CONNECTOR_X1 = PANEL_X;
 
   <footer class="cb-sources">
     <span class="cb-sources-label">Sources:</span>
-    <span>The Pile (EleutherAI) [SECONDARY-ONLY]</span> ·
-    <span>Dolma v1.7 (AI2) [SECONDARY-ONLY]</span> ·
-    <span>Llama 3.1 Tech Report (Meta) [PRIMARY-PARTIAL]</span> ·
-    <span>FMTI 2025 (Stanford HAI) [SECONDARY-ONLY]</span>
+    <span>The Pile (EleutherAI)</span> ·
+    <span>Dolma v1.7 (AI2)</span> ·
+    <span>Llama 3.1 Tech Report (Meta)</span> ·
+    <span>FMTI 2025 (Stanford HAI)</span>
   </footer>
 </div>
 
@@ -222,9 +222,9 @@ const CONNECTOR_X1 = PANEL_X;
     inset-inline-end: clamp(16px, 4vw, 48px);
     z-index: 2;
     display: flex;
-    flex-wrap: wrap;
-    align-items: baseline;
-    gap: 16px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
     pointer-events: none;
   }
   .cb-title {
