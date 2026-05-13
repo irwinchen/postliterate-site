@@ -39,7 +39,19 @@
       OLLAMA_HOST defaults to http://localhost:11434 if unset.
     -->
     <key>OLLAMA_MODEL</key>
-    <string>gemma4:e4b</string>
+    <string>qwen3:14b</string>
+    <!-- Per-call deadline in ms. Default 90000. 30s is too aggressive for
+         qwen3:14b on this hardware — long prompts (cowork sessions, dense
+         claude.ai exports) need ~45-75s. Setting to 90s; a refresh with
+         lots of new content will be slow but will actually populate the
+         cache, which is what makes subsequent refreshes fast. -->
+    <key>OLLAMA_TIMEOUT_MS</key>
+    <string>90000</string>
+    <!-- Bind to localhost explicitly. Tailscale Serve already holds the
+         Tailnet IPs at :11434 and forwards them to 127.0.0.1:11434, so
+         pointing the dashboard at 0.0.0.0/all-interfaces is wrong here. -->
+    <key>OLLAMA_HOST</key>
+    <string>http://127.0.0.1:11434</string>
   </dict>
 
   <key>RunAtLoad</key>

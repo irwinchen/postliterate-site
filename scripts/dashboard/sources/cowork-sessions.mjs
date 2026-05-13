@@ -28,16 +28,30 @@
  * }
  */
 
+import { createHash } from 'node:crypto';
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { homedir } from 'node:os';
 import { isAvailable, getOllamaConfig } from '../lib/ollama.mjs';
 import { summarize } from '../lib/summary-cache.mjs';
+import { saveNormalized, shouldReingest, getExistingSummary, pruneStale } from '../lib/conversation-store.mjs';
 
 const HISTORY_PATH = join(homedir(), '.claude/history.jsonl');
 const DAYS_BACK = 7;
 const MAX_PROMPTS_IN_PROMPT = 25; // cap for the LLM prompt
 const MAX_SESSIONS = 10; // most recent
+
+// Skip cowork sessions that are obviously trivial: a one- or two-prompt
+// session where every prompt is a slash command (/exit, /doctor, /plugin).
+// The user reads the feed to remember substantive work, not commands.
+const MIN_PROMPTS_IF_ALL_SLASH = 3;
+function isSlashCommand(text) {
+  return typeof text === 'string' && /^\s*\/[a-z]/i.test(text.trim());
+}
+function isTrivialSession(session) {
+  if (session.prompts.length >= MIN_PROMPTS_IF_ALL_SLASH) return false;
+  return session.prompts.every((p) => isSlashCommand(p.text));
+}
 
 // Project prefixes the dashboard cares about. Worktrees match by prefix.
 // VAULT_PATH overrides the second entry if set. The third entry is the
@@ -118,11 +132,13 @@ function groupBySession(entries) {
 
 // ── Prompt builder ───────────────────────────────────────────────
 const SYSTEM_PROMPT =
-  "You summarize a single Claude Code (Cowork) session for a writing+coding project called 'After the Book'. " +
-  "You are given the user's prompts from one session in chronological order. The user is Irwin Chen — DO NOT write in first person as him. " +
-  "Describe in third person what they were working on, what got built or changed, and any open threads.\n\n" +
-  "Output exactly 1–3 markdown bullets, ONE PER LINE, each starting with '- ' (dash + space). " +
-  "Each bullet is one short sentence. No preamble, no headers, no quoting prompt text verbatim.";
+  "You summarize a single Claude Code (Cowork) session for the writing+coding project 'After the Book'. " +
+  "You are given the user's prompts from one session in chronological order. The user is Irwin Chen — DO NOT write in first person as him; use third person.\n\n" +
+  "Write 2-3 sentences of plain prose (no bullets, no headers, no bold). " +
+  "Sentence 1: what the session was actually about — the problem or question being worked on. " +
+  "Sentence 2-3: how the work evolved — what got tried, what was decided, where it landed or what's still open. " +
+  "Be specific: name the files, decisions, or topics rather than gesturing at them. " +
+  "Don't restate the first prompt verbatim — the dashboard already shows it separately.";
 
 function truncate(s, n) {
   if (typeof s !== 'string') return '';
@@ -144,26 +160,106 @@ User prompts in chronological order:
 ${lines}`;
 }
 
+// Hash the system prompt into the source key so that any change to
+// SYSTEM_PROMPT invalidates the normalized records, forcing re-summarization
+// on the next refresh.
+const SYSTEM_PROMPT_HASH = createHash('sha256').update(SYSTEM_PROMPT).digest('hex').slice(0, 8);
+
+function sourceKeyFor(g) {
+  return createHash('sha256')
+    .update(SYSTEM_PROMPT_HASH)
+    .update('␟')
+    .update(g.session_id)
+    .update('␟')
+    .update(String(g.last_ts))
+    .update('␟')
+    .update(String(g.prompts.length))
+    .digest('hex')
+    .slice(0, 16);
+}
+
+function buildNormalized(g, { sessionSummary, summaryStatus }) {
+  const date = new Date(g.first_ts).toISOString().slice(0, 10);
+  // Use the first SUBSTANTIVE prompt for the lead-in. Skip slash commands
+  // and short conversational fillers ("ok", "yes", "continue") — index on
+  // the prompt that actually sets up the work, not on the warm-up.
+  const isFiller = (text) => {
+    if (typeof text !== 'string') return true;
+    const trimmed = text.trim();
+    if (trimmed.length < 20) return true;
+    if (isSlashCommand(trimmed)) return true;
+    return false;
+  };
+  const firstSubstantive = g.prompts.find((p) => !isFiller(p.text)) || g.prompts[0];
+  const first_prompt = truncate(firstSubstantive?.text || '', 200);
+  const label = projectLabel(g.project_path);
+  const title = first_prompt ? truncate(first_prompt, 80) : `Cowork session ${g.session_id.slice(0, 8)}`;
+
+  return {
+    schema_version: 1,
+    id: g.session_id,
+    type: 'cowork',
+    project_label: label,
+    project_path: g.project_path,
+    title,
+    started_at: new Date(g.first_ts).toISOString(),
+    last_activity_at: new Date(g.last_ts).toISOString(),
+    message_count: g.prompts.length,
+    first_prompt,
+    summary: sessionSummary,
+    summary_status: summaryStatus,
+    artifacts: [],
+    source_ref: {
+      kind: 'cowork',
+      session_id: g.session_id,
+      source_key: sourceKeyFor(g),
+      date,
+    },
+  };
+}
+
 // ── Main export ──────────────────────────────────────────────────
 export async function getCoworkSessions() {
   const cfg = getOllamaConfig();
   const ollamaUp = await isAvailable();
 
   const entries = readRelevantHistory();
-  const grouped = groupBySession(entries);
+  const grouped = groupBySession(entries).filter((g) => !isTrivialSession(g));
+
+  pruneStale('cowork', grouped.map((g) => g.session_id));
 
   const sessions = [];
   for (const g of grouped) {
     const date = new Date(g.first_ts).toISOString().slice(0, 10);
     const first_prompt = truncate(g.prompts[0]?.text || '', 200);
+    const sourceKey = sourceKeyFor(g);
+    const stale = shouldReingest('cowork', g.session_id, sourceKey);
 
-    let sessionSummary = null;
-    if (ollamaUp && g.prompts.length > 0) {
+    let sessionSummary = stale ? null : getExistingSummary('cowork', g.session_id);
+    let summaryStatus;
+
+    if (g.prompts.length === 0) {
+      summaryStatus = 'skipped';
+    } else if (sessionSummary) {
+      summaryStatus = 'ready';
+    } else if (ollamaUp) {
       sessionSummary = await summarize({
         system: SYSTEM_PROMPT,
         prompt: buildSessionPrompt(g),
         label: `cowork-${date}-${g.session_id.slice(0, 8)}`,
       });
+      summaryStatus = sessionSummary ? 'ready' : 'pending';
+    } else {
+      summaryStatus = 'pending';
+    }
+
+    // Side effect: write normalized JSON for the working-conversations
+    // aggregator. Cheap when the source_key hasn't changed (still writes,
+    // but the file is small and rename is atomic).
+    try {
+      saveNormalized(buildNormalized(g, { sessionSummary, summaryStatus }));
+    } catch (err) {
+      console.warn(`  cowork-sessions saveNormalized failed (${g.session_id.slice(0, 8)}): ${err.message}`);
     }
 
     sessions.push({

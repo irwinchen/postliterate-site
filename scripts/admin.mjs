@@ -12,7 +12,7 @@
 
 import { createServer } from 'node:http';
 import { readFileSync, writeFileSync, existsSync } from 'node:fs';
-import { join } from 'node:path';
+import { join, resolve, sep } from 'node:path';
 import { spawn } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import {
@@ -298,6 +298,73 @@ async function handleRequest(req, res) {
         'Cache-Control': 'public, max-age=86400',
       });
       res.end(readFileSync(assetPath));
+      return;
+    }
+
+    // GET /dashboard/artifacts/<uuid>/<file> — extracted Claude.ai artifacts
+    // (e.g. code blocks the model produced inside <antArtifact> tags).
+    // Two-segment path; both segments validated by regex AND the resolved
+    // path is verified to remain under ARTIFACTS_DIR before reading.
+    // HTML is forced to text/plain and SVG is sent as attachment to avoid
+    // inline rendering of LLM-generated content.
+    if (method === 'GET' && path.startsWith('/dashboard/artifacts/')) {
+      const rest = path.slice('/dashboard/artifacts/'.length);
+      const parts = rest.split('/');
+      if (parts.length !== 2 || !/^[\w.-]+$/.test(parts[0]) || !/^[\w.-]+$/.test(parts[1])) {
+        json(res, { error: 'invalid artifact path' }, 400);
+        return;
+      }
+      const ARTIFACTS_DIR = resolve(join(__dirname, 'dashboard/snapshots/artifacts'));
+      const finalPath = resolve(join(ARTIFACTS_DIR, parts[0], parts[1]));
+      if (!finalPath.startsWith(ARTIFACTS_DIR + sep)) {
+        json(res, { error: 'invalid artifact path' }, 400);
+        return;
+      }
+      if (!existsSync(finalPath)) { json(res, { error: 'not found' }, 404); return; }
+      const ext = parts[1].split('.').pop().toLowerCase();
+      const textTypes = new Set([
+        'py', 'ts', 'tsx', 'js', 'jsx', 'md', 'sh', 'sql', 'css', 'yaml', 'yml',
+        'txt', 'mmd', 'html',
+      ]);
+      let contentType;
+      let extraHeaders = {};
+      if (ext === 'json') contentType = 'application/json; charset=utf-8';
+      else if (ext === 'svg') {
+        contentType = 'image/svg+xml';
+        extraHeaders['Content-Disposition'] = `attachment; filename="${parts[1]}"`;
+      } else if (textTypes.has(ext)) contentType = 'text/plain; charset=utf-8';
+      else contentType = 'application/octet-stream';
+      res.writeHead(200, {
+        'Content-Type': contentType,
+        'Cache-Control': 'private, max-age=60',
+        ...extraHeaders,
+      });
+      res.end(readFileSync(finalPath));
+      return;
+    }
+
+    // GET /dashboard/figures/<file> — project images served from
+    // public/images/figures/. Same security regex + content-type table as
+    // /dashboard/assets/ above.
+    if (method === 'GET' && path.startsWith('/dashboard/figures/')) {
+      const name = path.slice('/dashboard/figures/'.length);
+      if (!/^[\w.-]+$/.test(name)) { json(res, { error: 'invalid figure name' }, 400); return; }
+      const figPath = join(__dirname, '..', 'public', 'images', 'figures', name);
+      if (!existsSync(figPath)) { json(res, { error: 'not found' }, 404); return; }
+      const ext = name.split('.').pop().toLowerCase();
+      const contentType = {
+        svg: 'image/svg+xml',
+        png: 'image/png',
+        jpg: 'image/jpeg',
+        jpeg: 'image/jpeg',
+        webp: 'image/webp',
+        ico: 'image/x-icon',
+      }[ext] || 'application/octet-stream';
+      res.writeHead(200, {
+        'Content-Type': contentType,
+        'Cache-Control': 'public, max-age=86400',
+      });
+      res.end(readFileSync(figPath));
       return;
     }
 

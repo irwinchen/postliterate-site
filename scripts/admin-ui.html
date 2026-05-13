@@ -8,7 +8,6 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700&family=Literata:ital,wght@0,400;0,600;1,400&family=Sono:wght@400;600&display=swap" rel="stylesheet">
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.1" integrity="sha384-jb8JQMbMoBUzgWatfe6COACi2ljcDdZQ2OxczGA3bGNeWe+6DChMTBJemed7ZnvJ" crossorigin="anonymous"></script>
   <script src="https://cdn.jsdelivr.net/npm/marked@12/marked.min.js"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -48,12 +47,21 @@
     }
 
     /* ── Header ──────────────────────────────── */
+    /* --header-h is the rough rendered height of the header. Used by
+       section-nav to know where to stick, and by .dashboard-section to
+       offset anchor scroll. Mobile header wraps to 2 rows; bumped below. */
+    :root { --header-h: 4rem; }
+
     header {
       display: flex;
       align-items: center;
       justify-content: space-between;
       padding: 1rem 2rem;
       border-block-end: 2px solid var(--border);
+      position: sticky;
+      inset-block-start: 0;
+      z-index: 11;
+      background: var(--bg);
     }
 
     header h1 {
@@ -136,7 +144,7 @@
       gap: 0;
       border-block-end: 2px solid var(--border);
       position: sticky;
-      inset-block-start: 0;
+      inset-block-start: var(--header-h);
       background: var(--bg);
       z-index: 10;
       padding-inline: 2rem;
@@ -175,6 +183,9 @@
       padding-block-end: 2rem;
       margin-block-end: 2rem;
       border-block-end: 1px solid var(--border-subtle);
+      /* Anchor-scroll target offset: clear both sticky bars (header + nav)
+         so jumping to #foo doesn't land under them. Nav row is ~3rem. */
+      scroll-margin-block-start: calc(var(--header-h) + 3rem);
     }
 
     .dashboard-section:last-child {
@@ -933,6 +944,241 @@
     .rw-repo-site  { color: var(--blue);  border-color: var(--blue); }
     .rw-repo-vault { color: var(--green); border-color: var(--green); }
 
+    .rw-type-cowork  { color: var(--blue);   border-color: var(--blue); }
+    .rw-type-chat    { color: var(--accent); border-color: var(--accent); }
+    .rw-type-debrief { color: var(--green);  border-color: var(--green); }
+
+    /* ── Git heatmap (replaces the old per-day text log) ─────────── */
+    .rw-heatmap {
+      display: flex;
+      gap: 0.6rem;
+      align-items: flex-start;
+    }
+
+    .rw-heatmap-grid {
+      display: grid;
+      grid-auto-flow: column;
+      grid-template-rows: repeat(7, 12px);
+      gap: 3px;
+    }
+
+    .rw-heatmap-cell {
+      inline-size: 12px;
+      block-size: 12px;
+      background: var(--border-subtle);
+      border: 0;
+      padding: 0;
+      cursor: pointer;
+      border-radius: 2px;
+      transition: outline-color 0.1s;
+      outline: 2px solid transparent;
+      outline-offset: 1px;
+    }
+
+    .rw-heatmap-cell.lvl-0 { background: var(--border-subtle); opacity: 0.45; cursor: default; }
+    .rw-heatmap-cell.lvl-1 { background: color-mix(in srgb, var(--accent) 20%, var(--bg)); }
+    .rw-heatmap-cell.lvl-2 { background: color-mix(in srgb, var(--accent) 45%, var(--bg)); }
+    .rw-heatmap-cell.lvl-3 { background: color-mix(in srgb, var(--accent) 70%, var(--bg)); }
+    .rw-heatmap-cell.lvl-4 { background: var(--accent); }
+
+    .rw-heatmap-cell:hover:not(.lvl-0) { outline-color: var(--fg); }
+    .rw-heatmap-cell.is-selected { outline-color: var(--fg); }
+
+    .rw-heatmap-day-labels {
+      display: grid;
+      grid-template-rows: repeat(7, 12px);
+      gap: 3px;
+      font-family: 'Sono', monospace;
+      font-size: 0.6rem;
+      color: var(--muted);
+      text-align: end;
+    }
+
+    .rw-heatmap-day-labels span {
+      line-height: 12px;
+    }
+
+    .rw-heatmap-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+      margin-block-start: 0.6rem;
+      font-family: 'Sono', monospace;
+      font-size: 0.7rem;
+      color: var(--muted);
+    }
+
+    .rw-heatmap-legend {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .rw-heatmap-legend .rw-heatmap-cell {
+      cursor: default;
+    }
+
+    /* Two-column layout: calendar takes its natural width on the left,
+       commit detail fills the rest. Falls back to stacked rows on mobile
+       via the existing mobile media query. */
+    .rw-git-layout {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 1.5rem;
+      align-items: start;
+    }
+
+    .rw-heatmap-detail {
+      padding: 0.75rem 1rem;
+      border: 1.5px solid var(--border);
+      min-block-size: 4rem;
+    }
+
+    .rw-heatmap-detail.empty {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--muted);
+      font-style: italic;
+      font-family: 'Literata', Georgia, serif;
+      font-size: 0.85rem;
+    }
+
+    .rw-heatmap-detail .rw-day-heading {
+      margin-block-end: 0.6rem;
+    }
+
+    /* Recent-Conversations card layout: stacked rows inside each card —
+       title, then a single meta row, then starting question, then summary. */
+    .rw-conv-card {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .rw-conv-title {
+      font-family: 'Outfit', system-ui, sans-serif;
+      font-weight: 700;
+      font-size: 0.95rem;
+      line-height: 1.3;
+      color: var(--fg);
+      word-break: break-word;
+    }
+
+    .rw-conv-meta {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.5rem 0.75rem;
+    }
+
+    /* Recent-Conversations card grid: two columns on desktop, single on
+       narrower viewports. The .rw-day inside loses its bottom margin since
+       grid gap handles spacing. */
+    .rw-conv-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0.85rem;
+      align-items: start;
+    }
+
+    .rw-conv-grid > .rw-day {
+      margin-block-end: 0;
+    }
+
+    /* Inside the 2-col card grid each card is narrower than the artifacts
+       rail wants — collapse the inner body to single-column and let the
+       artifacts wrap below the prose. */
+    .rw-conv-grid .rw-conv-body {
+      grid-template-columns: 1fr;
+    }
+
+    .rw-conv-grid .rw-artifacts {
+      max-inline-size: none;
+      border-inline-start: none;
+      border-block-start: 1px solid var(--border-subtle);
+      padding-inline: 0;
+    }
+
+    @media (max-width: 880px) {
+      .rw-conv-grid { grid-template-columns: 1fr; }
+    }
+
+    /* Two-column body within ONE card: prose left, artifacts right rail. */
+    .rw-conv-body {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 1.25rem;
+      align-items: start;
+    }
+
+    .rw-conv-body.no-artifacts { grid-template-columns: 1fr; }
+
+    .rw-conv-left { min-inline-size: 0; }
+
+    .rw-started {
+      font-family: 'Sono', monospace;
+      font-size: 0.72rem;
+      color: var(--muted);
+      margin-block-end: 0.5rem;
+      padding: 0.4rem 0.7rem;
+      background: var(--hover-bg-soft);
+      border-inline-start: 2px solid var(--border-subtle);
+      word-break: break-word;
+    }
+
+    .rw-started-text {
+      color: var(--fg);
+    }
+
+    .rw-artifacts {
+      min-inline-size: 12rem;
+      max-inline-size: 18rem;
+      padding: 0.5rem 0.85rem;
+      border-inline-start: 3px solid var(--border-subtle);
+      font-family: 'Sono', monospace;
+      font-size: 0.72rem;
+      color: var(--muted);
+    }
+
+    .rw-artifacts-label {
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      font-size: 0.65rem;
+      margin-block-end: 0.4rem;
+    }
+
+    .rw-artifacts ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 0.3rem;
+    }
+
+    .rw-artifacts a {
+      color: var(--fg);
+      text-decoration: none;
+      border-block-end: 1px solid var(--border-subtle);
+      word-break: break-all;
+    }
+
+    .rw-artifacts a:hover {
+      border-block-end-color: var(--fg);
+    }
+
+    @media (max-width: 720px) {
+      .rw-conv-body { grid-template-columns: 1fr; }
+      .rw-artifacts {
+        max-inline-size: none;
+        border-inline-start: none;
+        border-block-start: 1px solid var(--border-subtle);
+        padding-inline: 0;
+      }
+    }
+
     .rw-sha {
       font-family: 'Sono', monospace;
       font-size: 0.7rem;
@@ -1141,29 +1387,172 @@
       flex-shrink: 0;
     }
 
-    /* ── Writing progress ────────────────────── */
-    .writing-card {
-      display: flex;
-      flex-direction: column;
+    /* ── Figures (project image galleries) ───── */
+    .figures-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1rem;
     }
 
-    .sparkline-wrap {
-      block-size: 44px;
-      margin-block-start: 0.6rem;
-      position: relative;
+    .figure-card {
+      display: block;
+      text-align: start;
+      padding: 0;
+      border: 1.5px solid var(--border);
+      background: transparent;
+      color: inherit;
+      cursor: pointer;
+      font: inherit;
+      width: 100%;
     }
 
-    .sparkline-wrap canvas {
-      inline-size: 100% !important;
-      block-size: 100% !important;
+    .figure-card:hover { border-color: var(--fg); }
+    .figure-card:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+    .figure-thumb {
+      inline-size: 100%;
+      block-size: 220px;
+      background: var(--hover-bg-soft);
+      display: grid;
+      place-items: center;
+      overflow: hidden;
+      padding: 0.5rem;
+    }
+    .figure-thumb img {
+      inline-size: 100%;
+      block-size: 100%;
+      object-fit: contain;
+      display: block;
     }
 
-    .writing-footer {
+    .figure-meta {
+      padding: 0.6rem 0.75rem;
+      border-block-start: 1.5px solid var(--border);
+    }
+    .figure-title {
+      font-family: 'Outfit', system-ui, sans-serif;
+      font-weight: 600;
+      font-size: 0.9rem;
+    }
+    .figure-count,
+    .figure-credit {
       font-family: 'Sono', monospace;
       font-size: 0.7rem;
       color: var(--muted);
-      margin-block-start: 0.5rem;
+      margin-block-start: 0.15rem;
     }
+
+    .figure-page-link {
+      display: inline-block;
+      font-family: 'Sono', monospace;
+      font-size: 0.7rem;
+      color: var(--blue);
+      text-decoration: none;
+      margin-block-start: 0.35rem;
+      border-block-end: 1px solid transparent;
+    }
+    .figure-page-link:hover {
+      border-block-end-color: var(--blue);
+    }
+
+    .figure-card.missing { border-style: dashed; cursor: default; }
+    .figure-card.missing:hover { border-color: var(--border); }
+    .figure-card.missing .figure-thumb {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Sono', monospace;
+      font-size: 0.75rem;
+      color: var(--muted);
+      background: transparent;
+      gap: 0.25rem;
+    }
+    .figure-hint {
+      font-size: 0.65rem;
+      opacity: 0.7;
+      max-inline-size: 90%;
+      text-align: center;
+      word-break: break-all;
+    }
+
+    /* ── Lightbox ────────────────────────────── */
+    .lightbox-overlay[hidden] { display: none; }
+    .lightbox-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.88);
+      z-index: 200;
+      display: grid;
+      place-items: center;
+      padding: 2rem;
+    }
+
+    .lightbox-figure {
+      max-inline-size: min(96vw, 1200px);
+      max-block-size: 86vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.75rem;
+      margin: 0;
+    }
+
+    .lightbox-img {
+      max-inline-size: 100%;
+      max-block-size: 80vh;
+      object-fit: contain;
+      background: var(--bg);
+      display: block;
+    }
+
+    .lightbox-caption {
+      font-family: 'Literata', Georgia, serif;
+      font-size: 0.95rem;
+      color: #f3efe1;
+      text-align: center;
+      text-wrap: balance;
+      max-inline-size: 60ch;
+    }
+
+    .lightbox-counter {
+      position: fixed;
+      inset-block-start: 1rem;
+      inset-inline-start: 1rem;
+      font-family: 'Sono', monospace;
+      font-size: 0.75rem;
+      color: rgba(255, 255, 255, 0.7);
+    }
+
+    .lightbox-close,
+    .lightbox-prev,
+    .lightbox-next {
+      position: fixed;
+      background: transparent;
+      border: 1.5px solid rgba(255, 255, 255, 0.4);
+      color: #f3efe1;
+      cursor: pointer;
+      inline-size: 44px;
+      block-size: 44px;
+      display: grid;
+      place-items: center;
+      font-size: 1.4rem;
+      font-family: 'Outfit', system-ui, sans-serif;
+      line-height: 1;
+    }
+
+    .lightbox-close:hover,
+    .lightbox-prev:hover,
+    .lightbox-next:hover {
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    .lightbox-close { inset-block-start: 1rem; inset-inline-end: 1rem; }
+    .lightbox-prev  { inset-block-start: 50%; inset-inline-start: 1rem; transform: translateY(-50%); }
+    .lightbox-next  { inset-block-start: 50%; inset-inline-end: 1rem;   transform: translateY(-50%); }
+
+    .lightbox-overlay.single .lightbox-prev,
+    .lightbox-overlay.single .lightbox-next { display: none; }
 
     /* ── Vault Watch ─────────────────────────── */
     .vw-grid {
@@ -1438,9 +1827,12 @@
       .todo-row { min-block-size: 44px; }
       .todo-check { inline-size: 1.4rem; block-size: 1.4rem; }
 
-      /* Writing-progress: sparklines slightly shorter to keep the panel
-         from stretching with 1-col KPI cards. */
-      .sparkline-wrap { block-size: 36px; }
+      /* Figures grid drops from 3-col to 2-col on phones; thumb height
+         shrinks so two cards fit comfortably. */
+      .figures-grid { grid-template-columns: 1fr 1fr; gap: 0.75rem; }
+      .figure-thumb { block-size: 160px; }
+      .lightbox-overlay { padding: 1rem; }
+      .lightbox-prev, .lightbox-next { inline-size: 40px; block-size: 40px; }
 
       /* Recent Work: per-day commit list collapses behind a toggle. The
          button is hidden on desktop via display:none on .rw-mobile-toggle
@@ -1448,6 +1840,10 @@
       .rw-day-body { grid-template-columns: 1fr; }
       .rw-mobile-toggle { display: inline-flex; }
       .rw-day .rw-commits.rw-commits-collapsed { display: none; }
+
+      /* Git activity 2-col layout collapses to stacked rows on phones —
+         calendar still scrolls horizontally if it overflows the viewport. */
+      .rw-git-layout { grid-template-columns: 1fr; }
 
       /* Cards browser: list ↔ reader takeover. By default the list shows;
          tapping an entry adds .reader-active to the browser, which swaps
@@ -1514,6 +1910,7 @@
     /* Narrow phones (≤480px): pack the header into two rows so the
        lastRefreshed chip + Refresh button don't squeeze the title. */
     @media (max-width: 480px) {
+      :root { --header-h: 5.75rem; }
       header {
         flex-wrap: wrap;
         gap: 0.5rem;
@@ -1551,8 +1948,8 @@
   <a href="#dashboard-section">Dashboard</a>
   <a href="#reminders-section">Reminders</a>
   <a href="#cards-section">Cards</a>
+  <a href="#figures-section">Figures</a>
   <a href="#vault-watch-section">Vault Watch</a>
-  <a href="#writing-section">Writing</a>
   <a href="#recent-work-section">Recent Work</a>
   <a href="#posts-section">Posts</a>
   <a href="#pipeline-section">Pipeline</a>
@@ -1599,6 +1996,17 @@
   </section>
 
   <!-- ── Vault Watch ───────────────────────────────────────────────── -->
+  <!-- ── Figures (project image galleries) ────────────────────────── -->
+  <section class="dashboard-section" id="figures-section">
+    <button class="section-toggle" onclick="toggleSection('figures-section')">
+      <h2 class="section-heading">Figures</h2>
+      <i data-lucide="chevron-down"></i>
+    </button>
+    <div class="section-body" id="figures-body">
+      <div class="loading">Loading figures...</div>
+    </div>
+  </section>
+
   <section class="dashboard-section" id="vault-watch-section">
     <button class="section-toggle" onclick="toggleSection('vault-watch-section')">
       <h2 class="section-heading">Vault Watch</h2>
@@ -1606,17 +2014,6 @@
     </button>
     <div class="section-body" id="vault-watch-body">
       <div class="loading">Loading vault watch...</div>
-    </div>
-  </section>
-
-  <!-- ── Writing progress ──────────────────────────────────────────── -->
-  <section class="dashboard-section" id="writing-section">
-    <button class="section-toggle" onclick="toggleSection('writing-section')">
-      <h2 class="section-heading">Writing</h2>
-      <i data-lucide="chevron-down"></i>
-    </button>
-    <div class="section-body" id="writing-body">
-      <div class="loading">Loading writing progress...</div>
     </div>
   </section>
 
@@ -1681,6 +2078,17 @@
     </div>
   </section>
 </main>
+
+<div class="lightbox-overlay" id="lightbox" hidden>
+  <button class="lightbox-close" type="button" aria-label="Close (Esc)">×</button>
+  <button class="lightbox-prev"  type="button" aria-label="Previous (←)">‹</button>
+  <button class="lightbox-next"  type="button" aria-label="Next (→)">›</button>
+  <figure class="lightbox-figure">
+    <img class="lightbox-img" alt="">
+    <figcaption class="lightbox-caption"></figcaption>
+  </figure>
+  <div class="lightbox-counter"></div>
+</div>
 
 <div class="modal-overlay" id="modal">
   <div class="modal">
@@ -2232,7 +2640,7 @@
       updateLastRefreshed(dashboardData && dashboardData.refreshed_at);
       renderCards(dashboardData);
       renderVaultWatch(dashboardData);
-      renderWriting(dashboardData);
+      renderFigures(dashboardData);
       renderReminders(dashboardData);
       renderRecentWork(dashboardData);
     } catch {
@@ -2242,7 +2650,7 @@
 
   function renderDashboardEmpty() {
     const msg = '<div class="empty">No snapshot yet — click Refresh to generate one.</div>';
-    ['cards-body', 'vault-watch-body', 'writing-body', 'reminders-body', 'recent-work-body'].forEach(id => {
+    ['cards-body', 'vault-watch-body', 'figures-body', 'reminders-body', 'recent-work-body'].forEach(id => {
       const el = document.getElementById(id);
       if (el) el.innerHTML = msg;
     });
@@ -2674,150 +3082,180 @@
     return renderNoteCardList(items, '00_Inbox', 'Inbox is empty.');
   }
 
-  // ── Writing progress (Phase 4) ───────────────
-  let _writingCharts = [];
-
-  function fmtNum(n) {
-    return (n || 0).toLocaleString();
-  }
-
-  function fmtDelta(d) {
-    if (d == null) return null;
-    if (d === 0) return '±0';
-    return (d > 0 ? '+' : '') + d.toLocaleString();
-  }
-
-  function renderWriting(data) {
-    const el = document.getElementById('writing-body');
-    if (!data || !data.writing) {
-      el.innerHTML = '<div class="empty">Writing progress not yet available — click Refresh.</div>';
+  // ── Figures (Phase 7) ────────────────────────
+  function renderFigures(data) {
+    const el = document.getElementById('figures-body');
+    if (!data || !data.figures) {
+      el.innerHTML = '<div class="empty">Figures not yet computed — click Refresh.</div>';
+      return;
+    }
+    const projects = (data.figures.projects) || [];
+    if (projects.length === 0) {
+      el.innerHTML = '<div class="empty">No projects registered. Add entries to <code>scripts/dashboard/figures.json</code>.</div>';
       return;
     }
 
-    _writingCharts.forEach((c) => { try { c.destroy(); } catch {} });
-    _writingCharts = [];
+    // Live-page link. project.page accepts three forms:
+    //   - absolute http(s) URL → used as-is (external sources, e.g. OECD)
+    //   - "/dashboard/..."     → same origin as the dashboard (port 4322)
+    //   - any other "/..."     → Astro dev server (port 4321), so the
+    //                            site's actual pages open in a new tab.
+    // After deploy the third branch should point at the production origin.
+    const liveLinkFor = (p) => {
+      if (!p.page) return '';
+      let href;
+      if (/^https?:\/\//i.test(p.page)) {
+        href = p.page;
+      } else if (p.page.startsWith('/dashboard/')) {
+        href = p.page;
+      } else {
+        href = `${window.location.protocol}//${window.location.hostname}:4321${p.page}`;
+      }
+      // stopPropagation so clicking the link doesn't also open the lightbox
+      // when the link sits inside the card button.
+      return `<a class="figure-page-link" href="${escapeHtml(href)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">Open →</a>`;
+    };
 
-    const w = data.writing;
-    const c = w.counts;
-    const s = w.sparklines || { dates: [], cards: [], blog: [], daily: [], ideas: [] };
-    const d = w.deltas || {};
-    const historyDays = s.dates.length;
-
-    const cards = [
-      {
-        key: 'cards',
-        label: 'Cards',
-        words: c.cards.words,
-        meta: `${c.cards.files} files`,
-        delta: d.cards?.d7,
-        color: 'var(--accent)',
-        series: s.cards,
-      },
-      {
-        key: 'blog',
-        label: 'Blog',
-        words: c.blog.words,
-        meta: `${c.blog.published_files} published · ${c.blog.draft_files} draft${c.blog.draft_files === 1 ? '' : 's'}`,
-        delta: d.blog?.d7,
-        color: 'var(--blue)',
-        series: s.blog,
-      },
-      {
-        key: 'daily',
-        label: 'Daily Notes',
-        words: c.daily.words,
-        meta: `${c.daily.files} entries`,
-        delta: d.daily?.d7,
-        color: 'var(--green)',
-        series: s.daily,
-      },
-      {
-        key: 'ideas',
-        label: 'Ideas',
-        words: c.ideas.words,
-        meta: `${c.ideas.inbox_files} inbox · ${c.ideas.literature_files} lit`,
-        delta: d.ideas?.d7,
-        color: 'var(--muted)',
-        series: s.ideas,
-      },
-    ];
-
-    el.innerHTML = `
-      <div class="kpi-row" style="grid-template-columns: repeat(4, 1fr);">
-        ${cards.map((card) => {
-          const deltaStr = fmtDelta(card.delta);
-          const deltaCls = card.delta == null ? '' : card.delta > 0 ? 'good' : card.delta < 0 ? 'warning' : '';
-          const deltaHtml = deltaStr ? ` <span class="kpi-metric ${deltaCls}" style="display:inline; font-size:0.75rem;">${deltaStr} / 7d</span>` : '';
-          return `
-            <div class="kpi-card writing-card">
-              <div class="kpi-label">${escapeHtml(card.label)}</div>
-              <div class="kpi-value">${fmtNum(card.words)}</div>
-              <div class="kpi-metric">${escapeHtml(card.meta)}${deltaHtml}</div>
-              <div class="sparkline-wrap">
-                <canvas class="sparkline" data-key="${card.key}"></canvas>
-              </div>
+    const cards = projects.map((p) => {
+      const titleHtml = escapeHtml(p.title);
+      const creditHtml = p.credit ? `<div class="figure-credit">${escapeHtml(p.credit)}</div>` : '';
+      const liveLink = liveLinkFor(p);
+      if (!p.has_any) {
+        const fileHints = p.images.map((i) => escapeHtml(i.file)).join(', ');
+        return `
+          <div class="figure-card missing">
+            <div class="figure-thumb">
+              <div>Not yet captured</div>
+              <div class="figure-hint">${fileHints}</div>
             </div>
-          `;
-        }).join('')}
-      </div>
-      <p class="writing-footer">
-        Captured ${fmtTime(w.captured_at)} ·
-        ${historyDays === 1 ? 'first capture today — sparklines fill in as snapshots accumulate' : `${historyDays} day${historyDays === 1 ? '' : 's'} of history`}
-      </p>
-    `;
+            <div class="figure-meta">
+              <div class="figure-title">${titleHtml}</div>
+              ${creditHtml}
+              ${liveLink}
+            </div>
+          </div>
+        `;
+      }
+      const cover = p.cover;
+      const countLabel = p.image_count > 1
+        ? `<div class="figure-count">${p.image_count} images</div>`
+        : '';
+      return `
+        <button class="figure-card" type="button" data-project-id="${escapeHtml(p.id)}">
+          <div class="figure-thumb"><img src="${escapeHtml(cover.url)}" alt="${titleHtml}" loading="lazy"></div>
+          <div class="figure-meta">
+            <div class="figure-title">${titleHtml}</div>
+            ${countLabel}
+            ${creditHtml}
+            ${liveLink}
+          </div>
+        </button>
+      `;
+    }).join('');
 
-    // Render one Chart.js sparkline per card.
-    const rootStyles = getComputedStyle(document.documentElement);
-    const fgFallback = rootStyles.getPropertyValue('--fg').trim();
-    for (const card of cards) {
-      const canvas = el.querySelector(`canvas[data-key="${card.key}"]`);
-      if (!canvas) continue;
+    el.innerHTML = `<div class="figures-grid">${cards}</div>`;
 
-      // If only one data point (or none), draw a flat marker so the
-      // sparkline area isn't empty.
-      const labels = s.dates.length > 0 ? s.dates : [w.today || ''];
-      const dataPts = card.series.length > 0 ? card.series : [card.words];
-      const cssVarName = card.color.replace(/var\(|\)/g, '');
-      const borderColor = rootStyles.getPropertyValue(cssVarName).trim() || fgFallback;
+    // Wire card clicks (event delegation would also work; explicit is fine
+    // because the section re-renders on every refresh).
+    el.querySelectorAll('.figure-card[data-project-id]').forEach((btn) => {
+      btn.addEventListener('click', () => openLightbox(btn.dataset.projectId));
+    });
 
-      const ctx = canvas.getContext('2d');
-      const chart = new Chart(ctx, {
-        type: 'line',
-        data: {
-          labels,
-          datasets: [{
-            data: dataPts,
-            borderColor,
-            borderWidth: 1.5,
-            pointRadius: dataPts.length === 1 ? 3 : 0,
-            pointHoverRadius: 4,
-            tension: 0.25,
-            fill: false,
-          }],
-        },
-        options: {
-          animation: false,
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: { display: false },
-            tooltip: {
-              displayColors: false,
-              callbacks: {
-                title: (items) => items[0].label,
-                label: (item) => `${fmtNum(item.parsed.y)} words`,
-              },
-            },
-          },
-          scales: {
-            x: { display: false },
-            y: { display: false, beginAtZero: false },
-          },
-        },
-      });
-      _writingCharts.push(chart);
-    }
+    lucide.createIcons();
   }
+
+  // ── Lightbox ─────────────────────────────────
+  let _lightboxState = { project: null, images: [], index: 0 };
+  let _lightboxKeyHandler = null;
+
+  function openLightbox(projectId, startIndex = 0) {
+    if (!dashboardData || !dashboardData.figures) return;
+    const project = dashboardData.figures.projects.find((p) => p.id === projectId);
+    if (!project || !project.has_any) return;
+    const visibleImages = project.images.filter((i) => i.exists);
+    if (visibleImages.length === 0) return;
+
+    _lightboxState = {
+      project,
+      images: visibleImages,
+      index: Math.min(Math.max(0, startIndex), visibleImages.length - 1),
+    };
+    renderLightbox();
+
+    const overlay = document.getElementById('lightbox');
+    overlay.classList.toggle('single', visibleImages.length <= 1);
+    overlay.removeAttribute('hidden');
+    document.body.style.overflow = 'hidden';
+
+    _lightboxKeyHandler = (e) => {
+      if (e.key === 'Escape') closeLightbox();
+      else if (e.key === 'ArrowRight') lightboxStep(1);
+      else if (e.key === 'ArrowLeft')  lightboxStep(-1);
+    };
+    document.addEventListener('keydown', _lightboxKeyHandler);
+
+    // Defer focus so the close button is reachable by keyboard immediately.
+    const closeBtn = overlay.querySelector('.lightbox-close');
+    if (closeBtn) closeBtn.focus();
+  }
+
+  function closeLightbox() {
+    const overlay = document.getElementById('lightbox');
+    overlay.setAttribute('hidden', '');
+    document.body.style.overflow = '';
+    if (_lightboxKeyHandler) {
+      document.removeEventListener('keydown', _lightboxKeyHandler);
+      _lightboxKeyHandler = null;
+    }
+    _lightboxState = { project: null, images: [], index: 0 };
+  }
+
+  function lightboxStep(delta) {
+    const s = _lightboxState;
+    if (!s.images || s.images.length === 0) return;
+    s.index = (s.index + delta + s.images.length) % s.images.length;
+    renderLightbox();
+  }
+
+  function renderLightbox() {
+    const s = _lightboxState;
+    if (!s.images || s.images.length === 0) return;
+    const img = s.images[s.index];
+    const overlay = document.getElementById('lightbox');
+    const imgEl = overlay.querySelector('.lightbox-img');
+    const capEl = overlay.querySelector('.lightbox-caption');
+    const counterEl = overlay.querySelector('.lightbox-counter');
+    imgEl.src = img.url;
+    imgEl.alt = (s.project && s.project.title) || '';
+    const titleStr = (s.project && s.project.title) || '';
+    capEl.textContent = [titleStr, img.caption].filter(Boolean).join(' — ');
+    counterEl.textContent = s.images.length > 1 ? `${s.index + 1} / ${s.images.length}` : '';
+  }
+
+  // Bind once at script load (script lives at end of body, so the lightbox
+  // markup is already in the DOM).
+  (function bindLightbox() {
+    const overlay = document.getElementById('lightbox');
+    if (!overlay) return;
+    overlay.addEventListener('click', (e) => {
+      if (e.target === overlay) closeLightbox();
+    });
+    overlay.querySelector('.lightbox-close').addEventListener('click', closeLightbox);
+    overlay.querySelector('.lightbox-prev').addEventListener('click', () => lightboxStep(-1));
+    overlay.querySelector('.lightbox-next').addEventListener('click', () => lightboxStep(1));
+
+    // Touch swipe (mobile). Threshold ~50px to avoid accidental triggers.
+    let touchStartX = null;
+    overlay.addEventListener('touchstart', (e) => {
+      touchStartX = e.changedTouches[0].clientX;
+    }, { passive: true });
+    overlay.addEventListener('touchend', (e) => {
+      if (touchStartX == null) return;
+      const dx = e.changedTouches[0].clientX - touchStartX;
+      if (Math.abs(dx) > 50) lightboxStep(dx < 0 ? 1 : -1);
+      touchStartX = null;
+    });
+  })();
 
   // ── Reminders (Phase 5) ──────────────────────
   function renderReminders(data) {
@@ -2988,9 +3426,8 @@
     }
 
     const git = activity.git || { ollama_available: false, model: null, days: [] };
-    const cowork = activity.cowork || { ollama_available: false, model: null, sessions: [] };
-    const claudeExports = activity.claude_exports || { ollama_available: false, model: null, exports: [] };
     const vaultSessions = activity.vault_sessions || { sessions: [] };
+    const working = (data && data.working_conversations) || { ollama_available: false, model: null, items: [], total: 0, returned: 0 };
 
     // LLM availability is consistent across streams (same client). Pick git's
     // status as the canonical signal for the header tag.
@@ -2999,7 +3436,7 @@
     const totalCommits = git.days.reduce((s, d) => s + d.commits.length, 0);
 
     const headerBits = [
-      `<span>${totalCommits} commits · ${git.days.length} day${git.days.length === 1 ? '' : 's'} · ${cowork.sessions.length} cowork session${cowork.sessions.length === 1 ? '' : 's'}</span>`,
+      `<span>${totalCommits} commits · ${git.days.length} day${git.days.length === 1 ? '' : 's'} · ${working.returned} of ${working.total} conversation${working.total === 1 ? '' : 's'}</span>`,
       ollamaUp && model
         ? `<span class="rw-llm-tag rw-llm-tag-up">summarized via ${escapeHtml(model)}</span>`
         : `<span class="rw-llm-tag rw-llm-tag-down">Ollama unavailable — raw rendering</span>`,
@@ -3007,42 +3444,25 @@
 
     const streams = [];
 
-    // Git stream — always shown.
-    const gitBlocks = git.days.length === 0
-      ? '<div class="empty">No commits in the last 7 days.</div>'
-      : git.days.map((day) => renderActivityDay(day)).join('');
+    // Git stream — heatmap (no longer the per-day text log).
+    const gitBlocks = renderGitHeatmap(git);
     streams.push(`
       <div class="rw-stream">
-        <h3 class="rw-stream-heading"><i data-lucide="git-commit-horizontal" style="width:14px;height:14px;vertical-align:-2px;"></i> Git activity</h3>
+        <h3 class="rw-stream-heading"><i data-lucide="git-commit-horizontal" style="width:14px;height:14px;vertical-align:-2px;"></i> Git activity <span class="rw-stream-count">last ${git.heatmap_window_days || 84} days</span></h3>
         ${gitBlocks}
       </div>
     `);
 
-    // Cowork stream — always shown.
-    const coworkBlocks = cowork.sessions.length === 0
-      ? '<div class="empty">No Cowork sessions in the last 7 days.</div>'
-      : cowork.sessions.map((s) => renderCoworkSession(s)).join('');
+    // Working conversations — unified stream over cowork + chat + debrief.
+    const workingBlocks = working.items.length === 0
+      ? '<div class="empty">No working conversations yet.</div>'
+      : `<div class="rw-conv-grid">${working.items.map((c) => renderWorkingConversation(c)).join('')}</div>`;
     streams.push(`
       <div class="rw-stream">
-        <h3 class="rw-stream-heading"><i data-lucide="terminal" style="width:14px;height:14px;vertical-align:-2px;"></i> Cowork sessions</h3>
-        ${coworkBlocks}
+        <h3 class="rw-stream-heading"><i data-lucide="messages-square" style="width:14px;height:14px;vertical-align:-2px;"></i> Working conversations <span class="rw-stream-count">${working.returned} of ${working.total}</span></h3>
+        ${workingBlocks}
       </div>
     `);
-
-    // Claude.ai exports — only render if non-empty.
-    if (claudeExports.exports.length > 0) {
-      const matchedTotal = claudeExports.matched_total || claudeExports.exports.length;
-      const sourceLabel = claudeExports.source ? ` from ${escapeHtml(claudeExports.source)}` : '';
-      const countLabel = matchedTotal > claudeExports.exports.length
-        ? `<span class="rw-stream-count">showing ${claudeExports.exports.length} of ${matchedTotal}${sourceLabel}</span>`
-        : `<span class="rw-stream-count">${claudeExports.exports.length} chat${claudeExports.exports.length === 1 ? '' : 's'}${sourceLabel}</span>`;
-      streams.push(`
-        <div class="rw-stream">
-          <h3 class="rw-stream-heading"><i data-lucide="messages-square" style="width:14px;height:14px;vertical-align:-2px;"></i> Claude.ai chat exports ${countLabel}</h3>
-          ${claudeExports.exports.map((e) => renderClaudeExport(e)).join('')}
-        </div>
-      `);
-    }
 
     // Vault session digests — only render if non-empty.
     if (vaultSessions.sessions.length > 0) {
@@ -3062,40 +3482,96 @@
     lucide.createIcons();
   }
 
-  function renderCoworkSession(s) {
-    const dateStr = (() => {
-      const [yy, mm, dd] = (s.date || '').split('-').map(Number);
-      if (!yy) return s.date || '';
-      return new Date(yy, mm - 1, dd).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
-    })();
-    const labelClass = s.project_label === 'site' ? 'rw-repo-site' : s.project_label === 'vault' ? 'rw-repo-vault' : '';
-    const projectBadge = `<span class="rw-repo-badge ${labelClass}">${escapeHtml(s.project_label)}</span>`;
-    const summaryBlock = s.summary
-      ? `<div class="rw-summary">${renderSummaryMarkdown(s.summary)}</div>`
-      : `<div class="rw-fallback">${escapeHtml(s.first_prompt || '(no prompt)')}</div>`;
+  function fmtConvDate(iso) {
+    if (typeof iso !== 'string' || !iso) return '';
+    const d = new Date(iso);
+    if (Number.isNaN(d.getTime())) return iso.slice(0, 10);
+    return d.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
+  }
+
+  function artifactHref(a) {
+    if (!a) return '#';
+    if (a.link_kind === 'artifact-file' && a.path) {
+      return `/dashboard/artifacts/${a.path}`;
+    }
+    if (a.link_kind === 'obsidian' && a.path) {
+      const vault = encodeURIComponent('PostLiterate');
+      const file = encodeURIComponent(a.path);
+      return `obsidian://open?vault=${vault}&file=${file}`;
+    }
+    if (a.link_kind === 'http' && a.path) return a.path;
+    if (a.link_kind === 'repo' && a.path) return a.path;
+    return '#';
+  }
+
+  function renderArtifactsRail(artifacts) {
+    if (!Array.isArray(artifacts) || artifacts.length === 0) return '';
+    const items = artifacts.map((a) => {
+      const href = artifactHref(a);
+      const safeHref = escapeHtml(href);
+      const label = escapeHtml(a.name || a.original_title || 'artifact');
+      return `<li><a href="${safeHref}" target="_blank" rel="noopener">${label}</a></li>`;
+    }).join('');
     return `
-      <div class="rw-day">
-        <div class="rw-day-heading">
-          <span class="rw-day-date">${dateStr} ${projectBadge}</span>
-          <span class="rw-day-meta">${escapeHtml(s.session_id.slice(0, 8))} · ${s.prompt_count} prompt${s.prompt_count === 1 ? '' : 's'}</span>
-        </div>
-        ${summaryBlock}
-      </div>
+      <aside class="rw-artifacts">
+        <div class="rw-artifacts-label">${artifacts.length} artifact${artifacts.length === 1 ? '' : 's'}</div>
+        <ul>${items}</ul>
+      </aside>
     `;
   }
 
-  function renderClaudeExport(e) {
-    const summaryBlock = e.summary
-      ? `<div class="rw-summary">${renderSummaryMarkdown(e.summary)}</div>`
-      : `<div class="rw-fallback">${escapeHtml(e.first_prompt || '(no preview)')}</div>`;
-    const dateStr = e.updated_at || e.created_at || '';
+  function renderStartingQuestion(firstPrompt) {
+    if (typeof firstPrompt !== 'string' || !firstPrompt.trim()) return '';
+    const trimmed = firstPrompt.length > 240
+      ? firstPrompt.slice(0, 240).replace(/\s+\S*$/, '') + '…'
+      : firstPrompt;
+    return `<div class="rw-started"><span class="rw-started-text">${escapeHtml(trimmed)}</span></div>`;
+  }
+
+  function renderWorkingConversation(c) {
+    const typeLabels = { cowork: 'cowork', chat: 'chat', debrief: 'debrief' };
+    const typeClass = `rw-type-${c.type}`;
+    const typeBadge = `<span class="rw-repo-badge ${typeClass}">${escapeHtml(typeLabels[c.type] || c.type)}</span>`;
+
+    let projectBadge = '';
+    if (c.project_label === 'site') projectBadge = `<span class="rw-repo-badge rw-repo-site">site</span>`;
+    else if (c.project_label === 'vault') projectBadge = `<span class="rw-repo-badge rw-repo-vault">vault</span>`;
+
+    const dateStr = fmtConvDate(c.last_activity_at);
+    const titleText = escapeHtml(c.title || c.id || '(untitled)');
+    const idShort = typeof c.id === 'string' ? c.id.slice(0, 8) : '';
+
+    let metaBits = [typeBadge];
+    if (projectBadge) metaBits.push(projectBadge);
+    if (dateStr) metaBits.push(`<span class="rw-day-meta">${escapeHtml(dateStr)}</span>`);
+    if (typeof c.message_count === 'number' && c.message_count > 0) {
+      metaBits.push(`<span class="rw-day-meta">${c.message_count} msg${c.message_count === 1 ? '' : 's'}</span>`);
+    }
+    if (idShort) metaBits.push(`<span class="rw-day-meta">${escapeHtml(idShort)}</span>`);
+
+    const startingBlock = renderStartingQuestion(c.first_prompt);
+
+    let proseBlock = '';
+    if (c.summary && c.summary_status === 'ready') {
+      proseBlock = `<div class="rw-summary">${renderSummaryMarkdown(c.summary)}</div>`;
+    } else if (c.summary_status === 'pending') {
+      proseBlock = `<div class="rw-fallback">summary pending — Ollama unavailable or not yet run for this entry</div>`;
+    }
+
+    const hasArtifacts = Array.isArray(c.artifacts) && c.artifacts.length > 0;
+    const bodyClass = hasArtifacts ? 'rw-conv-body' : 'rw-conv-body no-artifacts';
+
     return `
-      <div class="rw-day">
-        <div class="rw-day-heading">
-          <span class="rw-day-date">${escapeHtml(e.name || e.file)}</span>
-          <span class="rw-day-meta">${escapeHtml(dateStr.slice(0, 10))} · ${e.human_message_count} msg${e.human_message_count === 1 ? '' : 's'}</span>
+      <div class="rw-day rw-conv-card">
+        <div class="rw-conv-title">${titleText}</div>
+        <div class="rw-conv-meta">${metaBits.join('')}</div>
+        <div class="${bodyClass}">
+          <div class="rw-conv-left">
+            ${startingBlock}
+            ${proseBlock}
+          </div>
+          ${renderArtifactsRail(c.artifacts)}
         </div>
-        ${summaryBlock}
       </div>
     `;
   }
@@ -3115,6 +3591,94 @@
         ${previewBlock}
       </div>
     `;
+  }
+
+  // Git heatmap helpers
+  function heatLevel(count) {
+    if (count <= 0) return 0;
+    if (count <= 2) return 1;
+    if (count <= 5) return 2;
+    if (count <= 9) return 3;
+    return 4;
+  }
+
+  function fmtHeatmapDate(yyyymmdd) {
+    const [yy, mm, dd] = yyyymmdd.split('-').map(Number);
+    return new Date(yy, mm - 1, dd).toLocaleDateString(undefined, {
+      weekday: 'short', month: 'short', day: 'numeric', year: 'numeric',
+    });
+  }
+
+  function renderGitHeatmap(git) {
+    const buckets = Array.isArray(git.heatmap) ? git.heatmap : [];
+    if (buckets.length === 0) {
+      return '<div class="empty">No commit history available.</div>';
+    }
+    const leadPad = buckets[0]?.day_of_week ?? 0;
+    const cells = [];
+    for (let i = 0; i < leadPad; i++) {
+      cells.push('<div class="rw-heatmap-cell lvl-0" aria-hidden="true"></div>');
+    }
+    for (const b of buckets) {
+      const lvl = heatLevel(b.count);
+      const breakdown = b.count > 0
+        ? ` — site: ${b.site_count}, vault: ${b.vault_count}`
+        : '';
+      const title = `${fmtHeatmapDate(b.date)} · ${b.count} commit${b.count === 1 ? '' : 's'}${breakdown}`;
+      const interactive = b.count > 0 ? '' : ' tabindex="-1" disabled';
+      cells.push(
+        `<button type="button" class="rw-heatmap-cell lvl-${lvl}" data-date="${b.date}" title="${escapeHtml(title)}" onclick="onHeatmapCellClick(this)"${interactive}></button>`
+      );
+    }
+    const dayLabels = ['', 'Mon', '', 'Wed', '', 'Fri', ''].map(
+      (l) => `<span>${l}</span>`
+    ).join('');
+    const totalCommits = buckets.reduce((s, b) => s + b.count, 0);
+    const activeDays = buckets.filter((b) => b.count > 0).length;
+    const legendCells = [0, 1, 2, 3, 4]
+      .map((lvl) => `<button type="button" class="rw-heatmap-cell lvl-${lvl}" disabled></button>`)
+      .join('');
+    return `
+      <div class="rw-git-layout">
+        <div class="rw-git-cal">
+          <div class="rw-heatmap">
+            <div class="rw-heatmap-day-labels">${dayLabels}</div>
+            <div class="rw-heatmap-grid" id="gitHeatmapGrid">${cells.join('')}</div>
+          </div>
+          <div class="rw-heatmap-meta">
+            <span>${totalCommits} commits across ${activeDays} active day${activeDays === 1 ? '' : 's'}</span>
+            <div class="rw-heatmap-legend">
+              <span>less</span>${legendCells}<span>more</span>
+            </div>
+          </div>
+        </div>
+        <div class="rw-heatmap-detail empty" id="gitHeatmapDetail">click a square to see that day's commits</div>
+      </div>
+    `;
+  }
+
+  function onHeatmapCellClick(btn) {
+    const date = btn.getAttribute('data-date');
+    if (!date) return;
+    document.querySelectorAll('#gitHeatmapGrid .rw-heatmap-cell.is-selected')
+      .forEach((el) => el.classList.remove('is-selected'));
+    btn.classList.add('is-selected');
+    const git = (dashboardData && dashboardData.activity && dashboardData.activity.git) || {};
+    const detailedDay = (git.days || []).find((d) => d.date === date);
+    const bucket = (git.heatmap || []).find((b) => b.date === date);
+    const day = detailedDay || (bucket
+      ? { date: bucket.date, commits: bucket.commits || [], summary: null }
+      : null);
+    const el = document.getElementById('gitHeatmapDetail');
+    if (!el) return;
+    if (!day || day.commits.length === 0) {
+      el.classList.add('empty');
+      el.textContent = 'No commits on this day.';
+      return;
+    }
+    el.classList.remove('empty');
+    el.innerHTML = renderActivityDay(day);
+    if (window.lucide) lucide.createIcons();
   }
 
   function renderActivityDay(day) {
@@ -3296,12 +3860,6 @@
     fetchDevStatus();
   }, 10000);
 
-  // Chart.js bakes colors into the canvas at construction time, so we
-  // re-render the sparklines when the system color scheme flips.
-  // (Pure-CSS sections — Vault Watch, Cards, KPI cards — update on their own.)
-  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
-    if (dashboardData) renderWriting(dashboardData);
-  });
 </script>
 
 </body>

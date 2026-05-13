@@ -33,6 +33,7 @@
  * }
  */
 
+import { createHash } from 'node:crypto';
 import { existsSync, readFileSync, readdirSync, statSync, mkdirSync, writeFileSync, unlinkSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { join, dirname } from 'node:path';
@@ -40,6 +41,8 @@ import { homedir } from 'node:os';
 import { fileURLToPath } from 'node:url';
 import { isAvailable, getOllamaConfig } from '../lib/ollama.mjs';
 import { summarize } from '../lib/summary-cache.mjs';
+import { saveNormalized, shouldReingest, getExistingSummary, loadByKey, pruneStale } from '../lib/conversation-store.mjs';
+import { extractArtifacts, stripArtifactTags } from '../lib/artifact-extractor.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const DROP_DIR = join(homedir(), 'Documents/postliterate-chat-exports');
@@ -61,15 +64,27 @@ const POSTLITERATE_TITLE_KEYWORDS = [
 ];
 
 const MAX_RETURNED = Number(process.env.CLAUDE_EXPORT_MAX) || 25;
-const MAX_MESSAGES_FOR_PROMPT = 30;
+// Keep the prompt comfortably under gemma4:e4b's 4096-token context.
+// 15 msgs × 350 chars ≈ 1300 tokens for the transcript, leaving plenty of
+// room for the system prompt and the model's output.
+const MAX_MESSAGES_FOR_PROMPT = 15;
+const MAX_CHARS_PER_MESSAGE = 350;
+
+// Skip claude.ai chats with very few messages — typically abandoned threads,
+// typos, or one-shot lookups that aren't worth surfacing on the dashboard.
+// 4 messages = 2 round-trips at minimum; below that the conversation didn't
+// really go anywhere.
+const MIN_MESSAGES = Number(process.env.CLAUDE_EXPORT_MIN_MESSAGES) || 4;
 
 const SYSTEM_PROMPT =
   "You summarize a single Claude.ai conversation between Irwin Chen and the assistant. " +
   "It's part of a book project called 'After the Book' on literacy, orality, and AI. " +
-  "You see both Irwin's questions and Claude's responses. Describe in third person what was discussed and what was concluded. " +
-  "DO NOT write in first person as Irwin.\n\n" +
-  "Output exactly 2-4 markdown bullets, ONE PER LINE, each starting with '- '. " +
-  "Each bullet is one short sentence. No preamble, no headers, no quoting verbatim.";
+  "You see both Irwin's questions and Claude's responses. Use third person — DO NOT write as Irwin.\n\n" +
+  "Write 2-3 sentences of plain prose (no bullets, no headers, no bold). " +
+  "Sentence 1: what Irwin was trying to figure out, build, or work through — the actual question driving the conversation. " +
+  "Sentence 2-3: how the conversation evolved — what got proposed, what got rejected or refined, what was concluded or left open. " +
+  "Be specific: name books, authors, files, or concrete decisions rather than gesturing at them. " +
+  "Don't restate the opening prompt verbatim — the dashboard already shows it separately.";
 
 // ── Zip discovery ───────────────────────────────────────────────
 function findLatestZip() {
@@ -171,8 +186,14 @@ function buildPrompt(conv) {
   const msgs = conv.chat_messages || [];
   const lines = msgs.slice(0, MAX_MESSAGES_FOR_PROMPT).map((m) => {
     const role = m.sender || 'unknown';
-    const text = String(m.text || '').replace(/\s+/g, ' ').trim();
-    const truncated = text.length > 600 ? text.slice(0, 600) + '…' : text;
+    // Strip <antArtifact> XML — the prompt budget is too tight to spend on
+    // file contents, and the summarizer doesn't need them to describe the
+    // conversation.
+    const raw = stripArtifactTags(String(m.text || ''));
+    const text = raw.replace(/\s+/g, ' ').trim();
+    const truncated = text.length > MAX_CHARS_PER_MESSAGE
+      ? text.slice(0, MAX_CHARS_PER_MESSAGE) + '…'
+      : text;
     return `[${role}] ${truncated}`;
   }).join('\n\n');
   const more = msgs.length > MAX_MESSAGES_FOR_PROMPT
@@ -183,6 +204,44 @@ Created: ${conv.created_at || ''}
 Messages: ${msgs.length}${more}
 
 ${lines}`;
+}
+
+// Hash the system prompt into the source key so prompt changes invalidate
+// existing normalized records and force re-summarization on next refresh.
+const SYSTEM_PROMPT_HASH = createHash('sha256').update(SYSTEM_PROMPT).digest('hex').slice(0, 8);
+
+function sourceKeyFor(conv) {
+  return `${SYSTEM_PROMPT_HASH}|${conv.uuid}|${conv.updated_at || conv.created_at || ''}`;
+}
+
+function buildNormalized(conv, { summary, summaryStatus, artifacts }) {
+  const msgs = conv.chat_messages || [];
+  const firstHuman = msgs.find((m) => m.sender === 'human');
+  const first_prompt = firstHuman ? String(firstHuman.text || '').slice(0, 200) : null;
+  const created = conv.created_at || conv.updated_at || new Date().toISOString();
+  const updated = conv.updated_at || conv.created_at || created;
+
+  return {
+    schema_version: 1,
+    id: conv.uuid,
+    type: 'chat',
+    project_label: null,
+    project_path: null,
+    title: conv.name || '(untitled)',
+    started_at: created,
+    last_activity_at: updated,
+    message_count: msgs.length,
+    first_prompt,
+    summary,
+    summary_status: summaryStatus,
+    artifacts,
+    source_ref: {
+      kind: 'chat',
+      uuid: conv.uuid,
+      source_key: sourceKeyFor(conv),
+      slim_cache: 'snapshots/claude-archive/postliterate.json',
+    },
+  };
 }
 
 // ── Main export ─────────────────────────────────────────────────
@@ -231,34 +290,77 @@ export async function getClaudeExports() {
     (b.updated_at || b.created_at || '').localeCompare(a.updated_at || a.created_at || '')
   );
 
-  const candidates = slim.slice(0, MAX_RETURNED);
+  // Normalize EVERY non-trivial matched conversation (not just the top
+  // MAX_RETURNED). The final dashboard cap happens in the aggregator.
+  // shouldReingest skips unchanged conversations so this is cheap after
+  // the first run.
+  const keptUuids = slim
+    .filter((c) => c.uuid && (c.chat_messages || []).length >= MIN_MESSAGES)
+    .map((c) => c.uuid);
+  pruneStale('chat', keptUuids);
 
   const exports = [];
-  for (const conv of candidates) {
+  for (const conv of slim) {
+    if (!conv.uuid) continue;
     const msgs = conv.chat_messages || [];
+    if (msgs.length < MIN_MESSAGES) continue;
     const human_count = msgs.filter((m) => m.sender === 'human').length;
     const firstHuman = msgs.find((m) => m.sender === 'human');
     const first_prompt = firstHuman ? String(firstHuman.text || '').slice(0, 200) : '';
+    const sourceKey = sourceKeyFor(conv);
+    const stale = shouldReingest('chat', conv.uuid, sourceKey);
 
-    let convSummary = null;
-    if (ollamaUp && msgs.length > 0) {
+    let convSummary = stale ? null : getExistingSummary('chat', conv.uuid);
+    let summaryStatus;
+    let artifacts = [];
+
+    if (msgs.length === 0) {
+      summaryStatus = 'skipped';
+    } else if (convSummary) {
+      summaryStatus = 'ready';
+    } else if (ollamaUp) {
       convSummary = await summarize({
         system: SYSTEM_PROMPT,
         prompt: buildPrompt(conv),
-        label: `claude-export-${conv.uuid?.slice(0, 8) || 'noid'}`,
+        label: `claude-export-${conv.uuid.slice(0, 8)}`,
       });
+      summaryStatus = convSummary ? 'ready' : 'pending';
+    } else {
+      summaryStatus = 'pending';
     }
 
-    exports.push({
-      uuid: conv.uuid,
-      name: conv.name,
-      created_at: conv.created_at,
-      updated_at: conv.updated_at,
-      message_count: msgs.length,
-      human_message_count: human_count,
-      first_prompt,
-      summary: convSummary,
-    });
+    // Re-extract artifacts when source changed; otherwise reuse the prior list.
+    if (stale && msgs.length > 0) {
+      for (let i = 0; i < msgs.length; i++) {
+        const text = msgs[i]?.text;
+        if (typeof text !== 'string' || !text.includes('<antArtifact')) continue;
+        const descriptors = extractArtifacts(text, { uuid: conv.uuid, messageIndex: i });
+        for (const d of descriptors) artifacts.push(d);
+      }
+    } else {
+      const prior = loadByKey('chat', conv.uuid);
+      artifacts = Array.isArray(prior?.artifacts) ? prior.artifacts : [];
+    }
+
+    // Side effect: write normalized JSON for the working-conversations aggregator.
+    try {
+      saveNormalized(buildNormalized(conv, { summary: convSummary, summaryStatus, artifacts }));
+    } catch (err) {
+      console.warn(`  claude-exports saveNormalized failed (${conv.uuid?.slice(0, 8)}): ${err.message}`);
+    }
+
+    if (exports.length < MAX_RETURNED) {
+      exports.push({
+        uuid: conv.uuid,
+        name: conv.name,
+        created_at: conv.created_at,
+        updated_at: conv.updated_at,
+        message_count: msgs.length,
+        human_message_count: human_count,
+        first_prompt,
+        summary: convSummary,
+      });
+    }
   }
 
   return {

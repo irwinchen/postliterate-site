@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-05-01T19:22:30.470Z",
+  "generated_at": "2026-05-13T19:28:40.150Z",
   "scope": {
     "past_days": 3,
     "workflow": "blog-first",
@@ -12,8 +12,8 @@
     ]
   },
   "metrics": {
-    "blog_posts_published_this_period": 1,
-    "blog_velocity_per_week": 1,
+    "blog_posts_published_this_period": 0,
+    "blog_velocity_per_week": 0,
     "blog_velocity_target": 1.5,
     "on_target": false,
     "daily_notes_blog_ready": 3,
@@ -249,162 +249,162 @@
   ],
   "website_activity": [
     {
-      "id": "site-commit-314c5d5",
+      "id": "site-commit-7a48f5b",
       "type": "commit",
-      "title": "unpublish: Deep Reading vs. Dopamine",
-      "date": "2026-05-01T15:22:29-04:00",
+      "title": "Dashboard: mobile tab view, working title hero, Outstanding Sources widened",
+      "date": "2026-05-10T10:02:19-04:00",
       "status": "pending",
       "notes": null
     },
     {
-      "id": "site-commit-ede1ced",
+      "id": "site-commit-0f7fe8f",
       "type": "commit",
-      "title": "republish: thoth-the-original-tech-bro",
-      "date": "2026-04-30T15:57:07-04:00",
+      "title": "Add /corpus screenshot to figures",
+      "date": "2026-05-13T12:27:50-04:00",
       "status": "pending",
       "notes": null
     },
     {
-      "id": "site-commit-1a18c38",
+      "id": "site-commit-440f462",
       "type": "commit",
-      "title": "republish: thoth-the-original-tech-bro",
-      "date": "2026-04-30T15:51:03-04:00",
+      "title": "/corpus copy: rewrite header + drop Source Transparency tags from footer",
+      "date": "2026-05-13T12:26:44-04:00",
       "status": "pending",
       "notes": null
     },
     {
-      "id": "site-commit-35aaf52",
+      "id": "site-commit-15c6995",
       "type": "commit",
-      "title": "colophon: update body font to Alegreya",
-      "date": "2026-04-30T11:48:35-04:00",
+      "title": "Swap /corpus to CorpusBubbles; remove old treemap",
+      "date": "2026-05-13T12:06:46-04:00",
       "status": "pending",
       "notes": null
     },
     {
-      "id": "site-commit-10e6df3",
+      "id": "site-commit-53970c7",
       "type": "commit",
-      "title": "style: switch body font to Alegreya, tighten figure spacing",
-      "date": "2026-04-30T11:09:33-04:00",
+      "title": "Rewrite corpus-bubbles as d3 zoomable circle pack",
+      "date": "2026-05-12T21:50:53-04:00",
       "status": "pending",
       "notes": null
     },
     {
-      "id": "site-commit-107abaf",
+      "id": "site-commit-1a34aff",
       "type": "commit",
-      "title": "republish: thoth-the-original-tech-bro",
-      "date": "2026-04-30T09:22:57-04:00",
+      "title": "phases 1-4 of corpus-bubbles redesign",
+      "date": "2026-05-12T14:54:58-04:00",
       "status": "pending",
       "notes": null
     },
     {
-      "id": "site-commit-09359d9",
+      "id": "site-commit-7b3b949",
       "type": "commit",
-      "title": "republish: thoth-the-original-tech-bro",
-      "date": "2026-04-30T09:21:08-04:00",
+      "title": "Add corpus treemap interactive figure",
+      "date": "2026-05-12T16:14:32Z",
       "status": "pending",
       "notes": null
     },
     {
-      "id": "site-commit-d665d8b",
+      "id": "site-commit-cc6a595",
       "type": "commit",
-      "title": "republish: thoth-the-original-tech-bro",
-      "date": "2026-04-30T09:20:18-04:00",
+      "title": "DESIGN.md: log Phase 6 follow-up + operational gotchas",
+      "date": "2026-05-09T17:08:17-04:00",
       "status": "pending",
       "notes": null
     },
     {
-      "id": "site-commit-ed4425c",
+      "id": "site-commit-877b7a0",
       "type": "commit",
-      "title": "republish: thoth-the-original-tech-bro",
-      "date": "2026-04-30T09:06:47-04:00",
+      "title": "Mini: auto git-pull off by default, opt-in via INSTALL_GITPULL=1",
+      "date": "2026-05-09T15:34:29-04:00",
       "status": "pending",
       "notes": null
     },
     {
-      "id": "site-commit-6dbf371",
+      "id": "site-commit-ce58c2e",
       "type": "commit",
-      "title": "republish: thoth-the-original-tech-bro",
-      "date": "2026-04-30T09:05:18-04:00",
+      "title": "claude-exports: zip-aware ingestion, PostLiterate title filter",
+      "date": "2026-05-09T14:32:30-04:00",
       "status": "pending",
       "notes": null
     },
     {
-      "id": "site-commit-4a2bf1f",
+      "id": "site-commit-24be748",
       "type": "commit",
-      "title": "publish: thoth-the-original-tech-bro",
-      "date": "2026-04-30T08:59:05-04:00",
+      "title": "Concurrent-refresh guard + tighter Ollama timeout",
+      "date": "2026-05-09T13:49:06-04:00",
       "status": "pending",
       "notes": null
     },
     {
-      "id": "site-commit-4b3009c",
+      "id": "site-commit-6220d29",
       "type": "commit",
-      "title": "republish: i-could-never-explain-what-i-did",
-      "date": "2026-04-15T20:55:26-04:00",
+      "title": "Phase 6 (Slice 2): cowork sessions, claude.ai exports, vault digests",
+      "date": "2026-05-09T13:40:42-04:00",
       "status": "pending",
       "notes": null
     },
     {
-      "id": "site-commit-f30c5a6",
+      "id": "site-commit-29d876e",
       "type": "commit",
-      "title": "republish: Why Are You Talking to It Like Its a Person",
-      "date": "2026-04-14T20:08:56-04:00",
+      "title": "Vault Watch: blog-card previews; remove redundant Activity Log",
+      "date": "2026-05-09T10:49:40-04:00",
       "status": "pending",
       "notes": null
     },
     {
-      "id": "site-commit-373336e",
+      "id": "site-commit-e410e58",
       "type": "commit",
-      "title": "widen main body text column from 65ch to 75ch",
-      "date": "2026-04-12T19:34:43-04:00",
+      "title": "Switch dashboard Ollama model to gemma4:e4b",
+      "date": "2026-05-09T10:38:26-04:00",
       "status": "pending",
       "notes": null
     },
     {
-      "id": "site-commit-838fc38",
+      "id": "site-commit-0f25dd0",
       "type": "commit",
-      "title": "republish: i-could-never-explain-what-i-did",
-      "date": "2026-04-12T19:27:22-04:00",
+      "title": "Recent Work: 2-col layout, real markdown bullets, local-date parsing",
+      "date": "2026-05-09T10:36:31-04:00",
       "status": "pending",
       "notes": null
     },
     {
-      "id": "site-commit-d9813ee",
+      "id": "site-commit-906aa30",
       "type": "commit",
-      "title": "republish: Why hearing an author talk about their book isn't the same as reading it",
-      "date": "2026-04-12T15:35:56-04:00",
+      "title": "Untrack scripts/dashboard/snapshots/latest.json",
+      "date": "2026-05-08T22:14:13-04:00",
       "status": "pending",
       "notes": null
     },
     {
-      "id": "site-commit-10b68a0",
+      "id": "site-commit-54feab4",
       "type": "commit",
-      "title": "republish: Why Are You Talking to It Like Its a Person",
-      "date": "2026-04-12T15:35:48-04:00",
+      "title": "Phase 6 (Slice 1): Ollama summarization + git activity feed",
+      "date": "2026-05-08T21:29:09-04:00",
       "status": "pending",
       "notes": null
     },
     {
-      "id": "site-commit-b09de6a",
+      "id": "site-commit-62fc3c3",
       "type": "commit",
-      "title": "republish: i-could-never-explain-what-i-did",
-      "date": "2026-04-12T15:19:19-04:00",
+      "title": "Phase 5: Reminders (TASKS.md) + outstanding-sources widening",
+      "date": "2026-05-08T20:48:59-04:00",
       "status": "pending",
       "notes": null
     },
     {
-      "id": "site-commit-2c0fe00",
+      "id": "site-commit-844fd10",
       "type": "commit",
-      "title": "publish: i-could-never-explain-what-i-did",
-      "date": "2026-04-12T15:04:26-04:00",
+      "title": "Phase 4: Writing Progress + dashboard polish (dark mode, Obsidian icon, concepts)",
+      "date": "2026-05-08T20:17:14-04:00",
       "status": "pending",
       "notes": null
     },
     {
-      "id": "site-commit-331fcb6",
+      "id": "site-commit-6367177",
       "type": "commit",
-      "title": "chore: extract Virgil Reader to irwinchen/virgil-reader",
-      "date": "2026-04-04T10:52:48-04:00",
+      "title": "Add writing rules: never write as Irwin, inline code for suggested content",
+      "date": "2026-05-08T19:31:47-04:00",
       "status": "pending",
       "notes": null
     }

@@ -22,12 +22,14 @@ import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { getCards } from './sources/cards.mjs';
 import { getVaultWatch } from './sources/vault-watch.mjs';
-import { getWritingProgress } from './sources/writing-progress.mjs';
+import { getFigures } from './sources/figures.mjs';
 import { getTodos } from './sources/todos.mjs';
 import { getGitActivity } from './sources/git-activity.mjs';
 import { getCoworkSessions } from './sources/cowork-sessions.mjs';
 import { getClaudeExports } from './sources/claude-exports.mjs';
 import { getVaultSessions } from './sources/vault-sessions.mjs';
+import { getSessionDebriefs } from './sources/session-debriefs.mjs';
+import { getWorkingConversations } from './sources/working-conversations.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const SNAPSHOTS_DIR = join(__dirname, 'snapshots');
@@ -43,9 +45,11 @@ export async function refresh() {
     refreshed_at: new Date().toISOString(),
     cards: null,       // Phase 2 — parse 06_Meta/Book/Cards/INDEX.md
     vault_watch: null, // Phase 3 — outstanding sources, reading queue
-    writing: null,     // Phase 4 — word counts + sparkline snapshots
+    figures: null,     // Phase 7 — project image galleries
     reminders: null,   // Phase 5 — TASKS.md
-    activity: null,    // Phase 6 — Cowork sessions, chat exports, git
+    activity: null,    // Phase 6 — git + vault sessions (cowork/chat moved
+                       //   into working_conversations)
+    working_conversations: null, // Phase 6 Slice 3 — unified feed
   };
 
   // Phase 2 — Cards
@@ -69,16 +73,15 @@ export async function refresh() {
     console.warn(`  Warning: vault-watch failed — ${err.message}`);
   }
 
-  // Phase 4 — Writing progress
+  // Phase 7 — Figures (project image galleries)
   try {
-    snapshot.writing = await getWritingProgress();
-    const w = snapshot.writing.counts;
+    snapshot.figures = await getFigures();
+    const f = snapshot.figures;
     console.log(
-      `  Writing: ${w.cards.words} cards · ${w.blog.words} blog · ` +
-        `${w.daily.words} daily · ${w.ideas.words} ideas (${snapshot.writing.sparklines.dates.length} day(s) of history).`
+      `  Figures: ${f.total_projects} project(s), ${f.total_images} image(s), ${f.missing_images} missing.`
     );
   } catch (err) {
-    console.warn(`  Warning: writing-progress failed — ${err.message}`);
+    console.warn(`  Warning: figures failed — ${err.message}`);
   }
 
   // Phase 5 — Reminders (TASKS.md)
@@ -110,9 +113,12 @@ export async function refresh() {
     console.warn(`  Warning: git-activity failed — ${err.message}`);
   }
 
+  // cowork-sessions and claude-exports both write normalized JSON files
+  // into snapshots/conversations/ as a side effect. Their return values
+  // are no longer assigned to the snapshot — the working_conversations
+  // aggregator below is the single consumer.
   try {
-    snapshot.activity.cowork = await getCoworkSessions();
-    const c = snapshot.activity.cowork;
+    const c = await getCoworkSessions();
     const summarized = c.sessions.filter((s) => s.summary).length;
     console.log(
       `  Activity (cowork): ${c.sessions.length} session(s) — ${summarized}/${c.sessions.length} summarized.`
@@ -122,8 +128,7 @@ export async function refresh() {
   }
 
   try {
-    snapshot.activity.claude_exports = await getClaudeExports();
-    const e = snapshot.activity.claude_exports;
+    const e = await getClaudeExports();
     console.log(`  Activity (claude.ai exports): ${e.exports.length} file(s).`);
   } catch (err) {
     console.warn(`  Warning: claude-exports failed — ${err.message}`);
@@ -135,6 +140,32 @@ export async function refresh() {
     console.log(`  Activity (vault sessions): ${v.sessions.length} digest(s).`);
   } catch (err) {
     console.warn(`  Warning: vault-sessions failed — ${err.message}`);
+  }
+
+  // Phase 6 (Slice 3) — session-debriefs source. Side-effect only: writes
+  // normalized JSON into snapshots/conversations/ for the aggregator below.
+  try {
+    await getSessionDebriefs();
+  } catch (err) {
+    console.warn(`  Warning: session-debriefs failed — ${err.message}`);
+  }
+
+  // Working conversations — unified feed over cowork + chat + debrief.
+  // The three sources above wrote normalized files; this aggregator just
+  // reads, sorts, and slices.
+  try {
+    snapshot.working_conversations = await getWorkingConversations();
+    const w = snapshot.working_conversations;
+    const byType = w.items.reduce((acc, it) => {
+      acc[it.type] = (acc[it.type] || 0) + 1;
+      return acc;
+    }, {});
+    console.log(
+      `  Working conversations: ${w.returned} of ${w.total} ` +
+        `(cowork: ${byType.cowork || 0}, chat: ${byType.chat || 0}, debrief: ${byType.debrief || 0}).`
+    );
+  } catch (err) {
+    console.warn(`  Warning: working-conversations failed — ${err.message}`);
   }
 
   const outPath = join(SNAPSHOTS_DIR, 'latest.json');
