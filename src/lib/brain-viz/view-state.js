@@ -6,10 +6,15 @@
 //   compare    — one or more active networks; toggle(id) adds/removes.
 // Compare auto-exits when active set drops to one network.
 //
+// allowZero — when true (per-paper views): chips become pure toggles. The
+// state machine permits an empty active set, never auto-exits compare, and
+// every chip including the last can be turned off. Curated views keep the
+// default (false) which enforces "always at least one network visible".
+//
 // Generalizes the previous mode-state.js: networks are arbitrary string IDs
 // supplied by the view config rather than hardcoded 1..4.
 
-export function createViewState({ networkIds, initialNetwork } = {}) {
+export function createViewState({ networkIds, initialNetwork, allowZero = false } = {}) {
   if (!Array.isArray(networkIds) || networkIds.length === 0) {
     throw new Error('createViewState: networkIds must be a non-empty array');
   }
@@ -93,14 +98,17 @@ export function createViewState({ networkIds, initialNetwork } = {}) {
         throw new Error('toggle() is only valid in compare mode; call enterCompare() first');
       }
       if (active.has(id)) {
-        if (active.size === 1) {
+        if (active.size === 1 && !allowZero) {
           throw new Error('Cannot remove the last active network');
         }
         active.delete(id);
       } else {
         active.add(id);
       }
-      if (active.size === 1) compare = false;
+      // In allowZero mode compare stays sticky — chips are permanent toggles,
+      // not a sequential ↔ compare gesture. In normal mode compare auto-exits
+      // when only one network remains, the original prototype behavior.
+      if (!allowZero && active.size === 1) compare = false;
       notify();
     },
 

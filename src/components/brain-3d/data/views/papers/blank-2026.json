@@ -1,0 +1,87 @@
+{
+  "slug": "blank-2026",
+  "name": "Video games as stimuli in neuroimaging studies: a minireview",
+  "subtitle": "Blank et al., 2026",
+  "papers": [
+    "blank-2026"
+  ],
+  "networks": {
+    "salience-insula": {
+      "displayNum": "",
+      "label": "Anterior Insula / Salience",
+      "color": "#E53E33",
+      "source": "Anterior insula (AI) responses to unfair offers (Sanfey et al., 2003), unreciprocated cooperation (Rilling et al., 2008), and context-appropriate behavior (King et al., 2006) as discussed in Blank et al. (2026)",
+      "parcels": [
+        "seeley.SN.AI-L",
+        "seeley.SN.AI-R"
+      ]
+    },
+    "acc-medial-frontal": {
+      "displayNum": "",
+      "label": "Anterior Cingulate / Medial Prefrontal",
+      "color": "#D89233",
+      "source": "Rostral ACC activity during cooperation (Rilling et al., 2002); dorsal ACC and medial prefrontal activity during violent scenes and wins/losses as reviewed in Blank et al. (2026)",
+      "parcels": [
+        "seeley.SN.ACC",
+        "yeo.DMN-dmPFC"
+      ]
+    },
+    "default-mode": {
+      "displayNum": "",
+      "label": "Default Mode Network",
+      "color": "#3B6DB4",
+      "source": "DMN activation during overly easy (boring) tasks; precuneus activity during violent scenes; posterior cingulate and theory-of-mind network for predicting attack intents, as reviewed in Blank et al. (2026)",
+      "parcels": [
+        "yeo.DMN-PCC",
+        "yeo.DMN-Precuneus",
+        "yeo7.DMN.AG-L",
+        "yeo7.DMN.AG-R"
+      ]
+    },
+    "central-executive": {
+      "displayNum": "",
+      "label": "Cognitive Control / CEN",
+      "color": "#549E44",
+      "source": "DLPFC activity during flow state (balanced task difficulty) and superior/inferior parietal activity during competition and flow, as reviewed in Blank et al. (2026)",
+      "parcels": [
+        "yeo7.CEN.dlPFC-L",
+        "yeo7.CEN.dlPFC-R",
+        "yeo7.CEN.IPL-L",
+        "yeo7.CEN.IPL-R"
+      ]
+    },
+    "tpj-tom": {
+      "displayNum": "",
+      "label": "Theory of Mind Network / TPJ",
+      "color": "#8E5BB8",
+      "source": "Temporoparietal junction activation during violent scenes and theory-of-mind network identified for predicting attack intents of others (Ye et al., 2025; Mathiak & Weber, 2006) as reviewed in Blank et al. (2026)",
+      "parcels": [
+        "tom.TPJ-L",
+        "tom.TPJ-R"
+      ]
+    },
+    "frontal-parietal-board": {
+      "displayNum": "",
+      "label": "Dorsal Frontal & Posterior Parietal (Strategic Thinking)",
+      "color": "#2BA3A1",
+      "source": "Dorsal prefrontal and parietal activity during GO/chess board game viewing and navigation-based thought studies, as reviewed in Blank et al. (2026)",
+      "parcels": [
+        "dk.lh-frontal-coarse",
+        "dk.rh-frontal-coarse",
+        "dk.lh-parietal-coarse",
+        "dk.rh-parietal-coarse"
+      ]
+    }
+  },
+  "networkOrder": [
+    "salience-insula",
+    "acc-medial-frontal",
+    "default-mode",
+    "central-executive",
+    "tpj-tom",
+    "frontal-parietal-board"
+  ],
+  "uiMode": "chips-with-compare",
+  "defaultNetwork": "salience-insula",
+  "glossaryMode": "in-view-only"
+}

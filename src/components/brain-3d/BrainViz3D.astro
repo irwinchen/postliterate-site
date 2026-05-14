@@ -1,17 +1,38 @@
 ---
 import parcelsRaw from './data/registry/parcels.json';
-import papersRaw from './data/registry/papers.json';
+import papersCurated from './data/registry/papers.json';
+import papersUploaded from './data/registry/papers-uploaded.json';
 import BrainHeader from './BrainHeader.astro';
 import '../../styles/brain-3d.css';
 
-const { viewConfig, contentConfig, title } = Astro.props;
+const {
+  viewConfig,
+  contentConfig,
+  title,
+  paperMeta = null,
+  glossaryMode = 'full',
+  paperContent = null,
+} = Astro.props;
 if (!viewConfig) throw new Error('BrainViz3D: viewConfig prop is required');
 if (!contentConfig) throw new Error('BrainViz3D: contentConfig prop is required');
 
+// Curated papers + uploaded papers form a merged registry the view-loader can
+// resolve viewConfig.papers[] against. Uploaded wins on collision; in practice
+// the admin's save flow appends "-2" rather than overwriting.
+const papersRaw = { ...papersCurated, ...papersUploaded };
+
 const headerTitle = title ?? viewConfig.name ?? 'Brain — a reference map';
+
+// A per-paper view = paperMeta supplied. In that case we replace the normal
+// rightcol with a slide-out drawer containing the paper meta, the chip
+// toolbar, and an accordion of body sections with inline parcel refs.
+const isPaperView = paperMeta !== null;
+const hasPaperContent = Boolean(
+  paperContent && Array.isArray(paperContent.sections) && paperContent.sections.length > 0,
+);
 ---
 
-<div class="brain-3d" data-component="brain-viz-3d">
+<div class="brain-3d" data-component="brain-viz-3d" data-paper-view={isPaperView ? 'true' : 'false'} data-panel-open="true">
   <BrainHeader title={headerTitle} />
 
   <aside class="brain-3d__glossary" aria-label="Region glossary">
@@ -22,15 +43,136 @@ const headerTitle = title ?? viewConfig.name ?? 'Brain — a reference map';
     <canvas class="brain-3d__canvas" aria-label="3D brain visualization"></canvas>
   </div>
 
-  <aside class="brain-3d__rightcol">
-    <nav class="brain-3d__chips" role="toolbar" aria-label="Network selector" data-bind="chips"></nav>
-  </aside>
+  {isPaperView && (
+    <button
+      class="brain-3d__panel-toggle"
+      type="button"
+      data-action="panel-toggle"
+      aria-label="Toggle paper panel"
+      aria-expanded="true"
+    >
+      <span class="brain-3d__panel-toggle-icon" aria-hidden="true">›</span>
+    </button>
+  )}
+  {isPaperView ? (
+    <aside class="brain-3d__paper-panel" aria-label="Paper context">
+      <header class="brain-3d__paper-panel-header">
+        {paperMeta.title && <h2 class="brain-3d__paper-meta-title">{paperMeta.title}</h2>}
+        {(paperMeta.authors || paperMeta.year) && (
+          <p class="brain-3d__paper-byline">
+            {paperMeta.authors}{paperMeta.authors && paperMeta.year ? ', ' : ''}{paperMeta.year}
+          </p>
+        )}
+        {paperMeta.venue && <p class="brain-3d__paper-venue">{paperMeta.venue}</p>}
+        {(paperMeta.doi || paperMeta.pdfUrl) && (
+          <p class="brain-3d__paper-links">
+            {paperMeta.doi && (
+              <a href={`https://doi.org/${paperMeta.doi}`} target="_blank" rel="noopener">DOI ↗</a>
+            )}
+            {paperMeta.pdfUrl && (
+              <a href={paperMeta.pdfUrl} target="_blank" rel="noopener">View PDF ↗</a>
+            )}
+          </p>
+        )}
+        <nav class="brain-3d__chips" role="toolbar" aria-label="Network selector" data-bind="chips"></nav>
+      </header>
+
+      <div class="brain-3d__paper-body">
+        {hasPaperContent ? (
+          paperContent.sections.map((section) => (
+            <details class="brain-3d__paper-section" open>
+              <summary class="brain-3d__paper-section-summary">
+                <span class="brain-3d__paper-section-caret" aria-hidden="true">▾</span>
+                <span class="brain-3d__paper-section-heading">{section.heading || 'Untitled section'}</span>
+                <button
+                  type="button"
+                  class="brain-3d__paper-section-highlight"
+                  data-action="section-highlight"
+                  aria-pressed="false"
+                  title="Highlight every region this section mentions"
+                >Highlight all</button>
+              </summary>
+              {section.paragraphs.length > 0 && (
+                <div class="brain-3d__paper-paragraphs">
+                  {section.paragraphs.map((p) => (
+                    <p class="brain-3d__paper-paragraph">
+                      {p.segments.map((seg) =>
+                        seg.type === 'ref' ? (
+                          <button
+                            class="brain-3d__paper-ref"
+                            type="button"
+                            data-parcel-id={seg.parcelId}
+                            aria-label={`Inspect ${seg.value}`}
+                          >
+                            {seg.value}
+                          </button>
+                        ) : (
+                          <Fragment>{seg.value}</Fragment>
+                        ),
+                      )}
+                    </p>
+                  ))}
+                </div>
+              )}
+              {section.subsections && section.subsections.length > 0 && (
+                <div class="brain-3d__paper-subsections">
+                  {section.subsections.map((sub) => (
+                    <details class="brain-3d__paper-subsection" open>
+                      <summary class="brain-3d__paper-subsection-summary">
+                        <span class="brain-3d__paper-section-caret" aria-hidden="true">▾</span>
+                        <span class="brain-3d__paper-section-heading">{sub.heading || 'Untitled subsection'}</span>
+                        <button
+                          type="button"
+                          class="brain-3d__paper-section-highlight"
+                          data-action="section-highlight"
+                          aria-pressed="false"
+                          title="Highlight every region this subsection mentions"
+                        >Highlight all</button>
+                      </summary>
+                      <div class="brain-3d__paper-paragraphs">
+                        {sub.paragraphs.map((p) => (
+                          <p class="brain-3d__paper-paragraph">
+                            {p.segments.map((seg) =>
+                              seg.type === 'ref' ? (
+                                <button
+                                  class="brain-3d__paper-ref"
+                                  type="button"
+                                  data-parcel-id={seg.parcelId}
+                                  aria-label={`Inspect ${seg.value}`}
+                                >
+                                  {seg.value}
+                                </button>
+                              ) : (
+                                <Fragment>{seg.value}</Fragment>
+                              ),
+                            )}
+                          </p>
+                        ))}
+                      </div>
+                    </details>
+                  ))}
+                </div>
+              )}
+            </details>
+          ))
+        ) : (
+          <p class="brain-3d__paper-empty">
+            Re-extract this paper from the admin Papers tab to populate inline paragraph context.
+          </p>
+        )}
+      </div>
+    </aside>
+  ) : (
+    <aside class="brain-3d__rightcol">
+      <nav class="brain-3d__chips" role="toolbar" aria-label="Network selector" data-bind="chips"></nav>
+    </aside>
+  )}
 
   <svg class="brain-3d__leaders" data-bind="leaders" aria-hidden="true"></svg>
   <div class="brain-3d__tooltip" data-bind="tooltip" role="tooltip" aria-hidden="true"></div>
 </div>
 
-<script type="module" define:vars={{ rawParcels: parcelsRaw, rawPapers: papersRaw, viewConfig, contentConfig }}>
+<script type="module" define:vars={{ rawParcels: parcelsRaw, rawPapers: papersRaw, viewConfig, contentConfig, glossaryMode, isPaperView }}>
   import { loadParcelRegistry } from '/src/lib/brain-viz/parcel-registry.js';
   import { loadView } from '/src/lib/brain-viz/view-loader.js';
   import { createViewState } from '/src/lib/brain-viz/view-state.js';
@@ -73,7 +215,12 @@ const headerTitle = title ?? viewConfig.name ?? 'Brain — a reference map';
   const viewState = createViewState({
     networkIds: view.networkOrder,
     initialNetwork: view.view.defaultNetwork,
+    // Per-paper views treat chips as pure toggles — any combination is valid,
+    // including zero active. Curated views keep the original "always one
+    // visible" guard.
+    allowZero: isPaperView,
   });
+  if (isPaperView) viewState.enterCompare();
   const glossaryState = createGlossaryState();
 
   for (const id of view.networkOrder) {
@@ -108,12 +255,17 @@ const headerTitle = title ?? viewConfig.name ?? 'Brain — a reference map';
   }
 
   if (isMulti) {
-    const compareBtn = document.createElement('button');
-    compareBtn.className = 'brain-3d__chip brain-3d__chip--aux';
-    compareBtn.dataset.action = 'compare';
-    compareBtn.setAttribute('aria-pressed', 'false');
-    compareBtn.textContent = 'Compare';
-    chipsRoot.appendChild(compareBtn);
+    // Per-paper views are permanently in compare mode (chips toggle freely),
+    // so the Compare button is redundant — skip it. The All button stays in
+    // both contexts as a useful "light everything up" shortcut.
+    if (!isPaperView) {
+      const compareBtn = document.createElement('button');
+      compareBtn.className = 'brain-3d__chip brain-3d__chip--aux';
+      compareBtn.dataset.action = 'compare';
+      compareBtn.setAttribute('aria-pressed', 'false');
+      compareBtn.textContent = 'Compare';
+      chipsRoot.appendChild(compareBtn);
+    }
 
     const allBtn = document.createElement('button');
     allBtn.className = 'brain-3d__chip brain-3d__chip--aux';
@@ -160,9 +312,13 @@ const headerTitle = title ?? viewConfig.name ?? 'Brain — a reference map';
   }
 
   // === Build the glossary (collapsible <details> per anatomical group) ===
-  const allParcels = registry.parcels();
+  // glossaryMode 'in-view-only' is for per-paper views: the left column only
+  // lists the regions THIS paper discusses, instead of the full registry
+  // (faded for off-view parcels). All other ergonomics — group nesting, click
+  // to inspect, hover for note — work identically.
+  const glossarySource = glossaryMode === 'in-view-only' ? view.parcels : registry.parcels();
   const grouped = {};
-  for (const parcel of Object.values(allParcels)) {
+  for (const parcel of Object.values(glossarySource)) {
     const g = parcel.group ?? 'other';
     (grouped[g] ??= []).push(parcel);
   }
@@ -218,10 +374,15 @@ const headerTitle = title ?? viewConfig.name ?? 'Brain — a reference map';
   }
 
   // === Chip wiring ===
+  // Per-paper views: chips are pure toggles (allowZero in view-state lets the
+  // last one go off). Curated views: sequential by default, toggle while in
+  // explicit compare mode, with the "always one active" guard preserved.
   for (const chip of root.querySelectorAll('.brain-3d__chip[data-network]')) {
     chip.addEventListener('click', () => {
       const id = chip.dataset.network;
-      if (viewState.isCompare()) {
+      if (isPaperView) {
+        viewState.toggle(id);
+      } else if (viewState.isCompare()) {
         const active = viewState.activeNetworks();
         if (active.includes(id) && active.length === 1) return;
         viewState.toggle(id);
@@ -275,6 +436,126 @@ const headerTitle = title ?? viewConfig.name ?? 'Brain — a reference map';
       className: 'brain-3d__nowebgl',
       textContent: 'Your browser does not support WebGL. The 2D version of this figure is available below.',
     }));
+  }
+
+  // === Paper-panel wiring (per-paper views only) ===
+  if (isPaperView) {
+    // Panel-open state persists per-view so users get the same drawer
+    // position they last saw on this specific paper.
+    const PANEL_KEY = `brain-paper-panel-open:${viewConfig.slug}`;
+    const stored = localStorage.getItem(PANEL_KEY);
+    const initialOpen = stored === null ? true : stored !== 'false';
+    root.setAttribute('data-panel-open', String(initialOpen));
+
+    const toggleBtn = root.querySelector('[data-action="panel-toggle"]');
+    if (toggleBtn) {
+      toggleBtn.setAttribute('aria-expanded', String(initialOpen));
+      toggleBtn.addEventListener('click', () => {
+        const wasOpen = root.getAttribute('data-panel-open') !== 'false';
+        const nextOpen = !wasOpen;
+        root.setAttribute('data-panel-open', String(nextOpen));
+        toggleBtn.setAttribute('aria-expanded', String(nextOpen));
+        localStorage.setItem(PANEL_KEY, String(nextOpen));
+        // Canvas resize is observed by the renderer via ResizeObserver; the
+        // grid-template-columns transition will trigger it implicitly. Force
+        // a leader redraw at the end so dots/lines stop pointing at stale
+        // positions during the transition tail.
+        setTimeout(() => { if (renderer) drawLeaderLines(); }, 260);
+      });
+    }
+
+    // Inline ref → inspect that parcel and pulse it once. Inspect alone
+    // (which the glossary uses) draws a leader line; the pulse adds the
+    // "this is the parcel" visual confirmation without disturbing whichever
+    // network is currently active.
+    function networkColorForParcel(parcelId) {
+      const parcel = view.parcels[parcelId];
+      if (!parcel || !parcel.networks || parcel.networks.length === 0) return '#ffffff';
+      const netId = parcel.networks[0];
+      return view.networks[netId]?.color ?? '#ffffff';
+    }
+
+    // refsByParcelId: same parcel can appear in multiple paragraphs, so we
+    // index every ref button by its parcelId for the inspected-class sync.
+    const refsByParcelId = new Map();
+    for (const refBtn of root.querySelectorAll('.brain-3d__paper-ref[data-parcel-id]')) {
+      const parcelId = refBtn.dataset.parcelId;
+      if (!refsByParcelId.has(parcelId)) refsByParcelId.set(parcelId, []);
+      refsByParcelId.get(parcelId).push(refBtn);
+      refBtn.addEventListener('click', () => {
+        if (!view.parcels[parcelId]) return;
+        const wasInspected = glossaryState.isInspected(parcelId);
+        glossaryState.inspect(parcelId);
+        // Only pulse when turning ON — pulsing on un-inspect is meaningless.
+        if (!wasInspected && renderer && typeof renderer.pulseParcel === 'function') {
+          renderer.pulseParcel(parcelId, {
+            color: networkColorForParcel(parcelId),
+            durationMs: 1200,
+          });
+        }
+      });
+    }
+
+    // Per-section "highlight all" — collects the parcelIds referenced in
+    // every paragraph inside the section's <details> (including nested
+    // subsections, when the button is on a top-level section). On click:
+    // if every parcel is already inspected, uninspect all; otherwise
+    // inspect any that aren't yet on. Toggles aria-pressed for styling.
+    function sectionParcelIds(sectionEl) {
+      const refs = sectionEl.querySelectorAll('.brain-3d__paper-ref[data-parcel-id]');
+      const ids = new Set();
+      for (const r of refs) ids.add(r.dataset.parcelId);
+      return [...ids];
+    }
+    function allInspected(ids) {
+      return ids.length > 0 && ids.every((id) => glossaryState.isInspected(id));
+    }
+    for (const btn of root.querySelectorAll('[data-action="section-highlight"]')) {
+      btn.addEventListener('click', (ev) => {
+        // Prevent the <summary> click from collapsing the section.
+        ev.preventDefault();
+        ev.stopPropagation();
+        const sectionEl = btn.closest('details');
+        if (!sectionEl) return;
+        const ids = sectionParcelIds(sectionEl);
+        if (ids.length === 0) return;
+        const turningOff = allInspected(ids);
+        for (const id of ids) {
+          const isOn = glossaryState.isInspected(id);
+          if (turningOff && isOn) glossaryState.inspect(id);
+          else if (!turningOff && !isOn) {
+            glossaryState.inspect(id);
+            // Stagger pulses very slightly so the eye can pick out each one.
+            if (renderer && typeof renderer.pulseParcel === 'function') {
+              renderer.pulseParcel(id, {
+                color: networkColorForParcel(id),
+                durationMs: 1400,
+              });
+            }
+          }
+        }
+      });
+    }
+
+    // Sync the inline-ref highlighting + section-button pressed state from
+    // glossary state. Same source of truth as the leader lines so the panel
+    // and the brain agree on which parcels are "on" at any moment.
+    function syncPaperHighlights() {
+      const inspected = glossaryState.inspectedParcels();
+      for (const [parcelId, refs] of refsByParcelId) {
+        const on = inspected.has(parcelId);
+        for (const r of refs) r.classList.toggle('is-inspected', on);
+      }
+      for (const btn of root.querySelectorAll('[data-action="section-highlight"]')) {
+        const sectionEl = btn.closest('details');
+        if (!sectionEl) continue;
+        const ids = sectionParcelIds(sectionEl);
+        const all = allInspected(ids);
+        btn.setAttribute('aria-pressed', String(all));
+      }
+    }
+    glossaryState.subscribe(syncPaperHighlights);
+    syncPaperHighlights();
   }
 
   function isEntryVisible(el) {

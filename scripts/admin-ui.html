@@ -1000,9 +1000,9 @@
 
     .rw-heatmap-meta {
       display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 1rem;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.4rem;
       margin-block-start: 0.6rem;
       font-family: 'Sono', monospace;
       font-size: 0.7rem;
@@ -1753,6 +1753,133 @@
       opacity: 0.6;
     }
 
+    /* ── Papers (per-paper brain viz) ─────────── */
+    .papers-intro {
+      max-inline-size: 60ch;
+      color: var(--muted);
+      margin-block-end: 1rem;
+    }
+    .papers-upload {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      align-items: center;
+      margin-block-end: 1.25rem;
+    }
+    .papers-file {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem 0.9rem;
+      border: 1px dashed var(--border-subtle);
+      cursor: pointer;
+      background: var(--hover-bg-soft);
+      font-family: 'Sono', monospace;
+      font-size: 0.85rem;
+    }
+    .papers-file input[type="file"] {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      opacity: 0;
+      pointer-events: none;
+    }
+    .papers-file:focus-within {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
+    .papers-h3 {
+      font-family: 'Outfit', system-ui, sans-serif;
+      font-size: 1rem;
+      font-weight: 700;
+      margin-block: 1rem 0.5rem;
+    }
+    .papers-stats {
+      font-family: 'Sono', monospace;
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin-block-end: 0.5rem;
+    }
+    .papers-textarea {
+      width: 100%;
+      box-sizing: border-box;
+      font-family: 'Sono', monospace;
+      font-size: 0.78rem;
+      line-height: 1.5;
+      background: var(--hover-bg-soft);
+      color: var(--fg);
+      border: 1px solid var(--border-subtle);
+      padding: 0.75rem;
+      resize: vertical;
+    }
+    .papers-save-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      align-items: center;
+      margin-block: 0.75rem;
+    }
+    .papers-slug-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-family: 'Outfit', system-ui, sans-serif;
+      font-size: 0.85rem;
+    }
+    .papers-slug-label code {
+      font-family: 'Sono', monospace;
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+    .papers-slug {
+      font-family: 'Sono', monospace;
+      font-size: 0.85rem;
+      padding: 0.35rem 0.55rem;
+      background: var(--bg);
+      color: var(--fg);
+      border: 1px solid var(--border-subtle);
+      min-inline-size: 16ch;
+    }
+    .papers-slug:invalid {
+      border-color: var(--accent);
+    }
+    .papers-list {
+      display: grid;
+      gap: 0.5rem;
+    }
+    .papers-list-item {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 0.5rem 1rem;
+      padding: 0.75rem 1rem;
+      border: 1px solid var(--border-subtle);
+      align-items: center;
+    }
+    .papers-list-title {
+      font-family: 'Literata', Georgia, serif;
+      font-weight: 600;
+      font-size: 0.95rem;
+    }
+    .papers-list-meta {
+      font-family: 'Sono', monospace;
+      font-size: 0.75rem;
+      color: var(--muted);
+    }
+    .papers-list-actions {
+      display: inline-flex;
+      gap: 0.4rem;
+    }
+    .papers-list-badge {
+      display: inline-block;
+      font-family: 'Sono', monospace;
+      font-size: 0.7rem;
+      padding: 0.05rem 0.35rem;
+      margin-inline-start: 0.25rem;
+      border: 1px solid var(--border-subtle);
+      color: var(--muted);
+      vertical-align: 0.05em;
+    }
+
     /* ── Responsive ──────────────────────────── */
 
     /* Phone-first sweep: one section visible at a time, KPI rows stacked,
@@ -1952,6 +2079,7 @@
   <a href="#vault-watch-section">Vault Watch</a>
   <a href="#recent-work-section">Recent Work</a>
   <a href="#posts-section">Posts</a>
+  <a href="#papers-section">Papers</a>
   <a href="#pipeline-section">Pipeline</a>
   <a href="#opportunities-section">Opportunities</a>
   <a href="#analytics-section">Analytics</a>
@@ -2036,6 +2164,50 @@
       <div id="content">
         <div class="loading">Loading posts...</div>
       </div>
+    </div>
+  </section>
+
+  <!-- ── Papers (per-paper brain viz) ────────────────────────────── -->
+  <section class="dashboard-section" id="papers-section">
+    <button class="section-toggle" onclick="toggleSection('papers-section')">
+      <h2 class="section-heading">Papers</h2>
+      <i data-lucide="chevron-down"></i>
+    </button>
+    <div class="section-body" id="papers-body">
+      <p class="papers-intro">
+        Upload a neuroscience paper PDF to generate a per-paper view of the brain visualizer.
+        Claude reads the paper and picks regions from the master parcel registry; anything off-registry is dropped.
+        Author-only — the API key lives in the admin server env, not the browser.
+      </p>
+
+      <div class="papers-upload">
+        <label class="papers-file">
+          <input type="file" id="papersFile" accept="application/pdf">
+          <span id="papersFileLabel">Choose a PDF…</span>
+        </label>
+        <button class="btn btn-accent" id="papersExtractBtn" disabled>
+          <i data-lucide="sparkles"></i> Extract
+        </button>
+      </div>
+
+      <div id="papersPreview" hidden>
+        <h3 class="papers-h3">Draft view config</h3>
+        <p class="papers-stats" id="papersStats"></p>
+        <textarea id="papersDraftJson" class="papers-textarea" rows="22" spellcheck="false" aria-label="Draft view config (editable)"></textarea>
+        <div class="papers-save-row">
+          <label class="papers-slug-label">
+            Route slug:
+            <code>/brain/papers/</code>
+            <input type="text" id="papersSlug" class="papers-slug" pattern="[a-z0-9][a-z0-9-]*" required>
+          </label>
+          <button class="btn btn-accent" id="papersSaveBtn">
+            <i data-lucide="save"></i> Save &amp; publish view
+          </button>
+        </div>
+      </div>
+
+      <h3 class="papers-h3">Uploaded papers</h3>
+      <div id="papersList"><div class="loading">Loading…</div></div>
     </div>
   </section>
 
@@ -3847,6 +4019,208 @@
       : (btn.dataset.hide || 'Hide commits');
   }
 
+  // ── Papers (per-paper brain viz) ────────────
+  let papersSelectedFile = null;
+  let papersSelectedBase64 = null;
+
+  function fileToBase64(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        // result is "data:application/pdf;base64,XXX" — strip the prefix
+        const idx = reader.result.indexOf(',');
+        resolve(idx >= 0 ? reader.result.slice(idx + 1) : reader.result);
+      };
+      reader.onerror = () => reject(reader.error);
+      reader.readAsDataURL(file);
+    });
+  }
+
+  function papersOnFileChange(ev) {
+    const file = ev.target.files?.[0];
+    if (!file) {
+      papersSelectedFile = null;
+      papersSelectedBase64 = null;
+      document.getElementById('papersFileLabel').textContent = 'Choose a PDF…';
+      document.getElementById('papersExtractBtn').disabled = true;
+      return;
+    }
+    papersSelectedFile = file;
+    papersSelectedBase64 = null;
+    document.getElementById('papersFileLabel').textContent = file.name;
+    document.getElementById('papersExtractBtn').disabled = false;
+    document.getElementById('papersPreview').hidden = true;
+  }
+
+  async function papersExtract() {
+    if (!papersSelectedFile) return;
+    const btn = document.getElementById('papersExtractBtn');
+    btn.disabled = true;
+    setStatus('Extracting paper… (this can take 30–60s for a large PDF)');
+    try {
+      if (!papersSelectedBase64) {
+        papersSelectedBase64 = await fileToBase64(papersSelectedFile);
+      }
+      const res = await fetch(API + '/api/papers/extract', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          filename: papersSelectedFile.name,
+          pdfBase64: papersSelectedBase64,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || res.statusText);
+
+      document.getElementById('papersDraftJson').value = JSON.stringify(data.viewConfig, null, 2);
+      document.getElementById('papersSlug').value = data.viewConfig.slug || '';
+      const numNetworks = data.viewConfig.networks ? Object.keys(data.viewConfig.networks).length : 0;
+      const sectionBits = data.sectionCount
+        ? ` · ${data.sectionCount} section(s), ${data.paragraphCount} paragraph(s)`
+        : ' · no paragraph context extracted';
+      document.getElementById('papersStats').textContent =
+        `${numNetworks} network(s) · ${data.matchedParcelCount} of ${data.registryParcelCount} registry parcels referenced${sectionBits} · paper: ${data.paper.title || '(untitled)'}`;
+      document.getElementById('papersPreview').hidden = false;
+      document.getElementById('papersPreview').dataset.paper = JSON.stringify(data.paper);
+      document.getElementById('papersPreview').dataset.paperContent = JSON.stringify(data.paperContent ?? null);
+      setStatus('Extracted. Edit the JSON below if needed, then Save.', 'success');
+    } catch (err) {
+      setStatus('Extract failed: ' + err.message, 'error');
+    } finally {
+      btn.disabled = !papersSelectedFile;
+    }
+  }
+
+  async function papersSave() {
+    const slug = document.getElementById('papersSlug').value.trim();
+    if (!/^[a-z0-9][a-z0-9-]{0,79}$/.test(slug)) {
+      setStatus('Slug must be lowercase letters, digits, and dashes (start with letter or digit).', 'error');
+      return;
+    }
+    if (!papersSelectedBase64) {
+      setStatus('PDF not in memory — re-select the file.', 'error');
+      return;
+    }
+    let viewConfig;
+    try {
+      viewConfig = JSON.parse(document.getElementById('papersDraftJson').value);
+    } catch (err) {
+      setStatus('Draft JSON is not valid: ' + err.message, 'error');
+      return;
+    }
+    const preview = document.getElementById('papersPreview');
+    const paper = JSON.parse(preview.dataset.paper || '{}');
+    paper.id = slug;
+    const paperContent = preview.dataset.paperContent
+      ? JSON.parse(preview.dataset.paperContent)
+      : null;
+
+    const btn = document.getElementById('papersSaveBtn');
+    btn.disabled = true;
+    setStatus('Saving…');
+    try {
+      const res = await fetch(API + '/api/papers/save', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ slug, pdfBase64: papersSelectedBase64, paper, viewConfig, paperContent }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || res.statusText);
+      setStatus(`Saved → ${data.viewUrl}`, 'success');
+      document.getElementById('papersPreview').hidden = true;
+      fetchPapers();
+    } catch (err) {
+      setStatus('Save failed: ' + err.message, 'error');
+    } finally {
+      btn.disabled = false;
+    }
+  }
+
+  function renderPapersList(entries) {
+    const listEl = document.getElementById('papersList');
+    while (listEl.firstChild) listEl.removeChild(listEl.firstChild);
+    if (entries.length === 0) {
+      const p = document.createElement('p');
+      p.className = 'empty-state';
+      p.textContent = 'No uploaded papers yet.';
+      listEl.appendChild(p);
+      return;
+    }
+    const wrap = document.createElement('div');
+    wrap.className = 'papers-list';
+    for (const p of entries) {
+      const item = document.createElement('div');
+      item.className = 'papers-list-item';
+
+      const left = document.createElement('div');
+      const title = document.createElement('div');
+      title.className = 'papers-list-title';
+      title.textContent = p.title || '(untitled)';
+      if (p.hasParagraphs) {
+        const badge = document.createElement('span');
+        badge.className = 'papers-list-badge';
+        badge.textContent = '¶';
+        badge.title = 'Paragraph context extracted';
+        title.appendChild(document.createTextNode(' '));
+        title.appendChild(badge);
+      }
+      const meta = document.createElement('div');
+      meta.className = 'papers-list-meta';
+      const metaParts = [p.authors, p.year, p.venue].filter(Boolean);
+      meta.textContent = metaParts.join(' · ');
+      left.appendChild(title);
+      left.appendChild(meta);
+
+      const actions = document.createElement('div');
+      actions.className = 'papers-list-actions';
+      const viewLink = document.createElement('a');
+      viewLink.className = 'btn';
+      viewLink.href = p.viewUrl;
+      viewLink.target = '_blank';
+      viewLink.rel = 'noopener';
+      const viewIcon = document.createElement('i');
+      viewIcon.setAttribute('data-lucide', 'external-link');
+      viewLink.append(viewIcon, ' Open view');
+
+      const pdfLink = document.createElement('a');
+      pdfLink.className = 'btn';
+      pdfLink.href = p.pdfUrl;
+      pdfLink.target = '_blank';
+      pdfLink.rel = 'noopener';
+      const pdfIcon = document.createElement('i');
+      pdfIcon.setAttribute('data-lucide', 'file-text');
+      pdfLink.append(pdfIcon, ' PDF');
+
+      actions.appendChild(viewLink);
+      actions.appendChild(pdfLink);
+
+      item.appendChild(left);
+      item.appendChild(actions);
+      wrap.appendChild(item);
+    }
+    listEl.appendChild(wrap);
+    lucide.createIcons();
+  }
+
+  async function fetchPapers() {
+    const listEl = document.getElementById('papersList');
+    try {
+      const res = await fetch(API + '/api/papers');
+      const data = await res.json();
+      renderPapersList(data.papers || []);
+    } catch (err) {
+      while (listEl.firstChild) listEl.removeChild(listEl.firstChild);
+      const p = document.createElement('p');
+      p.className = 'empty-state';
+      p.textContent = 'Failed to load: ' + err.message;
+      listEl.appendChild(p);
+    }
+  }
+
+  document.getElementById('papersFile').addEventListener('change', papersOnFileChange);
+  document.getElementById('papersExtractBtn').addEventListener('click', papersExtract);
+  document.getElementById('papersSaveBtn').addEventListener('click', papersSave);
+
   // ── Init ────────────────────────────────────
   lucide.createIcons();
   fetchConfig();
@@ -3854,6 +4228,7 @@
   fetchDevStatus();
   fetchProjectStatus();
   fetchDashboard();
+  fetchPapers();
   applyMobileMode();
   pollTimer = setInterval(() => {
     fetchPosts();

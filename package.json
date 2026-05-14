@@ -17,6 +17,7 @@
     "bubbles:build": "node src/lib/corpus-bubbles/build.mjs"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.96.0",
     "@astrojs/mdx": "^4.3.13",
     "@astrojs/rss": "^4.0.15",
     "@lucide/astro": "^0.576.0",

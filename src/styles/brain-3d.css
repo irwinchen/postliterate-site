@@ -123,6 +123,54 @@
   align-content: start;
   gap: 0.75rem;
 }
+
+/* Paper metadata block — shown only on per-paper views (paperMeta prop set). */
+.brain-3d__paper-meta {
+  display: grid;
+  gap: 0.35rem;
+  padding-block-end: 0.75rem;
+  border-block-end: 1px solid var(--border);
+  margin-block-end: 0.25rem;
+}
+.brain-3d__paper-title {
+  font-family: 'Literata', Georgia, serif;
+  font-weight: 600;
+  font-size: 0.95rem;
+  line-height: 1.3;
+  margin: 0;
+  color: var(--fg);
+}
+.brain-3d__paper-byline {
+  font-family: 'Outfit', system-ui, sans-serif;
+  font-size: 0.78rem;
+  color: var(--muted);
+  margin: 0;
+}
+.brain-3d__paper-venue {
+  font-family: 'Outfit', system-ui, sans-serif;
+  font-size: 0.72rem;
+  font-style: italic;
+  color: var(--muted);
+  margin: 0;
+}
+.brain-3d__paper-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 0.9rem;
+  font-family: 'Outfit', system-ui, sans-serif;
+  font-size: 0.78rem;
+  margin: 0.2rem 0 0 0;
+}
+.brain-3d__paper-links a {
+  color: var(--fg);
+  text-decoration: underline;
+  text-underline-offset: 0.18em;
+  text-decoration-thickness: 1px;
+}
+.brain-3d__paper-links a:hover {
+  text-decoration-thickness: 2px;
+}
+
 .brain-3d__chips {
   display: flex;
   flex-wrap: wrap;
@@ -244,6 +292,267 @@
   user-select: none;
 }
 
+/* ── Paper-panel (per-paper views) ───────────────────────────────────────
+   Wider right column with the paper meta on top, the chip toolbar below it,
+   and an accordion of body sections under the chips. Toggleable: when
+   data-panel-open="false" the column collapses to a thin strip showing only
+   the toggle button.
+
+   --panel-width is the shared source of truth for the right-column width.
+   The grid template reads it, AND the floating toggle button positions
+   itself against it so the chevron always sits exactly on the panel's
+   left edge regardless of open/closed state.                              */
+.brain-3d[data-paper-view="true"] {
+  --panel-width: 420px;
+  grid-template-columns: 220px 1fr var(--panel-width);
+  transition: grid-template-columns 240ms ease;
+}
+.brain-3d[data-paper-view="true"][data-panel-open="false"] {
+  /* When closed, collapse the panel column completely — only the tab
+     remains, hanging off the viewport's right edge. */
+  --panel-width: 0px;
+}
+
+.brain-3d__paper-panel {
+  grid-area: rightcol;
+  position: relative;
+  display: grid;
+  grid-template-rows: auto 1fr;
+  border-inline-start: 1px solid var(--border);
+  background: var(--bg);
+  overflow: hidden;
+  min-block-size: 0;
+}
+
+[data-panel-open="false"] .brain-3d__paper-panel > .brain-3d__paper-panel-header,
+[data-panel-open="false"] .brain-3d__paper-panel > .brain-3d__paper-body {
+  display: none;
+}
+
+/* Drawer-pull tab — a vertical pill that hangs off the panel's left edge
+   into the brain area, like a handle on a sliding drawer. Lives as a
+   sibling of the panel (under the root) so it isn't clipped by the panel's
+   overflow:hidden. Its right edge tracks --panel-width so the tab always
+   sits flush against the panel boundary, sliding with it as it opens and
+   closes. The chevron rotates 180° between states. */
+.brain-3d__panel-toggle {
+  position: absolute;
+  /* The root .brain-3d's first grid row is the BrainHeader (.brain-3d__header:
+     padding 0.85rem + ~1rem title + 1px border ≈ 2.7rem). The panel sits in
+     the second row; its header has padding-block-start: 1rem. Aligning the
+     tab to the panel's title row therefore needs ~3.5rem from the top of
+     the root component. */
+  inset-block-start: 3.5rem;
+  inset-inline-end: var(--panel-width);
+  inline-size: 22px;
+  block-size: 56px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--fg);
+  font: inherit;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border-radius: 4px 0 0 4px;
+  z-index: 20;
+  transition: inset-inline-end 240ms ease, background-color 120ms;
+}
+.brain-3d__panel-toggle:hover { background: rgba(255, 255, 255, 0.06); }
+.brain-3d__panel-toggle:focus-visible {
+  outline: 2px solid rgba(216, 146, 51, 0.85);
+  outline-offset: 2px;
+}
+.brain-3d__panel-toggle-icon {
+  font-size: 0.95rem;
+  line-height: 1;
+  transition: transform 240ms ease;
+}
+/* Chevron points TOWARD the brain when open (➜ "collapse this way") and
+   TOWARD the panel content when closed (➜ "expand this way"). */
+[data-panel-open="true"] .brain-3d__panel-toggle-icon { transform: rotate(0deg); }
+[data-panel-open="false"] .brain-3d__panel-toggle-icon { transform: rotate(180deg); }
+
+.brain-3d__paper-panel-header {
+  padding: 1rem 1rem 0.75rem 1.5rem;
+  display: grid;
+  gap: 0.4rem;
+  border-block-end: 1px solid var(--border);
+  background: var(--bg);
+}
+.brain-3d__paper-meta-title {
+  font-family: 'Literata', Georgia, serif;
+  font-weight: 600;
+  font-size: 1rem;
+  line-height: 1.3;
+  margin: 0;
+  text-wrap: pretty;
+}
+.brain-3d__paper-byline {
+  font-size: 0.78rem;
+  color: var(--muted);
+  margin: 0;
+}
+.brain-3d__paper-venue {
+  font-size: 0.72rem;
+  font-style: italic;
+  color: var(--muted);
+  margin: 0;
+}
+.brain-3d__paper-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 0.9rem;
+  font-size: 0.78rem;
+  margin: 0.2rem 0 0 0;
+}
+.brain-3d__paper-links a {
+  color: var(--fg);
+  text-decoration: underline;
+  text-underline-offset: 0.18em;
+  text-decoration-thickness: 1px;
+}
+.brain-3d__paper-links a:hover { text-decoration-thickness: 2px; }
+.brain-3d__paper-panel-header .brain-3d__chips {
+  margin-block-start: 0.35rem;
+}
+
+.brain-3d__paper-body {
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 0.5rem 1rem 1.5rem 1.5rem;
+}
+.brain-3d__paper-empty {
+  margin: 1rem 0;
+  color: var(--muted);
+  font-size: 0.85rem;
+  font-style: italic;
+}
+
+.brain-3d__paper-section,
+.brain-3d__paper-subsection {
+  border-block-end: 1px solid var(--border);
+  padding-block: 0.5rem;
+}
+.brain-3d__paper-section:last-child,
+.brain-3d__paper-subsection:last-child {
+  border-block-end: none;
+}
+.brain-3d__paper-section-summary,
+.brain-3d__paper-subsection-summary {
+  list-style: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-family: 'Outfit', system-ui, sans-serif;
+  font-weight: 600;
+  user-select: none;
+  padding-block: 0.25rem;
+}
+.brain-3d__paper-section-summary { font-size: 0.92rem; }
+.brain-3d__paper-subsection-summary {
+  font-size: 0.8rem;
+  color: var(--muted);
+  margin-block-start: 0.25rem;
+}
+.brain-3d__paper-section-heading {
+  flex: 1 1 auto;
+  min-inline-size: 0;
+}
+
+/* Per-section "Highlight all" toggle. Clicks here are stopPropagation'd in
+   JS so they don't collapse the section. aria-pressed=true when every ref
+   in this section is currently inspected. */
+.brain-3d__paper-section-highlight {
+  flex: 0 0 auto;
+  appearance: none;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--muted);
+  font-family: 'Outfit', system-ui, sans-serif;
+  font-size: 0.65rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  padding: 0.15rem 0.45rem;
+  cursor: pointer;
+  border-radius: 999px;
+  text-transform: uppercase;
+  transition: background-color 120ms, color 120ms, border-color 120ms;
+}
+.brain-3d__paper-section-highlight:hover {
+  color: var(--fg);
+  border-color: rgba(216, 146, 51, 0.6);
+}
+.brain-3d__paper-section-highlight[aria-pressed="true"] {
+  background: rgba(216, 146, 51, 0.85);
+  color: #0a0a0a;
+  border-color: rgba(216, 146, 51, 0.85);
+}
+.brain-3d__paper-section-summary::-webkit-details-marker,
+.brain-3d__paper-subsection-summary::-webkit-details-marker { display: none; }
+.brain-3d__paper-section-caret {
+  display: inline-block;
+  font-size: 0.65rem;
+  transition: transform 180ms ease;
+  inline-size: 0.7rem;
+  text-align: center;
+}
+details:not([open]) > summary .brain-3d__paper-section-caret { transform: rotate(-90deg); }
+
+.brain-3d__paper-subsections {
+  padding-inline-start: 0.75rem;
+  border-inline-start: 1px solid var(--border);
+  margin-block-start: 0.25rem;
+}
+.brain-3d__paper-paragraphs {
+  display: grid;
+  gap: 0.7rem;
+  padding-block-start: 0.4rem;
+}
+.brain-3d__paper-paragraph {
+  margin: 0;
+  font-family: 'Literata', Georgia, serif;
+  font-size: 0.85rem;
+  line-height: 1.55;
+  color: var(--fg);
+  text-wrap: pretty;
+}
+
+/* Inline parcel reference. Rendered as a styled <button> so clicking it
+   inspects the parcel (leader line) and triggers the renderer pulse.
+   .is-inspected mirrors the glossary state — when this parcel currently has
+   a leader line drawn to it, the inline ref glows amber so you can
+   detangle which clicks lit up which parcels in long paragraphs. */
+.brain-3d__paper-ref {
+  appearance: none;
+  border: none;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  padding: 0 0.15rem;
+  border-block-end: 1px dotted currentColor;
+  text-underline-offset: 0.15em;
+  transition: background-color 120ms, color 120ms, border-color 120ms;
+}
+.brain-3d__paper-ref:hover,
+.brain-3d__paper-ref:focus-visible {
+  background: rgba(255, 255, 255, 0.1);
+  outline: none;
+  border-block-end-style: solid;
+}
+.brain-3d__paper-ref.is-inspected {
+  background: rgba(216, 146, 51, 0.85);
+  color: #0a0a0a;
+  border-block-end-color: rgba(216, 146, 51, 0.95);
+  border-block-end-style: solid;
+}
+.brain-3d__paper-ref.is-inspected:hover {
+  background: rgba(216, 146, 51, 1);
+}
+
 /* Mobile collapse */
 @media (max-width: 720px) {
   .brain-3d {
@@ -258,5 +567,29 @@
   .brain-3d__glossary {
     max-block-size: 40dvh;
     border-block-start: 1px solid var(--border);
+  }
+  /* On phone-width, the paper panel becomes a full-width drawer over the
+     brain center rather than a fixed column. When open it covers most of
+     the screen; the toggle button stays pinned to the upper-left corner of
+     the drawer. */
+  .brain-3d[data-paper-view="true"],
+  .brain-3d[data-paper-view="true"][data-panel-open="false"] {
+    grid-template-columns: 1fr;
+  }
+  .brain-3d[data-paper-view="true"] .brain-3d__paper-panel {
+    position: fixed;
+    inset: 0;
+    z-index: 30;
+    background: var(--bg);
+    border-inline-start: none;
+    transform: translateX(0);
+    transition: transform 240ms ease;
+  }
+  .brain-3d[data-paper-view="true"][data-panel-open="false"] .brain-3d__paper-panel {
+    transform: translateX(calc(100% - 48px));
+  }
+  .brain-3d[data-paper-view="true"] .brain-3d__panel-toggle {
+    inset-inline-start: 0.5rem;
+    inset-block-start: 0.5rem;
   }
 }

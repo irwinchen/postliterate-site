@@ -1,0 +1,19 @@
+{
+  "_comment_": "Auto-extracted paper metadata from /admin Papers tab. Same per-entry shape as papers.json plus pdfUrl. Kept separate so curated citations stay distinguishable from LLM extractions.",
+  "blank-2026": {
+    "title": "Video games as stimuli in neuroimaging studies: a minireview",
+    "authors": "Blank et al.",
+    "year": 2026,
+    "venue": "Frontiers in Human Neuroscience",
+    "doi": "10.3389/fnhum.2026.1687121",
+    "pdfUrl": "/papers/blank-2026.pdf"
+  },
+  "blank-2026-2": {
+    "title": "Video games as stimuli in neuroimaging studies: a minireview",
+    "authors": "Blank et al.",
+    "year": 2026,
+    "venue": "Frontiers in Human Neuroscience",
+    "doi": "10.3389/fnhum.2026.1687121",
+    "pdfUrl": "/papers/blank-2026-2.pdf"
+  }
+}

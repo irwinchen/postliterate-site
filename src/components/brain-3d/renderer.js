@@ -7,7 +7,7 @@
 
 import * as THREE from 'three';
 import { OBJLoader } from 'three/addons/loaders/OBJLoader.js';
-import { computeParcelEmissive } from '../../lib/brain-viz/emissive.js';
+import { computeParcelEmissive, hexToRgb } from '../../lib/brain-viz/emissive.js';
 
 const CORTEX_BASE_COLOR = 0xb8b2a4;
 const BACKGROUND_COLOR = 0x0a0a0a;
@@ -298,6 +298,43 @@ export function createBrainRenderer({ canvas, view, viewState }) {
   function lerp(a, b, t) { return a + (b - a) * t; }
   function easeOutCubic(t) { return 1 - Math.pow(1 - t, 3); }
 
+  // === Pulse layer ===
+  // Transient additive contribution on top of the network-emissive output.
+  // Used by the per-paper drawer: clicking a highlighted parcel name in
+  // paragraph text pulses that parcel without disturbing the active
+  // network. Each pulse fades to zero over durationMs via ease-out.
+  const pulses = new Map(); // parcelId -> { startedAt, durationMs, color: {r,g,b} }
+  function pulseParcel(parcelId, opts = {}) {
+    if (!parcelMeshes.has(parcelId)) return;
+    const durationMs = typeof opts.durationMs === 'number' && opts.durationMs > 0 ? opts.durationMs : 1200;
+    let color;
+    if (opts.color && typeof opts.color === 'object' && 'r' in opts.color) {
+      color = opts.color;
+    } else if (typeof opts.color === 'string') {
+      try { color = hexToRgb(opts.color); } catch { color = { r: 1, g: 1, b: 1 }; }
+    } else {
+      color = { r: 1, g: 1, b: 1 };
+    }
+    pulses.set(parcelId, { startedAt: performance.now(), durationMs, color });
+  }
+  // Peak additive contribution. Tuned to be visible against the base
+  // emissive without saturating the additive-blended shader output.
+  const PULSE_PEAK = 0.9;
+
+  function computePulseContribution(parcelId, now) {
+    const pulse = pulses.get(parcelId);
+    if (!pulse) return null;
+    const elapsed = now - pulse.startedAt;
+    if (elapsed >= pulse.durationMs) {
+      pulses.delete(parcelId);
+      return null;
+    }
+    const t = elapsed / pulse.durationMs;
+    // 1 - t^2 — quick rise, slow fade. Multiplied into the pulse color.
+    const k = (1 - t * t) * PULSE_PEAK;
+    return { r: pulse.color.r * k, g: pulse.color.g * k, b: pulse.color.b * k };
+  }
+
   // === Render loop ===
   let running = true;
   const afterRenderCallbacks = new Set();
@@ -307,8 +344,13 @@ export function createBrainRenderer({ canvas, view, viewState }) {
     const tSec = now / 1000;
     for (const entry of parcelMeshes.values()) {
       const c = computeDisplayedEmissive(entry, now);
+      const pulseC = computePulseContribution(entry.parcel.id, now);
       const u = entry.mesh.material.uniforms;
-      u.uColor.value.setRGB(c.r, c.g, c.b);
+      if (pulseC) {
+        u.uColor.value.setRGB(c.r + pulseC.r, c.g + pulseC.g, c.b + pulseC.b);
+      } else {
+        u.uColor.value.setRGB(c.r, c.g, c.b);
+      }
       u.uTime.value = tSec;
     }
     renderer.render(scene, camera);
@@ -368,6 +410,7 @@ export function createBrainRenderer({ canvas, view, viewState }) {
     getParcelScreenPosition,
     getDirectionScreenPositions,
     getCanvasRect,
+    pulseParcel,
     onAfterRender(fn) {
       afterRenderCallbacks.add(fn);
       return () => afterRenderCallbacks.delete(fn);

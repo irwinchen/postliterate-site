@@ -1,0 +1,97 @@
+---
+import BrainViz3D from '../../../components/brain-3d/BrainViz3D.astro';
+import papersCurated from '../../../components/brain-3d/data/registry/papers.json';
+import papersUploaded from '../../../components/brain-3d/data/registry/papers-uploaded.json';
+
+// One static page per JSON file in data/views/papers/. Globs are evaluated at
+// build time, so adding a paper requires a rebuild — same workflow as blog
+// posts: admin writes files, dev/build picks them up. Empty directory (only
+// .gitkeep) yields zero pages, which is fine.
+//
+// Paper content (sections + paragraphs) is loaded from a parallel glob over
+// data/content/papers/*.json. Paired per slug; missing entries become null
+// and BrainViz3D shows the "re-extract" fallback.
+export async function getStaticPaths() {
+  const viewModules = import.meta.glob(
+    '../../../components/brain-3d/data/views/papers/*.json',
+    { eager: true },
+  );
+  const contentModules = import.meta.glob(
+    '../../../components/brain-3d/data/content/papers/*.json',
+    { eager: true },
+  );
+  const contentBySlug = {};
+  for (const [path, mod] of Object.entries(contentModules)) {
+    const slug = path.split('/').pop().replace(/\.json$/, '');
+    contentBySlug[slug] = mod.default ?? mod;
+  }
+  return Object.entries(viewModules).map(([path, mod]) => {
+    const viewConfig = mod.default ?? mod;
+    return {
+      params: { slug: viewConfig.slug },
+      props: { viewConfig, paperContent: contentBySlug[viewConfig.slug] ?? null },
+    };
+  });
+}
+
+const { viewConfig, paperContent } = Astro.props;
+
+// Per-paper views have no curated panel copy yet; BrainViz3D doesn't render
+// from content config in its current shape (createViewContent is constructed
+// but the panel copy is only consumed by BrainCompare3D). An empty
+// `networks: {}` satisfies the validator.
+const contentConfig = { networks: {} };
+
+// Merge curated + uploaded paper registries the same way BrainViz3D does
+// internally, then surface the paper metadata for the rightcol block.
+const papersMerged = { ...papersCurated, ...papersUploaded };
+const paperId = viewConfig.papers?.[0];
+const paperMetaRaw = paperId ? papersMerged[paperId] : null;
+const paperMeta = paperMetaRaw
+  ? {
+      title: paperMetaRaw.title ?? '',
+      authors: paperMetaRaw.authors ?? '',
+      year: paperMetaRaw.year ?? null,
+      venue: paperMetaRaw.venue ?? '',
+      doi: paperMetaRaw.doi ?? '',
+      pdfUrl: paperMetaRaw.pdfUrl ?? `/papers/${paperId}.pdf`,
+    }
+  : null;
+
+const pageTitle = paperMeta?.title || viewConfig.name || viewConfig.slug;
+---
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{pageTitle} — Brain Viz</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Literata:ital,wght@0,400;0,500;0,700;1,400&family=Outfit:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root { color-scheme: dark; }
+      html, body {
+        margin: 0;
+        padding: 0;
+        background: #0a0a0a;
+        font-family: 'Outfit', system-ui, sans-serif;
+        color: #ece7d6;
+        overflow: hidden;
+        block-size: 100%;
+      }
+    </style>
+  </head>
+  <body>
+    <BrainViz3D
+      viewConfig={viewConfig}
+      contentConfig={contentConfig}
+      paperMeta={paperMeta}
+      paperContent={paperContent}
+      glossaryMode="in-view-only"
+    />
+  </body>
+</html>

@@ -216,6 +216,48 @@ describe('createViewState — generalizes to arbitrary network counts', () => {
   });
 });
 
+describe('createViewState — allowZero (per-paper views)', () => {
+  let state;
+
+  beforeEach(() => {
+    state = createViewState({
+      networkIds: FOUR,
+      initialNetwork: 'm1',
+      allowZero: true,
+    });
+    state.enterCompare();
+  });
+
+  it('toggle can remove the last active network, leaving the set empty', () => {
+    expect(state.activeNetworks()).toEqual(['m1']);
+    state.toggle('m1');
+    expect(state.activeNetworks()).toEqual([]);
+  });
+
+  it('compare mode stays sticky after toggling — chips remain pure toggles', () => {
+    state.toggle('m2');
+    state.toggle('m1');
+    expect(state.activeNetworks()).toEqual(['m2']);
+    expect(state.isCompare()).toBe(true);
+    state.toggle('m2');
+    expect(state.activeNetworks()).toEqual([]);
+    expect(state.isCompare()).toBe(true);
+  });
+
+  it('toggle re-adds after going empty', () => {
+    state.toggle('m1');
+    expect(state.activeNetworks()).toEqual([]);
+    state.toggle('m3');
+    expect(state.activeNetworks()).toEqual(['m3']);
+  });
+
+  it('default (allowZero=false) still rejects toggling off the last active', () => {
+    const strict = createViewState({ networkIds: FOUR, initialNetwork: 'm1' });
+    strict.enterCompare();
+    expect(() => strict.toggle('m1')).toThrow(/last active network/);
+  });
+});
+
 describe('createViewState — ordering & determinism', () => {
   it('exitCompare() keeps the network earliest in networkIds order, not lex order', () => {
     // Reverse lex order to confirm we honour declared order, not Array sort.

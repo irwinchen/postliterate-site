@@ -11,7 +11,7 @@
  */
 
 import { createServer } from 'node:http';
-import { readFileSync, writeFileSync, existsSync } from 'node:fs';
+import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'node:fs';
 import { join, resolve, sep } from 'node:path';
 import { spawn } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
@@ -38,6 +38,32 @@ import {
   READING_STATUSES,
 } from './dashboard/sources/vault-watch.mjs';
 import { getTodos, toggleTodo } from './dashboard/sources/todos.mjs';
+import { loadParcelRegistry } from '../src/lib/brain-viz/parcel-registry.js';
+import { extractPaper, draftToViewConfig, draftToPaperContent } from './papers/extract.mjs';
+
+// ── Paper-extraction paths (relative to ROOT) ─────────────────────────
+const PARCELS_PATH = join(ROOT, 'src/components/brain-3d/data/registry/parcels.json');
+const PAPERS_CURATED_PATH = join(ROOT, 'src/components/brain-3d/data/registry/papers.json');
+const PAPERS_UPLOADED_PATH = join(ROOT, 'src/components/brain-3d/data/registry/papers-uploaded.json');
+const PAPER_VIEWS_DIR = join(ROOT, 'src/components/brain-3d/data/views/papers');
+const PAPER_CONTENT_DIR = join(ROOT, 'src/components/brain-3d/data/content/papers');
+const PAPER_PDF_DIR = join(ROOT, 'public/papers');
+const PAPER_SLUG_RE = /^[a-z0-9][a-z0-9-]{0,79}$/;
+
+function readJson(path, fallback = {}) {
+  if (!existsSync(path)) return fallback;
+  try {
+    return JSON.parse(readFileSync(path, 'utf8'));
+  } catch {
+    return fallback;
+  }
+}
+
+function mergePaperRegistries() {
+  const curated = readJson(PAPERS_CURATED_PATH, {});
+  const uploaded = readJson(PAPERS_UPLOADED_PATH, {});
+  return { ...curated, ...uploaded };
+}
 
 const __dirname = fileURLToPath(new URL('.', import.meta.url));
 const PORT = 4322;
@@ -481,6 +507,190 @@ async function handleRequest(req, res) {
         json(res, { error: err.message }, 500);
       } finally {
         refreshInFlight = null;
+      }
+      return;
+    }
+
+    // GET /api/papers — list uploaded paper views.
+    // viewUrl is built against the Astro dev server (DEV_PORT, not the admin
+    // port) so admin-tab links open the actual figure rather than 404-ing
+    // against the admin process. hasParagraphs flags whether the content
+    // file exists, surfaced in the admin UI as a badge.
+    if (method === 'GET' && path === '/api/papers') {
+      const devStatus = getDevServerStatus();
+      const devOrigin = `http://localhost:${devStatus.port ?? DEV_PORT}`;
+      const uploaded = readJson(PAPERS_UPLOADED_PATH, {});
+      const entries = Object.entries(uploaded)
+        .filter(([k]) => !k.startsWith('_'))
+        .map(([id, meta]) => ({
+          id,
+          title: meta.title ?? '',
+          authors: meta.authors ?? '',
+          year: meta.year ?? null,
+          venue: meta.venue ?? '',
+          doi: meta.doi ?? '',
+          pdfUrl: `${devOrigin}${meta.pdfUrl ?? `/papers/${id}.pdf`}`,
+          viewUrl: `${devOrigin}/brain/papers/${id}`,
+          hasParagraphs: existsSync(join(PAPER_CONTENT_DIR, `${id}.json`)),
+          devServerRunning: devStatus.running,
+        }));
+      json(res, { papers: entries, devServerRunning: devStatus.running });
+      return;
+    }
+
+    // POST /api/papers/extract — extract a draft view from an uploaded PDF.
+    // Body: { filename, pdfBase64 }. Does not write anything to disk.
+    if (method === 'POST' && path === '/api/papers/extract') {
+      if (READ_ONLY) { json(res, { error: 'Server is in read-only mode' }, 403); return; }
+      if (!process.env.ANTHROPIC_API_KEY) {
+        json(res, { error: 'ANTHROPIC_API_KEY not set in the admin server environment' }, 500);
+        return;
+      }
+      const body = await readBody(req);
+      if (!body || typeof body.pdfBase64 !== 'string' || !body.pdfBase64) {
+        json(res, { error: 'pdfBase64 (string, required) missing' }, 400);
+        return;
+      }
+      let pdfBuffer;
+      try {
+        pdfBuffer = Buffer.from(body.pdfBase64, 'base64');
+      } catch (e) {
+        json(res, { error: `invalid base64: ${e.message}` }, 400);
+        return;
+      }
+      try {
+        const rawParcels = readJson(PARCELS_PATH, {});
+        const registry = loadParcelRegistry(rawParcels);
+        const papersMerged = mergePaperRegistries();
+        const draft = await extractPaper({
+          pdfBuffer,
+          registry,
+          papersJson: papersMerged,
+          apiKey: process.env.ANTHROPIC_API_KEY,
+        });
+        const viewConfig = draftToViewConfig(draft);
+        const paperContent = draftToPaperContent(draft);
+        // If the slug collides with an existing curated/uploaded paper id, suffix.
+        const existing = new Set(Object.keys(papersMerged));
+        let slug = viewConfig.slug;
+        if (existing.has(slug)) {
+          let i = 2;
+          while (existing.has(`${slug}-${i}`)) i++;
+          slug = `${slug}-${i}`;
+          viewConfig.slug = slug;
+          viewConfig.papers = [slug];
+          draft.paper.id = slug;
+        }
+        const sectionCount = paperContent?.sections.length ?? 0;
+        const paragraphCount = paperContent
+          ? paperContent.sections.reduce(
+              (acc, s) => acc + s.paragraphs.length + s.subsections.reduce((a, ss) => a + ss.paragraphs.length, 0),
+              0,
+            )
+          : 0;
+        json(res, {
+          paper: draft.paper,
+          viewConfig,
+          paperContent,
+          registryParcelCount: Object.keys(registry.parcels()).length,
+          matchedParcelCount: draft.parcelIds.length,
+          sectionCount,
+          paragraphCount,
+        });
+      } catch (err) {
+        json(res, { error: err.message }, 500);
+      }
+      return;
+    }
+
+    // POST /api/papers/save — write extracted draft + PDF to disk.
+    // Body: { slug, pdfBase64, paper, viewConfig }.
+    if (method === 'POST' && path === '/api/papers/save') {
+      if (READ_ONLY) { json(res, { error: 'Server is in read-only mode' }, 403); return; }
+      const body = await readBody(req);
+      const slug = body.slug;
+      if (typeof slug !== 'string' || !PAPER_SLUG_RE.test(slug)) {
+        json(res, { error: 'slug must match /^[a-z0-9][a-z0-9-]{0,79}$/' }, 400);
+        return;
+      }
+      if (typeof body.pdfBase64 !== 'string' || !body.pdfBase64) {
+        json(res, { error: 'pdfBase64 (string, required) missing' }, 400);
+        return;
+      }
+      if (!body.paper || typeof body.paper !== 'object') {
+        json(res, { error: 'paper (object, required) missing' }, 400);
+        return;
+      }
+      if (!body.viewConfig || typeof body.viewConfig !== 'object') {
+        json(res, { error: 'viewConfig (object, required) missing' }, 400);
+        return;
+      }
+
+      try {
+        // Path-traversal guard: resolved paths must remain under their dirs.
+        const pdfPath = resolve(join(PAPER_PDF_DIR, `${slug}.pdf`));
+        const viewPath = resolve(join(PAPER_VIEWS_DIR, `${slug}.json`));
+        const contentPath = resolve(join(PAPER_CONTENT_DIR, `${slug}.json`));
+        if (!pdfPath.startsWith(resolve(PAPER_PDF_DIR) + sep)) {
+          json(res, { error: 'invalid pdf path' }, 400); return;
+        }
+        if (!viewPath.startsWith(resolve(PAPER_VIEWS_DIR) + sep)) {
+          json(res, { error: 'invalid view path' }, 400); return;
+        }
+        if (!contentPath.startsWith(resolve(PAPER_CONTENT_DIR) + sep)) {
+          json(res, { error: 'invalid content path' }, 400); return;
+        }
+
+        mkdirSync(PAPER_PDF_DIR, { recursive: true });
+        mkdirSync(PAPER_VIEWS_DIR, { recursive: true });
+        mkdirSync(PAPER_CONTENT_DIR, { recursive: true });
+
+        // 1. Write PDF.
+        const pdfBuffer = Buffer.from(body.pdfBase64, 'base64');
+        writeFileSync(pdfPath, pdfBuffer);
+
+        // 2. Write view config (slug-keyed file; viewConfig.slug is normalized
+        //    to match the route slug regardless of what the LLM proposed).
+        const viewConfig = { ...body.viewConfig, slug };
+        if (!Array.isArray(viewConfig.papers) || viewConfig.papers.length === 0) {
+          viewConfig.papers = [slug];
+        }
+        writeFileSync(viewPath, JSON.stringify(viewConfig, null, 2) + '\n', 'utf8');
+
+        // 3. Merge paper metadata into papers-uploaded.json. Re-key under the
+        //    URL slug so view-loader resolves it (viewConfig.papers[0] === slug).
+        const uploaded = readJson(PAPERS_UPLOADED_PATH, {});
+        const pdfUrl = `/papers/${slug}.pdf`;
+        uploaded[slug] = {
+          ...body.paper,
+          pdfUrl,
+        };
+        delete uploaded[slug].id; // id is the key, not a field
+        writeFileSync(PAPERS_UPLOADED_PATH, JSON.stringify(uploaded, null, 2) + '\n', 'utf8');
+
+        // 4. Write paper content (sections + paragraphs) when present. Older
+        //    saves without paragraph data skip this and the view falls back
+        //    to the empty-content message in BrainViz3D.
+        let wroteContent = false;
+        if (body.paperContent && Array.isArray(body.paperContent.sections) && body.paperContent.sections.length > 0) {
+          writeFileSync(contentPath, JSON.stringify(body.paperContent, null, 2) + '\n', 'utf8');
+          wroteContent = true;
+        }
+
+        // Same pattern as /api/preview: kick the dev server so the user's
+        // "Open view" click lands on a running route, not a dead port.
+        const devStatus = startDevServer();
+        const devOrigin = `http://localhost:${devStatus.port ?? DEV_PORT}`;
+        json(res, {
+          ok: true,
+          slug,
+          viewUrl: `${devOrigin}/brain/papers/${slug}`,
+          pdfUrl: `${devOrigin}${pdfUrl}`,
+          wroteContent,
+          devServerRunning: devStatus.running,
+        });
+      } catch (err) {
+        json(res, { error: err.message }, 500);
       }
       return;
     }
