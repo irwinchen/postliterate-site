@@ -11,6 +11,7 @@
  */
 
 import { createServer } from 'node:http';
+import { createServer as createNetServer } from 'node:net';
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'node:fs';
 import { join, resolve, sep } from 'node:path';
 import { spawn } from 'node:child_process';
@@ -116,9 +117,35 @@ function getDevServerStatus() {
   return { running: false, pid: null, port: null };
 }
 
-function startDevServer() {
+// Synchronously check whether something is already bound to `port` on the
+// loopback interface. Used to avoid spawning a redundant `astro dev` when the
+// user has started one manually (`npm run dev`) — Astro would otherwise see
+// the port taken and auto-bump to PORT+1 (the admin's own port), creating a
+// collision where the loopback bind shadows the admin and the browser
+// gets the Astro routes instead of the dashboard.
+function isPortBoundOnLoopback(port) {
+  return new Promise((resolve) => {
+    const tester = createNetServer()
+      .once('error', (err) => {
+        resolve(err && err.code === 'EADDRINUSE');
+      })
+      .once('listening', () => {
+        tester.close(() => resolve(false));
+      })
+      .listen(port, '127.0.0.1');
+  });
+}
+
+async function startDevServer() {
   const status = getDevServerStatus();
   if (status.running) return status;
+
+  // Honor an existing dev server we didn't spawn — e.g. user ran `npm run
+  // dev` in a separate terminal. Treat the port as "running, externally
+  // managed" and skip the spawn entirely.
+  if (await isPortBoundOnLoopback(DEV_PORT)) {
+    return { running: true, pid: null, port: DEV_PORT, external: true };
+  }
 
   const child = spawn('npx', ['astro', 'dev', '--port', String(DEV_PORT)], {
     cwd: ROOT,
@@ -196,7 +223,7 @@ async function handleRequest(req, res) {
       }
 
       // Ensure dev server is running
-      const devStatus = startDevServer();
+      const devStatus = await startDevServer();
       const previewSlug = slug || synced[0];
       const previewUrl = previewSlug
         ? `http://localhost:${devStatus.port}/blog/${urlSlug(previewSlug)}`
@@ -266,7 +293,7 @@ async function handleRequest(req, res) {
 
     // POST /api/dev-server/start — start dev server
     if (method === 'POST' && path === '/api/dev-server/start') {
-      json(res, startDevServer());
+      json(res, await startDevServer());
       return;
     }
 
@@ -679,7 +706,7 @@ async function handleRequest(req, res) {
 
         // Same pattern as /api/preview: kick the dev server so the user's
         // "Open view" click lands on a running route, not a dead port.
-        const devStatus = startDevServer();
+        const devStatus = await startDevServer();
         const devOrigin = `http://localhost:${devStatus.port ?? DEV_PORT}`;
         json(res, {
           ok: true,
