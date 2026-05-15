@@ -14,7 +14,8 @@
     "blog:clean": "node scripts/blog.mjs clean",
     "admin": "node scripts/admin.mjs",
     "test": "vitest run",
-    "bubbles:build": "node src/lib/corpus-bubbles/build.mjs"
+    "bubbles:build": "node src/lib/corpus-bubbles/build.mjs",
+    "tokens:build": "node src/lib/corpus-tokens/build.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.96.0",

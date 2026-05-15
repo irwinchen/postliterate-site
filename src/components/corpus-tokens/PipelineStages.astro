@@ -1,0 +1,853 @@
+---
+/**
+ * PipelineStages — six-stage morph from raw text to a point in vector space.
+ *
+ * Data: precomputed `public/corpus-tokens/stages.json` (built by
+ * `npm run tokens:build`). Every token, ID, embedding row, position row,
+ * and PCA coordinate is real GPT-2 output — see `src/lib/corpus-tokens/`.
+ *
+ * Architecture (see DESIGN.md): 32 persistent token elements live in the
+ * DOM at every stage. A "stage" is a layout + active inner layer for those
+ * 32 elements. Moving between stages animates position, size, and which
+ * layer (text / id / heatmap / dot) is opaque. CSS transitions on
+ * `transform`, `inline-size`, `block-size` and inner-layer `opacity` do the
+ * morph — no per-frame JS loop needed.
+ *
+ * Wrapped-text positions (stages 0–3) come from measuring three hidden
+ * "ghost" flow containers that lay tokens out with the right gap rules.
+ * Stage 4 (strips) and stage 5 (scatter) compute positions in JS. A
+ * ResizeObserver re-measures on viewport resize.
+ *
+ * Hover-linking: every element carries `data-pos`. Hovering any token in
+ * any stage sets a `--ct-hover` index on the wrap; CSS highlights the
+ * match and dims the rest across all stages.
+ */
+import stages from '../../../public/corpus-tokens/stages.json';
+
+const {
+  sentence,
+  preTokens,
+  tokens,
+  dims,
+  positionVectors,
+  comparison,
+  projectionExtent,
+} = stages;
+
+// One hue per pre-token chunk via golden-angle rotation. Tokens that share
+// a preIndex (e.g. " in" + "ked" both from " inked") share a color — so in
+// stage 1 (pre-tokens) they read as one block, and in stage 2 (tokens) the
+// shared color makes the BPE split visible without needing extra chrome.
+const HUES = preTokens.map((_, i) => Math.round((i * 137.508) % 360));
+
+// Stage metadata. Labels render in the stepper; captions are placeholder
+// copy (project CLAUDE.md: scaffold only — Irwin writes prose). Captions
+// render inside <code> to mark them as placeholders.
+const stageDefs = [
+  { id: 'raw',   label: 'Characters', caption: '165 characters of raw input. No structure yet — the model sees a stream of bytes.' },
+  { id: 'pre',   label: 'Pre-tokens', caption: 'A regex pre-tokenizer splits the stream into 31 chunks before BPE runs.' },
+  { id: 'tok',   label: 'BPE tokens', caption: 'Byte-pair encoding produces 32 tokens. " inked" splits into " in" + "ked".' },
+  { id: 'ids',   label: 'Token IDs',  caption: 'Each token becomes an integer ID in the GPT-2 vocabulary (50,257 entries).' },
+  { id: 'emb',   label: 'Embeddings', caption: 'Each ID indexes a 768-dimensional vector in the embedding matrix (wte).' },
+  { id: 'space', label: 'Vector space', caption: 'Project to 2D via PCA — semantically related words cluster together.' },
+];
+---
+
+<div
+  class="ct-wrap"
+  data-component="corpus-tokens"
+  data-stage="0"
+>
+  <header class="ct-header">
+    <h1 class="ct-title"><code>From text to vector — six stages.</code></h1>
+    <p class="ct-sentence">{sentence}</p>
+  </header>
+
+  <nav class="ct-stepper" aria-label="Pipeline stage">
+    <button class="ct-step-arrow" data-step-prev aria-label="Previous stage">‹</button>
+    <ol class="ct-step-list">
+      {stageDefs.map((s, i) => (
+        <li>
+          <button
+            class="ct-step"
+            data-step={i}
+            aria-current={i === 0 ? 'step' : undefined}
+          >
+            <span class="ct-step-num">{i + 1}</span>
+            <span class="ct-step-label">{s.label}</span>
+          </button>
+        </li>
+      ))}
+    </ol>
+    <button class="ct-step-arrow" data-step-next aria-label="Next stage">›</button>
+  </nav>
+
+  <p class="ct-caption" aria-live="polite">
+    {stageDefs.map((s, i) => (
+      <code class="ct-caption-text" data-step={i} hidden={i !== 0}>{s.caption}</code>
+    ))}
+  </p>
+
+  <div class="ct-stage-area">
+    <!-- Ghost flow containers: measured once per resize to drive stages 0–2.
+         visibility:hidden keeps them laid out but invisible. Each ghost
+         mirrors the visible-tokens font + size. The visible token elements
+         are then absolutely positioned at the measured coordinates. -->
+    <div class="ct-ghost" data-ghost="raw" aria-hidden="true">
+      {tokens.map((t) => (
+        <span class="ct-ghost-tok" data-pos={t.pos}>{t.display}</span>
+      ))}
+    </div>
+    <div class="ct-ghost" data-ghost="pre" aria-hidden="true">
+      {tokens.map((t, i) => {
+        const newGroup = i > 0 && t.preIndex !== tokens[i - 1].preIndex;
+        return (
+          <span
+            class={`ct-ghost-tok${newGroup ? ' ct-ghost-gap' : ''}`}
+            data-pos={t.pos}
+          >{t.display}</span>
+        );
+      })}
+    </div>
+    <div class="ct-ghost" data-ghost="tok" aria-hidden="true">
+      {tokens.map((t, i) => (
+        <span
+          class={`ct-ghost-tok${i > 0 ? ' ct-ghost-gap' : ''}`}
+          data-pos={t.pos}
+        >{t.display}</span>
+      ))}
+    </div>
+
+    <!-- Persistent token layer. Every element exists at every stage; JS
+         updates each element's transform + size per stage, CSS cross-fades
+         the inner layers. -->
+    <div class="ct-tokens">
+      {tokens.map((t) => (
+        <div
+          class="ct-token"
+          data-pos={t.pos}
+          data-pre-index={t.preIndex}
+          style={`--tk-hue: ${HUES[t.preIndex]};`}
+        >
+          <span class="ct-token-text">{t.display}</span>
+          <span class="ct-token-id">{t.id}</span>
+          <canvas
+            class="ct-token-heat"
+            width={dims}
+            height="1"
+            data-pos={t.pos}
+          ></canvas>
+          <span class="ct-token-dot"></span>
+        </div>
+      ))}
+    </div>
+
+    <!-- Positional-encoding note layer (visible in stages 3 & 4). One row
+         per token's position vector, byte-quantized to the same scale as
+         the embedding rows. Quiet by design — a note, not a stage. -->
+    <div class="ct-pos-note" aria-hidden="true">
+      {positionVectors.map((_, i) => (
+        <canvas
+          class="ct-pos-cell"
+          width={dims}
+          height="1"
+          data-pos={i}
+        ></canvas>
+      ))}
+      <p class="ct-pos-note-caption"><code>+ positional encoding (added separately)</code></p>
+    </div>
+
+    <!-- Comparison words (stage 5 only). 18 anchors placed in the same
+         PCA space as the sentence tokens. Position is set by JS. -->
+    <div class="ct-comparison" aria-hidden="true">
+      {comparison.map((c) => (
+        <span
+          class="ct-cmp"
+          data-cmp-x={c.proj[0]}
+          data-cmp-y={c.proj[1]}
+        >
+          <span class="ct-cmp-dot"></span>
+          <span class="ct-cmp-label">{c.text}</span>
+        </span>
+      ))}
+    </div>
+  </div>
+</div>
+
+<style>
+  .ct-wrap {
+    position: relative;
+    inline-size: 100%;
+    block-size: 100%;
+    color: var(--text);
+    font-family: 'Outfit', system-ui, sans-serif;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  /* ---- Header ---- */
+
+  .ct-header {
+    padding-block: 18px 8px;
+    padding-inline: clamp(16px, 4vw, 48px);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    flex-shrink: 0;
+  }
+  .ct-title {
+    font-size: clamp(20px, 2.2vw, 28px);
+    font-weight: 500;
+    margin: 0;
+    letter-spacing: -0.01em;
+    line-height: 1.2;
+    text-wrap: balance;
+  }
+  .ct-title code {
+    font-family: inherit;
+    background: var(--bg-highlight);
+    padding-inline: 4px;
+    color: var(--accent);
+  }
+  .ct-sentence {
+    font-family: 'Alegreya', Georgia, serif;
+    font-size: 14px;
+    font-style: italic;
+    color: var(--text-secondary);
+    margin: 0;
+    text-wrap: pretty;
+    max-inline-size: 72ch;
+  }
+
+  /* ---- Stepper ---- */
+
+  .ct-stepper {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding-block: 8px;
+    padding-inline: clamp(16px, 4vw, 48px);
+    border-block-end: 1px solid var(--border-subtle);
+    flex-shrink: 0;
+  }
+  .ct-step-list {
+    display: flex;
+    gap: 2px;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    flex-wrap: wrap;
+  }
+  .ct-step,
+  .ct-step-arrow {
+    appearance: none;
+    background: transparent;
+    border: 1px solid transparent;
+    color: var(--text-secondary);
+    font: inherit;
+    font-size: 12px;
+    padding-block: 4px;
+    padding-inline: 8px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition:
+      color 200ms ease,
+      border-color 200ms ease,
+      background-color 200ms ease;
+  }
+  .ct-step-arrow {
+    padding-inline: 10px;
+    font-size: 16px;
+    line-height: 1;
+  }
+  .ct-step:hover,
+  .ct-step-arrow:hover {
+    color: var(--text);
+  }
+  .ct-step:focus-visible,
+  .ct-step-arrow:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+  .ct-step[aria-current='step'] {
+    color: var(--text);
+    border-color: var(--accent);
+    background: var(--bg-highlight);
+  }
+  .ct-step-num {
+    font-family: 'Sono', ui-monospace, monospace;
+    font-size: 10px;
+    color: var(--text-tertiary);
+  }
+  .ct-step[aria-current='step'] .ct-step-num {
+    color: var(--accent);
+  }
+
+  /* ---- Caption ---- */
+
+  .ct-caption {
+    padding-block: 10px 4px;
+    padding-inline: clamp(16px, 4vw, 48px);
+    margin: 0;
+    min-block-size: 32px;
+    flex-shrink: 0;
+  }
+  .ct-caption-text {
+    font-family: 'Sono', ui-monospace, monospace;
+    font-size: 11.5px;
+    color: var(--text-secondary);
+    background: var(--bg-subtle);
+    padding-inline: 6px;
+    padding-block: 2px;
+    line-height: 1.5;
+  }
+
+  /* ---- Stage area ---- */
+
+  .ct-stage-area {
+    position: relative;
+    flex: 1;
+    min-block-size: 0;
+    margin-inline: clamp(16px, 4vw, 48px);
+    margin-block-end: clamp(16px, 4vw, 32px);
+    overflow: hidden;
+    /* Font + size shared by the visible token text and the hidden ghosts;
+       so measurements line up byte-for-byte. */
+    font-family: 'Sono', ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 15px;
+    line-height: 1.8;
+    --token-h: 28px;
+  }
+
+  /* Ghosts lay out in normal flow but are invisible. Same width as the
+     stage area; same font + size as the visible tokens. We read their
+     children's offsetLeft/offsetTop/offsetWidth/offsetHeight to drive the
+     absolute positions of the real tokens. */
+  .ct-ghost {
+    position: absolute;
+    inset-block-start: 0;
+    inset-inline-start: 0;
+    inline-size: 100%;
+    visibility: hidden;
+    pointer-events: none;
+    /* Padding-block matches stage-area padding so the wrapped lines have
+       the same horizontal extent the visible tokens will. */
+    padding-block: 4px;
+  }
+  .ct-ghost-tok {
+    display: inline-block;
+    white-space: pre;
+    block-size: var(--token-h);
+    line-height: var(--token-h);
+    padding-inline: 4px;
+  }
+  .ct-ghost-gap {
+    margin-inline-start: 4px;
+  }
+  /* "raw" stage: tokens flush, no inter-token padding either, so the row
+     reads as one unbroken ribbon. */
+  .ct-ghost[data-ghost='raw'] .ct-ghost-tok {
+    padding-inline: 0;
+  }
+
+  /* ---- Token layer ---- */
+
+  .ct-tokens {
+    position: absolute;
+    inset: 0;
+    padding-block: 4px;
+  }
+  .ct-token {
+    position: absolute;
+    inset-block-start: 0;
+    inset-inline-start: 0;
+    inline-size: 0;
+    block-size: var(--token-h);
+    display: grid;
+    place-items: center;
+    transition:
+      transform 600ms cubic-bezier(0.4, 0, 0.2, 1),
+      inline-size 600ms cubic-bezier(0.4, 0, 0.2, 1),
+      block-size 600ms cubic-bezier(0.4, 0, 0.2, 1),
+      background-color 350ms ease,
+      border-color 350ms ease;
+    background: transparent;
+    border: 1px solid transparent;
+    color: var(--text);
+    will-change: transform, inline-size, block-size;
+  }
+  .ct-token > * {
+    grid-area: 1 / 1;
+    opacity: 0;
+    transition: opacity 350ms ease;
+  }
+  .ct-token-text,
+  .ct-token-id {
+    white-space: pre;
+    font-family: inherit;
+    font-size: inherit;
+    pointer-events: none;
+  }
+  .ct-token-id {
+    font-size: 11px;
+    color: var(--text-secondary);
+    letter-spacing: 0.02em;
+  }
+  .ct-token-heat {
+    inline-size: 100%;
+    block-size: 100%;
+    image-rendering: pixelated;
+    display: block;
+  }
+  .ct-token-dot {
+    inline-size: 9px;
+    block-size: 9px;
+    border-radius: 50%;
+    background: hsl(var(--tk-hue, 0) 60% 50%);
+    box-shadow: 0 0 0 1.5px var(--background);
+  }
+
+  /* Stage-driven layer visibility + tile chrome. */
+
+  /* Stage 0 — raw: text only, no chrome. */
+  .ct-wrap[data-stage='0'] .ct-token-text { opacity: 1; }
+
+  /* Stage 1 — pre-tokens: text visible, tile background appears (tokens
+     sharing a preIndex share a hue, so they read as one block). */
+  .ct-wrap[data-stage='1'] .ct-token {
+    background: hsl(var(--tk-hue, 0) 55% 88%);
+  }
+  .ct-wrap[data-stage='1'] .ct-token-text { opacity: 1; }
+
+  /* Stage 2 — tokens: same background, but every tile now has a gap +
+     border on its edge, making the BPE split visible. */
+  .ct-wrap[data-stage='2'] .ct-token {
+    background: hsl(var(--tk-hue, 0) 55% 85%);
+    border-color: hsl(var(--tk-hue, 0) 45% 65%);
+  }
+  .ct-wrap[data-stage='2'] .ct-token-text { opacity: 1; }
+
+  /* Stage 3 — IDs: text → integer, tile chrome stays. */
+  .ct-wrap[data-stage='3'] .ct-token {
+    background: hsl(var(--tk-hue, 0) 55% 88%);
+    border-color: hsl(var(--tk-hue, 0) 45% 70%);
+  }
+  .ct-wrap[data-stage='3'] .ct-token-id { opacity: 1; }
+
+  /* Tiles are always light pastels (in both themes), so the text on them
+     is always dark. Without this, dark-theme inherits `--text` (light)
+     and the text vanishes against the light tile. */
+  .ct-wrap[data-stage='1'] .ct-token-text,
+  .ct-wrap[data-stage='2'] .ct-token-text,
+  .ct-wrap[data-stage='3'] .ct-token-id {
+    color: #1a1a1a;
+  }
+
+  /* Stage 4 — embeddings: heatmap fills the strip; background irrelevant. */
+  .ct-wrap[data-stage='4'] .ct-token {
+    background: transparent;
+    border-color: var(--border-subtle);
+  }
+  .ct-wrap[data-stage='4'] .ct-token-heat { opacity: 1; }
+
+  /* Stage 5 — scatter: just dots. */
+  .ct-wrap[data-stage='5'] .ct-token {
+    background: transparent;
+    border-color: transparent;
+  }
+  .ct-wrap[data-stage='5'] .ct-token-dot { opacity: 1; }
+
+  /* ---- Hover-linking ---- */
+
+  /* Hovering any token sets data-hover-on on every element with the same
+     pos across all stages, and data-hovering on the wrap. CSS dims the
+     rest. Outline is the accent so the highlighted token reads even in
+     stage 5 where the tile is just a small dot. */
+  .ct-wrap[data-hovering='true'] .ct-token { opacity: 0.25; }
+  .ct-wrap[data-hovering='true'] .ct-token[data-hover-on='true'] {
+    opacity: 1;
+    outline: 1.5px solid var(--accent);
+    outline-offset: 1px;
+  }
+  .ct-wrap[data-hovering='true'] .ct-pos-cell { opacity: 0.15; }
+  .ct-wrap[data-hovering='true'] .ct-pos-cell[data-hover-on='true'] { opacity: 0.7; }
+
+  /* No-morph guard for the first paint — without it, tokens visibly fly
+     from translate(0,0) to their stage-0 positions as transitions kick in
+     on the initial style application. */
+  .ct-wrap[data-no-morph='true'] .ct-token {
+    transition: none;
+  }
+  .ct-wrap[data-no-morph='true'] .ct-token > * {
+    transition: none;
+  }
+
+  /* ---- Positional-encoding note layer ---- */
+
+  .ct-pos-note {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 400ms ease;
+  }
+  .ct-wrap[data-stage='3'] .ct-pos-note,
+  .ct-wrap[data-stage='4'] .ct-pos-note {
+    opacity: 0.55;
+  }
+  .ct-pos-cell {
+    position: absolute;
+    inset-block-start: 0;
+    inset-inline-start: 0;
+    block-size: 22px;
+    image-rendering: pixelated;
+    display: block;
+    transition: opacity 200ms ease;
+  }
+  .ct-pos-note-caption {
+    position: absolute;
+    margin: 0;
+    font-size: 10px;
+    color: var(--text-tertiary);
+  }
+  .ct-pos-note-caption code {
+    font-family: 'Sono', ui-monospace, monospace;
+    background: var(--bg-subtle);
+    padding-inline: 4px;
+  }
+
+  /* ---- Comparison words (stage 5) ---- */
+
+  .ct-comparison {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 500ms ease;
+  }
+  .ct-wrap[data-stage='5'] .ct-comparison {
+    opacity: 1;
+    pointer-events: auto;
+  }
+  .ct-cmp {
+    position: absolute;
+    inset-block-start: 0;
+    inset-inline-start: 0;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11px;
+    color: var(--text-tertiary);
+    font-family: 'Outfit', system-ui, sans-serif;
+  }
+  .ct-cmp-dot {
+    inline-size: 6px;
+    block-size: 6px;
+    border-radius: 50%;
+    background: var(--text-tertiary);
+    flex-shrink: 0;
+  }
+
+  /* ---- Reduced motion ---- */
+
+  @media (prefers-reduced-motion: reduce) {
+    .ct-token,
+    .ct-token > *,
+    .ct-pos-note,
+    .ct-comparison {
+      transition-duration: 0ms;
+    }
+  }
+</style>
+
+<script define:vars={{ tokens, dims, positionVectors, projectionExtent }}>
+  (function initCorpusTokens() {
+    const wrap = document.querySelector('[data-component="corpus-tokens"]');
+    if (!wrap) return;
+
+    const stageArea = wrap.querySelector('.ct-stage-area');
+    const tokenEls = Array.from(wrap.querySelectorAll('.ct-token'));
+    const heatCanvases = Array.from(wrap.querySelectorAll('.ct-token-heat'));
+    const posCanvases = Array.from(wrap.querySelectorAll('.ct-pos-cell'));
+    const cmpEls = Array.from(wrap.querySelectorAll('.ct-cmp'));
+    const captionEls = Array.from(wrap.querySelectorAll('.ct-caption-text'));
+    const stepBtns = Array.from(wrap.querySelectorAll('.ct-step'));
+    const prevBtn = wrap.querySelector('[data-step-prev]');
+    const nextBtn = wrap.querySelector('[data-step-next]');
+    const ghosts = {
+      raw: wrap.querySelector('[data-ghost="raw"]'),
+      pre: wrap.querySelector('[data-ghost="pre"]'),
+      tok: wrap.querySelector('[data-ghost="tok"]'),
+    };
+
+    const N_STAGES = 6;
+    let stage = 0;
+    let layouts = null; // per-stage array of {x,y,w,h} indexed by pos
+
+    // -- Heatmap paint (once on init; data doesn't change) ---------------
+
+    // Cool→warm ramp: 0 → blue, 128 → off-white, 255 → red. Saturation
+    // and lightness pinch at the midpoint so neutral cells stay quiet
+    // and extremes pop, without shipping a real LUT.
+    function hslToRgb(h, s, l) {
+      const a = s * Math.min(l, 1 - l);
+      const f = (n) => {
+        const k = (n + h * 12) % 12;
+        return l - a * Math.max(-1, Math.min(k - 3, 9 - k, 1));
+      };
+      return [
+        Math.round(f(0) * 255),
+        Math.round(f(8) * 255),
+        Math.round(f(4) * 255),
+      ];
+    }
+
+    function paintStrip(canvas, byteRow) {
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return;
+      const w = canvas.width;
+      const img = ctx.createImageData(w, 1);
+      for (let i = 0; i < w; i++) {
+        const b = byteRow[i];
+        const t = b / 255;
+        const h = (220 - 220 * t) / 360;
+        const s = (40 + Math.abs(t - 0.5) * 90) / 100;
+        const l = (88 - Math.abs(t - 0.5) * 50) / 100;
+        const [r, g, bl] = hslToRgb(h, s, l);
+        img.data[i * 4 + 0] = r;
+        img.data[i * 4 + 1] = g;
+        img.data[i * 4 + 2] = bl;
+        img.data[i * 4 + 3] = 255;
+      }
+      ctx.putImageData(img, 0, 0);
+    }
+
+    for (let i = 0; i < tokens.length; i++) {
+      paintStrip(heatCanvases[i], tokens[i].emb);
+      paintStrip(posCanvases[i], positionVectors[i]);
+    }
+
+    // -- Layout computation ---------------------------------------------
+
+    function measureGhost(ghost) {
+      const stageRect = stageArea.getBoundingClientRect();
+      const result = new Array(tokens.length);
+      const ghostSpans = ghost.querySelectorAll('.ct-ghost-tok');
+      for (const span of ghostSpans) {
+        const pos = +span.dataset.pos;
+        const rect = span.getBoundingClientRect();
+        result[pos] = {
+          x: rect.left - stageRect.left,
+          y: rect.top - stageRect.top,
+          w: rect.width,
+          h: rect.height,
+        };
+      }
+      return result;
+    }
+
+    function buildStripsLayout() {
+      // 32 evenly spaced vertical strips, centered vertically. Strip width
+      // shrinks to fit if the area is narrow; height stretches to fill.
+      const stageRect = stageArea.getBoundingClientRect();
+      const padX = 16;
+      const padY = 40; // leave headroom for the pos-note row at bottom
+      const usableW = stageRect.width - padX * 2;
+      const gap = 4;
+      const stripW = Math.max(8, Math.floor((usableW - gap * (tokens.length - 1)) / tokens.length));
+      const stripH = Math.max(40, Math.min(220, stageRect.height - padY * 2));
+      const totalW = stripW * tokens.length + gap * (tokens.length - 1);
+      const startX = (stageRect.width - totalW) / 2;
+      const y = (stageRect.height - stripH) / 2 - 12;
+      return tokens.map((_, i) => ({
+        x: startX + i * (stripW + gap),
+        y,
+        w: stripW,
+        h: stripH,
+      }));
+    }
+
+    function buildScatterLayout() {
+      const stageRect = stageArea.getBoundingClientRect();
+      const padX = 60;
+      const padY = 40;
+      const innerW = stageRect.width - padX * 2;
+      const innerH = stageRect.height - padY * 2;
+      const xExt = projectionExtent.x;
+      const yExt = projectionExtent.y;
+      const xSpan = xExt[1] - xExt[0] || 1;
+      const ySpan = yExt[1] - yExt[0] || 1;
+      const dotSize = 12;
+      // PCA y is "up positive" mathematically; flip so semantically-up
+      // words sit higher on screen. Returns the *center* of the dot —
+      // tokens and comparison labels then derive their top-left from it.
+      function project(px, py) {
+        const nx = (px - xExt[0]) / xSpan;
+        const ny = 1 - (py - yExt[0]) / ySpan;
+        return {
+          cx: padX + nx * innerW,
+          cy: padY + ny * innerH,
+        };
+      }
+      return {
+        tokens: tokens.map((t) => {
+          const p = project(t.proj[0], t.proj[1]);
+          return {
+            x: p.cx - dotSize / 2,
+            y: p.cy - dotSize / 2,
+            w: dotSize,
+            h: dotSize,
+          };
+        }),
+        project,
+      };
+    }
+
+    function computeLayouts() {
+      const raw = measureGhost(ghosts.raw);
+      const pre = measureGhost(ghosts.pre);
+      const tok = measureGhost(ghosts.tok);
+      const strips = buildStripsLayout();
+      const scatter = buildScatterLayout();
+      return {
+        all: [raw, pre, tok, tok, strips, scatter.tokens],
+        scatter,
+      };
+    }
+
+    function applyLayout() {
+      if (!layouts) return;
+      const target = layouts.all[stage];
+      for (let i = 0; i < tokenEls.length; i++) {
+        const el = tokenEls[i];
+        const pos = +el.dataset.pos;
+        const t = target[pos];
+        if (!t) continue;
+        el.style.transform = `translate(${t.x}px, ${t.y}px)`;
+        el.style.inlineSize = `${t.w}px`;
+        el.style.blockSize = `${t.h}px`;
+      }
+
+      // Position-note cells align with the strips layout so each pos
+      // vector sits directly under its token strip. Computed once per
+      // resize and shared across stages 3 + 4 (the only stages where the
+      // note layer is visible).
+      const strips = layouts.all[4];
+      const noteY = strips[0].y + strips[0].h + 6;
+      for (const c of posCanvases) {
+        const pos = +c.dataset.pos;
+        const s = strips[pos];
+        c.style.transform = `translate(${s.x}px, ${noteY}px)`;
+        c.style.inlineSize = `${s.w}px`;
+      }
+      const caption = wrap.querySelector('.ct-pos-note-caption');
+      if (caption) {
+        caption.style.transform = `translate(${strips[0].x}px, ${noteY + 24}px)`;
+      }
+
+      // Comparison labels — position the element so the dot center lands
+      // on the projected coord. Dot is 6px so subtract 3.
+      const project = layouts.scatter.project;
+      for (const cmpEl of cmpEls) {
+        const p = project(+cmpEl.dataset.cmpX, +cmpEl.dataset.cmpY);
+        cmpEl.style.transform = `translate(${p.cx - 3}px, ${p.cy - 3}px)`;
+      }
+    }
+
+    function setStage(next) {
+      stage = ((next % N_STAGES) + N_STAGES) % N_STAGES;
+      wrap.dataset.stage = String(stage);
+      for (const btn of stepBtns) {
+        const i = +btn.dataset.step;
+        if (i === stage) btn.setAttribute('aria-current', 'step');
+        else btn.removeAttribute('aria-current');
+      }
+      for (const c of captionEls) {
+        const i = +c.dataset.step;
+        if (i === stage) c.removeAttribute('hidden');
+        else c.setAttribute('hidden', '');
+      }
+      applyLayout();
+    }
+
+    // -- Hover-linking ---------------------------------------------------
+
+    function setHover(pos) {
+      if (pos == null) {
+        wrap.removeAttribute('data-hovering');
+        for (const el of tokenEls) el.removeAttribute('data-hover-on');
+        for (const c of posCanvases) c.removeAttribute('data-hover-on');
+        return;
+      }
+      wrap.setAttribute('data-hovering', 'true');
+      for (const el of tokenEls) {
+        if (+el.dataset.pos === pos) el.setAttribute('data-hover-on', 'true');
+        else el.removeAttribute('data-hover-on');
+      }
+      for (const c of posCanvases) {
+        if (+c.dataset.pos === pos) c.setAttribute('data-hover-on', 'true');
+        else c.removeAttribute('data-hover-on');
+      }
+    }
+
+    for (const el of tokenEls) {
+      el.addEventListener('pointerenter', () => setHover(+el.dataset.pos));
+      el.addEventListener('pointerleave', () => setHover(null));
+    }
+
+    // -- Stepper + keyboard ---------------------------------------------
+
+    for (const btn of stepBtns) {
+      btn.addEventListener('click', () => setStage(+btn.dataset.step));
+    }
+    prevBtn.addEventListener('click', () => setStage(stage - 1));
+    nextBtn.addEventListener('click', () => setStage(stage + 1));
+    document.addEventListener('keydown', (e) => {
+      if (e.target instanceof HTMLInputElement) return;
+      if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+        e.preventDefault();
+        setStage(stage + 1);
+      } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+        e.preventDefault();
+        setStage(stage - 1);
+      } else if (e.key >= '1' && e.key <= '6') {
+        setStage(+e.key - 1);
+      }
+    });
+
+    // -- Init + resize ---------------------------------------------------
+
+    function recompute() {
+      layouts = computeLayouts();
+      applyLayout();
+    }
+
+    // Disable transitions until the first measured layout lands, so tokens
+    // don't visibly fly from (0,0) to their initial positions on mount.
+    wrap.dataset.noMorph = 'true';
+
+    // Wait for fonts so ghost measurements reflect the actual rendered
+    // widths. Without this, the first paint can use fallback metrics and
+    // tokens jump a few pixels when the real font swaps in.
+    const ready = document.fonts && document.fonts.ready
+      ? document.fonts.ready
+      : Promise.resolve();
+    ready.then(() => {
+      recompute();
+      // Two rAFs: one to flush the layout under no-morph, one to confirm
+      // the styles have been committed before transitions are re-enabled.
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          delete wrap.dataset.noMorph;
+        });
+      });
+      // Only observe resizes after the initial measurement, so transient
+      // pre-font ResizeObserver fires can't apply incorrect metrics.
+      const ro = new ResizeObserver(() => recompute());
+      ro.observe(stageArea);
+    });
+  })();
+</script>
