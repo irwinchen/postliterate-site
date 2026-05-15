@@ -36,8 +36,9 @@
   {
     "id": "timeline",
     "title": "Timeline of Human Communication",
+    "page": "/timeline",
     "images": [
-      { "file": "timeline.png" }
+      { "file": "timeline_initial_view.png" }
     ]
   },
   {

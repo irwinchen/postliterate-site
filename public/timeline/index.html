@@ -1,0 +1,1139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>History of Human Communication - Cumulative View</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&family=Sono:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: #0a0a0a;
+            color: #e0e0e0;
+            overflow: hidden;
+            height: 100vh;
+            width: 100vw;
+        }
+
+        #header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(to bottom, #0a0a0a 0%, #0a0a0a 85%, rgba(10, 10, 10, 0) 100%);
+            padding: 20px 30px;
+            z-index: 100;
+            pointer-events: none;
+        }
+
+        h1 {
+            font-size: 24px;
+            font-weight: 600;
+            color: #E53E33;
+            margin-bottom: 5px;
+        }
+
+        .subtitle {
+            font-size: 12px;
+            font-weight: 300;
+            color: #888;
+        }
+
+        #chart-container {
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+        }
+
+        #chart {
+            width: 100%;
+            height: 100%;
+            cursor: grab;
+        }
+
+        #chart:active {
+            cursor: grabbing;
+        }
+
+        .category-label {
+            font-family: 'Outfit', sans-serif;
+            font-size: 11px;
+            font-weight: 600;
+            fill: #e0e0e0;
+            text-anchor: end;
+            pointer-events: none;
+        }
+
+        .category-label-bg {
+            fill: rgba(10, 10, 10, 0.9);
+        }
+
+        .axis-label {
+            font-family: 'Outfit', sans-serif;
+            font-size: 11px;
+            font-weight: 400;
+            fill: #999;
+        }
+
+        .axis line,
+        .axis path {
+            stroke: #333;
+            stroke-width: 1px;
+        }
+
+        .axis text {
+            fill: #666;
+            font-family: 'Sono', monospace;
+            font-size: 9px;
+        }
+
+        .grid line {
+            stroke: #1a1a1a;
+            stroke-opacity: 0.5;
+            shape-rendering: crispEdges;
+        }
+
+        .grid path {
+            stroke-width: 0;
+        }
+
+        .area-path {
+            stroke: rgba(255, 255, 255, 0.1);
+            stroke-width: 0.5px;
+        }
+
+        .tooltip {
+            position: fixed;
+            background-color: rgba(20, 20, 20, 0.98);
+            border: 1px solid #E53E33;
+            padding: 12px 15px;
+            pointer-events: none;
+            font-size: 11px;
+            line-height: 1.6;
+            max-width: 280px;
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.15s;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+        }
+
+        .tooltip-title {
+            font-weight: 600;
+            color: #E53E33;
+            margin-bottom: 6px;
+            font-size: 13px;
+        }
+
+        .tooltip-detail {
+            color: #999;
+            margin-bottom: 2px;
+            font-size: 10px;
+        }
+
+        .tooltip-detail strong {
+            color: #e0e0e0;
+            font-weight: 400;
+        }
+
+        .tooltip-category {
+            display: inline-block;
+            padding: 2px 6px;
+            background-color: rgba(229, 62, 51, 0.2);
+            border-radius: 2px;
+            font-size: 9px;
+            margin-top: 4px;
+            color: #E53E33;
+        }
+
+        .legend {
+            position: fixed;
+            bottom: 60px;
+            left: 20px;
+            background-color: rgba(20, 20, 20, 0.95);
+            border: 1px solid #333;
+            padding: 15px;
+            font-size: 10px;
+            z-index: 100;
+            max-width: 200px;
+        }
+
+        .legend-title {
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #E53E33;
+            font-size: 11px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 6px;
+        }
+
+        .legend-gradient {
+            width: 40px;
+            height: 12px;
+            border: 0.5px solid #666;
+        }
+
+        .legend-text {
+            color: #999;
+            font-size: 9px;
+        }
+
+        .instructions {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            font-size: 10px;
+            color: #555;
+            max-width: 250px;
+            line-height: 1.4;
+            background-color: rgba(20, 20, 20, 0.95);
+            border: 1px solid #333;
+            padding: 12px 15px;
+            z-index: 100;
+        }
+
+        .baseline-indicator {
+            position: fixed;
+            top: 100px;
+            left: 30px;
+            font-size: 10px;
+            color: #888;
+            font-style: italic;
+            background-color: rgba(10, 10, 10, 0.8);
+            padding: 5px 10px;
+            border-left: 2px solid #E53E33;
+        }
+    </style>
+</head>
+<body>
+    <div id="header">
+        <h1>The History of Human Communication</h1>
+        <div class="subtitle">Timeline of communication technologies from 50,000 BCE to present</div>
+    </div>
+
+    <div id="chart-container">
+        <svg id="chart"></svg>
+    </div>
+
+    <div class="legend">
+        <div class="legend-title">Categories</div>
+        <div id="legend-items"></div>
+        <div style="margin-top: 12px; padding-top: 8px; border-top: 1px solid #333;">
+            <div class="legend-text" style="line-height: 1.4;">
+                Each horizontal line represents a communication technology's timeline. Hover for details.
+            </div>
+        </div>
+    </div>
+
+    <div class="instructions">
+        Scroll to zoom • Drag to pan in any direction • Hover over areas for details
+    </div>
+
+    <div class="tooltip" id="tooltip"></div>
+
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script>
+        // ============================================================================
+        // CONFIGURATION AND CONSTANTS
+        // ============================================================================
+
+        const CATEGORIES = ["Oral", "Writing", "Print", "Visual", "Audio", "Electronic", "Broadcast", "Digital"];
+
+        const CATEGORY_COLORS = {
+            "Oral": "#E53E33",
+            "Writing": "#F4A460",
+            "Print": "#9370DB",
+            "Visual": "#FF6B6B",
+            "Audio": "#4ECDC4",
+            "Electronic": "#45B7D1",
+            "Broadcast": "#96CEB4",
+            "Digital": "#DDA15E"
+        };
+
+        // Consolidated declining technologies configuration
+        const DECLINING_TECHNOLOGIES = {
+            "Cuneiform": { declineStart: -1000, declineYears: 1100, endYear: 100, gradient: true, fadeOpacity: 0.05 },
+            "Hieroglyphics": { declineStart: 394, declineYears: 56, endYear: 450, gradient: true, fadeOpacity: 0.05 },
+            "Telegraph": { declineStart: 1920, declineYears: 86, endYear: 2006, gradient: true, fadeOpacity: 0.05 },
+            "Telephone": { declineStart: 1983, declineYears: 42, endYear: 2025, gradient: true, fadeOpacity: 0.5 },
+            "Woodblock Printing": { declineStart: 1500, declineYears: 100, endYear: 2025, gradient: true, fadeOpacity: 0.05 },
+            "Phonograph": { declineStart: 1980, declineYears: 30, endYear: 2025, gradient: true, fadeOpacity: 0.2 }
+        };
+
+        // ============================================================================
+        // BASE DATA
+        // ============================================================================
+
+        const baseData = [
+            {
+                "Watershed": "Spoken Language",
+                "Category": "Oral",
+                "Year_Numeric": -50000,
+                "Speed_MPH": 3,
+                "Access_Pop_Percent": 100,
+                "Description": "Immediate face-to-face communication. Universal baseline."
+            },
+            {
+                "Watershed": "Visual Art",
+                "Category": "Visual",
+                "Year_Numeric": -40000,
+                "Speed_MPH": 3,
+                "Access_Pop_Percent": 1,
+                "Description": "Permanent visual representation from cave paintings to modern art."
+            },
+            {
+                "Watershed": "Cuneiform",
+                "Category": "Writing",
+                "Year_Numeric": -3200,
+                "Speed_MPH": 4,
+                "Access_Pop_Percent": 0.1,
+                "Description": "Wedge-shaped writing on clay tablets in Mesopotamia."
+            },
+            {
+                "Watershed": "Hieroglyphics",
+                "Category": "Writing",
+                "Year_Numeric": -3100,
+                "Speed_MPH": 4,
+                "Access_Pop_Percent": 0.1,
+                "Description": "Pictographic and logographic script in ancient Egypt."
+            },
+            {
+                "Watershed": "Logographic Writing",
+                "Category": "Writing",
+                "Year_Numeric": -1200,
+                "Speed_MPH": 5,
+                "Access_Pop_Percent": 1,
+                "Description": "Chinese characters representing words or morphemes."
+            },
+            {
+                "Watershed": "Alphabet",
+                "Category": "Writing",
+                "Year_Numeric": -1800,
+                "Speed_MPH": 10,
+                "Access_Pop_Percent": 2,
+                "Description": "Democratized learning of writing."
+            },
+            {
+                "Watershed": "Paper",
+                "Category": "Writing",
+                "Year_Numeric": -3000,
+                "Speed_MPH": 10,
+                "Access_Pop_Percent": 5,
+                "Description": "Portable writing medium from papyrus to modern paper."
+            },
+            {
+                "Watershed": "Woodblock Printing",
+                "Category": "Print",
+                "Year_Numeric": 700,
+                "Speed_MPH": 15,
+                "Access_Pop_Percent": 5,
+                "Description": "Mass production of texts/images."
+            },
+            {
+                "Watershed": "Printing Press",
+                "Category": "Print",
+                "Year_Numeric": 1440,
+                "Speed_MPH": 20,
+                "Access_Pop_Percent": 15,
+                "Description": "Mass distribution of knowledge."
+            },
+            {
+                "Watershed": "Postal Systems",
+                "Category": "Infrastructure",
+                "Year_Numeric": 1600,
+                "Speed_MPH": 25,
+                "Access_Pop_Percent": 20,
+                "Description": "Organized networks of correspondence."
+            },
+            {
+                "Watershed": "Photography",
+                "Category": "Visual",
+                "Year_Numeric": 1826,
+                "Speed_MPH": 30,
+                "Access_Pop_Percent": 1,
+                "Description": "Capture of objective reality."
+            },
+            {
+                "Watershed": "Telegraph",
+                "Category": "Electronic",
+                "Year_Numeric": 1844,
+                "Speed_MPH": 670616629,
+                "Access_Pop_Percent": 0.1,
+                "Description": "Instant point-to-point text."
+            },
+            {
+                "Watershed": "Universal Postal Union",
+                "Category": "Infrastructure",
+                "Year_Numeric": 1874,
+                "Speed_MPH": 40,
+                "Access_Pop_Percent": 50,
+                "Description": "Standardized global mail."
+            },
+            {
+                "Watershed": "Telephone",
+                "Category": "Electronic",
+                "Year_Numeric": 1876,
+                "Speed_MPH": 670616629,
+                "Access_Pop_Percent": 5,
+                "Description": "Instant point-to-point voice."
+            },
+            {
+                "Watershed": "Phonograph",
+                "Category": "Audio",
+                "Year_Numeric": 1877,
+                "Speed_MPH": 40,
+                "Access_Pop_Percent": 5,
+                "Description": "Preservation of sound."
+            },
+            {
+                "Watershed": "Cinema",
+                "Category": "Visual",
+                "Year_Numeric": 1895,
+                "Speed_MPH": 50,
+                "Access_Pop_Percent": 30,
+                "Description": "Mass visual storytelling."
+            },
+            {
+                "Watershed": "Radio",
+                "Category": "Broadcast",
+                "Year_Numeric": 1920,
+                "Speed_MPH": 670616629,
+                "Access_Pop_Percent": 40,
+                "Description": "Instant one-to-many audio."
+            },
+            {
+                "Watershed": "Television",
+                "Category": "Broadcast",
+                "Year_Numeric": 1950,
+                "Speed_MPH": 670616629,
+                "Access_Pop_Percent": 50,
+                "Description": "Instant one-to-many video."
+            },
+            {
+                "Watershed": "Satellites",
+                "Category": "Broadcast",
+                "Year_Numeric": 1962,
+                "Speed_MPH": 670616629,
+                "Access_Pop_Percent": 60,
+                "Description": "Simultaneous global broadcast."
+            },
+            {
+                "Watershed": "Computers & Internet",
+                "Category": "Digital",
+                "Year_Numeric": 1990,
+                "Speed_MPH": 670616629,
+                "Access_Pop_Percent": 15,
+                "Description": "Networked digital information."
+            },
+            {
+                "Watershed": "World Wide Web",
+                "Category": "Digital",
+                "Year_Numeric": 1991,
+                "Speed_MPH": 670616629,
+                "Access_Pop_Percent": 20,
+                "Description": "Democratized publishing."
+            },
+            {
+                "Watershed": "Mobile Phones",
+                "Category": "Digital",
+                "Year_Numeric": 1995,
+                "Speed_MPH": 670616629,
+                "Access_Pop_Percent": 30,
+                "Description": "Untethered communication."
+            },
+            {
+                "Watershed": "Social Media",
+                "Category": "Digital",
+                "Year_Numeric": 2004,
+                "Speed_MPH": 670616629,
+                "Access_Pop_Percent": 45,
+                "Description": "Many-to-many interaction."
+            },
+            {
+                "Watershed": "Smartphone",
+                "Category": "Digital",
+                "Year_Numeric": 2007,
+                "Speed_MPH": 670616629,
+                "Access_Pop_Percent": 50,
+                "Description": "Convergence of all media."
+            },
+            {
+                "Watershed": "Generative AI",
+                "Category": "Digital",
+                "Year_Numeric": 2023,
+                "Speed_MPH": 670616629,
+                "Access_Pop_Percent": 65,
+                "Description": "Automated synthesis of content."
+            }
+        ];
+
+        // ============================================================================
+        // UTILITY FUNCTIONS
+        // ============================================================================
+
+        // Interpolate value at a specific year from a series
+        function interpolateValue(series, targetYear) {
+            for (let i = 0; i < series.length - 1; i++) {
+                if (series[i].year <= targetYear && series[i + 1].year >= targetYear) {
+                    const before = series[i];
+                    const after = series[i + 1];
+                    const progress = (targetYear - before.year) / (after.year - before.year);
+                    return before.value + (after.value - before.value) * progress;
+                }
+            }
+
+            if (targetYear < series[0].year) return 0;
+            return series[series.length - 1].value;
+        }
+
+        // Add adaptive sampling points to timeline
+        function addTimelineRange(timeline, start, end, step) {
+            for (let year = start; year <= end; year += step) {
+                timeline.push(year);
+            }
+        }
+
+        // Format year for display
+        function formatYear(year) {
+            const rounded = Math.round(year);
+            if (rounded < 0) return `${Math.abs(rounded)} BCE`;
+            if (rounded === 0) return '0';
+            return `${rounded} CE`;
+        }
+
+        // Get stroke style for technology (gradient or solid)
+        function getStrokeStyle(techName, category) {
+            const declineInfo = DECLINING_TECHNOLOGIES[techName];
+            if (declineInfo && declineInfo.gradient) {
+                return `url(#${techName.toLowerCase().replace(/\s+/g, '-')}-opacity-gradient)`;
+            }
+            return CATEGORY_COLORS[category];
+        }
+
+        // Get arrow opacity for declined technologies
+        function getArrowOpacity(techName) {
+            const declineInfo = DECLINING_TECHNOLOGIES[techName];
+            return declineInfo ? declineInfo.fadeOpacity : 1;
+        }
+
+        // ============================================================================
+        // DATA GENERATION
+        // ============================================================================
+
+        // Generate time series data with adoption/decline curves
+        function generateTimeSeries(tech) {
+            const series = [];
+            const startYear = tech.Year_Numeric;
+            const peakPercent = tech.Access_Pop_Percent;
+
+            // Special case: Oral (Speech) - constant baseline
+            if (tech.Category === "Oral") {
+                for (let year = -50000; year < -40000; year += 100) {
+                    const progress = (year - (-50000)) / 10000;
+                    const logistic = 100 / (1 + Math.exp(-10 * (progress - 0.5)));
+                    series.push({ year, value: logistic });
+                }
+                for (let year = -40000; year <= 0; year += 1000) {
+                    series.push({ year, value: 100 });
+                }
+                for (let year = 0; year <= 2030; year += 50) {
+                    series.push({ year, value: 100 });
+                }
+                series.push({ year: 2030, value: 100 });
+                return series;
+            }
+
+            // Determine adoption and decline patterns
+            const declineInfo = DECLINING_TECHNOLOGIES[tech.Watershed];
+            let adoptionYears;
+
+            if (declineInfo) {
+                adoptionYears = (declineInfo.declineStart - startYear) * 0.3;
+            } else {
+                adoptionYears = Math.max(20, (2030 - startYear) * 0.15);
+            }
+
+            // Before technology starts - very sparse
+            for (let year = -50000; year < startYear - 500; year += 1000) {
+                series.push({ year, value: 0 });
+            }
+
+            // Just before start - medium density
+            for (let year = Math.max(-50000, startYear - 500); year < startYear; year += 50) {
+                series.push({ year, value: 0 });
+            }
+
+            // During active period - high density
+            const activeEnd = declineInfo ? declineInfo.declineStart + declineInfo.declineYears : 2030;
+            for (let year = startYear; year <= activeEnd; year += 5) {
+                if (declineInfo && year > declineInfo.declineStart + declineInfo.declineYears) {
+                    series.push({ year, value: peakPercent * 0.05 });
+                } else if (declineInfo && year > declineInfo.declineStart) {
+                    const declineProgress = (year - declineInfo.declineStart) / declineInfo.declineYears;
+                    const remaining = 1 - Math.pow(declineProgress, 0.7);
+                    series.push({ year, value: peakPercent * Math.max(0.05, remaining) });
+                } else if (year < startYear + adoptionYears) {
+                    const progress = (year - startYear) / adoptionYears;
+                    const logistic = 1 / (1 + Math.exp(-8 * (progress - 0.5)));
+                    series.push({ year, value: peakPercent * logistic });
+                } else {
+                    series.push({ year, value: peakPercent });
+                }
+            }
+
+            // After active period - sparse sampling to 2030
+            if (activeEnd < 2030) {
+                const value = declineInfo && activeEnd > declineInfo.declineStart + declineInfo.declineYears
+                    ? peakPercent * 0.05
+                    : peakPercent;
+                for (let year = activeEnd + 50; year <= 2030; year += 50) {
+                    series.push({ year, value });
+                }
+            }
+
+            // Ensure endpoint
+            if (series[series.length - 1].year !== 2030) {
+                series.push({ year: 2030, value: series[series.length - 1].value });
+            }
+
+            return series;
+        }
+
+        // Create master timeline with adaptive density
+        function createMasterTimeline() {
+            const timeline = [];
+            addTimelineRange(timeline, -50000, -10000, 2000);
+            addTimelineRange(timeline, -10000, -1000, 500);
+            addTimelineRange(timeline, -1000, 0, 100);
+            addTimelineRange(timeline, 0, 1800, 50);
+            addTimelineRange(timeline, 1800, 2030, 10);
+            return timeline;
+        }
+
+        // Resample series to master timeline
+        function resampleSeries(rawSeries, masterTimeline) {
+            return masterTimeline.map(targetYear => ({
+                year: targetYear,
+                value: interpolateValue(rawSeries, targetYear)
+            }));
+        }
+
+        // ============================================================================
+        // TOOLTIP FUNCTIONS
+        // ============================================================================
+
+        const TOOLTIP_DESCRIPTIONS = {
+            "Spoken Language": "The foundation of human communication, enabling immediate face-to-face exchange of ideas through speech. Remains the primary mode of interpersonal communication.",
+            "Visual Art": "From cave paintings to modern art, visual representation enabled permanent recording of ideas and experiences. Continues as a vital form of expression across cultures.",
+            "Cuneiform": "Mesopotamia's wedge-shaped writing on clay tablets marked humanity's first written records. Mass use ended by the 1st millennium BCE, with scholarly use continuing until the 1st century CE as alphabetic scripts became dominant.",
+            "Hieroglyphics": "Ancient Egypt's pictographic and logographic script preserved knowledge for millennia. Last temple inscription at Philae in 394 CE, with Demotic script ending around 450 CE as Greek and Coptic alphabets became dominant.",
+            "Logographic Writing": "Chinese characters representing words enabled complex written communication in East Asia. Remains in use today alongside alphabetic systems.",
+            "Alphabet": "Phonetic writing systems dramatically simplified literacy by reducing symbols needed. Democratized writing and remains the foundation of most modern scripts.",
+            "Paper": "From papyrus to modern paper, portable writing surfaces enabled widespread document creation and preservation. Continues as essential medium despite digital alternatives.",
+            "Woodblock Printing": "Early mass production of texts and images in East Asia beginning around 700 CE. Largely superseded by movable type printing by the 1800s, though still used for specialized applications.",
+            "Printing Press": "Gutenberg's movable type revolution enabled mass distribution of knowledge across Europe. Transformed society by making books affordable and literacy accessible.",
+            "Postal Systems": "Organized networks for correspondence delivery created infrastructure for reliable long-distance communication. Evolved into modern universal postal services.",
+            "Photography": "Chemical and optical capture of objective reality revolutionized visual documentation. Fundamentally changed how humans record and share experiences.",
+            "Telegraph": "First electrical communication system enabling instant text transmission across vast distances. Replaced by telephone and telex systems, with commercial service ending in 2006.",
+            "Universal Postal Union": "International treaty standardized global mail delivery, creating a unified worldwide postal system. Continues to coordinate international mail standards.",
+            "Telephone": "Real-time voice communication across distances transformed personal and business interaction. Declining for traditional landlines since mobile phones emerged in the 1980s, but voice calling persists.",
+            "Phonograph": "Edison's invention preserved sound for the first time, enabling music distribution and audio recording. Largely replaced by digital formats after the 1990s, though vinyl enjoys niche revival.",
+            "Cinema": "Moving pictures created mass visual storytelling medium and shared cultural experiences. Evolved through technology but remains central to storytelling.",
+            "Radio": "Wireless broadcast brought instant audio to millions simultaneously, revolutionizing news and entertainment. Continues alongside digital streaming.",
+            "Television": "Broadcast video brought visual storytelling into homes worldwide. Transitioned from broadcast to cable to streaming while maintaining cultural dominance.",
+            "Satellites": "Orbital communication enabled simultaneous global broadcast and interconnected telecommunications networks. Essential infrastructure for modern communications.",
+            "Computers & Internet": "Digital computing and networked systems created entirely new paradigm for information processing and exchange. Foundation of modern information age.",
+            "World Wide Web": "Hypertext system democratized information publishing and access globally. Transformed how humanity creates, shares, and discovers knowledge.",
+            "Mobile Phones": "Portable cellular communication untethered people from fixed locations. Evolved into smartphones that converge all communication media.",
+            "Social Media": "Platforms enabling many-to-many interaction transformed social connection and information distribution. Reshaped public discourse and personal relationships.",
+            "Smartphone": "Convergence device combining phone, camera, computer, and internet access into pocket-sized format. Became primary communication and media consumption device globally.",
+            "Generative AI": "Machine learning systems capable of creating text, images, and other content. Beginning to transform how humans create and interact with information."
+        };
+
+        function getTooltipDescription(tech) {
+            return TOOLTIP_DESCRIPTIONS[tech.Watershed] || tech.Description;
+        }
+
+        function getDateRange(tech) {
+            const startYear = formatYear(tech.Year_Numeric);
+            const declineInfo = DECLINING_TECHNOLOGIES[tech.Watershed];
+
+            if (declineInfo && declineInfo.endYear) {
+                // Show "Present" for technologies that reach 2025 (present day)
+                if (declineInfo.endYear === 2025) {
+                    return `${startYear} – Present`;
+                }
+                return `${startYear} – ${formatYear(declineInfo.endYear)}`;
+            }
+            return `${startYear} – Present`;
+        }
+
+        function showTooltip(event, tech, colorScale) {
+            const tooltip = d3.select('#tooltip');
+            const categoryColor = colorScale(tech.Category);
+
+            tooltip
+                .style('opacity', 1)
+                .html(`
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 4px;">
+                        <div class="tooltip-title" style="flex: 1;">${tech.Watershed}</div>
+                        <div style="font-size: 10px; font-weight: 600; color: ${categoryColor}; margin-left: 12px; white-space: nowrap;">${tech.Category}</div>
+                    </div>
+                    <div class="tooltip-detail" style="margin-bottom: 8px; color: #999; font-size: 11px;">${getDateRange(tech)}</div>
+                    <div class="tooltip-detail" style="line-height: 1.4;">${getTooltipDescription(tech)}</div>
+                `);
+            moveTooltip(event);
+        }
+
+        function moveTooltip(event) {
+            const tooltip = d3.select('#tooltip');
+            const tooltipWidth = 280;
+            const tooltipHeight = 150;
+            let left = event.clientX + 15;
+            let top = event.clientY - 15;
+
+            if (left + tooltipWidth > window.innerWidth) {
+                left = event.clientX - tooltipWidth - 15;
+            }
+            if (top + tooltipHeight > window.innerHeight) {
+                top = window.innerHeight - tooltipHeight - 10;
+            }
+
+            tooltip
+                .style('left', left + 'px')
+                .style('top', top + 'px');
+        }
+
+        function hideTooltip() {
+            d3.select('#tooltip').style('opacity', 0);
+        }
+
+        // ============================================================================
+        // GRADIENT CREATION
+        // ============================================================================
+
+        function createOpacityGradient(defs, tech, config, xScale) {
+            const gradientId = `${tech.toLowerCase().replace(/\s+/g, '-')}-opacity-gradient`;
+            const gradient = defs.append('linearGradient')
+                .attr('id', gradientId)
+                .attr('gradientUnits', 'userSpaceOnUse')
+                .attr('x1', xScale(config.startYear))
+                .attr('x2', xScale(config.endYear))
+                .attr('y1', 0)
+                .attr('y2', 0);
+
+            const category = baseData.find(d => d.Watershed === tech).Category;
+            const color = CATEGORY_COLORS[category];
+
+            gradient.append('stop')
+                .attr('offset', '0%')
+                .attr('stop-color', color)
+                .attr('stop-opacity', 0.7);
+
+            const fadeStartPercent = ((config.fadeStart - config.startYear) / (config.endYear - config.startYear)) * 100;
+            gradient.append('stop')
+                .attr('offset', `${fadeStartPercent}%`)
+                .attr('stop-color', color)
+                .attr('stop-opacity', 0.7);
+
+            gradient.append('stop')
+                .attr('offset', '100%')
+                .attr('stop-color', color)
+                .attr('stop-opacity', config.fadeOpacity);
+
+            return gradientId;
+        }
+
+        function createAllGradients(defs, xScale) {
+            const gradientConfigs = {
+                "Phonograph": { startYear: 1877, endYear: 2025, fadeStart: 1995, fadeOpacity: 0.2 },
+                "Woodblock Printing": { startYear: 700, endYear: 2025, fadeStart: 1800, fadeOpacity: 0.05 },
+                "Telegraph": { startYear: 1844, endYear: 2006, fadeStart: 1920, fadeOpacity: 0.05 },
+                "Telephone": { startYear: 1876, endYear: 2025, fadeStart: 1983, fadeOpacity: 0.5 },
+                "Cuneiform": { startYear: -3200, endYear: 100, fadeStart: -1000, fadeOpacity: 0.05 },
+                "Hieroglyphics": { startYear: -3100, endYear: 450, fadeStart: 394, fadeOpacity: 0.05 }
+            };
+
+            Object.entries(gradientConfigs).forEach(([tech, config]) => {
+                createOpacityGradient(defs, tech, config, xScale);
+            });
+        }
+
+        function updateGradientCoordinates(defs, newXScale) {
+            const updates = [
+                { id: 'phonograph', x1: 1877, x2: 2025 },
+                { id: 'woodblock-printing', x1: 700, x2: 2025 },
+                { id: 'telegraph', x1: 1844, x2: 2006 },
+                { id: 'telephone', x1: 1876, x2: 2025 },
+                { id: 'cuneiform', x1: -3200, x2: 100 },
+                { id: 'hieroglyphics', x1: -3100, x2: 450 }
+            ];
+
+            updates.forEach(({ id, x1, x2 }) => {
+                defs.select(`#${id}-opacity-gradient`)
+                    .attr('x1', newXScale(x1))
+                    .attr('x2', newXScale(x2));
+            });
+        }
+
+        // ============================================================================
+        // SERIES FILTERING
+        // ============================================================================
+
+        function getFilteredSeries(tech) {
+            const declineInfo = DECLINING_TECHNOLOGIES[tech.Watershed];
+            const endYear = declineInfo
+                ? (declineInfo.endYear || declineInfo.declineStart + declineInfo.declineYears)
+                : 2025;
+
+            const filtered = tech.series.filter(d =>
+                d.year >= tech.Year_Numeric && d.year <= endYear
+            );
+
+            // Ensure start point
+            if (!filtered.some(d => d.year === tech.Year_Numeric)) {
+                const value = interpolateValue(tech.series, tech.Year_Numeric);
+                filtered.unshift({ year: tech.Year_Numeric, value });
+            }
+
+            // Ensure end point
+            if (!filtered.some(d => d.year === endYear) && tech.Year_Numeric < endYear) {
+                const value = interpolateValue(tech.series, endYear);
+                filtered.push({ year: endYear, value });
+            }
+
+            return filtered;
+        }
+
+        // ============================================================================
+        // MAIN VISUALIZATION SETUP
+        // ============================================================================
+
+        // Generate raw time series for all technologies
+        const rawTimeSeriesData = baseData.map(tech => ({
+            ...tech,
+            series: generateTimeSeries(tech)
+        }));
+
+        // Create unified timeline and resample
+        const masterTimeline = createMasterTimeline();
+        const timeSeriesData = rawTimeSeriesData.map(tech => ({
+            ...tech,
+            series: resampleSeries(tech.series, masterTimeline)
+        }));
+
+        // Setup SVG
+        const svg = d3.select('#chart');
+        const width = window.innerWidth;
+        const height = window.innerHeight;
+        svg.attr('width', width).attr('height', height);
+
+        const margin = { top: 80, right: 40, bottom: 40, left: 120 };
+        const chartWidth = width - margin.left - margin.right;
+        const chartHeight = height - margin.top - margin.bottom;
+
+        const g = svg.append('g')
+            .attr('transform', `translate(${margin.left},${margin.top})`);
+
+        // Organize technologies by category
+        const orderedTechnologies = [];
+        CATEGORIES.forEach(cat => {
+            const techs = timeSeriesData.filter(d => d.Category === cat);
+            orderedTechnologies.push(...techs);
+        });
+
+        // Scales
+        const xScale = d3.scaleLinear()
+            .domain([-70000, 2050])
+            .range([0, chartWidth]);
+
+        const bandHeight = chartHeight / orderedTechnologies.length;
+        const getYPosition = (techIndex) => techIndex * bandHeight + bandHeight / 2;
+
+        const colorScale = d3.scaleOrdinal()
+            .domain(CATEGORIES)
+            .range(CATEGORIES.map(cat => CATEGORY_COLORS[cat]));
+
+        // Create defs section for clip path and gradients
+        const defs = g.append('defs');
+
+        defs.append('clipPath')
+            .attr('id', 'chart-clip')
+            .append('rect')
+            .attr('x', 0)
+            .attr('y', 0)
+            .attr('width', chartWidth)
+            .attr('height', chartHeight);
+
+        createAllGradients(defs, xScale);
+
+        // Grid
+        const xAxisGrid = d3.axisBottom(xScale)
+            .tickSize(chartHeight)
+            .tickFormat('');
+
+        g.append('g')
+            .attr('class', 'grid')
+            .call(xAxisGrid);
+
+        // Main group for zoomable content
+        const zoomG = g.append('g')
+            .attr('clip-path', 'url(#chart-clip)');
+
+        // ============================================================================
+        // DRAW LINES AND INTERACTIVE ELEMENTS
+        // ============================================================================
+
+        const linesGroup = zoomG.append('g');
+        const dotsGroup = zoomG.append('g').attr('class', 'dots');
+        const labelsTextGroup = zoomG.append('g').attr('class', 'tech-labels');
+
+        orderedTechnologies.forEach((tech, techIndex) => {
+            const yPos = getYPosition(techIndex);
+            const line = d3.line()
+                .x(d => xScale(d.year))
+                .y(yPos)
+                .curve(d3.curveMonotoneX);
+
+            const filteredSeries = getFilteredSeries(tech);
+            const declineInfo = DECLINING_TECHNOLOGIES[tech.Watershed];
+            const strokeStyle = getStrokeStyle(tech.Watershed, tech.Category);
+
+            // Draw line
+            linesGroup.append('path')
+                .datum(filteredSeries)
+                .attr('class', 'line-path')
+                .attr('data-tech-index', techIndex)
+                .attr('data-category', tech.Category)
+                .attr('data-is-declined', declineInfo ? true : false)
+                .attr('d', line)
+                .attr('fill', 'none')
+                .style('stroke', strokeStyle)
+                .style('stroke-width', '3px')
+                .style('opacity', 1)
+                .on('mouseover', function(event) {
+                    d3.select(this)
+                        .style('stroke-width', '4px')
+                        .style('opacity', 1);
+                    showTooltip(event, tech, colorScale);
+                })
+                .on('mousemove', moveTooltip)
+                .on('mouseout', function() {
+                    d3.select(this)
+                        .style('stroke-width', '3px')
+                        .style('opacity', declineInfo && declineInfo.gradient ? 1 : 0.7);
+                    hideTooltip();
+                });
+
+            // Add arrow at end for active/continuing technologies
+            const showArrow = !declineInfo || declineInfo.endYear === 2025;
+            if (showArrow) {
+                const arrowOpacity = getArrowOpacity(tech.Watershed);
+                linesGroup.append('path')
+                    .attr('d', `M ${xScale(2025) - 8} ${yPos - 4} L ${xScale(2025)} ${yPos} L ${xScale(2025) - 8} ${yPos + 4}`)
+                    .attr('fill', 'none')
+                    .attr('stroke', colorScale(tech.Category))
+                    .attr('stroke-width', '3px')
+                    .attr('stroke-opacity', arrowOpacity)
+                    .attr('data-tech-index', techIndex)
+                    .attr('class', 'arrow-end');
+            }
+
+            // Add dot at start
+            const x = xScale(tech.Year_Numeric);
+            dotsGroup.append('circle')
+                .attr('cx', x)
+                .attr('cy', yPos)
+                .attr('r', 4)
+                .attr('fill', colorScale(tech.Category))
+                .attr('stroke', '#fff')
+                .attr('stroke-width', 1.5)
+                .attr('data-tech-index', techIndex)
+                .style('cursor', 'pointer')
+                .on('mouseover', function(event) {
+                    d3.select(this).attr('r', 6);
+                    showTooltip(event, tech, colorScale);
+                })
+                .on('mousemove', moveTooltip)
+                .on('mouseout', function() {
+                    d3.select(this).attr('r', 4);
+                    hideTooltip();
+                });
+
+            // Add label
+            labelsTextGroup.append('text')
+                .attr('x', x - 8)
+                .attr('y', yPos + 4)
+                .attr('data-tech-index', techIndex)
+                .attr('text-anchor', 'end')
+                .style('font-size', '9px')
+                .style('font-family', 'Outfit, sans-serif')
+                .style('fill', colorScale(tech.Category))
+                .style('font-weight', '600')
+                .style('pointer-events', 'none')
+                .text(tech.Watershed);
+        });
+
+        // Axes
+        const xAxis = d3.axisBottom(xScale).tickFormat(formatYear);
+        const xAxisG = g.append('g')
+            .attr('class', 'axis')
+            .attr('transform', `translate(0,${chartHeight})`)
+            .call(xAxis);
+
+        // Left labels (shown when scrolled)
+        const leftLabelsGroup = g.append('g').attr('class', 'left-labels');
+        orderedTechnologies.forEach((tech, techIndex) => {
+            leftLabelsGroup.append('text')
+                .attr('x', -10)
+                .attr('y', getYPosition(techIndex) + 4)
+                .attr('data-tech-index', techIndex)
+                .attr('text-anchor', 'end')
+                .style('font-size', '10px')
+                .style('font-family', 'Outfit, sans-serif')
+                .style('fill', colorScale(tech.Category))
+                .style('font-weight', '500')
+                .style('opacity', 0)
+                .text(tech.Watershed);
+        });
+
+        // Present Day line
+        const presentDayLine = g.append('line')
+            .attr('class', 'present-day-line')
+            .attr('x1', xScale(2025))
+            .attr('x2', xScale(2025))
+            .attr('y1', 0)
+            .attr('y2', chartHeight)
+            .attr('stroke', '#E53E33')
+            .attr('stroke-width', 2)
+            .attr('stroke-dasharray', '5,5')
+            .attr('opacity', 0.5);
+
+        const presentDayLabel = g.append('text')
+            .attr('class', 'present-day-label')
+            .attr('x', xScale(2025) + 5)
+            .attr('y', 15)
+            .attr('fill', '#E53E33')
+            .attr('font-size', '10px')
+            .attr('font-family', 'Outfit, sans-serif')
+            .attr('font-weight', '600')
+            .text('Present Day');
+
+        // Populate legend
+        const legendItems = d3.select('#legend-items');
+        CATEGORIES.forEach(cat => {
+            const item = legendItems.append('div')
+                .style('display', 'flex')
+                .style('align-items', 'center')
+                .style('gap', '8px')
+                .style('margin-bottom', '6px');
+
+            item.append('div')
+                .style('width', '16px')
+                .style('height', '16px')
+                .style('background-color', CATEGORY_COLORS[cat])
+                .style('border', '0.5px solid #666')
+                .style('flex-shrink', '0');
+
+            item.append('span')
+                .style('font-size', '10px')
+                .style('color', '#999')
+                .text(cat);
+        });
+
+        // ============================================================================
+        // ZOOM AND PAN
+        // ============================================================================
+
+        const initialScale = chartWidth / (xScale(2050) - xScale(1900));
+        const initialTranslateX = -xScale(1900) * initialScale;
+        const initialTransform = d3.zoomIdentity
+            .translate(initialTranslateX, 0)
+            .scale(initialScale);
+
+        const zoom = d3.zoom()
+            .scaleExtent([1, initialScale * 50])
+            .on('zoom', zoomed);
+
+        svg.call(zoom);
+        svg.call(zoom.transform, initialTransform);
+
+        function zoomed(event) {
+            const transform = event.transform;
+            const newXScale = transform.rescaleX(xScale);
+
+            // Update gradient coordinates
+            updateGradientCoordinates(defs, newXScale);
+
+            // Update axis
+            xAxisG.call(d3.axisBottom(newXScale).tickFormat(formatYear));
+
+            // Update Present Day line
+            const presentDayX = newXScale(2025);
+            presentDayLine
+                .attr('x1', presentDayX)
+                .attr('x2', presentDayX);
+            presentDayLabel
+                .attr('x', presentDayX + 5);
+
+            // Update all technology visualizations
+            orderedTechnologies.forEach((tech, techIndex) => {
+                const yPos = getYPosition(techIndex);
+                const line = d3.line()
+                    .x(d => newXScale(d.year))
+                    .y(yPos)
+                    .curve(d3.curveMonotoneX);
+
+                const filteredSeries = getFilteredSeries(tech);
+                const declineInfo = DECLINING_TECHNOLOGIES[tech.Watershed];
+
+                // Update line path
+                linesGroup.selectAll('path.line-path')
+                    .filter(function() { return d3.select(this).attr('data-tech-index') == techIndex; })
+                    .attr('d', line(filteredSeries));
+
+                // Update arrow
+                const showArrow = !declineInfo || declineInfo.endYear === 2025;
+                if (showArrow) {
+                    const arrowX = newXScale(2025);
+                    linesGroup.selectAll('path.arrow-end')
+                        .filter(function() { return d3.select(this).attr('data-tech-index') == techIndex; })
+                        .attr('d', `M ${arrowX - 8} ${yPos - 4} L ${arrowX} ${yPos} L ${arrowX - 8} ${yPos + 4}`);
+                }
+
+                // Update dot and label positions
+                const x = newXScale(tech.Year_Numeric);
+                dotsGroup.selectAll('circle')
+                    .filter(function() { return d3.select(this).attr('data-tech-index') == techIndex; })
+                    .attr('cx', x);
+
+                labelsTextGroup.selectAll('text')
+                    .filter(function() { return d3.select(this).attr('data-tech-index') == techIndex; })
+                    .attr('x', x - 8);
+
+                // Show/hide left label based on visibility
+                leftLabelsGroup.selectAll('text')
+                    .filter(function() { return d3.select(this).attr('data-tech-index') == techIndex; })
+                    .style('opacity', x < 0 ? 1 : 0);
+            });
+        }
+
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            location.reload();
+        });
+    </script>
+</body>
+</html>
