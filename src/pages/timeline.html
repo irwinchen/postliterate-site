@@ -220,7 +220,7 @@
 <body>
     <div id="header">
         <h1>The History of Human Communication</h1>
-        <div class="subtitle">Timeline of communication technologies from 50,000 BCE to present</div>
+        <div class="subtitle">Timeline of communication technologies from ~52,000 years ago to present</div>
     </div>
 
     <div id="chart-container">
@@ -249,6 +249,8 @@
         // CONFIGURATION AND CONSTANTS
         // ============================================================================
 
+        const PRESENT_YEAR = new Date().getFullYear();
+
         const CATEGORIES = ["Oral", "Writing", "Print", "Visual", "Audio", "Electronic", "Broadcast", "Digital"];
 
         const CATEGORY_COLORS = {
@@ -267,9 +269,9 @@
             "Cuneiform": { declineStart: -1000, declineYears: 1100, endYear: 100, gradient: true, fadeOpacity: 0.05 },
             "Hieroglyphics": { declineStart: 394, declineYears: 56, endYear: 450, gradient: true, fadeOpacity: 0.05 },
             "Telegraph": { declineStart: 1920, declineYears: 86, endYear: 2006, gradient: true, fadeOpacity: 0.05 },
-            "Telephone": { declineStart: 1983, declineYears: 42, endYear: 2025, gradient: true, fadeOpacity: 0.5 },
-            "Woodblock Printing": { declineStart: 1500, declineYears: 100, endYear: 2025, gradient: true, fadeOpacity: 0.05 },
-            "Phonograph": { declineStart: 1980, declineYears: 30, endYear: 2025, gradient: true, fadeOpacity: 0.2 }
+            "Telephone": { declineStart: 1983, declineYears: 42, endYear: PRESENT_YEAR, gradient: true, fadeOpacity: 0.5 },
+            "Woodblock Printing": { declineStart: 1500, declineYears: 100, endYear: PRESENT_YEAR, gradient: true, fadeOpacity: 0.05 },
+            "Phonograph": { declineStart: 1980, declineYears: 30, endYear: PRESENT_YEAR, gradient: true, fadeOpacity: 0.2 }
         };
 
         // ============================================================================
@@ -505,12 +507,21 @@
             }
         }
 
-        // Format year for display
+        // Format year as absolute (BCE/CE) — used in tooltips alongside years-ago.
         function formatYear(year) {
             const rounded = Math.round(year);
             if (rounded < 0) return `${Math.abs(rounded)} BCE`;
             if (rounded === 0) return '0';
             return `${rounded} CE`;
+        }
+
+        // Format year as relative-to-present — used on the X axis.
+        // PRESENT_YEAR is dynamic (today's year), so "Now" tracks real time.
+        function formatYearsAgo(year) {
+            const diff = Math.round(PRESENT_YEAR - year);
+            if (diff === 0) return 'Now';
+            if (diff > 0) return `${diff.toLocaleString()} yrs ago`;
+            return `in ${(-diff).toLocaleString()} yrs`;
         }
 
         // Get stroke style for technology (gradient or solid)
@@ -666,18 +677,22 @@
             return TOOLTIP_DESCRIPTIONS[tech.Watershed] || tech.Description;
         }
 
+        function formatYearWithAgo(year) {
+            return `${formatYear(year)} (${formatYearsAgo(year)})`;
+        }
+
         function getDateRange(tech) {
-            const startYear = formatYear(tech.Year_Numeric);
+            const startLabel = formatYearWithAgo(tech.Year_Numeric);
             const declineInfo = DECLINING_TECHNOLOGIES[tech.Watershed];
 
             if (declineInfo && declineInfo.endYear) {
-                // Show "Present" for technologies that reach 2025 (present day)
-                if (declineInfo.endYear === 2025) {
-                    return `${startYear} – Present`;
+                // Show "Present" for technologies still active today.
+                if (declineInfo.endYear === PRESENT_YEAR) {
+                    return `${startLabel} – Present`;
                 }
-                return `${startYear} – ${formatYear(declineInfo.endYear)}`;
+                return `${startLabel} – ${formatYearWithAgo(declineInfo.endYear)}`;
             }
-            return `${startYear} – Present`;
+            return `${startLabel} – Present`;
         }
 
         function showTooltip(event, tech, colorScale) {
@@ -758,10 +773,10 @@
 
         function createAllGradients(defs, xScale) {
             const gradientConfigs = {
-                "Phonograph": { startYear: 1877, endYear: 2025, fadeStart: 1995, fadeOpacity: 0.2 },
-                "Woodblock Printing": { startYear: 700, endYear: 2025, fadeStart: 1800, fadeOpacity: 0.05 },
+                "Phonograph": { startYear: 1877, endYear: PRESENT_YEAR, fadeStart: 1995, fadeOpacity: 0.2 },
+                "Woodblock Printing": { startYear: 700, endYear: PRESENT_YEAR, fadeStart: 1800, fadeOpacity: 0.05 },
                 "Telegraph": { startYear: 1844, endYear: 2006, fadeStart: 1920, fadeOpacity: 0.05 },
-                "Telephone": { startYear: 1876, endYear: 2025, fadeStart: 1983, fadeOpacity: 0.5 },
+                "Telephone": { startYear: 1876, endYear: PRESENT_YEAR, fadeStart: 1983, fadeOpacity: 0.5 },
                 "Cuneiform": { startYear: -3200, endYear: 100, fadeStart: -1000, fadeOpacity: 0.05 },
                 "Hieroglyphics": { startYear: -3100, endYear: 450, fadeStart: 394, fadeOpacity: 0.05 }
             };
@@ -773,10 +788,10 @@
 
         function updateGradientCoordinates(defs, newXScale) {
             const updates = [
-                { id: 'phonograph', x1: 1877, x2: 2025 },
-                { id: 'woodblock-printing', x1: 700, x2: 2025 },
+                { id: 'phonograph', x1: 1877, x2: PRESENT_YEAR },
+                { id: 'woodblock-printing', x1: 700, x2: PRESENT_YEAR },
                 { id: 'telegraph', x1: 1844, x2: 2006 },
-                { id: 'telephone', x1: 1876, x2: 2025 },
+                { id: 'telephone', x1: 1876, x2: PRESENT_YEAR },
                 { id: 'cuneiform', x1: -3200, x2: 100 },
                 { id: 'hieroglyphics', x1: -3100, x2: 450 }
             ];
@@ -796,7 +811,7 @@
             const declineInfo = DECLINING_TECHNOLOGIES[tech.Watershed];
             const endYear = declineInfo
                 ? (declineInfo.endYear || declineInfo.declineStart + declineInfo.declineYears)
-                : 2025;
+                : PRESENT_YEAR;
 
             const filtered = tech.series.filter(d =>
                 d.year >= tech.Year_Numeric && d.year <= endYear
@@ -938,11 +953,11 @@
                 });
 
             // Add arrow at end for active/continuing technologies
-            const showArrow = !declineInfo || declineInfo.endYear === 2025;
+            const showArrow = !declineInfo || declineInfo.endYear === PRESENT_YEAR;
             if (showArrow) {
                 const arrowOpacity = getArrowOpacity(tech.Watershed);
                 linesGroup.append('path')
-                    .attr('d', `M ${xScale(2025) - 8} ${yPos - 4} L ${xScale(2025)} ${yPos} L ${xScale(2025) - 8} ${yPos + 4}`)
+                    .attr('d', `M ${xScale(PRESENT_YEAR) - 8} ${yPos - 4} L ${xScale(PRESENT_YEAR)} ${yPos} L ${xScale(PRESENT_YEAR) - 8} ${yPos + 4}`)
                     .attr('fill', 'none')
                     .attr('stroke', colorScale(tech.Category))
                     .attr('stroke-width', '3px')
@@ -987,7 +1002,7 @@
         });
 
         // Axes
-        const xAxis = d3.axisBottom(xScale).tickFormat(formatYear);
+        const xAxis = d3.axisBottom(xScale).tickFormat(formatYearsAgo);
         const xAxisG = g.append('g')
             .attr('class', 'axis')
             .attr('transform', `translate(0,${chartHeight})`)
@@ -1012,8 +1027,8 @@
         // Present Day line
         const presentDayLine = g.append('line')
             .attr('class', 'present-day-line')
-            .attr('x1', xScale(2025))
-            .attr('x2', xScale(2025))
+            .attr('x1', xScale(PRESENT_YEAR))
+            .attr('x2', xScale(PRESENT_YEAR))
             .attr('y1', 0)
             .attr('y2', chartHeight)
             .attr('stroke', '#E53E33')
@@ -1023,7 +1038,7 @@
 
         const presentDayLabel = g.append('text')
             .attr('class', 'present-day-label')
-            .attr('x', xScale(2025) + 5)
+            .attr('x', xScale(PRESENT_YEAR) + 5)
             .attr('y', 15)
             .attr('fill', '#E53E33')
             .attr('font-size', '10px')
@@ -1078,10 +1093,10 @@
             updateGradientCoordinates(defs, newXScale);
 
             // Update axis
-            xAxisG.call(d3.axisBottom(newXScale).tickFormat(formatYear));
+            xAxisG.call(d3.axisBottom(newXScale).tickFormat(formatYearsAgo));
 
             // Update Present Day line
-            const presentDayX = newXScale(2025);
+            const presentDayX = newXScale(PRESENT_YEAR);
             presentDayLine
                 .attr('x1', presentDayX)
                 .attr('x2', presentDayX);
@@ -1105,9 +1120,9 @@
                     .attr('d', line(filteredSeries));
 
                 // Update arrow
-                const showArrow = !declineInfo || declineInfo.endYear === 2025;
+                const showArrow = !declineInfo || declineInfo.endYear === PRESENT_YEAR;
                 if (showArrow) {
-                    const arrowX = newXScale(2025);
+                    const arrowX = newXScale(PRESENT_YEAR);
                     linesGroup.selectAll('path.arrow-end')
                         .filter(function() { return d3.select(this).attr('data-tech-index') == techIndex; })
                         .attr('d', `M ${arrowX - 8} ${yPos - 4} L ${arrowX} ${yPos} L ${arrowX - 8} ${yPos + 4}`);
