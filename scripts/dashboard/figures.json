@@ -55,5 +55,12 @@
     "images": [
       { "file": "virgil-reader-extension.png" }
     ]
+  },
+  {
+    "id": "reader-3d",
+    "title": "3D Reader Prototype",
+    "images": [
+      { "file": "reader.png" }
+    ]
   }
 ]
