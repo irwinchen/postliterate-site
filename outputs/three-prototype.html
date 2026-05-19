@@ -1,0 +1,830 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Vector space (3D prototype) | Post-Literate</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600&family=Literata:ital,wght@0,400;0,500;1,400&family=Sono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      :root {
+        color-scheme: light;
+        --background: #f3efe1;
+        --text: #2c2c2c;
+        --text-secondary: #666;
+        --text-tertiary: #999;
+        --accent: #e53e33;
+        --accent-2: #3b6db4;
+        --accent-3: #549e44;
+        --border-subtle: rgba(0, 0, 0, 0.12);
+        --bg-subtle: rgba(0, 0, 0, 0.03);
+        --tile-bg: rgba(255, 255, 255, 0.6);
+      }
+      [data-theme='dark'] {
+        color-scheme: dark;
+        --background: #1a1a1a;
+        --text: #c8c8c8;
+        --text-secondary: #a0a0a0;
+        --text-tertiary: #707070;
+        --accent: #ff6b5e;
+        --accent-2: #6e9fde;
+        --accent-3: #7cc468;
+        --border-subtle: rgba(255, 255, 255, 0.12);
+        --bg-subtle: rgba(255, 255, 255, 0.04);
+        --tile-bg: rgba(255, 255, 255, 0.04);
+      }
+
+      html,
+      body {
+        block-size: 100%;
+        overflow: hidden;
+        background: var(--background);
+        color: var(--text);
+        font-family: 'Outfit', system-ui, sans-serif;
+        -webkit-font-smoothing: antialiased;
+      }
+
+      .page-shell {
+        position: relative;
+        block-size: 100dvh;
+        inline-size: 100vw;
+      }
+
+      .page-nav {
+        position: absolute;
+        inset-block-start: 0;
+        inset-inline: 0;
+        z-index: 10;
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        padding-inline: 20px;
+        block-size: 40px;
+        border-block-end: 1px solid var(--border-subtle);
+        background: rgba(0, 0, 0, 0);
+        font-size: 13px;
+      }
+      .page-nav a,
+      .page-nav button {
+        color: var(--text-secondary);
+        text-decoration: none;
+        background: none;
+        border: 0;
+        font: inherit;
+        cursor: pointer;
+        padding: 0;
+      }
+      .page-nav a:hover,
+      .page-nav button:hover {
+        color: var(--accent);
+      }
+      .page-nav-sep {
+        color: var(--text-tertiary);
+      }
+      .page-nav-spacer {
+        flex: 1;
+      }
+
+      .stage {
+        position: absolute;
+        inset: 0;
+        overflow: hidden;
+      }
+
+      #scene {
+        position: absolute;
+        inset: 0;
+        display: block;
+        /* Force CSS sizing to win over the canvas's intrinsic size.
+           Without this, on hi-DPI displays the canvas's width/height
+           attributes (drawing-buffer pixels set by Three.setSize) become
+           the canvas's intrinsic CSS size and override inset:0. Result:
+           a 1200×600 canvas inside a 1467×868 stage. */
+        inline-size: 100%;
+        block-size: 100%;
+      }
+
+      .overlay {
+        position: absolute;
+        pointer-events: none;
+        font-size: 12px;
+        line-height: 1.4;
+        color: var(--text-secondary);
+        font-family: 'Sono', ui-monospace, monospace;
+      }
+      /* Top overlays start below the 40px nav so they don't collide. */
+      .overlay-top-left {
+        inset-block-start: 56px;
+        inset-inline-start: 20px;
+      }
+      .overlay-top-right {
+        inset-block-start: 56px;
+        inset-inline-end: 20px;
+        text-align: end;
+        max-inline-size: 320px;
+      }
+      .overlay-bottom-left {
+        inset-block-end: 16px;
+        inset-inline-start: 20px;
+      }
+      .overlay-bottom-right {
+        inset-block-end: 16px;
+        inset-inline-end: 20px;
+        text-align: end;
+        max-inline-size: 280px;
+        pointer-events: auto;
+      }
+
+      .stage-title {
+        font-family: 'Literata', Georgia, serif;
+        font-size: 16px;
+        font-style: italic;
+        color: var(--text);
+      }
+      .meta-line {
+        margin-block-start: 4px;
+        color: var(--text-tertiary);
+      }
+      .help {
+        color: var(--text-tertiary);
+        font-size: 11px;
+      }
+
+      .reset-btn {
+        font: 11px/1 'Sono', ui-monospace, monospace;
+        color: var(--text-secondary);
+        background: var(--tile-bg);
+        border: 1px solid var(--border-subtle);
+        padding: 6px 10px;
+        cursor: pointer;
+        transition: color 120ms, border-color 120ms;
+      }
+      .reset-btn:hover {
+        color: var(--accent);
+        border-color: var(--accent);
+      }
+      .reset-btn[hidden] {
+        display: none;
+      }
+
+      .tooltip {
+        position: absolute;
+        pointer-events: none;
+        background: var(--tile-bg);
+        border: 1px solid var(--border-subtle);
+        padding: 4px 8px;
+        font: 12px/1.2 'Sono', ui-monospace, monospace;
+        color: var(--text);
+        transform: translate(8px, 8px);
+        white-space: nowrap;
+        opacity: 0;
+        transition: opacity 120ms;
+        backdrop-filter: blur(4px);
+      }
+      .tooltip[data-visible='1'] {
+        opacity: 1;
+      }
+
+      .neighbor-panel {
+        position: absolute;
+        pointer-events: auto;
+        inset-block-end: 16px;
+        inset-inline-end: 20px;
+        background: var(--tile-bg);
+        border: 1px solid var(--border-subtle);
+        padding: 10px 12px;
+        max-inline-size: 280px;
+        font: 12px/1.3 'Sono', ui-monospace, monospace;
+        color: var(--text);
+        backdrop-filter: blur(4px);
+      }
+      .neighbor-panel[hidden] {
+        display: none;
+      }
+      .neighbor-panel header {
+        color: var(--text-tertiary);
+        font-size: 10px;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        margin-block-end: 6px;
+      }
+      .neighbor-panel .selected {
+        color: var(--accent);
+        font-size: 13px;
+        margin-block-end: 6px;
+      }
+      .neighbor-panel ol {
+        list-style: none;
+        padding: 0;
+      }
+      .neighbor-panel li {
+        color: var(--text-secondary);
+        padding-block: 2px;
+      }
+      .neighbor-panel li::before {
+        content: attr(data-rank);
+        color: var(--text-tertiary);
+        margin-inline-end: 8px;
+      }
+
+      .theme-btn::before {
+        content: '◐';
+        margin-inline-end: 4px;
+      }
+
+      /* Labels are 3D-anchored — projected from world coords to screen
+         pixels in the render loop and positioned via CSS transforms. */
+      .labels {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        overflow: hidden;
+      }
+      /* Labels are absolutely positioned at the top-left of .labels, then
+         JS writes `transform: translate(Xpx, Ypx) translate(-50%, …)`
+         each frame to anchor them to projected 3D positions. */
+      .token-label,
+      .axis-label {
+        position: absolute;
+        top: 0;
+        left: 0;
+        will-change: transform;
+      }
+      .token-label {
+        font: 12px/1 'Sono', ui-monospace, monospace;
+        color: var(--text);
+        white-space: nowrap;
+        padding: 1px 4px 10px;
+        text-shadow:
+          0 0 3px var(--background),
+          0 0 3px var(--background),
+          0 0 6px var(--background);
+        transition: opacity 180ms, color 180ms;
+        opacity: 1;
+        user-select: none;
+      }
+      /* Sentence tokens are the protagonists — always visible in accent
+         color so they read against the comparison cloud. */
+      .token-label.sentence {
+        color: var(--accent);
+        font-weight: 500;
+      }
+      /* Comparison labels are hidden by default; updateLabels() reveals
+         them via inline opacity when the cursor is near OR when they are
+         the selected token or one of its 6 neighbors. */
+      .token-label.comparison {
+        color: var(--text-secondary);
+        font-size: 11px;
+        opacity: 0;
+      }
+      .token-label[data-selected='1'] {
+        color: var(--accent);
+        font-weight: 600;
+      }
+      .axis-label {
+        font: 10px/1 'Sono', ui-monospace, monospace;
+        color: var(--text-tertiary);
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        padding: 2px 4px;
+        text-shadow: 0 0 4px var(--background);
+        user-select: none;
+      }
+    </style>
+
+    <script is:inline>
+      (function () {
+        var saved = localStorage.getItem('theme') || 'light';
+        document.documentElement.setAttribute('data-theme', saved);
+      })();
+    </script>
+
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+          "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <div class="page-shell">
+      <nav class="page-nav">
+        <a href="/">Post-Literate</a>
+        <span class="page-nav-sep">›</span>
+        <a href="/tokens">From text to vector</a>
+        <span class="page-nav-sep">›</span>
+        <span>Vector space prototype</span>
+        <span class="page-nav-spacer"></span>
+        <button id="theme-toggle" class="theme-btn" title="Toggle light / dark"></button>
+      </nav>
+
+      <div class="stage">
+        <canvas id="scene"></canvas>
+        <div class="labels" id="labels"></div>
+
+        <div class="overlay overlay-top-left">
+          <div class="stage-title">vector space — 3D prototype</div>
+          <div class="meta-line" id="meta-line">loading…</div>
+        </div>
+
+        <div class="overlay overlay-bottom-left help">
+          drag to orbit · scroll to zoom · hover a dot to reveal its label · click to lock its neighbors
+        </div>
+
+        <div class="overlay overlay-top-right" id="explainer">
+          <span style="color: var(--accent)">●</span> sentence tokens (always labeled)
+          &nbsp;
+          <span style="color: var(--text-secondary); opacity: 0.7">●</span> comparison words<br />
+          <span style="opacity: 0.7">each position is its 768-d embedding projected to 3-d via t-SNE</span>
+        </div>
+
+        <div class="neighbor-panel" id="neighbor-panel" hidden>
+          <header>nearest neighbors · cosine, 768-dim</header>
+          <div class="selected" id="np-selected"></div>
+          <ol id="np-list"></ol>
+          <button class="reset-btn" id="reset-btn" style="margin-block-start: 8px">
+            reset
+          </button>
+        </div>
+
+        <div class="tooltip" id="tooltip"></div>
+      </div>
+    </div>
+
+    <script type="module">
+      import * as THREE from 'three';
+      import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+      // Labels are projected manually each frame in tick() — simpler and
+      // more debuggable than CSS2DRenderer with an existing element.
+
+      // ---------------------------------------------------------------
+      // Data — inlined so this file opens straight from disk with no fetch.
+      // Generated by outputs/proto_data.py from src/lib/corpus-tokens/source.json
+      // (real GPT-2 wte rows, real 3D PCA, real cosine k-NN in 768-dim).
+      // ---------------------------------------------------------------
+      const DATA = {"_meta":{"source":"en.wikipedia.org/wiki/Printing_press (opening sentence)","model":"GPT-2 (openai-community/gpt2)","tokenizer":"tiktoken gpt2 encoding (byte-level BPE, vocab 50257)","dModel":768,"projection":"sklearn t-SNE n_components=3, perplexity=30, metric=cosine, init=pca, random_state=42","klDivergence":0.804,"neighborMetric":"cosine in 768-dim wte space","neighborK":6,"sentenceTokens":32,"comparisonTokens":527,"totalTokens":559,"note":"All tokens, IDs, wte embeddings, t-SNE projection, and nearest neighbors are real GPT-2 values. Nothing illustrative."},"sentence":"A printing press is a mechanical device for applying pressure to an inked surface resting upon a print medium (such as paper or cloth), thereby transferring the ink.","tokens":[{"i":0,"id":32,"text":"A","display":"A","kind":"sentence","pos":0,"proj3":[1.3726,0.0411,0.2768],"neighbors":[17,4,11,20,531,12]},{"i":1,"id":13570,"text":" printing","display":"\u00b7printing","kind":"sentence","pos":1,"proj3":[-0.3543,-0.0943,1.0548],"neighbors":[191,174,18,175,181,30]},{"i":2,"id":1803,"text":" press","display":"\u00b7press","kind":"sentence","pos":2,"proj3":[0.3522,0.3958,0.2509],"neighbors":[207,9,18,175,23,1]},{"i":3,"id":318,"text":" is","display":"\u00b7is","kind":"sentence","pos":3,"proj3":[1.3039,0.4734,0.2454],"neighbors":[519,518,12,531,524,10]},{"i":4,"id":257,"text":" a","display":"\u00b7a","kind":"sentence","pos":4,"proj3":[1.4058,-0.0456,0.0209],"neighbors":[17,11,29,12,316,10]},{"i":5,"id":12370,"text":" mechanical","display":"\u00b7mechanical","kind":"sentence","pos":5,"proj3":[-1.2474,-0.5915,-0.1939],"neighbors":[479,116,127,118,143,473]},{"i":6,"id":3335,"text":" device","display":"\u00b7device","kind":"sentence","pos":6,"proj3":[-1.0437,-0.6597,-0.5528],"neighbors":[473,478,477,475,474,476]},{"i":7,"id":329,"text":" for","display":"\u00b7for","kind":"sentence","pos":7,"proj3":[1.6796,0.3061,0.0672],"neighbors":[12,10,525,527,531,22]},{"i":8,"id":11524,"text":" applying","display":"\u00b7applying","kind":"sentence","pos":8,"proj3":[-0.2934,-1.0265,0.4816],"neighbors":[28,175,259,181,21,244]},{"i":9,"id":3833,"text":" pressure","display":"\u00b7pressure","kind":"sentence","pos":9,"proj3":[0.4366,0.3991,0.0437],"neighbors":[207,549,173,2,548,510]},{"i":10,"id":284,"text":" to","display":"\u00b7to","kind":"sentence","pos":10,"proj3":[1.4689,0.2322,0.0453],"neighbors":[12,7,531,525,527,22]},{"i":11,"id":281,"text":" an","display":"\u00b7an","kind":"sentence","pos":11,"proj3":[1.5611,-0.1236,-0.0532],"neighbors":[4,17,29,316,540,282]},{"i":12,"id":287,"text":" in","display":"\u00b7in","kind":"sentence","pos":12,"proj3":[1.6386,0.1674,-0.0641],"neighbors":[525,526,527,10,7,524]},{"i":13,"id":9091,"text":"ked","display":"ked","kind":"sentence","pos":13,"proj3":[-0.5746,0.2882,1.1232],"neighbors":[30,154,28,186,171,277]},{"i":14,"id":4417,"text":" surface","display":"\u00b7surface","kind":"sentence","pos":14,"proj3":[-0.5494,0.426,0.5795],"neighbors":[547,372,382,239,190,381]},{"i":15,"id":19186,"text":" resting","display":"\u00b7resting","kind":"sentence","pos":15,"proj3":[-0.2955,-1.0685,0.1615],"neighbors":[28,223,259,401,85,510]},{"i":16,"id":2402,"text":" upon","display":"\u00b7upon","kind":"sentence","pos":16,"proj3":[2.0,0.2537,-0.2202],"neighbors":[525,534,528,526,527,293]},{"i":17,"id":257,"text":" a","display":"\u00b7a","kind":"sentence","pos":17,"proj3":[1.4058,-0.0456,0.0209],"neighbors":[4,11,29,12,316,10]},{"i":18,"id":3601,"text":" print","display":"\u00b7print","kind":"sentence","pos":18,"proj3":[-0.3513,-0.2029,0.8943],"neighbors":[191,1,174,23,175,480]},{"i":19,"id":7090,"text":" medium","display":"\u00b7medium","kind":"sentence","pos":19,"proj3":[-0.3836,0.6841,0.6103],"neighbors":[94,14,120,304,139,480]},{"i":20,"id":357,"text":" (","display":"\u00b7(","kind":"sentence","pos":20,"proj3":[1.4854,0.2879,0.2968],"neighbors":[531,12,10,31,524,7]},{"i":21,"id":10508,"text":"such","display":"such","kind":"sentence","pos":21,"proj3":[1.3576,-0.1027,-0.8303],"neighbors":[546,542,27,543,253,8]},{"i":22,"id":355,"text":" as","display":"\u00b7as","kind":"sentence","pos":22,"proj3":[1.5212,0.3863,-0.1011],"neighbors":[12,10,527,531,7,526]},{"i":23,"id":3348,"text":" paper","display":"\u00b7paper","kind":"sentence","pos":23,"proj3":[-0.5891,-0.3479,0.9194],"neighbors":[137,155,163,18,191,160]},{"i":24,"id":393,"text":" or","display":"\u00b7or","kind":"sentence","pos":24,"proj3":[1.6231,0.542,0.257],"neighbors":[531,10,20,12,524,530]},{"i":25,"id":16270,"text":" cloth","display":"\u00b7cloth","kind":"sentence","pos":25,"proj3":[-1.0995,-0.4346,0.7177],"neighbors":[132,136,134,135,114,133]},{"i":26,"id":828,"text":"),","display":"),","kind":"sentence","pos":26,"proj3":[1.8025,0.2431,0.4644],"neighbors":[31,3,518,519,527,253]},{"i":27,"id":12839,"text":" thereby","display":"\u00b7thereby","kind":"sentence","pos":27,"proj3":[0.0873,-1.4041,-0.0686],"neighbors":[253,21,244,16,476,451]},{"i":28,"id":26140,"text":" transferring","display":"\u00b7transferring","kind":"sentence","pos":28,"proj3":[-0.3147,-1.0321,0.3479],"neighbors":[8,15,137,234,1,469]},{"i":29,"id":262,"text":" the","display":"\u00b7the","kind":"sentence","pos":29,"proj3":[1.4292,-0.0113,-0.1737],"neighbors":[17,4,11,540,541,12]},{"i":30,"id":16882,"text":" ink","display":"\u00b7ink","kind":"sentence","pos":30,"proj3":[-0.6279,0.0992,1.0238],"neighbors":[186,185,174,1,137,161]},{"i":31,"id":13,"text":".","display":".","kind":"sentence","pos":31,"proj3":[1.7236,0.2883,0.3039],"neighbors":[531,12,10,524,7,20]},{"i":32,"id":3797,"text":" cat","display":"\u00b7cat","kind":"comparison","pos":-1,"proj3":[-1.8127,0.3845,-0.2591],"neighbors":[33,45,40,38,55,48]},{"i":33,"id":3290,"text":" dog","display":"\u00b7dog","kind":"comparison","pos":-1,"proj3":[-1.7454,0.2584,-0.1941],"neighbors":[32,34,42,48,61,73]},{"i":34,"id":8223,"text":" horse","display":"\u00b7horse","kind":"comparison","pos":-1,"proj3":[-1.6929,0.0361,-0.1291],"neighbors":[73,35,33,72,38,45]},{"i":35,"id":9875,"text":" cow","display":"\u00b7cow","kind":"comparison","pos":-1,"proj3":[-1.8223,-0.0831,0.0006],"neighbors":[38,34,37,55,73,44]},{"i":36,"id":12967,"text":" pig","display":"\u00b7pig","kind":"comparison","pos":-1,"proj3":[-1.9759,0.1154,-0.0064],"neighbors":[38,73,70,35,37,55]},{"i":37,"id":15900,"text":" sheep","display":"\u00b7sheep","kind":"comparison","pos":-1,"proj3":[-1.712,-0.0704,0.2349],"neighbors":[38,135,42,35,73,44]},{"i":38,"id":26917,"text":" goat","display":"\u00b7goat","kind":"comparison","pos":-1,"proj3":[-1.7747,0.0785,0.1224],"neighbors":[73,37,35,45,72,34]},{"i":39,"id":18744,"text":" lion","display":"\u00b7lion","kind":"comparison","pos":-1,"proj3":[-1.3586,0.2293,-0.09],"neighbors":[40,69,42,73,59,71]},{"i":40,"id":26241,"text":" tiger","display":"\u00b7tiger","kind":"comparison","pos":-1,"proj3":[-1.376,0.3296,0.0444],"neighbors":[39,57,69,42,61,43]},{"i":41,"id":6842,"text":" bear","display":"\u00b7bear","kind":"comparison","pos":-1,"proj3":[-1.418,0.4496,-0.1539],"neighbors":[40,42,39,58,57,44]},{"i":42,"id":17481,"text":" wolf","display":"\u00b7wolf","kind":"comparison","pos":-1,"proj3":[-1.587,0.3365,0.0276],"neighbors":[43,40,37,44,74,33]},{"i":43,"id":21831,"text":" fox","display":"\u00b7fox","kind":"comparison","pos":-1,"proj3":[-1.7491,0.4202,0.0473],"neighbors":[42,74,45,40,44,34]},{"i":44,"id":20096,"text":" deer","display":"\u00b7deer","kind":"comparison","pos":-1,"proj3":[-1.6728,0.285,0.2401],"neighbors":[74,42,53,43,48,38]},{"i":45,"id":22746,"text":" rabbit","display":"\u00b7rabbit","kind":"comparison","pos":-1,"proj3":[-1.9134,0.3555,0.132],"neighbors":[43,38,74,34,44,70]},{"i":46,"id":10211,"text":" mouse","display":"\u00b7mouse","kind":"comparison","pos":-1,"proj3":[-1.8924,0.7178,0.1373],"neighbors":[47,70,73,45,164,60]},{"i":47,"id":4227,"text":" rat","display":"\u00b7rat","kind":"comparison","pos":-1,"proj3":[-2.0,0.5754,0.0859],"neighbors":[46,45,70,63,33,61]},{"i":48,"id":6512,"text":" bird","display":"\u00b7bird","kind":"comparison","pos":-1,"proj3":[-1.7037,0.316,0.5165],"neighbors":[55,50,49,53,66,61]},{"i":49,"id":31176,"text":" eagle","display":"\u00b7eagle","kind":"comparison","pos":-1,"proj3":[-1.8896,0.4382,0.498],"neighbors":[50,48,51,44,60,61]},{"i":50,"id":39610,"text":" owl","display":"\u00b7owl","kind":"comparison","pos":-1,"proj3":[-1.7395,0.5226,0.4686],"neighbors":[49,48,74,51,42,60]},{"i":51,"id":48710,"text":" hawk","display":"\u00b7hawk","kind":"comparison","pos":-1,"proj3":[-1.8013,0.5523,0.6518],"neighbors":[50,49,48,52,74,66]},{"i":52,"id":37593,"text":" crow","display":"\u00b7crow","kind":"comparison","pos":-1,"proj3":[-1.776,0.2772,0.7041],"neighbors":[48,51,39,50,40,55]},{"i":53,"id":22045,"text":" duck","display":"\u00b7duck","kind":"comparison","pos":-1,"proj3":[-1.846,0.1844,0.3814],"neighbors":[55,44,48,54,60,62]},{"i":54,"id":37246,"text":" goose","display":"\u00b7goose","kind":"comparison","pos":-1,"proj3":[-1.9761,0.061,0.3168],"neighbors":[53,38,48,35,44,49]},{"i":55,"id":9015,"text":" chicken","display":"\u00b7chicken","kind":"comparison","pos":-1,"proj3":[-1.6748,0.1148,0.4592],"neighbors":[48,53,56,73,35,70]},{"i":56,"id":5916,"text":" fish","display":"\u00b7fish","kind":"comparison","pos":-1,"proj3":[-1.1272,0.5489,0.3438],"neighbors":[57,59,58,55,280,204]},{"i":57,"id":21027,"text":" shark","display":"\u00b7shark","kind":"comparison","pos":-1,"proj3":[-1.228,0.4375,0.1748],"neighbors":[58,40,59,56,280,63]},{"i":58,"id":22206,"text":" whale","display":"\u00b7whale","kind":"comparison","pos":-1,"proj3":[-1.2342,0.5539,0.0409],"neighbors":[59,57,69,56,372,40]},{"i":59,"id":44136,"text":" dolphin","display":"\u00b7dolphin","kind":"comparison","pos":-1,"proj3":[-1.1972,0.6569,0.161],"neighbors":[58,57,60,280,56,40]},{"i":60,"id":28699,"text":" turtle","display":"\u00b7turtle","kind":"comparison","pos":-1,"proj3":[-1.4042,0.6418,0.2518],"neighbors":[61,59,62,40,280,57]},{"i":61,"id":17522,"text":" snake","display":"\u00b7snake","kind":"comparison","pos":-1,"proj3":[-1.4527,0.4667,0.309],"neighbors":[63,60,40,62,48,57]},{"i":62,"id":21264,"text":" frog","display":"\u00b7frog","kind":"comparison","pos":-1,"proj3":[-1.5471,0.6839,0.3745],"neighbors":[60,61,63,70,74,48]},{"i":63,"id":19230,"text":" spider","display":"\u00b7spider","kind":"comparison","pos":-1,"proj3":[-1.391,0.484,0.4708],"neighbors":[61,62,57,66,133,68]},{"i":64,"id":1885,"text":" ant","display":"\u00b7ant","kind":"comparison","pos":-1,"proj3":[-1.784,-0.4265,0.0859],"neighbors":[63,44,449,65,38,69]},{"i":65,"id":20697,"text":" bee","display":"\u00b7bee","kind":"comparison","pos":-1,"proj3":[-1.4019,0.2344,0.4754],"neighbors":[63,48,66,58,44,57]},{"i":66,"id":35113,"text":" butterfly","display":"\u00b7butterfly","kind":"comparison","pos":-1,"proj3":[-1.5164,0.4007,0.6182],"neighbors":[48,63,59,62,61,65]},{"i":67,"id":6129,"text":" fly","display":"\u00b7fly","kind":"comparison","pos":-1,"proj3":[0.2357,-0.4801,-0.3332],"neighbors":[48,224,199,210,229,217]},{"i":68,"id":23849,"text":" worm","display":"\u00b7worm","kind":"comparison","pos":-1,"proj3":[-1.3339,0.6467,0.5643],"neighbors":[63,62,45,61,280,60]},{"i":69,"id":20950,"text":" elephant","display":"\u00b7elephant","kind":"comparison","pos":-1,"proj3":[-1.3444,0.1376,0.1241],"neighbors":[40,281,58,39,73,72]},{"i":70,"id":21657,"text":" monkey","display":"\u00b7monkey","kind":"comparison","pos":-1,"proj3":[-1.6673,0.667,0.1258],"neighbors":[71,74,73,62,40,55]},{"i":71,"id":43835,"text":" ape","display":"\u00b7ape","kind":"comparison","pos":-1,"proj3":[-1.5715,0.728,0.0076],"neighbors":[70,59,40,62,73,39]},{"i":72,"id":41021,"text":" camel","display":"\u00b7camel","kind":"comparison","pos":-1,"proj3":[-1.5034,-0.0443,-0.0242],"neighbors":[73,34,38,69,40,35]},{"i":73,"id":50085,"text":" donkey","display":"\u00b7donkey","kind":"comparison","pos":-1,"proj3":[-1.6255,0.0638,0.0511],"neighbors":[38,72,34,70,69,37]},{"i":74,"id":33039,"text":" squirrel","display":"\u00b7squirrel","kind":"comparison","pos":-1,"proj3":[-1.7074,0.4739,0.2387],"neighbors":[44,43,70,50,42,45]},{"i":75,"id":7365,"text":" bat","display":"\u00b7bat","kind":"comparison","pos":-1,"proj3":[-1.6945,0.6542,-0.2476],"neighbors":[48,32,40,71,46,58]},{"i":76,"id":13810,"text":" seal","display":"\u00b7seal","kind":"comparison","pos":-1,"proj3":[-0.8789,0.063,1.5047],"neighbors":[187,137,59,556,154,49]},{"i":77,"id":5822,"text":" king","display":"\u00b7king","kind":"comparison","pos":-1,"proj3":[-0.1732,0.5903,-1.0695],"neighbors":[78,79,84,96,87,81]},{"i":78,"id":16599,"text":" queen","display":"\u00b7queen","kind":"comparison","pos":-1,"proj3":[-0.1728,0.5625,-1.2306],"neighbors":[77,80,84,87,83,82]},{"i":79,"id":19716,"text":" prince","display":"\u00b7prince","kind":"comparison","pos":-1,"proj3":[-0.3436,0.5202,-1.0117],"neighbors":[80,77,87,84,93,83]},{"i":80,"id":21752,"text":" princess","display":"\u00b7princess","kind":"comparison","pos":-1,"proj3":[-0.3842,0.45,-0.8721],"neighbors":[79,78,87,91,452,83]},{"i":81,"id":15876,"text":" lord","display":"\u00b7lord","kind":"comparison","pos":-1,"proj3":[-0.3978,0.4252,-1.2255],"neighbors":[77,79,83,107,84,96]},{"i":82,"id":10846,"text":" lady","display":"\u00b7lady","kind":"comparison","pos":-1,"proj3":[-0.5102,0.0539,-1.2239],"neighbors":[444,435,441,80,78,439]},{"i":83,"id":22062,"text":" knight","display":"\u00b7knight","kind":"comparison","pos":-1,"proj3":[-0.5471,0.4182,-1.0827],"neighbors":[108,79,81,91,80,107]},{"i":84,"id":23129,"text":" emperor","display":"\u00b7emperor","kind":"comparison","pos":-1,"proj3":[-0.3656,0.7424,-1.1079],"neighbors":[109,77,79,96,78,100]},{"i":85,"id":19262,"text":" throne","display":"\u00b7throne","kind":"comparison","pos":-1,"proj3":[0.0043,0.3872,-0.9249],"neighbors":[92,86,77,87,93,91]},{"i":86,"id":12389,"text":" crown","display":"\u00b7crown","kind":"comparison","pos":-1,"proj3":[0.0157,0.3728,-1.0966],"neighbors":[85,77,87,79,93,78]},{"i":87,"id":15100,"text":" royal","display":"\u00b7royal","kind":"comparison","pos":-1,"proj3":[-0.2156,0.343,-0.9821],"neighbors":[92,79,77,80,93,78]},{"i":88,"id":15581,"text":" noble","display":"\u00b7noble","kind":"comparison","pos":-1,"proj3":[-0.4137,0.2044,-0.9561],"neighbors":[89,87,79,80,83,81]},{"i":89,"id":30779,"text":" peasant","display":"\u00b7peasant","kind":"comparison","pos":-1,"proj3":[-0.5784,0.2866,-0.8145],"neighbors":[365,80,88,107,106,409]},{"i":90,"id":2184,"text":" court","display":"\u00b7court","kind":"comparison","pos":-1,"proj3":[0.3264,0.449,-1.3302],"neighbors":[112,113,400,493,405,403]},{"i":91,"id":16669,"text":" castle","display":"\u00b7castle","kind":"comparison","pos":-1,"proj3":[-0.226,0.4447,-0.6905],"neighbors":[92,93,80,83,365,85]},{"i":92,"id":20562,"text":" palace","display":"\u00b7palace","kind":"comparison","pos":-1,"proj3":[-0.1372,0.341,-0.7801],"neighbors":[91,87,85,401,93,80]},{"i":93,"id":13239,"text":" kingdom","display":"\u00b7kingdom","kind":"comparison","pos":-1,"proj3":[-0.0698,0.5888,-0.7949],"neighbors":[79,91,94,77,92,87]},{"i":94,"id":13360,"text":" realm","display":"\u00b7realm","kind":"comparison","pos":-1,"proj3":[0.0292,0.6162,-0.6544],"neighbors":[93,368,92,91,85,95]},{"i":95,"id":48565,"text":" majesty","display":"\u00b7majesty","kind":"comparison","pos":-1,"proj3":[0.1043,0.6408,-0.9124],"neighbors":[93,92,79,80,84,81]},{"i":96,"id":22740,"text":" ruler","display":"\u00b7ruler","kind":"comparison","pos":-1,"proj3":[-0.1732,0.7752,-1.0117],"neighbors":[77,79,84,78,85,93]},{"i":97,"id":18901,"text":" sovereign","display":"\u00b7sovereign","kind":"comparison","pos":-1,"proj3":[-0.1419,0.8881,-0.7721],"neighbors":[367,77,79,96,95,88]},{"i":98,"id":954,"text":" count","display":"\u00b7count","kind":"comparison","pos":-1,"proj3":[0.7628,-0.9807,-0.1736],"neighbors":[242,112,247,113,236,219]},{"i":99,"id":15967,"text":" sir","display":"\u00b7sir","kind":"comparison","pos":-1,"proj3":[-0.5278,0.2516,-1.3567],"neighbors":[82,81,105,95,453,106]},{"i":100,"id":1893,"text":" president","display":"\u00b7president","kind":"comparison","pos":-1,"proj3":[-0.4733,0.8793,-0.8583],"neighbors":[103,102,109,84,77,101]},{"i":101,"id":5342,"text":" minister","display":"\u00b7minister","kind":"comparison","pos":-1,"proj3":[-0.7702,0.7049,-0.8216],"neighbors":[108,107,103,102,109,79]},{"i":102,"id":8153,"text":" governor","display":"\u00b7governor","kind":"comparison","pos":-1,"proj3":[-0.611,0.8789,-0.7149],"neighbors":[103,100,101,84,108,109]},{"i":103,"id":9591,"text":" mayor","display":"\u00b7mayor","kind":"comparison","pos":-1,"proj3":[-0.5369,0.7419,-0.724],"neighbors":[102,363,100,109,108,101]},{"i":104,"id":2276,"text":" general","display":"\u00b7general","kind":"comparison","pos":-1,"proj3":[0.9156,-0.1935,-0.1925],"neighbors":[100,319,317,11,103,314]},{"i":105,"id":10654,"text":" captain","display":"\u00b7captain","kind":"comparison","pos":-1,"proj3":[-0.7746,0.3278,-1.2418],"neighbors":[106,278,108,103,83,80]},{"i":106,"id":10686,"text":" soldier","display":"\u00b7soldier","kind":"comparison","pos":-1,"proj3":[-0.7535,0.3243,-1.0361],"neighbors":[107,83,89,105,278,512]},{"i":107,"id":11503,"text":" priest","display":"\u00b7priest","kind":"comparison","pos":-1,"proj3":[-0.7634,0.5597,-1.0282],"neighbors":[108,109,400,401,111,110]},{"i":108,"id":24233,"text":" bishop","display":"\u00b7bishop","kind":"comparison","pos":-1,"proj3":[-0.6186,0.6211,-0.9765],"neighbors":[109,107,400,83,103,110]},{"i":109,"id":26850,"text":" pope","display":"\u00b7pope","kind":"comparison","pos":-1,"proj3":[-0.5464,0.7496,-1.0645],"neighbors":[108,84,107,110,100,77]},{"i":110,"id":32292,"text":" saint","display":"\u00b7saint","kind":"comparison","pos":-1,"proj3":[-0.632,0.6524,-1.2288],"neighbors":[109,108,107,111,83,79]},{"i":111,"id":22298,"text":" prophet","display":"\u00b7prophet","kind":"comparison","pos":-1,"proj3":[-0.7602,0.7878,-1.1014],"neighbors":[109,107,108,110,84,402]},{"i":112,"id":5052,"text":" judge","display":"\u00b7judge","kind":"comparison","pos":-1,"proj3":[0.2557,0.3186,-1.3774],"neighbors":[90,113,493,101,107,96]},{"i":113,"id":9002,"text":" jury","display":"\u00b7jury","kind":"comparison","pos":-1,"proj3":[0.2013,0.3919,-1.5032],"neighbors":[112,90,148,107,158,257]},{"i":114,"id":9664,"text":" fabric","display":"\u00b7fabric","kind":"comparison","pos":-1,"proj3":[-1.2426,-0.5273,0.817],"neighbors":[25,134,150,133,136,135]},{"i":115,"id":4898,"text":" wood","display":"\u00b7wood","kind":"comparison","pos":-1,"proj3":[-0.7441,0.0694,0.1753],"neighbors":[374,132,118,116,281,129]},{"i":116,"id":6147,"text":" metal","display":"\u00b7metal","kind":"comparison","pos":-1,"proj3":[-1.1138,-0.5777,0.3094],"neighbors":[118,127,121,132,143,117]},{"i":117,"id":6953,"text":" iron","display":"\u00b7iron","kind":"comparison","pos":-1,"proj3":[-1.3494,-0.5615,0.2417],"neighbors":[118,121,116,129,124,454]},{"i":118,"id":7771,"text":" steel","display":"\u00b7steel","kind":"comparison","pos":-1,"proj3":[-1.175,-0.5607,0.1523],"neighbors":[116,117,121,132,122,115]},{"i":119,"id":3869,"text":" gold","display":"\u00b7gold","kind":"comparison","pos":-1,"proj3":[-1.2803,-0.9302,0.1427],"neighbors":[120,122,121,268,116,133]},{"i":120,"id":8465,"text":" silver","display":"\u00b7silver","kind":"comparison","pos":-1,"proj3":[-1.2041,-0.983,0.2754],"neighbors":[119,122,121,270,275,273]},{"i":121,"id":15317,"text":" copper","display":"\u00b7copper","kind":"comparison","pos":-1,"proj3":[-1.2599,-0.7472,0.3442],"neighbors":[122,120,118,119,116,117]},{"i":122,"id":22101,"text":" bronze","display":"\u00b7bronze","kind":"comparison","pos":-1,"proj3":[-1.1243,-0.8301,0.2155],"neighbors":[120,119,121,138,143,118]},{"i":123,"id":20422,"text":" brass","display":"\u00b7brass","kind":"comparison","pos":-1,"proj3":[-1.0758,-0.7726,0.4505],"neighbors":[121,122,116,118,120,281]},{"i":124,"id":19783,"text":" tin","display":"\u00b7tin","kind":"comparison","pos":-1,"proj3":[-1.4742,-0.7253,0.3313],"neighbors":[121,117,133,126,120,281]},{"i":125,"id":1085,"text":" lead","display":"\u00b7lead","kind":"comparison","pos":-1,"proj3":[0.9249,0.2861,0.4095],"neighbors":[521,198,207,518,205,232]},{"i":126,"id":5405,"text":" glass","display":"\u00b7glass","kind":"comparison","pos":-1,"proj3":[-0.8571,-0.6263,0.2614],"neighbors":[127,143,118,116,138,130]},{"i":127,"id":7309,"text":" plastic","display":"\u00b7plastic","kind":"comparison","pos":-1,"proj3":[-0.9539,-0.475,0.3529],"neighbors":[143,116,126,128,132,5]},{"i":128,"id":14239,"text":" rubber","display":"\u00b7rubber","kind":"comparison","pos":-1,"proj3":[-1.0823,-0.3136,0.3382],"neighbors":[127,132,116,134,151,118]},{"i":129,"id":7815,"text":" stone","display":"\u00b7stone","kind":"comparison","pos":-1,"proj3":[-0.7921,-0.4353,-0.0389],"neighbors":[138,130,139,141,115,118]},{"i":130,"id":17214,"text":" brick","display":"\u00b7brick","kind":"comparison","pos":-1,"proj3":[-0.8127,-0.6137,0.0044],"neighbors":[129,138,126,131,115,139]},{"i":131,"id":10017,"text":" concrete","display":"\u00b7concrete","kind":"comparison","pos":-1,"proj3":[-1.0491,-0.4435,0.0175],"neighbors":[118,141,138,130,129,127]},{"i":132,"id":11620,"text":" leather","display":"\u00b7leather","kind":"comparison","pos":-1,"proj3":[-1.1051,-0.3963,0.5183],"neighbors":[25,133,115,128,116,118]},{"i":133,"id":23938,"text":" silk","display":"\u00b7silk","kind":"comparison","pos":-1,"proj3":[-1.298,-0.3439,0.5982],"neighbors":[134,135,136,132,25,281]},{"i":134,"id":15985,"text":" cotton","display":"\u00b7cotton","kind":"comparison","pos":-1,"proj3":[-1.2327,-0.1874,0.6003],"neighbors":[133,135,136,25,132,121]},{"i":135,"id":25749,"text":" wool","display":"\u00b7wool","kind":"comparison","pos":-1,"proj3":[-1.309,-0.2479,0.7654],"neighbors":[133,134,37,136,150,25]},{"i":136,"id":41822,"text":" linen","display":"\u00b7linen","kind":"comparison","pos":-1,"proj3":[-1.0859,-0.2492,0.7474],"neighbors":[133,25,134,135,137,132]},{"i":137,"id":38414,"text":" parchment","display":"\u00b7parchment","kind":"comparison","pos":-1,"proj3":[-0.7033,-0.4446,0.8251],"neighbors":[163,23,136,138,25,281]},{"i":138,"id":30623,"text":" marble","display":"\u00b7marble","kind":"comparison","pos":-1,"proj3":[-0.7921,-0.4133,0.117],"neighbors":[129,122,143,139,137,130]},{"i":139,"id":21558,"text":" clay","display":"\u00b7clay","kind":"comparison","pos":-1,"proj3":[-0.8375,-0.2175,0.2471],"neighbors":[143,138,141,140,151,122]},{"i":140,"id":6450,"text":" sand","display":"\u00b7sand","kind":"comparison","pos":-1,"proj3":[-0.9413,-0.0625,0.0597],"neighbors":[382,141,139,375,138,280]},{"i":141,"id":34375,"text":" gravel","display":"\u00b7gravel","kind":"comparison","pos":-1,"proj3":[-0.9787,-0.2364,0.044],"neighbors":[140,139,138,131,129,280]},{"i":142,"id":13608,"text":" fiber","display":"\u00b7fiber","kind":"comparison","pos":-1,"proj3":[-1.3233,-0.6928,0.6163],"neighbors":[121,151,114,133,118,135]},{"i":143,"id":37973,"text":" ceramic","display":"\u00b7ceramic","kind":"comparison","pos":-1,"proj3":[-0.7807,-0.4468,0.3688],"neighbors":[127,151,138,121,116,122]},{"i":144,"id":12530,"text":" ash","display":"\u00b7ash","kind":"comparison","pos":-1,"proj3":[-0.6714,-0.1925,0.058],"neighbors":[140,115,138,281,139,129]},{"i":145,"id":25501,"text":" foil","display":"\u00b7foil","kind":"comparison","pos":-1,"proj3":[-0.7625,-0.543,0.6611],"neighbors":[137,143,127,154,121,124]},{"i":146,"id":9629,"text":" sheet","display":"\u00b7sheet","kind":"comparison","pos":-1,"proj3":[-0.8643,-0.4248,0.9663],"neighbors":[137,147,25,23,156,189]},{"i":147,"id":2443,"text":" page","display":"\u00b7page","kind":"comparison","pos":-1,"proj3":[-0.1046,-0.8773,1.2004],"neighbors":[156,157,146,155,149,23]},{"i":148,"id":6103,"text":" panel","display":"\u00b7panel","kind":"comparison","pos":-1,"proj3":[0.1425,0.4228,-1.679],"neighbors":[113,147,112,178,156,189]},{"i":149,"id":4704,"text":" thread","display":"\u00b7thread","kind":"comparison","pos":-1,"proj3":[-1.3719,-0.4136,1.1452],"neighbors":[147,150,133,478,164,464]},{"i":150,"id":21181,"text":" yarn","display":"\u00b7yarn","kind":"comparison","pos":-1,"proj3":[-1.3142,-0.3319,0.9283],"neighbors":[135,134,114,25,133,136]},{"i":151,"id":36536,"text":" resin","display":"\u00b7resin","kind":"comparison","pos":-1,"proj3":[-0.739,-0.2771,0.4459],"neighbors":[143,139,152,132,127,115]},{"i":152,"id":20302,"text":" wax","display":"\u00b7wax","kind":"comparison","pos":-1,"proj3":[-0.8731,-0.1639,0.558],"neighbors":[151,137,139,143,115,134]},{"i":153,"id":3056,"text":" oil","display":"\u00b7oil","kind":"comparison","pos":-1,"proj3":[-0.9548,0.1008,0.4033],"neighbors":[154,115,479,119,152,151]},{"i":154,"id":35537,"text":" grease","display":"\u00b7grease","kind":"comparison","pos":-1,"proj3":[-0.9451,0.1166,0.5662],"neighbors":[153,469,141,217,137,30]},{"i":155,"id":1492,"text":" book","display":"\u00b7book","kind":"comparison","pos":-1,"proj3":[-0.4351,-0.4655,1.0932],"neighbors":[197,166,163,23,176,157]},{"i":156,"id":7322,"text":" paragraph","display":"\u00b7paragraph","kind":"comparison","pos":-1,"proj3":[-0.1291,-0.895,1.0026],"neighbors":[158,147,171,157,167,160]},{"i":157,"id":6843,"text":" chapter","display":"\u00b7chapter","kind":"comparison","pos":-1,"proj3":[-0.2445,-0.9955,1.1441],"neighbors":[156,147,155,171,163,172]},{"i":158,"id":6827,"text":" sentence","display":"\u00b7sentence","kind":"comparison","pos":-1,"proj3":[-0.0603,-0.8703,0.8786],"neighbors":[156,171,167,159,157,170]},{"i":159,"id":1573,"text":" word","display":"\u00b7word","kind":"comparison","pos":-1,"proj3":[0.0041,-0.6421,0.8305],"neighbors":[158,195,160,169,503,491]},{"i":160,"id":3850,"text":" letter","display":"\u00b7letter","kind":"comparison","pos":-1,"proj3":[-0.2206,-0.6011,0.945],"neighbors":[169,167,156,194,23,155]},{"i":161,"id":10369,"text":" font","display":"\u00b7font","kind":"comparison","pos":-1,"proj3":[-0.3787,0.1898,0.7931],"neighbors":[174,547,169,30,1,156]},{"i":162,"id":2099,"text":" type","display":"\u00b7type","kind":"comparison","pos":-1,"proj3":[-0.1563,0.341,0.4458],"neighbors":[558,3,230,519,20,518]},{"i":163,"id":17116,"text":" manuscript","display":"\u00b7manuscript","kind":"comparison","pos":-1,"proj3":[-0.5865,-0.5945,0.9515],"neighbors":[137,167,175,155,166,188]},{"i":164,"id":10743,"text":" scroll","display":"\u00b7scroll","kind":"comparison","pos":-1,"proj3":[0.2188,-0.7154,0.5138],"neighbors":[137,254,221,46,263,223]},{"i":165,"id":5888,"text":" library","display":"\u00b7library","kind":"comparison","pos":-1,"proj3":[-0.1289,0.3639,-0.0356],"neighbors":[197,404,91,402,163,407]},{"i":166,"id":5337,"text":" novel","display":"\u00b7novel","kind":"comparison","pos":-1,"proj3":[-0.4829,-0.6228,1.1581],"neighbors":[155,167,163,168,197,192]},{"i":167,"id":21247,"text":" poem","display":"\u00b7poem","kind":"comparison","pos":-1,"proj3":[-0.3974,-0.7482,0.9805],"neighbors":[171,163,166,160,177,170]},{"i":168,"id":1621,"text":" story","display":"\u00b7story","kind":"comparison","pos":-1,"proj3":[-0.3664,-0.7134,1.3456],"neighbors":[177,225,167,166,503,155]},{"i":169,"id":2420,"text":" text","display":"\u00b7text","kind":"comparison","pos":-1,"proj3":[-0.2683,-0.5189,0.7932],"neighbors":[160,155,161,167,164,191]},{"i":170,"id":27149,"text":" prose","display":"\u00b7prose","kind":"comparison","pos":-1,"proj3":[-0.5249,-0.7935,0.773],"neighbors":[171,181,163,167,137,156]},{"i":171,"id":18527,"text":" verse","display":"\u00b7verse","kind":"comparison","pos":-1,"proj3":[-0.3801,-0.8797,0.9181],"neighbors":[167,156,170,163,158,111]},{"i":172,"id":8313,"text":" edition","display":"\u00b7edition","kind":"comparison","pos":-1,"proj3":[-0.1132,0.1013,1.2108],"neighbors":[192,1,173,175,157,163]},{"i":173,"id":6115,"text":" volume","display":"\u00b7volume","kind":"comparison","pos":-1,"proj3":[-0.0637,0.2653,1.0603],"neighbors":[155,9,172,548,184,516]},{"i":174,"id":20632,"text":" printer","display":"\u00b7printer","kind":"comparison","pos":-1,"proj3":[-0.389,0.0112,0.9334],"neighbors":[1,191,18,178,197,161]},{"i":175,"id":12407,"text":" publishing","display":"\u00b7publishing","kind":"comparison","pos":-1,"proj3":[-0.2343,-0.1661,1.2406],"neighbors":[192,1,181,197,163,178]},{"i":176,"id":1772,"text":" author","display":"\u00b7author","kind":"comparison","pos":-1,"proj3":[-0.4091,-0.3891,1.3958],"neighbors":[177,178,155,179,181,175]},{"i":177,"id":6260,"text":" writer","display":"\u00b7writer","kind":"comparison","pos":-1,"proj3":[-0.2638,-0.4443,1.3823],"neighbors":[176,179,181,178,194,167]},{"i":178,"id":5464,"text":" editor","display":"\u00b7editor","kind":"comparison","pos":-1,"proj3":[-0.2271,-0.2706,1.4748],"neighbors":[177,176,174,175,179,192]},{"i":179,"id":9173,"text":" reader","display":"\u00b7reader","kind":"comparison","pos":-1,"proj3":[-0.1226,-0.5118,1.4669],"neighbors":[177,180,178,176,196,155]},{"i":180,"id":3555,"text":" reading","display":"\u00b7reading","kind":"comparison","pos":-1,"proj3":[0.0208,-0.5254,1.2903],"neighbors":[196,181,179,1,175,155]},{"i":181,"id":3597,"text":" writing","display":"\u00b7writing","kind":"comparison","pos":-1,"proj3":[-0.1548,-0.4038,1.1839],"neighbors":[194,177,180,175,1,170]},{"i":182,"id":5421,"text":" bound","display":"\u00b7bound","kind":"comparison","pos":-1,"proj3":[-0.0572,-1.4869,0.2969],"neighbors":[264,94,225,97,28,223]},{"i":183,"id":3002,"text":" cover","display":"\u00b7cover","kind":"comparison","pos":-1,"proj3":[-0.2247,-1.1683,-0.4651],"neighbors":[465,492,212,76,147,14]},{"i":184,"id":10330,"text":" margin","display":"\u00b7margin","kind":"comparison","pos":-1,"proj3":[-0.2346,0.317,0.8746],"neighbors":[161,173,137,474,304,148]},{"i":185,"id":3112,"text":" pen","display":"\u00b7pen","kind":"comparison","pos":-1,"proj3":[-0.7593,-0.0401,1.0772],"neighbors":[186,30,181,161,177,174]},{"i":186,"id":21613,"text":" pencil","display":"\u00b7pencil","kind":"comparison","pos":-1,"proj3":[-0.8139,0.0715,0.9751],"neighbors":[185,30,463,137,139,455]},{"i":187,"id":17977,"text":" stamp","display":"\u00b7stamp","kind":"comparison","pos":-1,"proj3":[-0.7337,0.1263,1.4579],"neighbors":[551,76,454,556,1,455]},{"i":188,"id":4226,"text":" script","display":"\u00b7script","kind":"comparison","pos":-1,"proj3":[-0.6968,-0.7358,1.0401],"neighbors":[163,161,553,167,168,181]},{"i":189,"id":29092,"text":" ribbon","display":"\u00b7ribbon","kind":"comparison","pos":-1,"proj3":[-1.5332,-0.4112,0.5997],"neighbors":[133,271,277,137,138,25]},{"i":190,"id":7480,"text":" plate","display":"\u00b7plate","kind":"comparison","pos":-1,"proj3":[-0.9807,-0.4005,1.1863],"neighbors":[126,146,143,460,121,14]},{"i":191,"id":10398,"text":" printed","display":"\u00b7printed","kind":"comparison","pos":-1,"proj3":[-0.208,-0.1483,0.9653],"neighbors":[1,18,174,192,194,163]},{"i":192,"id":3199,"text":" published","display":"\u00b7published","kind":"comparison","pos":-1,"proj3":[-0.0796,-0.1438,1.1683],"neighbors":[175,191,194,163,178,176]},{"i":193,"id":32213,"text":" spelled","display":"\u00b7spelled","kind":"comparison","pos":-1,"proj3":[0.0012,-0.2411,0.8239],"neighbors":[195,194,137,191,156,522]},{"i":194,"id":3194,"text":" written","display":"\u00b7written","kind":"comparison","pos":-1,"proj3":[-0.0516,-0.36,1.0413],"neighbors":[181,191,192,195,177,196]},{"i":195,"id":9635,"text":" spoken","display":"\u00b7spoken","kind":"comparison","pos":-1,"proj3":[0.0538,-0.4296,0.9101],"neighbors":[194,522,159,193,245,191]},{"i":196,"id":1100,"text":" read","display":"\u00b7read","kind":"comparison","pos":-1,"proj3":[0.1503,-0.586,1.2745],"neighbors":[180,246,179,241,194,242]},{"i":197,"id":44346,"text":" bookstore","display":"\u00b7bookstore","kind":"comparison","pos":-1,"proj3":[-0.1806,0.1974,-0.0089],"neighbors":[407,404,165,155,175,174]},{"i":198,"id":1057,"text":" run","display":"\u00b7run","kind":"comparison","pos":-1,"proj3":[0.6996,0.2595,0.3335],"neighbors":[199,207,521,211,522,214]},{"i":199,"id":2513,"text":" walk","display":"\u00b7walk","kind":"comparison","pos":-1,"proj3":[0.291,-0.4062,-0.0748],"neighbors":[223,222,206,205,208,202]},{"i":200,"id":4391,"text":" jump","display":"\u00b7jump","kind":"comparison","pos":-1,"proj3":[0.2683,-0.2375,0.4845],"neighbors":[201,202,221,210,220,226]},{"i":201,"id":16470,"text":" leap","display":"\u00b7leap","kind":"comparison","pos":-1,"proj3":[0.1341,-0.1838,0.5154],"neighbors":[200,202,240,217,225,203]},{"i":202,"id":12080,"text":" climb","display":"\u00b7climb","kind":"comparison","pos":-1,"proj3":[0.17,-0.2857,0.2265],"neighbors":[232,200,222,240,209,206]},{"i":203,"id":2121,"text":" fall","display":"\u00b7fall","kind":"comparison","pos":-1,"proj3":[0.4835,-0.1066,0.9513],"neighbors":[359,361,360,240,210,362]},{"i":204,"id":9422,"text":" swim","display":"\u00b7swim","kind":"comparison","pos":-1,"proj3":[-0.9308,0.7208,0.251],"neighbors":[382,59,57,56,202,280]},{"i":205,"id":3708,"text":" drive","display":"\u00b7drive","kind":"comparison","pos":-1,"proj3":[0.3154,0.0781,-0.0477],"neighbors":[207,206,199,472,208,389]},{"i":206,"id":6594,"text":" ride","display":"\u00b7ride","kind":"comparison","pos":-1,"proj3":[0.1823,-0.1372,-0.0174],"neighbors":[202,225,209,205,199,219]},{"i":207,"id":4574,"text":" push","display":"\u00b7push","kind":"comparison","pos":-1,"proj3":[0.4157,0.1918,0.1742],"neighbors":[208,226,205,200,9,209]},{"i":208,"id":2834,"text":" pull","display":"\u00b7pull","kind":"comparison","pos":-1,"proj3":[0.332,0.0747,0.2286],"neighbors":[207,209,210,199,200,202]},{"i":209,"id":10303,"text":" lift","display":"\u00b7lift","kind":"comparison","pos":-1,"proj3":[0.1671,-0.0648,0.1828],"neighbors":[202,208,206,207,200,234]},{"i":210,"id":4268,"text":" drop","display":"\u00b7drop","kind":"comparison","pos":-1,"proj3":[0.3647,-0.0681,0.3894],"neighbors":[200,208,203,237,216,211]},{"i":211,"id":3714,"text":" throw","display":"\u00b7throw","kind":"comparison","pos":-1,"proj3":[0.3402,0.1991,0.5764],"neighbors":[212,213,200,210,208,207]},{"i":212,"id":4929,"text":" catch","display":"\u00b7catch","kind":"comparison","pos":-1,"proj3":[0.1899,0.1722,0.5997],"neighbors":[211,56,67,200,244,55]},{"i":213,"id":4829,"text":" kick","display":"\u00b7kick","kind":"comparison","pos":-1,"proj3":[0.4483,0.0551,0.6198],"neighbors":[211,200,207,237,214,209]},{"i":214,"id":2277,"text":" hit","display":"\u00b7hit","kind":"comparison","pos":-1,"proj3":[0.6072,0.187,0.5291],"neighbors":[213,200,198,211,210,226]},{"i":215,"id":6715,"text":" drag","display":"\u00b7drag","kind":"comparison","pos":-1,"proj3":[0.1354,0.1637,0.2415],"neighbors":[208,209,218,207,202,549]},{"i":216,"id":10649,"text":" slide","display":"\u00b7slide","kind":"comparison","pos":-1,"proj3":[0.5245,-0.4006,0.1801],"neighbors":[217,202,210,234,208,219]},{"i":217,"id":48089,"text":" glide","display":"\u00b7glide","kind":"comparison","pos":-1,"proj3":[0.407,-0.4701,0.2917],"neighbors":[216,202,232,238,237,223]},{"i":218,"id":9280,"text":" dance","display":"\u00b7dance","kind":"comparison","pos":-1,"proj3":[0.5539,-0.297,-0.126],"neighbors":[219,206,204,199,237,382]},{"i":219,"id":9960,"text":" march","display":"\u00b7march","kind":"comparison","pos":-1,"proj3":[0.4179,-0.1768,-0.1796],"neighbors":[349,218,202,206,240,199]},{"i":220,"id":1725,"text":" hop","display":"\u00b7hop","kind":"comparison","pos":-1,"proj3":[0.37,-0.2632,0.6541],"neighbors":[200,237,202,221,201,217]},{"i":221,"id":14267,"text":" skip","display":"\u00b7skip","kind":"comparison","pos":-1,"proj3":[0.2505,-0.4331,0.5233],"neighbors":[200,164,223,210,234,220]},{"i":222,"id":27318,"text":" crawl","display":"\u00b7crawl","kind":"comparison","pos":-1,"proj3":[0.2851,-0.3357,0.1066],"neighbors":[202,199,63,223,216,209]},{"i":223,"id":27776,"text":" wander","display":"\u00b7wander","kind":"comparison","pos":-1,"proj3":[0.2348,-0.5749,-0.0259],"neighbors":[199,229,256,234,217,233]},{"i":224,"id":3067,"text":" travel","display":"\u00b7travel","kind":"comparison","pos":-1,"proj3":[0.0705,-0.3833,-0.2437],"neighbors":[225,223,67,206,199,228]},{"i":225,"id":7002,"text":" journey","display":"\u00b7journey","kind":"comparison","pos":-1,"proj3":[0.1023,-0.2095,-0.1644],"neighbors":[206,224,389,199,168,219]},{"i":226,"id":1445,"text":" move","display":"\u00b7move","kind":"comparison","pos":-1,"proj3":[0.6006,0.0468,0.1678],"neighbors":[207,517,200,234,202,227]},{"i":227,"id":1441,"text":" return","display":"\u00b7return","kind":"comparison","pos":-1,"proj3":[-0.151,-0.4628,-0.0158],"neighbors":[226,228,229,231,230,211]},{"i":228,"id":9240,"text":" arrive","display":"\u00b7arrive","kind":"comparison","pos":-1,"proj3":[0.0087,-0.7489,0.051],"neighbors":[229,230,233,253,223,259]},{"i":229,"id":6313,"text":" depart","display":"\u00b7depart","kind":"comparison","pos":-1,"proj3":[0.0182,-0.6439,-0.0525],"neighbors":[228,223,233,230,231,259]},{"i":230,"id":3802,"text":" enter","display":"\u00b7enter","kind":"comparison","pos":-1,"proj3":[-0.179,-0.7225,0.0741],"neighbors":[228,231,229,259,223,233]},{"i":231,"id":8420,"text":" exit","display":"\u00b7exit","kind":"comparison","pos":-1,"proj3":[-0.2102,-0.6615,-0.1147],"neighbors":[230,229,227,208,237,199]},{"i":232,"id":34800,"text":" ascend","display":"\u00b7ascend","kind":"comparison","pos":-1,"proj3":[0.0526,-0.4245,0.2631],"neighbors":[202,233,240,217,229,219]},{"i":233,"id":15350,"text":" descend","display":"\u00b7descend","kind":"comparison","pos":-1,"proj3":[0.0383,-0.5853,0.2417],"neighbors":[232,202,229,228,223,230]},{"i":234,"id":23064,"text":" rotate","display":"\u00b7rotate","kind":"comparison","pos":-1,"proj3":[0.6533,-0.2037,0.2884],"neighbors":[226,244,223,237,260,229]},{"i":235,"id":7906,"text":" spin","display":"\u00b7spin","kind":"comparison","pos":-1,"proj3":[0.7439,-0.1398,0.4502],"neighbors":[234,237,150,208,218,236]},{"i":236,"id":4836,"text":" roll","display":"\u00b7roll","kind":"comparison","pos":-1,"proj3":[0.4555,-0.1415,0.156],"neighbors":[208,234,210,216,207,222]},{"i":237,"id":20110,"text":" bounce","display":"\u00b7bounce","kind":"comparison","pos":-1,"proj3":[0.4991,-0.2691,0.438],"neighbors":[200,234,217,210,202,220]},{"i":238,"id":12178,"text":" float","display":"\u00b7float","kind":"comparison","pos":-1,"proj3":[0.5675,-0.5371,0.3966],"neighbors":[217,204,59,234,237,216]},{"i":239,"id":14595,"text":" sink","display":"\u00b7sink","kind":"comparison","pos":-1,"proj3":[-0.7487,0.5899,0.3844],"neighbors":[372,204,216,217,371,154]},{"i":240,"id":4485,"text":" rise","display":"\u00b7rise","kind":"comparison","pos":-1,"proj3":[-0.0529,-0.2795,0.2927],"neighbors":[232,202,203,516,219,200]},{"i":241,"id":766,"text":" see","display":"\u00b7see","kind":"comparison","pos":-1,"proj3":[0.4478,-1.3363,-0.006],"neighbors":[458,245,253,521,250,244]},{"i":242,"id":804,"text":" look","display":"\u00b7look","kind":"comparison","pos":-1,"proj3":[0.5616,-0.9514,-0.1853],"neighbors":[250,254,259,256,246,261]},{"i":243,"id":2342,"text":" watch","display":"\u00b7watch","kind":"comparison","pos":-1,"proj3":[0.5134,-1.1063,0.3176],"neighbors":[246,244,241,245,256,242]},{"i":244,"id":12414,"text":" observe","display":"\u00b7observe","kind":"comparison","pos":-1,"proj3":[0.2534,-1.1889,0.2118],"neighbors":[259,253,260,241,243,234]},{"i":245,"id":3285,"text":" hear","display":"\u00b7hear","kind":"comparison","pos":-1,"proj3":[0.5686,-1.2403,0.1022],"neighbors":[246,241,253,458,247,250]},{"i":246,"id":6004,"text":" listen","display":"\u00b7listen","kind":"comparison","pos":-1,"proj3":[0.596,-1.09,0.1528],"neighbors":[245,243,242,196,259,244]},{"i":247,"id":8508,"text":" smell","display":"\u00b7smell","kind":"comparison","pos":-1,"proj3":[0.5558,-1.112,-0.4459],"neighbors":[248,250,510,245,242,256]},{"i":248,"id":6938,"text":" taste","display":"\u00b7taste","kind":"comparison","pos":-1,"proj3":[0.4263,-1.0878,-0.5033],"neighbors":[247,250,262,242,510,547]},{"i":249,"id":3638,"text":" touch","display":"\u00b7touch","kind":"comparison","pos":-1,"proj3":[0.5586,0.6933,0.4469],"neighbors":[550,248,262,247,207,211]},{"i":250,"id":1254,"text":" feel","display":"\u00b7feel","kind":"comparison","pos":-1,"proj3":[0.5856,-0.845,-0.4225],"neighbors":[510,242,241,253,251,247]},{"i":251,"id":2565,"text":" sense","display":"\u00b7sense","kind":"comparison","pos":-1,"proj3":[0.4321,-0.7838,-0.5709],"neighbors":[250,510,253,247,498,502]},{"i":252,"id":4003,"text":" notice","display":"\u00b7notice","kind":"comparison","pos":-1,"proj3":[0.2355,-1.1723,0.4697],"neighbors":[244,256,245,253,241,262]},{"i":253,"id":19973,"text":" perceive","display":"\u00b7perceive","kind":"comparison","pos":-1,"proj3":[0.2005,-1.2947,0.0683],"neighbors":[244,241,250,245,262,259]},{"i":254,"id":16086,"text":" glance","display":"\u00b7glance","kind":"comparison","pos":-1,"proj3":[0.3893,-0.9116,-0.0406],"neighbors":[262,255,242,261,256,263]},{"i":255,"id":17841,"text":" gaze","display":"\u00b7gaze","kind":"comparison","pos":-1,"proj3":[0.5213,-0.7686,0.0553],"neighbors":[256,254,262,259,223,242]},{"i":256,"id":24170,"text":" stare","display":"\u00b7stare","kind":"comparison","pos":-1,"proj3":[0.4873,-0.6961,-0.0622],"neighbors":[255,254,242,223,262,259]},{"i":257,"id":4973,"text":" witness","display":"\u00b7witness","kind":"comparison","pos":-1,"proj3":[0.4013,-1.3535,0.3031],"neighbors":[244,112,245,243,262,241]},{"i":258,"id":1570,"text":" view","display":"\u00b7view","kind":"comparison","pos":-1,"proj3":[0.3954,-1.2372,-0.1886],"neighbors":[241,262,242,253,503,510]},{"i":259,"id":10716,"text":" examine","display":"\u00b7examine","kind":"comparison","pos":-1,"proj3":[0.2182,-1.0244,0.165],"neighbors":[244,260,242,253,255,263]},{"i":260,"id":10104,"text":" inspect","display":"\u00b7inspect","kind":"comparison","pos":-1,"proj3":[0.0921,-1.0079,0.2564],"neighbors":[259,244,234,263,261,254]},{"i":261,"id":27185,"text":" peek","display":"\u00b7peek","kind":"comparison","pos":-1,"proj3":[0.2601,-0.8818,-0.2228],"neighbors":[262,254,242,259,202,256]},{"i":262,"id":19350,"text":" glimpse","display":"\u00b7glimpse","kind":"comparison","pos":-1,"proj3":[0.249,-0.9966,-0.1327],"neighbors":[261,254,255,256,253,259]},{"i":263,"id":9367,"text":" scan","display":"\u00b7scan","kind":"comparison","pos":-1,"proj3":[0.2946,-0.8295,0.2205],"neighbors":[259,254,260,164,256,262]},{"i":264,"id":23700,"text":" behold","display":"\u00b7behold","kind":"comparison","pos":-1,"proj3":[0.0879,-1.3959,0.2144],"neighbors":[253,244,262,246,259,458]},{"i":265,"id":2266,"text":" red","display":"\u00b7red","kind":"comparison","pos":-1,"proj3":[-0.7595,-1.4296,-0.0045],"neighbors":[266,268,267,270,273,271]},{"i":266,"id":4171,"text":" blue","display":"\u00b7blue","kind":"comparison","pos":-1,"proj3":[-0.9177,-1.3671,0.1267],"neighbors":[270,268,267,265,269,271]},{"i":267,"id":4077,"text":" green","display":"\u00b7green","kind":"comparison","pos":-1,"proj3":[-0.7331,-1.4028,0.2054],"neighbors":[268,266,265,270,276,269]},{"i":268,"id":7872,"text":" yellow","display":"\u00b7yellow","kind":"comparison","pos":-1,"proj3":[-0.7726,-1.2237,0.0684],"neighbors":[271,270,269,267,266,265]},{"i":269,"id":10912,"text":" orange","display":"\u00b7orange","kind":"comparison","pos":-1,"proj3":[-0.7357,-1.1945,0.2701],"neighbors":[270,268,266,271,267,276]},{"i":270,"id":14032,"text":" purple","display":"\u00b7purple","kind":"comparison","pos":-1,"proj3":[-0.9348,-1.1973,0.2343],"neighbors":[266,271,269,268,277,267]},{"i":271,"id":11398,"text":" pink","display":"\u00b7pink","kind":"comparison","pos":-1,"proj3":[-0.8344,-1.0498,0.1412],"neighbors":[270,268,269,266,267,276]},{"i":272,"id":2042,"text":" black","display":"\u00b7black","kind":"comparison","pos":-1,"proj3":[-0.9804,-1.3701,-0.1131],"neighbors":[273,276,266,275,265,268]},{"i":273,"id":2330,"text":" white","display":"\u00b7white","kind":"comparison","pos":-1,"proj3":[-0.8513,-1.2677,-0.154],"neighbors":[272,268,266,276,265,270]},{"i":274,"id":12768,"text":" gray","display":"\u00b7gray","kind":"comparison","pos":-1,"proj3":[-1.1714,-1.2424,0.003],"neighbors":[275,276,270,266,272,268]},{"i":275,"id":13791,"text":" grey","display":"\u00b7grey","kind":"comparison","pos":-1,"proj3":[-1.1431,-1.3246,0.1292],"neighbors":[274,266,276,270,268,272]},{"i":276,"id":7586,"text":" brown","display":"\u00b7brown","kind":"comparison","pos":-1,"proj3":[-0.9689,-1.144,-0.0171],"neighbors":[268,267,273,272,274,271]},{"i":277,"id":46153,"text":" crimson","display":"\u00b7crimson","kind":"comparison","pos":-1,"proj3":[-0.9093,-1.095,0.4012],"neighbors":[270,269,279,265,271,268]},{"i":278,"id":23956,"text":" navy","display":"\u00b7navy","kind":"comparison","pos":-1,"proj3":[-1.0302,0.8034,-0.1205],"neighbors":[373,372,106,105,270,280]},{"i":279,"id":45725,"text":" violet","display":"\u00b7violet","kind":"comparison","pos":-1,"proj3":[-0.9403,-1.3197,0.4007],"neighbors":[270,277,271,266,268,269]},{"i":280,"id":29537,"text":" coral","display":"\u00b7coral","kind":"comparison","pos":-1,"proj3":[-1.0092,0.4691,0.1495],"neighbors":[59,372,57,56,60,382]},{"i":281,"id":32630,"text":" ivory","display":"\u00b7ivory","kind":"comparison","pos":-1,"proj3":[-1.2611,0.0004,0.2151],"neighbors":[69,133,137,122,138,132]},{"i":282,"id":530,"text":" one","display":"\u00b7one","kind":"comparison","pos":-1,"proj3":[1.5208,-0.25,0.1376],"neighbors":[17,4,283,11,29,284]},{"i":283,"id":734,"text":" two","display":"\u00b7two","kind":"comparison","pos":-1,"proj3":[1.4693,-0.4926,0.2386],"neighbors":[284,285,286,287,288,289]},{"i":284,"id":1115,"text":" three","display":"\u00b7three","kind":"comparison","pos":-1,"proj3":[1.314,-0.6015,0.2047],"neighbors":[285,283,286,287,288,290]},{"i":285,"id":1440,"text":" four","display":"\u00b7four","kind":"comparison","pos":-1,"proj3":[1.4846,-0.7047,0.1713],"neighbors":[284,286,287,289,288,283]},{"i":286,"id":1936,"text":" five","display":"\u00b7five","kind":"comparison","pos":-1,"proj3":[1.4327,-0.686,0.3746],"neighbors":[285,287,284,288,289,290]},{"i":287,"id":2237,"text":" six","display":"\u00b7six","kind":"comparison","pos":-1,"proj3":[1.2832,-0.79,0.3045],"neighbors":[286,288,285,289,290,284]},{"i":288,"id":3598,"text":" seven","display":"\u00b7seven","kind":"comparison","pos":-1,"proj3":[1.2935,-0.8156,0.1164],"neighbors":[287,289,286,290,285,284]},{"i":289,"id":3624,"text":" eight","display":"\u00b7eight","kind":"comparison","pos":-1,"proj3":[1.5052,-0.8694,0.3035],"neighbors":[288,290,287,285,286,284]},{"i":290,"id":5193,"text":" nine","display":"\u00b7nine","kind":"comparison","pos":-1,"proj3":[1.4478,-0.938,0.1275],"neighbors":[288,289,287,286,285,284]},{"i":291,"id":3478,"text":" ten","display":"\u00b7ten","kind":"comparison","pos":-1,"proj3":[1.3634,-0.8994,0.5029],"neighbors":[294,293,286,295,292,290]},{"i":292,"id":22216,"text":" eleven","display":"\u00b7eleven","kind":"comparison","pos":-1,"proj3":[1.23,-1.05,0.1963],"neighbors":[293,294,295,290,296,297]},{"i":293,"id":14104,"text":" twelve","display":"\u00b7twelve","kind":"comparison","pos":-1,"proj3":[1.3823,-1.0728,0.3194],"neighbors":[292,294,295,296,297,291]},{"i":294,"id":8208,"text":" twenty","display":"\u00b7twenty","kind":"comparison","pos":-1,"proj3":[1.3258,-1.1185,0.5127],"neighbors":[295,296,297,293,292,291]},{"i":295,"id":12277,"text":" thirty","display":"\u00b7thirty","kind":"comparison","pos":-1,"proj3":[1.1709,-1.0049,0.4075],"neighbors":[296,294,297,293,292,291]},{"i":296,"id":16571,"text":" forty","display":"\u00b7forty","kind":"comparison","pos":-1,"proj3":[1.1897,-1.2022,0.3792],"neighbors":[295,297,294,293,292,291]},{"i":297,"id":15334,"text":" fifty","display":"\u00b7fifty","kind":"comparison","pos":-1,"proj3":[1.1318,-1.1269,0.5539],"neighbors":[296,295,294,293,292,291]},{"i":298,"id":3470,"text":" hundred","display":"\u00b7hundred","kind":"comparison","pos":-1,"proj3":[1.0521,-0.9071,0.6609],"neighbors":[299,302,297,300,295,296]},{"i":299,"id":7319,"text":" thousand","display":"\u00b7thousand","kind":"comparison","pos":-1,"proj3":[0.9115,-0.9916,0.6699],"neighbors":[298,300,302,301,297,295]},{"i":300,"id":1510,"text":" million","display":"\u00b7million","kind":"comparison","pos":-1,"proj3":[0.9342,-0.9564,0.8571],"neighbors":[301,299,298,302,328,329]},{"i":301,"id":2997,"text":" billion","display":"\u00b7billion","kind":"comparison","pos":-1,"proj3":[0.785,-0.9836,0.8706],"neighbors":[300,299,298,329,328,302]},{"i":302,"id":8667,"text":" dozen","display":"\u00b7dozen","kind":"comparison","pos":-1,"proj3":[0.9276,-0.815,0.5609],"neighbors":[298,299,300,329,308,297]},{"i":303,"id":2063,"text":" half","display":"\u00b7half","kind":"comparison","pos":-1,"proj3":[1.2104,-0.4792,0.4709],"neighbors":[304,283,284,287,285,286]},{"i":304,"id":3860,"text":" quarter","display":"\u00b7quarter","kind":"comparison","pos":-1,"proj3":[1.1388,-0.4906,0.6127],"neighbors":[303,323,322,329,324,328]},{"i":305,"id":1336,"text":" full","display":"\u00b7full","kind":"comparison","pos":-1,"proj3":[1.2178,-0.276,0.3742],"neighbors":[303,314,317,11,4,17]},{"i":306,"id":6565,"text":" empty","display":"\u00b7empty","kind":"comparison","pos":-1,"proj3":[-0.5014,-0.6741,-0.3302],"neighbors":[399,488,141,269,126,231]},{"i":307,"id":867,"text":" many","display":"\u00b7many","kind":"comparison","pos":-1,"proj3":[1.2881,-0.4543,-0.1489],"neighbors":[309,316,319,308,313,314]},{"i":308,"id":1178,"text":" few","display":"\u00b7few","kind":"comparison","pos":-1,"proj3":[1.1946,-0.6333,-0.0973],"neighbors":[309,307,302,283,284,286]},{"i":309,"id":1811,"text":" several","display":"\u00b7several","kind":"comparison","pos":-1,"proj3":[1.3947,-0.5564,-0.0511],"neighbors":[307,313,284,283,316,285]},{"i":310,"id":2060,"text":" single","display":"\u00b7single","kind":"comparison","pos":-1,"proj3":[1.7642,-0.4366,0.1826],"neighbors":[311,282,312,327,313,308]},{"i":311,"id":4274,"text":" double","display":"\u00b7double","kind":"comparison","pos":-1,"proj3":[1.8722,-0.6004,0.2639],"neighbors":[312,310,303,283,284,285]},{"i":312,"id":15055,"text":" triple","display":"\u00b7triple","kind":"comparison","pos":-1,"proj3":[1.8637,-0.7,0.1716],"neighbors":[311,284,285,310,290,286]},{"i":313,"id":3294,"text":" multiple","display":"\u00b7multiple","kind":"comparison","pos":-1,"proj3":[1.5648,-0.5806,-0.0795],"neighbors":[309,307,283,284,285,286]},{"i":314,"id":477,"text":" all","display":"\u00b7all","kind":"comparison","pos":-1,"proj3":[1.2384,-0.1036,-0.1891],"neighbors":[29,4,17,540,11,316]},{"i":315,"id":4844,"text":" none","display":"\u00b7none","kind":"comparison","pos":-1,"proj3":[1.2998,-0.4034,-0.4542],"neighbors":[543,314,316,308,532,542]},{"i":316,"id":617,"text":" some","display":"\u00b7some","kind":"comparison","pos":-1,"proj3":[1.435,-0.2744,-0.1954],"neighbors":[4,17,29,309,11,307]},{"i":317,"id":517,"text":" more","display":"\u00b7more","kind":"comparison","pos":-1,"proj3":[1.1782,-0.2135,0.0904],"neighbors":[318,17,4,29,11,12]},{"i":318,"id":1342,"text":" less","display":"\u00b7less","kind":"comparison","pos":-1,"proj3":[1.0385,-0.2181,0.1326],"neighbors":[317,532,308,4,17,11]},{"i":319,"id":749,"text":" most","display":"\u00b7most","kind":"comparison","pos":-1,"proj3":[1.1382,-0.3486,-0.1485],"neighbors":[307,314,317,29,316,12]},{"i":320,"id":1110,"text":" day","display":"\u00b7day","kind":"comparison","pos":-1,"proj3":[1.0044,-0.4794,1.0993],"neighbors":[322,321,330,323,324,332]},{"i":321,"id":1755,"text":" night","display":"\u00b7night","kind":"comparison","pos":-1,"proj3":[1.0111,-0.5736,1.2833],"neighbors":[332,331,320,330,322,335]},{"i":322,"id":1285,"text":" week","display":"\u00b7week","kind":"comparison","pos":-1,"proj3":[1.0494,-0.3064,0.992],"neighbors":[323,324,320,340,343,321]},{"i":323,"id":1227,"text":" month","display":"\u00b7month","kind":"comparison","pos":-1,"proj3":[1.0176,-0.3443,0.8353],"neighbors":[322,324,329,320,360,348]},{"i":324,"id":614,"text":" year","display":"\u00b7year","kind":"comparison","pos":-1,"proj3":[0.862,-0.3996,0.9083],"neighbors":[323,322,329,360,320,328]},{"i":325,"id":1711,"text":" hour","display":"\u00b7hour","kind":"comparison","pos":-1,"proj3":[1.2516,-0.4714,1.0829],"neighbors":[326,322,332,331,320,323]},{"i":326,"id":5664,"text":" minute","display":"\u00b7minute","kind":"comparison","pos":-1,"proj3":[1.2652,-0.5254,0.932],"neighbors":[325,322,320,323,327,324]},{"i":327,"id":1218,"text":" second","display":"\u00b7second","kind":"comparison","pos":-1,"proj3":[1.5573,-0.4079,0.4074],"neighbors":[283,326,284,310,285,303]},{"i":328,"id":4289,"text":" century","display":"\u00b7century","kind":"comparison","pos":-1,"proj3":[0.7734,-0.662,0.8123],"neighbors":[329,324,298,299,323,301]},{"i":329,"id":5707,"text":" decade","display":"\u00b7decade","kind":"comparison","pos":-1,"proj3":[0.8686,-0.5528,0.7733],"neighbors":[328,324,323,322,302,301]},{"i":330,"id":3329,"text":" morning","display":"\u00b7morning","kind":"comparison","pos":-1,"proj3":[0.9896,-0.2987,1.2603],"neighbors":[331,332,321,320,322,336]},{"i":331,"id":6672,"text":" afternoon","display":"\u00b7afternoon","kind":"comparison","pos":-1,"proj3":[1.0948,-0.3856,1.3712],"neighbors":[332,330,321,336,320,360]},{"i":332,"id":6180,"text":" evening","display":"\u00b7evening","kind":"comparison","pos":-1,"proj3":[0.9251,-0.4357,1.3612],"neighbors":[331,330,321,320,336,335]},{"i":333,"id":17577,"text":" dawn","display":"\u00b7dawn","kind":"comparison","pos":-1,"proj3":[0.7554,-0.2492,1.679],"neighbors":[334,335,336,330,332,331]},{"i":334,"id":46166,"text":" dusk","display":"\u00b7dusk","kind":"comparison","pos":-1,"proj3":[0.7766,-0.3685,1.5712],"neighbors":[333,335,336,332,321,361]},{"i":335,"id":15896,"text":" midnight","display":"\u00b7midnight","kind":"comparison","pos":-1,"proj3":[0.961,-0.4005,1.6416],"neighbors":[336,334,332,333,321,330]},{"i":336,"id":19613,"text":" noon","display":"\u00b7noon","kind":"comparison","pos":-1,"proj3":[0.9867,-0.2671,1.5578],"neighbors":[335,331,334,332,330,333]},{"i":337,"id":1909,"text":" today","display":"\u00b7today","kind":"comparison","pos":-1,"proj3":[1.4913,0.2208,0.9862],"neighbors":[339,338,343,341,342,340]},{"i":338,"id":9439,"text":" tomorrow","display":"\u00b7tomorrow","kind":"comparison","pos":-1,"proj3":[1.3259,0.2937,0.9407],"neighbors":[339,337,341,340,342,343]},{"i":339,"id":7415,"text":" yesterday","display":"\u00b7yesterday","kind":"comparison","pos":-1,"proj3":[1.4009,0.2914,1.1172],"neighbors":[337,338,341,342,340,343]},{"i":340,"id":3321,"text":" Monday","display":"\u00b7Monday","kind":"comparison","pos":-1,"proj3":[1.3432,0.0763,1.2286],"neighbors":[341,343,342,344,346,345]},{"i":341,"id":3431,"text":" Tuesday","display":"\u00b7Tuesday","kind":"comparison","pos":-1,"proj3":[1.1799,0.1928,1.17],"neighbors":[342,340,343,344,345,346]},{"i":342,"id":3583,"text":" Wednesday","display":"\u00b7Wednesday","kind":"comparison","pos":-1,"proj3":[1.2253,0.0408,1.0496],"neighbors":[343,341,340,344,345,346]},{"i":343,"id":3635,"text":" Thursday","display":"\u00b7Thursday","kind":"comparison","pos":-1,"proj3":[1.119,-0.0054,1.2067],"neighbors":[342,344,341,340,345,346]},{"i":344,"id":3217,"text":" Friday","display":"\u00b7Friday","kind":"comparison","pos":-1,"proj3":[1.1826,0.1133,1.3606],"neighbors":[343,345,342,341,340,346]},{"i":345,"id":3909,"text":" Saturday","display":"\u00b7Saturday","kind":"comparison","pos":-1,"proj3":[1.2522,-0.0749,1.3571],"neighbors":[344,346,343,340,342,341]},{"i":346,"id":3502,"text":" Sunday","display":"\u00b7Sunday","kind":"comparison","pos":-1,"proj3":[1.3157,-0.1191,1.174],"neighbors":[345,340,344,343,341,342]},{"i":347,"id":3269,"text":" January","display":"\u00b7January","kind":"comparison","pos":-1,"proj3":[0.8746,0.1422,1.0206],"neighbors":[348,358,357,356,353,350]},{"i":348,"id":3945,"text":" February","display":"\u00b7February","kind":"comparison","pos":-1,"proj3":[0.7024,0.2786,1.001],"neighbors":[347,349,358,350,356,357]},{"i":349,"id":2805,"text":" March","display":"\u00b7March","kind":"comparison","pos":-1,"proj3":[0.8934,0.3749,1.0626],"neighbors":[348,350,353,347,352,358]},{"i":350,"id":3035,"text":" April","display":"\u00b7April","kind":"comparison","pos":-1,"proj3":[0.8011,0.254,1.1967],"neighbors":[352,349,348,353,356,354]},{"i":351,"id":1737,"text":" May","display":"\u00b7May","kind":"comparison","pos":-1,"proj3":[0.8875,0.4285,1.297],"neighbors":[352,350,349,353,354,348]},{"i":352,"id":2795,"text":" June","display":"\u00b7June","kind":"comparison","pos":-1,"proj3":[0.8724,0.2117,1.3802],"neighbors":[353,350,348,354,355,358]},{"i":353,"id":2901,"text":" July","display":"\u00b7July","kind":"comparison","pos":-1,"proj3":[0.6808,0.3195,1.3703],"neighbors":[352,354,350,356,347,355]},{"i":354,"id":2932,"text":" August","display":"\u00b7August","kind":"comparison","pos":-1,"proj3":[0.6638,0.4214,1.1746],"neighbors":[353,355,356,350,352,348]},{"i":355,"id":2693,"text":" September","display":"\u00b7September","kind":"comparison","pos":-1,"proj3":[0.5539,0.2347,1.1892],"neighbors":[356,354,357,358,352,353]},{"i":356,"id":3267,"text":" October","display":"\u00b7October","kind":"comparison","pos":-1,"proj3":[0.6605,0.1044,1.3179],"neighbors":[355,357,358,354,348,350]},{"i":357,"id":3389,"text":" November","display":"\u00b7November","kind":"comparison","pos":-1,"proj3":[0.8374,0.0442,1.2189],"neighbors":[358,356,347,355,348,353]},{"i":358,"id":3426,"text":" December","display":"\u00b7December","kind":"comparison","pos":-1,"proj3":[0.676,0.0863,1.0883],"neighbors":[357,347,348,356,355,352]},{"i":359,"id":6076,"text":" spring","display":"\u00b7spring","kind":"comparison","pos":-1,"proj3":[0.4994,-0.2356,1.084],"neighbors":[360,361,362,203,349,348]},{"i":360,"id":3931,"text":" summer","display":"\u00b7summer","kind":"comparison","pos":-1,"proj3":[0.7044,-0.2409,1.0955],"neighbors":[362,361,359,324,353,352]},{"i":361,"id":23608,"text":" autumn","display":"\u00b7autumn","kind":"comparison","pos":-1,"proj3":[0.5934,-0.166,1.2524],"neighbors":[360,362,359,356,354,355]},{"i":362,"id":7374,"text":" winter","display":"\u00b7winter","kind":"comparison","pos":-1,"proj3":[0.6387,-0.3546,1.1984],"neighbors":[360,361,359,324,358,332]},{"i":363,"id":1748,"text":" city","display":"\u00b7city","kind":"comparison","pos":-1,"proj3":[-0.3836,0.536,-0.4028],"neighbors":[364,103,365,387,366,386]},{"i":364,"id":3240,"text":" town","display":"\u00b7town","kind":"comparison","pos":-1,"proj3":[-0.5092,0.4685,-0.4819],"neighbors":[363,365,386,387,103,366]},{"i":365,"id":7404,"text":" village","display":"\u00b7village","kind":"comparison","pos":-1,"proj3":[-0.5763,0.3605,-0.5879],"neighbors":[364,363,387,89,379,91]},{"i":366,"id":1499,"text":" country","display":"\u00b7country","kind":"comparison","pos":-1,"proj3":[-0.2908,0.9046,-0.3977],"neighbors":[367,368,363,93,379,364]},{"i":367,"id":3277,"text":" nation","display":"\u00b7nation","kind":"comparison","pos":-1,"proj3":[-0.2196,0.9138,-0.5174],"neighbors":[366,368,93,363,420,97]},{"i":368,"id":15549,"text":" continent","display":"\u00b7continent","kind":"comparison","pos":-1,"proj3":[-0.4634,0.9736,-0.2583],"neighbors":[380,366,423,367,379,421]},{"i":369,"id":8598,"text":" mountain","display":"\u00b7mountain","kind":"comparison","pos":-1,"proj3":[-0.9473,0.2789,-0.2923],"neighbors":[378,370,371,374,377,389]},{"i":370,"id":7850,"text":" river","display":"\u00b7river","kind":"comparison","pos":-1,"proj3":[-0.7927,0.4054,-0.156],"neighbors":[371,372,369,377,373,378]},{"i":371,"id":13546,"text":" lake","display":"\u00b7lake","kind":"comparison","pos":-1,"proj3":[-0.6839,0.4556,-0.0679],"neighbors":[370,372,382,373,369,379]},{"i":372,"id":9151,"text":" ocean","display":"\u00b7ocean","kind":"comparison","pos":-1,"proj3":[-0.8981,0.5715,-0.0159],"neighbors":[373,370,382,371,280,58]},{"i":373,"id":5417,"text":" sea","display":"\u00b7sea","kind":"comparison","pos":-1,"proj3":[-0.9519,0.6104,-0.1515],"neighbors":[372,370,371,382,278,58]},{"i":374,"id":8222,"text":" forest","display":"\u00b7forest","kind":"comparison","pos":-1,"proj3":[-0.7171,0.188,0.0379],"neighbors":[115,369,370,371,365,372]},{"i":375,"id":10326,"text":" desert","display":"\u00b7desert","kind":"comparison","pos":-1,"proj3":[-0.9397,0.1989,-0.0712],"neighbors":[369,374,382,372,140,370]},{"i":376,"id":8631,"text":" plain","display":"\u00b7plain","kind":"comparison","pos":-1,"proj3":[-0.6776,-0.9448,-0.2318],"neighbors":[137,99,131,169,273,393]},{"i":377,"id":19272,"text":" valley","display":"\u00b7valley","kind":"comparison","pos":-1,"proj3":[-0.7374,0.353,-0.3591],"neighbors":[378,370,369,365,371,393]},{"i":378,"id":12788,"text":" hill","display":"\u00b7hill","kind":"comparison","pos":-1,"proj3":[-0.9303,0.3382,-0.4302],"neighbors":[369,377,370,389,382,365]},{"i":379,"id":7022,"text":" island","display":"\u00b7island","kind":"comparison","pos":-1,"proj3":[-0.6596,0.7238,-0.2216],"neighbors":[382,380,365,368,372,371]},{"i":380,"id":28080,"text":" peninsula","display":"\u00b7peninsula","kind":"comparison","pos":-1,"proj3":[-0.6305,0.9137,-0.2631],"neighbors":[368,379,382,381,377,393]},{"i":381,"id":7051,"text":" coast","display":"\u00b7coast","kind":"comparison","pos":-1,"proj3":[-0.7365,0.8562,-0.0184],"neighbors":[382,372,379,380,368,373]},{"i":382,"id":10481,"text":" beach","display":"\u00b7beach","kind":"comparison","pos":-1,"proj3":[-0.7266,0.6825,0.0082],"neighbors":[372,381,379,371,140,204]},{"i":383,"id":25451,"text":" harbor","display":"\u00b7harbor","kind":"comparison","pos":-1,"proj3":[-0.5365,0.567,0.0681],"neighbors":[371,382,372,387,373,384]},{"i":384,"id":2493,"text":" port","display":"\u00b7port","kind":"comparison","pos":-1,"proj3":[-0.4097,0.6173,-0.1342],"neighbors":[363,383,382,381,373,364]},{"i":385,"id":3139,"text":" capital","display":"\u00b7capital","kind":"comparison","pos":-1,"proj3":[-0.2071,0.61,-0.403],"neighbors":[363,92,367,91,365,87]},{"i":386,"id":23200,"text":" suburb","display":"\u00b7suburb","kind":"comparison","pos":-1,"proj3":[-0.4046,0.2693,-0.4312],"neighbors":[387,364,363,365,399,402]},{"i":387,"id":6232,"text":" neighborhood","display":"\u00b7neighborhood","kind":"comparison","pos":-1,"proj3":[-0.5015,0.1499,-0.5035],"neighbors":[386,365,363,388,399,364]},{"i":388,"id":4675,"text":" street","display":"\u00b7street","kind":"comparison","pos":-1,"proj3":[-0.7588,0.0541,-0.521],"neighbors":[389,391,387,363,393,390]},{"i":389,"id":2975,"text":" road","display":"\u00b7road","kind":"comparison","pos":-1,"proj3":[-0.9075,0.0582,-0.446],"neighbors":[388,369,370,378,206,225]},{"i":390,"id":36132,"text":" avenue","display":"\u00b7avenue","kind":"comparison","pos":-1,"proj3":[-0.8331,-0.2361,-0.5827],"neighbors":[474,391,388,393,389,380]},{"i":391,"id":23978,"text":" alley","display":"\u00b7alley","kind":"comparison","pos":-1,"proj3":[-0.6678,-0.0713,-0.6144],"neighbors":[388,393,399,390,378,387]},{"i":392,"id":6616,"text":" square","display":"\u00b7square","kind":"comparison","pos":-1,"proj3":[-0.6714,-0.3344,-0.3712],"neighbors":[393,390,138,304,388,129]},{"i":393,"id":42433,"text":" plaza","display":"\u00b7plaza","kind":"comparison","pos":-1,"proj3":[-0.6101,-0.1309,-0.4051],"neighbors":[92,391,402,197,394,377]},{"i":394,"id":3952,"text":" park","display":"\u00b7park","kind":"comparison","pos":-1,"proj3":[-0.4796,0.2411,-0.113],"neighbors":[374,395,404,393,371,363]},{"i":395,"id":11376,"text":" garden","display":"\u00b7garden","kind":"comparison","pos":-1,"proj3":[-0.5718,0.0779,-0.1952],"neighbors":[409,394,92,365,374,399]},{"i":396,"id":2615,"text":" building","display":"\u00b7building","kind":"comparison","pos":-1,"proj3":[-0.2595,-0.2309,-0.4357],"neighbors":[397,363,399,181,516,402]},{"i":397,"id":2156,"text":" house","display":"\u00b7house","kind":"comparison","pos":-1,"proj3":[-0.2966,-0.1747,-0.6262],"neighbors":[398,399,445,91,92,396]},{"i":398,"id":1363,"text":" home","display":"\u00b7home","kind":"comparison","pos":-1,"proj3":[-0.239,-0.2597,-0.7375],"neighbors":[397,445,399,387,432,433]},{"i":399,"id":7962,"text":" apartment","display":"\u00b7apartment","kind":"comparison","pos":-1,"proj3":[-0.3821,-0.0277,-0.5706],"neighbors":[397,387,386,92,391,402]},{"i":400,"id":4928,"text":" church","display":"\u00b7church","kind":"comparison","pos":-1,"proj3":[0.0208,0.113,-0.5156],"neighbors":[402,108,107,401,109,403]},{"i":401,"id":12505,"text":" temple","display":"\u00b7temple","kind":"comparison","pos":-1,"proj3":[-0.1593,0.1796,-0.6174],"neighbors":[402,400,92,107,404,91]},{"i":402,"id":18575,"text":" mosque","display":"\u00b7mosque","kind":"comparison","pos":-1,"proj3":[-0.1418,0.1032,-0.4402],"neighbors":[400,401,404,108,393,92]},{"i":403,"id":1524,"text":" school","display":"\u00b7school","kind":"comparison","pos":-1,"proj3":[0.1301,0.2606,-0.411],"neighbors":[400,405,447,364,363,365]},{"i":404,"id":13257,"text":" museum","display":"\u00b7museum","kind":"comparison","pos":-1,"proj3":[-0.2299,0.2556,-0.185],"neighbors":[197,165,92,402,401,394]},{"i":405,"id":4436,"text":" hospital","display":"\u00b7hospital","kind":"comparison","pos":-1,"proj3":[-0.0552,0.3129,-0.3713],"neighbors":[403,402,400,404,401,399]},{"i":406,"id":1910,"text":" market","display":"\u00b7market","kind":"comparison","pos":-1,"proj3":[-0.3462,-0.0547,0.1557],"neighbors":[388,516,407,389,409,367]},{"i":407,"id":3650,"text":" store","display":"\u00b7store","kind":"comparison","pos":-1,"proj3":[-0.1813,0.0329,-0.0349],"neighbors":[197,408,397,165,404,394]},{"i":408,"id":8860,"text":" factory","display":"\u00b7factory","kind":"comparison","pos":-1,"proj3":[-0.3118,-0.1263,-0.1386],"neighbors":[409,407,473,471,404,174]},{"i":409,"id":5318,"text":" farm","display":"\u00b7farm","kind":"comparison","pos":-1,"proj3":[-0.4702,-0.0605,-0.1489],"neighbors":[395,408,89,374,365,397]},{"i":410,"id":6342,"text":" Paris","display":"\u00b7Paris","kind":"comparison","pos":-1,"proj3":[0.1565,1.0351,0.1649],"neighbors":[426,411,413,417,416,412]},{"i":411,"id":3576,"text":" London","display":"\u00b7London","kind":"comparison","pos":-1,"proj3":[0.2309,1.155,0.3034],"neighbors":[410,413,416,414,417,415]},{"i":412,"id":10598,"text":" Rome","display":"\u00b7Rome","kind":"comparison","pos":-1,"proj3":[-0.1865,1.2063,0.395],"neighbors":[429,418,417,413,410,419]},{"i":413,"id":11307,"text":" Berlin","display":"\u00b7Berlin","kind":"comparison","pos":-1,"proj3":[0.0393,1.2295,0.2597],"neighbors":[427,416,411,410,415,417]},{"i":414,"id":11790,"text":" Tokyo","display":"\u00b7Tokyo","kind":"comparison","pos":-1,"proj3":[-0.1664,1.4665,0.2584],"neighbors":[430,415,411,416,410,424]},{"i":415,"id":11618,"text":" Beijing","display":"\u00b7Beijing","kind":"comparison","pos":-1,"proj3":[0.0156,1.4869,0.1485],"neighbors":[424,416,414,413,419,430]},{"i":416,"id":9070,"text":" Moscow","display":"\u00b7Moscow","kind":"comparison","pos":-1,"proj3":[0.1749,1.3358,0.1177],"neighbors":[431,415,413,411,414,410]},{"i":417,"id":14708,"text":" Madrid","display":"\u00b7Madrid","kind":"comparison","pos":-1,"proj3":[-0.0211,1.0055,0.3594],"neighbors":[428,410,411,413,412,416]},{"i":418,"id":21891,"text":" Athens","display":"\u00b7Athens","kind":"comparison","pos":-1,"proj3":[-0.0306,1.3031,0.4683],"neighbors":[412,413,419,417,414,415]},{"i":419,"id":23732,"text":" Cairo","display":"\u00b7Cairo","kind":"comparison","pos":-1,"proj3":[0.1391,1.4408,0.3638],"neighbors":[415,416,418,412,410,417]},{"i":420,"id":2253,"text":" America","display":"\u00b7America","kind":"comparison","pos":-1,"proj3":[-0.068,1.105,-0.2033],"neighbors":[421,425,424,426,430,431]},{"i":421,"id":2031,"text":" Europe","display":"\u00b7Europe","kind":"comparison","pos":-1,"proj3":[-0.2068,1.103,-0.0161],"neighbors":[427,426,429,428,423,422]},{"i":422,"id":7229,"text":" Asia","display":"\u00b7Asia","kind":"comparison","pos":-1,"proj3":[-0.2999,1.3823,-0.086],"neighbors":[424,423,430,421,425,415]},{"i":423,"id":5478,"text":" Africa","display":"\u00b7Africa","kind":"comparison","pos":-1,"proj3":[-0.3321,1.2037,-0.1534],"neighbors":[422,421,425,426,368,424]},{"i":424,"id":2807,"text":" China","display":"\u00b7China","kind":"comparison","pos":-1,"proj3":[-0.0827,1.4542,-0.0046],"neighbors":[415,430,425,422,431,427]},{"i":425,"id":3794,"text":" India","display":"\u00b7India","kind":"comparison","pos":-1,"proj3":[-0.1069,1.3314,-0.1607],"neighbors":[424,430,422,429,423,431]},{"i":426,"id":4881,"text":" France","display":"\u00b7France","kind":"comparison","pos":-1,"proj3":[-0.0225,1.0194,0.0557],"neighbors":[427,428,429,421,410,431]},{"i":427,"id":4486,"text":" Germany","display":"\u00b7Germany","kind":"comparison","pos":-1,"proj3":[-0.0825,1.1944,0.1076],"neighbors":[426,421,429,413,428,431]},{"i":428,"id":8602,"text":" Spain","display":"\u00b7Spain","kind":"comparison","pos":-1,"proj3":[-0.1392,0.9799,0.2221],"neighbors":[429,426,417,427,421,430]},{"i":429,"id":8031,"text":" Italy","display":"\u00b7Italy","kind":"comparison","pos":-1,"proj3":[-0.2527,1.1336,0.2014],"neighbors":[428,426,427,421,412,430]},{"i":430,"id":2869,"text":" Japan","display":"\u00b7Japan","kind":"comparison","pos":-1,"proj3":[-0.2407,1.381,0.1207],"neighbors":[414,424,425,422,429,427]},{"i":431,"id":3284,"text":" Russia","display":"\u00b7Russia","kind":"comparison","pos":-1,"proj3":[0.1051,1.2781,-0.0289],"neighbors":[416,424,427,426,421,429]},{"i":432,"id":2802,"text":" mother","display":"\u00b7mother","kind":"comparison","pos":-1,"proj3":[-0.16,-0.4605,-1.0946],"neighbors":[433,441,446,435,442,444]},{"i":433,"id":2988,"text":" father","display":"\u00b7father","kind":"comparison","pos":-1,"proj3":[-0.2691,-0.383,-1.1987],"neighbors":[432,442,441,436,434,443]},{"i":434,"id":3367,"text":" son","display":"\u00b7son","kind":"comparison","pos":-1,"proj3":[-0.5123,-0.3825,-1.1971],"neighbors":[435,433,453,436,443,452]},{"i":435,"id":4957,"text":" daughter","display":"\u00b7daughter","kind":"comparison","pos":-1,"proj3":[-0.449,-0.2168,-1.2288],"neighbors":[434,452,444,437,453,432]},{"i":436,"id":3956,"text":" brother","display":"\u00b7brother","kind":"comparison","pos":-1,"proj3":[-0.396,-0.4122,-1.3996],"neighbors":[437,450,440,433,434,453]},{"i":437,"id":6621,"text":" sister","display":"\u00b7sister","kind":"comparison","pos":-1,"proj3":[-0.4011,-0.3463,-1.5621],"neighbors":[436,450,435,440,452,439]},{"i":438,"id":7711,"text":" uncle","display":"\u00b7uncle","kind":"comparison","pos":-1,"proj3":[-0.0632,-0.1262,-1.4227],"neighbors":[439,453,442,452,440,441]},{"i":439,"id":25949,"text":" aunt","display":"\u00b7aunt","kind":"comparison","pos":-1,"proj3":[-0.2066,-0.0836,-1.3003],"neighbors":[441,452,438,440,453,442]},{"i":440,"id":16933,"text":" cousin","display":"\u00b7cousin","kind":"comparison","pos":-1,"proj3":[-0.2063,-0.2952,-1.4806],"neighbors":[453,439,436,452,437,450]},{"i":441,"id":18410,"text":" grandmother","display":"\u00b7grandmother","kind":"comparison","pos":-1,"proj3":[-0.1495,-0.1844,-1.1446],"neighbors":[442,439,432,433,452,438]},{"i":442,"id":17695,"text":" grandfather","display":"\u00b7grandfather","kind":"comparison","pos":-1,"proj3":[-0.0691,-0.2917,-1.2507],"neighbors":[441,433,438,439,432,453]},{"i":443,"id":5229,"text":" husband","display":"\u00b7husband","kind":"comparison","pos":-1,"proj3":[-0.6581,-0.3061,-1.3797],"neighbors":[444,451,433,436,434,435]},{"i":444,"id":3656,"text":" wife","display":"\u00b7wife","kind":"comparison","pos":-1,"proj3":[-0.614,-0.1288,-1.3046],"neighbors":[451,435,443,452,432,433]},{"i":445,"id":1641,"text":" family","display":"\u00b7family","kind":"comparison","pos":-1,"proj3":[-0.3337,-0.3645,-0.9762],"neighbors":[433,432,436,444,447,435]},{"i":446,"id":2560,"text":" parent","display":"\u00b7parent","kind":"comparison","pos":-1,"proj3":[-0.182,-0.5826,-1.2847],"neighbors":[432,433,450,447,451,437]},{"i":447,"id":1200,"text":" child","display":"\u00b7child","kind":"comparison","pos":-1,"proj3":[-0.4566,-0.6247,-1.1265],"neighbors":[448,449,434,435,433,446]},{"i":448,"id":5156,"text":" baby","display":"\u00b7baby","kind":"comparison","pos":-1,"proj3":[-0.4637,-0.6742,-0.9624],"neighbors":[449,447,432,434,435,515]},{"i":449,"id":11212,"text":" infant","display":"\u00b7infant","kind":"comparison","pos":-1,"proj3":[-0.3961,-0.7899,-1.0532],"neighbors":[448,447,515,432,69,435]},{"i":450,"id":33423,"text":" sibling","display":"\u00b7sibling","kind":"comparison","pos":-1,"proj3":[-0.2647,-0.5088,-1.5136],"neighbors":[437,436,440,446,453,451]},{"i":451,"id":16731,"text":" spouse","display":"\u00b7spouse","kind":"comparison","pos":-1,"proj3":[-0.6595,-0.1344,-1.474],"neighbors":[444,443,452,435,441,450]},{"i":452,"id":41803,"text":" niece","display":"\u00b7niece","kind":"comparison","pos":-1,"proj3":[-0.3665,-0.1287,-1.4033],"neighbors":[453,439,435,440,437,438]},{"i":453,"id":26301,"text":" nephew","display":"\u00b7nephew","kind":"comparison","pos":-1,"proj3":[-0.2601,-0.092,-1.5349],"neighbors":[452,438,440,439,434,436]},{"i":454,"id":15554,"text":" hammer","display":"\u00b7hammer","kind":"comparison","pos":-1,"proj3":[-1.0557,0.3747,1.0582],"neighbors":[460,457,455,117,456,478]},{"i":455,"id":17864,"text":" nail","display":"\u00b7nail","kind":"comparison","pos":-1,"proj3":[-1.0055,0.3058,1.212],"neighbors":[454,186,456,460,464,187]},{"i":456,"id":9580,"text":" screw","display":"\u00b7screw","kind":"comparison","pos":-1,"proj3":[-1.1377,0.5585,0.9474],"neighbors":[457,454,463,455,121,462]},{"i":457,"id":34561,"text":" wrench","display":"\u00b7wrench","kind":"comparison","pos":-1,"proj3":[-1.0214,0.4656,0.8877],"neighbors":[456,454,463,460,486,478]},{"i":458,"id":2497,"text":" saw","display":"\u00b7saw","kind":"comparison","pos":-1,"proj3":[0.4881,-1.4856,-0.0138],"neighbors":[241,519,520,245,253,244]},{"i":459,"id":16007,"text":" drill","display":"\u00b7drill","kind":"comparison","pos":-1,"proj3":[-0.8548,0.5953,1.1863],"neighbors":[478,234,454,259,455,221]},{"i":460,"id":9845,"text":" knife","display":"\u00b7knife","kind":"comparison","pos":-1,"proj3":[-1.1776,0.1744,1.0068],"neighbors":[463,462,464,454,461,455]},{"i":461,"id":15563,"text":" fork","display":"\u00b7fork","kind":"comparison","pos":-1,"proj3":[-1.3736,0.1679,0.8593],"neighbors":[462,460,469,63,154,468]},{"i":462,"id":24556,"text":" spoon","display":"\u00b7spoon","kind":"comparison","pos":-1,"proj3":[-1.3372,0.2568,1.0078],"neighbors":[460,461,464,454,61,463]},{"i":463,"id":41786,"text":" scissors","display":"\u00b7scissors","kind":"comparison","pos":-1,"proj3":[-1.0552,0.093,0.9412],"neighbors":[460,186,137,456,136,464]},{"i":464,"id":17598,"text":" needle","display":"\u00b7needle","kind":"comparison","pos":-1,"proj3":[-1.2171,0.0907,1.1622],"neighbors":[460,462,463,455,134,66]},{"i":465,"id":14093,"text":" brush","display":"\u00b7brush","kind":"comparison","pos":-1,"proj3":[-0.7495,0.1701,0.7907],"neighbors":[186,547,30,154,25,478]},{"i":466,"id":7733,"text":" gear","display":"\u00b7gear","kind":"comparison","pos":-1,"proj3":[-1.3944,-0.6673,-0.749],"neighbors":[477,476,132,478,469,6]},{"i":467,"id":17124,"text":" lever","display":"\u00b7lever","kind":"comparison","pos":-1,"proj3":[-0.9879,-0.3337,-0.8588],"neighbors":[474,478,476,456,469,464]},{"i":468,"id":7825,"text":" wheel","display":"\u00b7wheel","kind":"comparison","pos":-1,"proj3":[-1.2161,-0.0948,-0.3598],"neighbors":[469,471,472,389,206,478]},{"i":469,"id":41066,"text":" axle","display":"\u00b7axle","kind":"comparison","pos":-1,"proj3":[-1.3018,-0.12,-0.4805],"neighbors":[468,471,73,154,470,141]},{"i":470,"id":18619,"text":" shaft","display":"\u00b7shaft","kind":"comparison","pos":-1,"proj3":[-1.3736,-0.0589,-0.6307],"neighbors":[469,456,121,474,217,151]},{"i":471,"id":3113,"text":" engine","display":"\u00b7engine","kind":"comparison","pos":-1,"proj3":[-1.1891,-0.3064,-0.4218],"neighbors":[472,469,468,473,474,478]},{"i":472,"id":5584,"text":" motor","display":"\u00b7motor","kind":"comparison","pos":-1,"proj3":[-1.3367,-0.3244,-0.2983],"neighbors":[471,205,479,389,469,5]},{"i":473,"id":4572,"text":" machine","display":"\u00b7machine","kind":"comparison","pos":-1,"proj3":[-1.1043,-0.5516,-0.4484],"neighbors":[6,476,471,5,408,174]},{"i":474,"id":9030,"text":" mechanism","display":"\u00b7mechanism","kind":"comparison","pos":-1,"proj3":[-0.9848,-0.3841,-0.6777],"neighbors":[476,478,390,6,467,507]},{"i":475,"id":8875,"text":" instrument","display":"\u00b7instrument","kind":"comparison","pos":-1,"proj3":[-0.963,-0.6873,-0.7683],"neighbors":[478,6,476,477,474,471]},{"i":476,"id":21152,"text":" apparatus","display":"\u00b7apparatus","kind":"comparison","pos":-1,"proj3":[-1.1615,-0.4678,-0.6814],"neighbors":[477,474,473,6,475,466]},{"i":477,"id":5112,"text":" equipment","display":"\u00b7equipment","kind":"comparison","pos":-1,"proj3":[-1.2722,-0.6218,-0.6973],"neighbors":[466,476,6,475,473,478]},{"i":478,"id":2891,"text":" tool","display":"\u00b7tool","kind":"comparison","pos":-1,"proj3":[-0.9001,-0.5516,-0.7026],"neighbors":[475,474,6,471,454,473]},{"i":479,"id":12278,"text":" electrical","display":"\u00b7electrical","kind":"comparison","pos":-1,"proj3":[-1.3838,-0.5606,-0.1528],"neighbors":[5,116,121,127,472,118]},{"i":480,"id":4875,"text":" digital","display":"\u00b7digital","kind":"comparison","pos":-1,"proj3":[-1.3211,-0.8804,-0.3115],"neighbors":[481,18,143,5,479,127]},{"i":481,"id":15075,"text":" analog","display":"\u00b7analog","kind":"comparison","pos":-1,"proj3":[-1.4613,-0.9109,-0.3181],"neighbors":[480,479,5,507,476,475]},{"i":482,"id":1842,"text":" love","display":"\u00b7love","kind":"comparison","pos":-1,"proj3":[0.4426,-0.4939,-1.138],"neighbors":[483,485,484,487,486,489]},{"i":483,"id":5465,"text":" hate","display":"\u00b7hate","kind":"comparison","pos":-1,"proj3":[0.5857,-0.4889,-1.1203],"neighbors":[482,484,488,486,256,499]},{"i":484,"id":3252,"text":" fear","display":"\u00b7fear","kind":"comparison","pos":-1,"proj3":[0.4916,-0.4178,-0.8577],"neighbors":[488,487,483,490,499,486]},{"i":485,"id":8716,"text":" joy","display":"\u00b7joy","kind":"comparison","pos":-1,"proj3":[0.3642,-0.266,-1.1468],"neighbors":[486,482,488,509,510,95]},{"i":486,"id":24140,"text":" sorrow","display":"\u00b7sorrow","kind":"comparison","pos":-1,"proj3":[0.4004,-0.1922,-1.0036],"neighbors":[488,485,509,277,499,484]},{"i":487,"id":2911,"text":" hope","display":"\u00b7hope","kind":"comparison","pos":-1,"proj3":[0.3269,-0.5185,-0.8371],"neighbors":[484,488,489,490,482,505]},{"i":488,"id":20234,"text":" despair","display":"\u00b7despair","kind":"comparison","pos":-1,"proj3":[0.3522,-0.2729,-0.8811],"neighbors":[486,484,499,490,509,485]},{"i":489,"id":4562,"text":" faith","display":"\u00b7faith","kind":"comparison","pos":-1,"proj3":[0.1354,-0.0112,-0.6438],"neighbors":[400,111,487,402,110,482]},{"i":490,"id":4719,"text":" doubt","display":"\u00b7doubt","kind":"comparison","pos":-1,"proj3":[0.3944,-0.3391,-0.6786],"neighbors":[488,484,499,487,489,486]},{"i":491,"id":3872,"text":" truth","display":"\u00b7truth","kind":"comparison","pos":-1,"proj3":[0.6803,-0.154,-0.6214],"neighbors":[497,498,499,492,168,508]},{"i":492,"id":6486,"text":" lie","display":"\u00b7lie","kind":"comparison","pos":-1,"proj3":[0.6898,-0.3044,-0.4859],"neighbors":[491,256,168,203,240,490]},{"i":493,"id":5316,"text":" justice","display":"\u00b7justice","kind":"comparison","pos":-1,"proj3":[0.3434,0.177,-1.2375],"neighbors":[112,494,90,511,491,495]},{"i":494,"id":17703,"text":" mercy","display":"\u00b7mercy","kind":"comparison","pos":-1,"proj3":[0.3398,0.0285,-1.0689],"neighbors":[486,488,493,95,511,485]},{"i":495,"id":4925,"text":" freedom","display":"\u00b7freedom","kind":"comparison","pos":-1,"proj3":[0.6589,0.0749,-1.2006],"neighbors":[511,499,485,493,491,496]},{"i":496,"id":1176,"text":" power","display":"\u00b7power","kind":"comparison","pos":-1,"proj3":[0.5546,0.565,-0.1886],"neighbors":[549,479,548,495,478,513]},{"i":497,"id":11501,"text":" wisdom","display":"\u00b7wisdom","kind":"comparison","pos":-1,"proj3":[0.5947,0.0768,-0.7841],"neighbors":[498,507,499,95,491,486]},{"i":498,"id":3725,"text":" knowledge","display":"\u00b7knowledge","kind":"comparison","pos":-1,"proj3":[0.5034,0.035,-0.6563],"neighbors":[499,497,506,491,251,504]},{"i":499,"id":17010,"text":" ignorance","display":"\u00b7ignorance","kind":"comparison","pos":-1,"proj3":[0.4357,-0.0986,-0.6976],"neighbors":[498,488,486,484,490,497]},{"i":500,"id":2000,"text":" mind","display":"\u00b7mind","kind":"comparison","pos":-1,"proj3":[0.6004,0.469,-0.6313],"neighbors":[501,504,502,484,499,498]},{"i":501,"id":5848,"text":" soul","display":"\u00b7soul","kind":"comparison","pos":-1,"proj3":[0.5218,0.4807,-0.7709],"neighbors":[502,500,486,110,509,107]},{"i":502,"id":4437,"text":" spirit","display":"\u00b7spirit","kind":"comparison","pos":-1,"proj3":[0.5333,0.4156,-0.9041],"neighbors":[501,251,489,497,500,486]},{"i":503,"id":2126,"text":" idea","display":"\u00b7idea","kind":"comparison","pos":-1,"proj3":[0.654,-0.7177,-0.7842],"neighbors":[504,510,168,552,251,498]},{"i":504,"id":1807,"text":" thought","display":"\u00b7thought","kind":"comparison","pos":-1,"proj3":[0.7464,-0.5958,-0.7299],"neighbors":[503,510,458,500,498,509]},{"i":505,"id":4320,"text":" dream","display":"\u00b7dream","kind":"comparison","pos":-1,"proj3":[0.4034,-0.718,-0.9364],"neighbors":[487,503,225,488,482,484]},{"i":506,"id":4088,"text":" memory","display":"\u00b7memory","kind":"comparison","pos":-1,"proj3":[0.4936,0.1506,-0.5072],"neighbors":[498,510,509,486,432,500]},{"i":507,"id":9156,"text":" logic","display":"\u00b7logic","kind":"comparison","pos":-1,"proj3":[0.8059,0.0529,-0.7975],"neighbors":[474,497,508,499,251,491]},{"i":508,"id":1738,"text":" reason","display":"\u00b7reason","kind":"comparison","pos":-1,"proj3":[0.8961,0.0561,-0.5762],"neighbors":[536,507,474,491,484,168]},{"i":509,"id":9942,"text":" emotion","display":"\u00b7emotion","kind":"comparison","pos":-1,"proj3":[0.5855,-0.2127,-0.9906],"neighbors":[486,510,488,485,484,253]},{"i":510,"id":4203,"text":" feeling","display":"\u00b7feeling","kind":"comparison","pos":-1,"proj3":[0.6424,-0.8076,-0.5558],"neighbors":[250,509,251,552,247,484]},{"i":511,"id":4167,"text":" peace","display":"\u00b7peace","kind":"comparison","pos":-1,"proj3":[0.5773,0.0008,-1.3136],"neighbors":[512,495,493,494,485,489]},{"i":512,"id":1175,"text":" war","display":"\u00b7war","kind":"comparison","pos":-1,"proj3":[0.5678,-0.0852,-1.4553],"neighbors":[511,106,514,483,367,373]},{"i":513,"id":1204,"text":" life","display":"\u00b7life","kind":"comparison","pos":-1,"proj3":[-0.0492,-0.598,-0.6779],"neighbors":[514,445,516,432,501,482]},{"i":514,"id":1918,"text":" death","display":"\u00b7death","kind":"comparison","pos":-1,"proj3":[-0.0605,-0.6765,-0.8109],"neighbors":[513,515,512,486,483,405]},{"i":515,"id":4082,"text":" birth","display":"\u00b7birth","kind":"comparison","pos":-1,"proj3":[-0.2333,-0.7403,-0.9173],"neighbors":[449,448,514,433,432,447]},{"i":516,"id":3349,"text":" growth","display":"\u00b7growth","kind":"comparison","pos":-1,"proj3":[-0.2361,-0.2504,0.2851],"neighbors":[240,515,513,517,396,406]},{"i":517,"id":1487,"text":" change","display":"\u00b7change","kind":"comparison","pos":-1,"proj3":[0.6867,0.0587,0.0217],"neighbors":[226,210,227,208,516,521]},{"i":518,"id":389,"text":" are","display":"\u00b7are","kind":"comparison","pos":-1,"proj3":[1.1988,0.6079,0.122],"neighbors":[520,3,12,531,524,519]},{"i":519,"id":373,"text":" was","display":"\u00b7was","kind":"comparison","pos":-1,"proj3":[1.2159,0.3649,0.1627],"neighbors":[3,520,531,12,524,518]},{"i":520,"id":547,"text":" were","display":"\u00b7were","kind":"comparison","pos":-1,"proj3":[1.1241,0.51,0.0266],"neighbors":[518,519,3,522,524,458]},{"i":521,"id":307,"text":" be","display":"\u00b7be","kind":"comparison","pos":-1,"proj3":[1.0083,0.2116,0.2223],"neighbors":[522,532,3,518,29,241]},{"i":522,"id":587,"text":" been","display":"\u00b7been","kind":"comparison","pos":-1,"proj3":[0.9864,0.2731,0.0768],"neighbors":[521,519,520,532,11,518]},{"i":523,"id":716,"text":" am","display":"\u00b7am","kind":"comparison","pos":-1,"proj3":[1.1689,0.6393,0.3416],"neighbors":[518,3,519,521,11,250]},{"i":524,"id":286,"text":" of","display":"\u00b7of","kind":"comparison","pos":-1,"proj3":[1.6232,0.112,0.1628],"neighbors":[12,531,10,7,525,529]},{"i":525,"id":319,"text":" on","display":"\u00b7on","kind":"comparison","pos":-1,"proj3":[1.8349,0.2197,-0.1233],"neighbors":[12,526,7,527,10,529]},{"i":526,"id":379,"text":" at","display":"\u00b7at","kind":"comparison","pos":-1,"proj3":[1.6724,0.2525,-0.2404],"neighbors":[12,525,527,22,7,10]},{"i":527,"id":351,"text":" with","display":"\u00b7with","kind":"comparison","pos":-1,"proj3":[1.7304,0.4302,-0.0918],"neighbors":[12,7,525,10,22,531]},{"i":528,"id":416,"text":" by","display":"\u00b7by","kind":"comparison","pos":-1,"proj3":[1.8918,0.3746,0.0724],"neighbors":[12,527,529,7,10,525]},{"i":529,"id":422,"text":" from","display":"\u00b7from","kind":"comparison","pos":-1,"proj3":[1.8357,0.1271,0.0768],"neighbors":[12,527,525,7,10,524]},{"i":530,"id":475,"text":" but","display":"\u00b7but","kind":"comparison","pos":-1,"proj3":[1.5536,0.6179,0.021],"neighbors":[531,22,24,527,10,12]},{"i":531,"id":290,"text":" and","display":"\u00b7and","kind":"comparison","pos":-1,"proj3":[1.5267,0.4351,0.1282],"neighbors":[12,24,10,20,527,524]},{"i":532,"id":407,"text":" not","display":"\u00b7not","kind":"comparison","pos":-1,"proj3":[1.1942,0.1137,-0.0037],"neighbors":[17,4,29,521,12,10]},{"i":533,"id":611,"text":" if","display":"\u00b7if","kind":"comparison","pos":-1,"proj3":[1.5484,0.6072,-0.2815],"neighbors":[534,7,22,527,10,538]},{"i":534,"id":618,"text":" when","display":"\u00b7when","kind":"comparison","pos":-1,"proj3":[1.5683,0.4591,-0.3582],"neighbors":[533,22,12,527,7,535]},{"i":535,"id":810,"text":" where","display":"\u00b7where","kind":"comparison","pos":-1,"proj3":[1.3782,0.3845,-0.4586],"neighbors":[534,537,538,539,541,527]},{"i":536,"id":1521,"text":" why","display":"\u00b7why","kind":"comparison","pos":-1,"proj3":[1.0398,0.17,-0.491],"neighbors":[537,538,535,508,539,534]},{"i":537,"id":703,"text":" how","display":"\u00b7how","kind":"comparison","pos":-1,"proj3":[1.1556,0.278,-0.4349],"neighbors":[538,536,535,534,29,539]},{"i":538,"id":644,"text":" what","display":"\u00b7what","kind":"comparison","pos":-1,"proj3":[1.2169,0.1324,-0.3827],"neighbors":[537,536,29,17,4,11]},{"i":539,"id":508,"text":" who","display":"\u00b7who","kind":"comparison","pos":-1,"proj3":[1.2676,0.4144,-0.2343],"neighbors":[541,527,535,538,524,537]},{"i":540,"id":428,"text":" this","display":"\u00b7this","kind":"comparison","pos":-1,"proj3":[1.5026,0.0335,-0.3702],"neighbors":[542,29,541,17,4,11]},{"i":541,"id":326,"text":" that","display":"\u00b7that","kind":"comparison","pos":-1,"proj3":[1.4101,0.1935,-0.2055],"neighbors":[29,540,12,4,17,524]},{"i":542,"id":777,"text":" these","display":"\u00b7these","kind":"comparison","pos":-1,"proj3":[1.4709,-0.107,-0.466],"neighbors":[540,543,29,546,316,541]},{"i":543,"id":883,"text":" those","display":"\u00b7those","kind":"comparison","pos":-1,"proj3":[1.322,-0.185,-0.432],"neighbors":[542,29,316,541,538,540]},{"i":544,"id":994,"text":" here","display":"\u00b7here","kind":"comparison","pos":-1,"proj3":[1.7718,0.0423,-0.4342],"neighbors":[545,540,12,525,542,337]},{"i":545,"id":612,"text":" there","display":"\u00b7there","kind":"comparison","pos":-1,"proj3":[1.7159,-0.0475,-0.2753],"neighbors":[29,544,540,12,541,526]},{"i":546,"id":884,"text":" such","display":"\u00b7such","kind":"comparison","pos":-1,"proj3":[1.4237,-0.0414,-0.7215],"neighbors":[21,542,540,541,11,543]},{"i":547,"id":11743,"text":" texture","display":"\u00b7texture","kind":"comparison","pos":-1,"proj3":[-0.4958,0.2714,0.6657],"neighbors":[161,14,114,250,247,248]},{"i":548,"id":3463,"text":" weight","display":"\u00b7weight","kind":"comparison","pos":-1,"proj3":[0.3592,0.6294,-0.0736],"neighbors":[173,496,9,469,209,547]},{"i":549,"id":2700,"text":" force","display":"\u00b7force","kind":"comparison","pos":-1,"proj3":[0.5527,0.4175,-0.0844],"neighbors":[9,496,207,474,215,208]},{"i":550,"id":2800,"text":" contact","display":"\u00b7contact","kind":"comparison","pos":-1,"proj3":[0.5982,0.7619,0.328],"neighbors":[249,224,9,230,250,498]},{"i":551,"id":29122,"text":" imprint","display":"\u00b7imprint","kind":"comparison","pos":-1,"proj3":[-0.5871,0.0978,1.5163],"neighbors":[187,556,552,76,197,175]},{"i":552,"id":10647,"text":" impression","display":"\u00b7impression","kind":"comparison","pos":-1,"proj3":[0.7409,-0.9403,-0.6655],"neighbors":[510,551,253,503,251,250]},{"i":553,"id":11055,"text":" template","display":"\u00b7template","kind":"comparison","pos":-1,"proj3":[-0.3679,0.054,0.5573],"neighbors":[558,161,478,188,547,474]},{"i":554,"id":15936,"text":" mold","display":"\u00b7mold","kind":"comparison","pos":-1,"proj3":[-0.5971,-0.1297,0.4535],"neighbors":[151,139,553,187,152,138]},{"i":555,"id":3350,"text":" cast","display":"\u00b7cast","kind":"comparison","pos":-1,"proj3":[0.3728,0.385,0.6494],"neighbors":[211,188,113,107,214,196]},{"i":556,"id":1317,"text":" mark","display":"\u00b7mark","kind":"comparison","pos":-1,"proj3":[-0.689,0.0653,1.6768],"neighbors":[551,187,76,557,256,86]},{"i":557,"id":12854,"text":" trace","display":"\u00b7trace","kind":"comparison","pos":-1,"proj3":[0.0439,-1.0645,-0.1225],"neighbors":[262,259,244,556,233,490]},{"i":558,"id":3912,"text":" pattern","display":"\u00b7pattern","kind":"comparison","pos":-1,"proj3":[-0.2689,0.192,0.4727],"neighbors":[553,474,114,547,162,150]}],"extent":{"x":[-2.0,2.0],"y":[-1.486885666847229,1.486885666847229],"z":[-1.6790186166763306,1.6790186166763306]}};
+
+      // ---------------------------------------------------------------
+      // Theme
+      // ---------------------------------------------------------------
+      const html = document.documentElement;
+      function applyTheme(t) {
+        html.setAttribute('data-theme', t);
+        localStorage.setItem('theme', t);
+        updateMaterialColors();
+      }
+      document.getElementById('theme-toggle').addEventListener('click', () => {
+        const cur = html.getAttribute('data-theme');
+        applyTheme(cur === 'light' ? 'dark' : 'light');
+      });
+
+      // ---------------------------------------------------------------
+      // Scene setup
+      // ---------------------------------------------------------------
+      const canvas = document.getElementById('scene');
+      const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+      const scene = new THREE.Scene();
+
+      const camera = new THREE.PerspectiveCamera(
+        45,
+        canvas.clientWidth / canvas.clientHeight,
+        0.01,
+        100,
+      );
+      camera.position.set(4.2, 2.4, 4.6);
+
+      const renderer = new THREE.WebGLRenderer({
+        canvas,
+        antialias: true,
+        alpha: true,
+      });
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      renderer.setClearColor(0x000000, 0);
+
+      // Container that hosts the manually-projected label DOM elements.
+      const labelsRoot = document.getElementById('labels');
+      const stageEl = document.querySelector('.stage');
+
+      // viewW/viewH come from the .labels container's rect, NOT from the
+      // canvas. The canvas has an intrinsic size set by Three.setSize that
+      // can fight with its CSS sizing on hi-DPI displays; the labels div
+      // doesn't, so its rect is the reliable source of truth.
+      let viewW = 0;
+      let viewH = 0;
+      function resize() {
+        const rect = labelsRoot.getBoundingClientRect();
+        const w = Math.round(rect.width);
+        const h = Math.round(rect.height);
+        if (w === 0 || h === 0) return;
+        viewW = w;
+        viewH = h;
+        camera.aspect = w / h;
+        camera.updateProjectionMatrix();
+        renderer.setSize(w, h, false);
+      }
+      resize();
+      window.addEventListener('resize', resize);
+      // Re-resize whenever the stage actually changes size (catches the
+      // post-initial-layout reflow that fooled the old script-load read).
+      if (typeof ResizeObserver !== 'undefined') {
+        new ResizeObserver(resize).observe(stageEl);
+      }
+
+      // Attach OrbitControls to the .stage element (the common ancestor of
+       // the canvas AND the labels container). Labels carry pointer-events
+       // auto so they can be clicked, which means wheel events over a label
+       // fire on the label, not the canvas. Binding controls to .stage lets
+       // those wheel events bubble up and reach OrbitControls. Without this,
+       // scroll-to-zoom dies whenever the cursor is over a label.
+      const controls = new OrbitControls(camera, stageEl);
+      controls.enableDamping = !reducedMotion;
+      controls.dampingFactor = 0.08;
+      controls.rotateSpeed = 0.8;
+      controls.zoomSpeed = 0.7;
+      controls.panSpeed = 0.6;
+      controls.minDistance = 1.5;
+      controls.maxDistance = 18;
+      controls.target.set(0, 0, 0);
+
+      // ---------------------------------------------------------------
+      // Points
+      // ---------------------------------------------------------------
+      const N = DATA.tokens.length;
+      const positions = new Float32Array(N * 3);
+      const colors = new Float32Array(N * 3);
+      const sizes = new Float32Array(N);
+      const opacities = new Float32Array(N);
+
+      // PCA extent → scale into a viewing cube ~ [-2, 2] on each axis
+      const ext = DATA.extent;
+      const range = Math.max(
+        ext.x[1] - ext.x[0],
+        ext.y[1] - ext.y[0],
+        ext.z[1] - ext.z[0],
+      );
+      const cx = (ext.x[0] + ext.x[1]) / 2;
+      const cy = (ext.y[0] + ext.y[1]) / 2;
+      const cz = (ext.z[0] + ext.z[1]) / 2;
+      const scale = 4 / range;
+
+      for (let i = 0; i < N; i++) {
+        const t = DATA.tokens[i];
+        const p = t.proj3;
+        positions[i * 3 + 0] = (p[0] - cx) * scale;
+        positions[i * 3 + 1] = (p[1] - cy) * scale;
+        positions[i * 3 + 2] = (p[2] - cz) * scale;
+        // Sentence tokens get a slightly bigger dot so they read through
+        // the comparison cloud.
+        sizes[i] = t.kind === 'sentence' ? 9 : 6;
+        opacities[i] = 1;
+      }
+
+      const accentColor = new THREE.Color();
+      const compColor = new THREE.Color();
+      function updateMaterialColors() {
+        const cs = getComputedStyle(html);
+        accentColor.set(cs.getPropertyValue('--accent').trim() || '#e53e33');
+        // Comparison dots: use the secondary text color from CSS for a
+        // theme-aware neutral that reads on both light and dark grounds.
+        compColor.set(cs.getPropertyValue('--text-secondary').trim() || '#888888');
+        for (let i = 0; i < N; i++) {
+          const isSentence = DATA.tokens[i].kind === 'sentence';
+          const c = isSentence ? accentColor : compColor;
+          colors[i * 3 + 0] = c.r;
+          colors[i * 3 + 1] = c.g;
+          colors[i * 3 + 2] = c.b;
+        }
+        if (geometry) geometry.attributes.color.needsUpdate = true;
+      }
+
+      const geometry = new THREE.BufferGeometry();
+      geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+      geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+      geometry.setAttribute('size', new THREE.BufferAttribute(sizes, 1));
+      geometry.setAttribute(
+        'aOpacity',
+        new THREE.BufferAttribute(opacities, 1),
+      );
+
+      updateMaterialColors();
+
+      const pointsMaterial = new THREE.ShaderMaterial({
+        transparent: true,
+        depthWrite: false,
+        vertexColors: true,
+        uniforms: {
+          uPixelRatio: { value: renderer.getPixelRatio() },
+        },
+        vertexShader: /* glsl */ `
+          attribute float size;
+          attribute float aOpacity;
+          varying vec3 vColor;
+          varying float vOpacity;
+          uniform float uPixelRatio;
+          void main() {
+            vColor = color;
+            vOpacity = aOpacity;
+            vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+            gl_PointSize = size * uPixelRatio * (12.0 / -mvPosition.z);
+            gl_Position = projectionMatrix * mvPosition;
+          }
+        `,
+        fragmentShader: /* glsl */ `
+          varying vec3 vColor;
+          varying float vOpacity;
+          void main() {
+            vec2 c = gl_PointCoord - vec2(0.5);
+            float d = length(c);
+            // soft disc with a tiny rim
+            float core = smoothstep(0.50, 0.40, d);
+            float rim  = smoothstep(0.50, 0.46, d) - smoothstep(0.46, 0.40, d);
+            float a = (core * 0.85 + rim * 0.6) * vOpacity;
+            if (a < 0.01) discard;
+            gl_FragColor = vec4(vColor, a);
+          }
+        `,
+      });
+
+      const points = new THREE.Points(geometry, pointsMaterial);
+      scene.add(points);
+
+      // One DOM label per token, projected manually each frame.
+      const tokenLabels = [];
+      const tokenWorldVecs = [];
+      for (let i = 0; i < N; i++) {
+        const t = DATA.tokens[i];
+        const el = document.createElement('div');
+        el.className = 'token-label ' + t.kind; // 'sentence' or 'comparison'
+        el.textContent = t.display;
+        el.dataset.idx = String(i);
+        labelsRoot.appendChild(el);
+        tokenLabels.push(el);
+        tokenWorldVecs.push(
+          new THREE.Vector3(
+            positions[i * 3 + 0],
+            positions[i * 3 + 1],
+            positions[i * 3 + 2],
+          ),
+        );
+
+        // Sentence labels are always visible & clickable. Comparison labels
+        // get pointer-events managed in updateLabels() based on opacity so
+        // invisible labels don't intercept clicks or drags.
+        if (t.kind === 'sentence') {
+          el.style.pointerEvents = 'auto';
+        }
+        el.style.cursor = 'pointer';
+
+        // Click selects this token. Stop the pointerdown bubble so it
+        // doesn't initiate an OrbitControls orbit-drag on the parent.
+        el.addEventListener('pointerdown', (e) => e.stopPropagation());
+        el.addEventListener('click', (e) => {
+          e.stopPropagation();
+          selectedIdx = i;
+          showNeighbors(selectedIdx);
+        });
+      }
+
+      // axes — light guidelines so depth reads
+      const axesGroup = new THREE.Group();
+      const axLen = 2.4;
+      const axDirs = [
+        new THREE.Vector3(1, 0, 0),
+        new THREE.Vector3(0, 1, 0),
+        new THREE.Vector3(0, 0, 1),
+      ];
+      const axNames = ['PC1', 'PC2', 'PC3'];
+      const axisMaterials = [];
+      axDirs.forEach((d, i) => {
+        const g = new THREE.BufferGeometry().setFromPoints([
+          d.clone().multiplyScalar(-axLen),
+          d.clone().multiplyScalar(axLen),
+        ]);
+        const m = new THREE.LineBasicMaterial({
+          color: 0x888888,
+          transparent: true,
+          opacity: 0.4,
+        });
+        axisMaterials.push(m);
+        axesGroup.add(new THREE.Line(g, m));
+      });
+      scene.add(axesGroup);
+
+      // No axis text labels — t-SNE axes carry no semantic meaning
+      // (unlike PCA's principal components), so labeling them would
+      // mislead. The faint axis lines are kept purely for depth cue.
+      const axisLabels = [];
+      const axisWorldVecs = [];
+
+      // ---------------------------------------------------------------
+      // Raycaster for hover + click
+      // ---------------------------------------------------------------
+      const raycaster = new THREE.Raycaster();
+      raycaster.params.Points.threshold = 0.12;
+      const ndc = new THREE.Vector2(-2, -2); // off-screen
+      let hoverIdx = -1;
+      let selectedIdx = -1;
+
+      let cursorX = 0;
+      let cursorY = 0;
+      let cursorActive = false;
+      // Listen on the stage (common ancestor of canvas + labels) so that
+      // labels with pointer-events:auto don't block cursor tracking. Same
+      // reason OrbitControls is on the stage.
+      stageEl.addEventListener('pointermove', (e) => {
+        const rect = stageEl.getBoundingClientRect();
+        ndc.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+        ndc.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+        cursorX = e.clientX;
+        cursorY = e.clientY;
+        cursorActive = true;
+      });
+      stageEl.addEventListener('pointerleave', () => {
+        ndc.set(-2, -2);
+        cursorActive = false;
+      });
+
+      const tooltip = document.getElementById('tooltip');
+
+      stageEl.addEventListener('click', () => {
+        if (hoverIdx >= 0) {
+          selectedIdx = hoverIdx;
+          showNeighbors(selectedIdx);
+        }
+      });
+
+      const neighborPanel = document.getElementById('neighbor-panel');
+      const npSelected = document.getElementById('np-selected');
+      const npList = document.getElementById('np-list');
+      function clearSelection() {
+        selectedIdx = -1;
+        neighborPanel.hidden = true;
+        for (let i = 0; i < N; i++) opacities[i] = 1;
+        geometry.attributes.aOpacity.needsUpdate = true;
+        for (let i = 0; i < N; i++) {
+          tokenLabels[i].dataset.selected = '0';
+        }
+      }
+
+      document.getElementById('reset-btn').addEventListener('click', clearSelection);
+
+      // Clicking the empty stage (not on a label) also clears the selection
+      stageEl.addEventListener('click', (e) => {
+        if (hoverIdx < 0) clearSelection();
+      });
+
+      function showNeighbors(idx) {
+        const t = DATA.tokens[idx];
+        const ns = new Set(t.neighbors);
+        for (let i = 0; i < N; i++) {
+          if (i === idx) {
+            opacities[i] = 1;
+            tokenLabels[i].dataset.selected = '1';
+          } else if (ns.has(i)) {
+            opacities[i] = 0.9;
+            tokenLabels[i].dataset.selected = '0';
+          } else {
+            opacities[i] = 0.12;
+            tokenLabels[i].dataset.selected = '0';
+          }
+        }
+        geometry.attributes.aOpacity.needsUpdate = true;
+
+        npSelected.textContent = t.display;
+        npList.innerHTML = '';
+        t.neighbors.forEach((nIdx, rank) => {
+          const li = document.createElement('li');
+          li.dataset.rank = String(rank + 1);
+          li.textContent = DATA.tokens[nIdx].display;
+          npList.appendChild(li);
+        });
+        neighborPanel.hidden = false;
+      }
+
+      // ---------------------------------------------------------------
+      // Meta line
+      // ---------------------------------------------------------------
+      const metaLine = document.getElementById('meta-line');
+      const meta = DATA._meta;
+      metaLine.innerHTML =
+        `${meta.sentenceTokens} sentence + ${meta.comparisonTokens} comparison = ${meta.totalTokens} tokens<br />` +
+        `real GPT-2 wte → 3D t-SNE (perplexity 30, cosine, KL ${meta.klDivergence})`;
+
+      // ---------------------------------------------------------------
+      // Label projection
+      // ---------------------------------------------------------------
+      const _projVec = new THREE.Vector3();
+      function projectToScreen(worldVec) {
+        // Copy and project: world → NDC (-1..1)
+        _projVec.copy(worldVec).project(camera);
+        // NDC → screen pixels (top-left origin)
+        return {
+          x: _projVec.x * 0.5 * viewW + 0.5 * viewW,
+          y: -_projVec.y * 0.5 * viewH + 0.5 * viewH,
+          visible: _projVec.z >= -1 && _projVec.z <= 1,
+        };
+      }
+
+      function updateLabels() {
+        const hasSelection = selectedIdx >= 0;
+        const selectedNeighbors = hasSelection
+          ? new Set(DATA.tokens[selectedIdx].neighbors)
+          : null;
+
+        for (let i = 0; i < N; i++) {
+          const s = projectToScreen(tokenWorldVecs[i]);
+          const el = tokenLabels[i];
+          if (!s.visible) {
+            el.style.display = 'none';
+            continue;
+          }
+          el.style.display = '';
+          // -50% X (centered horizontally), -100% Y (sit above the point),
+          // then translate to projected screen coords.
+          el.style.transform =
+            `translate(${s.x.toFixed(1)}px, ${s.y.toFixed(1)}px) translate(-50%, -100%)`;
+
+          const t = DATA.tokens[i];
+          if (t.kind === 'sentence') {
+            // Sentence labels are normally always visible, but when a
+            // token is selected we dim non-neighbor sentence labels too
+            // so the focus stays on the selected cluster.
+            if (hasSelection) {
+              if (i === selectedIdx || selectedNeighbors.has(i)) {
+                el.style.opacity = '';
+              } else {
+                el.style.opacity = '0.15';
+              }
+            } else {
+              el.style.opacity = '';
+            }
+          } else {
+            // Comparison labels: hidden by default. Shown when this token
+            // is the selected token, one of its 6 neighbors, or the dot
+            // the cursor is directly hovering (1-to-1 rollover via raycast).
+            let opacity = 0;
+            if (hasSelection) {
+              if (i === selectedIdx || selectedNeighbors.has(i)) opacity = 1;
+            } else if (i === hoverIdx) {
+              opacity = 1;
+            }
+            if (opacity === 0) {
+              el.style.opacity = '0';
+              el.style.pointerEvents = 'none';
+            } else {
+              el.style.opacity = '1';
+              el.style.pointerEvents = 'auto';
+            }
+          }
+        }
+
+        for (let i = 0; i < axisLabels.length; i++) {
+          const s = projectToScreen(axisWorldVecs[i]);
+          const el = axisLabels[i];
+          if (s.visible) {
+            el.style.transform =
+              `translate(${s.x.toFixed(1)}px, ${s.y.toFixed(1)}px) translate(-50%, -50%)`;
+            el.style.display = '';
+          } else {
+            el.style.display = 'none';
+          }
+        }
+      }
+
+      // ---------------------------------------------------------------
+      // Render loop
+      // ---------------------------------------------------------------
+      function tick() {
+        controls.update();
+        raycaster.setFromCamera(ndc, camera);
+        const hits = raycaster.intersectObject(points);
+        const newHover = hits.length > 0 ? hits[0].index : -1;
+        if (newHover !== hoverIdx) {
+          hoverIdx = newHover;
+          // Labels are always visible, so no floating tooltip needed.
+          // Just nudge the cursor to feedback the dot is clickable.
+          canvas.style.cursor = hoverIdx >= 0 ? 'pointer' : '';
+        }
+        renderer.render(scene, camera);
+        updateLabels();
+        requestAnimationFrame(tick);
+      }
+      tick();
+    </script>
+  </body>
+</html>

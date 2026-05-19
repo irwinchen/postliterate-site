@@ -62,5 +62,12 @@
     "images": [
       { "file": "reader.png" }
     ]
+  },
+  {
+    "id": "weight-terrain",
+    "title": "Weight Terrain — Pretraining + RLHF",
+    "images": [
+      { "file": "terrain-model.png" }
+    ]
   }
 ]

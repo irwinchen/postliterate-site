@@ -1,0 +1,457 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Weight terrain (prototype) | Post-Literate</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600&family=Literata:ital,wght@0,400;0,500;1,400&family=Sono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      :root {
+        color-scheme: light;
+        --background: #f3efe1;
+        --text: #2c2c2c;
+        --text-secondary: #666;
+        --text-tertiary: #999;
+        --accent: #e53e33;
+        --accent-2: #3b6db4;
+        --accent-3: #549e44;
+        --border-subtle: rgba(0, 0, 0, 0.12);
+        --bg-subtle: rgba(0, 0, 0, 0.03);
+        --tile-bg: rgba(255, 255, 255, 0.6);
+        /* Terrain dot color: stays off-white-ish across themes so the
+           stippled landscape reads the same. The background changes;
+           the dots do not. */
+        --terrain-dot: #2c2c2c;
+      }
+      [data-theme='dark'] {
+        color-scheme: dark;
+        --background: #1a1a1a;
+        --text: #c8c8c8;
+        --text-secondary: #a0a0a0;
+        --text-tertiary: #707070;
+        --accent: #ff6b5e;
+        --accent-2: #6e9fde;
+        --accent-3: #7cc468;
+        --border-subtle: rgba(255, 255, 255, 0.12);
+        --bg-subtle: rgba(255, 255, 255, 0.04);
+        --tile-bg: rgba(255, 255, 255, 0.04);
+        /* Off-white on dark ground — the canonical terrain colorway. */
+        --terrain-dot: #f3efe1;
+      }
+
+      html,
+      body {
+        block-size: 100%;
+        overflow: hidden;
+        background: var(--background);
+        color: var(--text);
+        font-family: 'Outfit', system-ui, sans-serif;
+        -webkit-font-smoothing: antialiased;
+      }
+
+      .page-shell {
+        position: relative;
+        block-size: 100dvh;
+        inline-size: 100vw;
+      }
+
+      .page-nav {
+        position: absolute;
+        inset-block-start: 0;
+        inset-inline: 0;
+        z-index: 10;
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        padding-inline: 20px;
+        block-size: 40px;
+        border-block-end: 1px solid var(--border-subtle);
+        background: rgba(0, 0, 0, 0);
+        font-size: 13px;
+      }
+      .page-nav a,
+      .page-nav button {
+        color: var(--text-secondary);
+        text-decoration: none;
+        background: none;
+        border: 0;
+        font: inherit;
+        cursor: pointer;
+        padding: 0;
+      }
+      .page-nav a:hover,
+      .page-nav button:hover {
+        color: var(--accent);
+      }
+      .page-nav-sep {
+        color: var(--text-tertiary);
+      }
+      .page-nav-spacer {
+        flex: 1;
+      }
+
+      .stage {
+        position: absolute;
+        inset: 0;
+        overflow: hidden;
+      }
+
+      #scene {
+        position: absolute;
+        inset: 0;
+        display: block;
+        /* See three-prototype.html for the full rationale. setSize sets
+           the canvas's intrinsic width/height attributes; on hi-DPI those
+           attributes override `inset: 0`. Force CSS sizing to win. */
+        inline-size: 100%;
+        block-size: 100%;
+      }
+
+      .overlay {
+        position: absolute;
+        pointer-events: none;
+        font-size: 12px;
+        line-height: 1.4;
+        color: var(--text-secondary);
+        font-family: 'Sono', ui-monospace, monospace;
+      }
+      .overlay-top-left {
+        inset-block-start: 56px;
+        inset-inline-start: 20px;
+      }
+      .overlay-top-right {
+        inset-block-start: 56px;
+        inset-inline-end: 20px;
+        text-align: end;
+        max-inline-size: 320px;
+      }
+      .overlay-bottom-left {
+        inset-block-end: 16px;
+        inset-inline-start: 20px;
+      }
+
+      .stage-title {
+        font-family: 'Literata', Georgia, serif;
+        font-size: 16px;
+        font-style: italic;
+        color: var(--text);
+      }
+      .meta-line {
+        margin-block-start: 4px;
+        color: var(--text-tertiary);
+      }
+      .help {
+        color: var(--text-tertiary);
+        font-size: 11px;
+      }
+
+      .theme-btn::before {
+        content: '◐';
+        margin-inline-end: 4px;
+      }
+    </style>
+
+    <script is:inline>
+      (function () {
+        // Default to dark for this prototype — off-white-on-dark is the
+        // explicit terrain colorway. Honor whatever the user has saved.
+        var saved = localStorage.getItem('theme') || 'dark';
+        document.documentElement.setAttribute('data-theme', saved);
+      })();
+    </script>
+
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+          "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <div class="page-shell">
+      <nav class="page-nav">
+        <a href="/">Post-Literate</a>
+        <span class="page-nav-sep">›</span>
+        <span>How AI is trained</span>
+        <span class="page-nav-sep">›</span>
+        <span>Weight terrain prototype</span>
+        <span class="page-nav-spacer"></span>
+        <button id="theme-toggle" class="theme-btn" title="Toggle light / dark"></button>
+      </nav>
+
+      <div class="stage">
+        <canvas id="scene"></canvas>
+
+        <div class="overlay overlay-top-left">
+          <div class="stage-title">weight terrain — dot prototype</div>
+          <div class="meta-line" id="meta-line">loading…</div>
+        </div>
+
+        <div class="overlay overlay-bottom-left help">
+          drag to orbit · scroll to zoom · right-drag to pan
+        </div>
+
+        <div class="overlay overlay-top-right">
+          <span style="opacity: 0.85">each dot is one parameter</span><br />
+          <span style="opacity: 0.6">height is the value the model memorized</span>
+        </div>
+      </div>
+    </div>
+
+    <script type="module">
+      import * as THREE from 'three';
+      import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+      // ---------------------------------------------------------------
+      // Theme
+      // ---------------------------------------------------------------
+      const html = document.documentElement;
+      function applyTheme(t) {
+        html.setAttribute('data-theme', t);
+        localStorage.setItem('theme', t);
+        updateMaterialColors();
+      }
+      document.getElementById('theme-toggle').addEventListener('click', () => {
+        const cur = html.getAttribute('data-theme');
+        applyTheme(cur === 'light' ? 'dark' : 'light');
+      });
+
+      // ---------------------------------------------------------------
+      // Scene setup
+      // ---------------------------------------------------------------
+      const canvas = document.getElementById('scene');
+      const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+      const scene = new THREE.Scene();
+
+      const camera = new THREE.PerspectiveCamera(
+        38,
+        canvas.clientWidth / canvas.clientHeight,
+        0.01,
+        200,
+      );
+      // Elevated three-quarter view — reads as landscape from this distance,
+      // earns the awe-zoom when we eventually drive in close to a single pin.
+      camera.position.set(7.5, 5.2, 9.5);
+
+      const renderer = new THREE.WebGLRenderer({
+        canvas,
+        antialias: true,
+        alpha: true,
+      });
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      renderer.setClearColor(0x000000, 0);
+
+      const stageEl = document.querySelector('.stage');
+
+      // viewW/viewH come from .stage's rect, NOT from the canvas. The canvas
+      // has an intrinsic size set by Three.setSize that can fight with its
+      // CSS sizing on hi-DPI; the stage doesn't, so its rect is the reliable
+      // source of truth.
+      let viewW = 0;
+      let viewH = 0;
+      function resize() {
+        const rect = stageEl.getBoundingClientRect();
+        const w = Math.round(rect.width);
+        const h = Math.round(rect.height);
+        if (w === 0 || h === 0) return;
+        viewW = w;
+        viewH = h;
+        camera.aspect = w / h;
+        camera.updateProjectionMatrix();
+        renderer.setSize(w, h, false);
+      }
+      resize();
+      window.addEventListener('resize', resize);
+      if (typeof ResizeObserver !== 'undefined') {
+        new ResizeObserver(resize).observe(stageEl);
+      }
+
+      // OrbitControls bound to .stage (the common ancestor) for consistency
+      // with three-prototype.html, so future overlays with pointer-events:auto
+      // don't kill scroll-to-zoom.
+      const controls = new OrbitControls(camera, stageEl);
+      controls.enableDamping = !reducedMotion;
+      controls.dampingFactor = 0.08;
+      controls.rotateSpeed = 0.8;
+      controls.zoomSpeed = 0.7;
+      controls.panSpeed = 0.6;
+      controls.minDistance = 2.5;
+      controls.maxDistance = 40;
+      controls.maxPolarAngle = Math.PI * 0.49; // keep camera above the terrain
+      controls.target.set(0, 0, 0);
+
+      // ---------------------------------------------------------------
+      // Noise — seeded value noise, fBm with 5 octaves.
+      // Deterministic so every reload renders the same terrain.
+      // ---------------------------------------------------------------
+      function hash2(x, y) {
+        // 32-bit integer hash → [0, 1). Stable, no Math.random.
+        let h = (x | 0) * 374761393 + (y | 0) * 668265263 + 0x9e3779b9;
+        h = Math.imul(h ^ (h >>> 13), 1274126177);
+        h = h ^ (h >>> 16);
+        return (h >>> 0) / 4294967295;
+      }
+      function smoothstep(t) {
+        return t * t * (3 - 2 * t);
+      }
+      function valueNoise(x, y) {
+        const xi = Math.floor(x);
+        const yi = Math.floor(y);
+        const xf = x - xi;
+        const yf = y - yi;
+        const tx = smoothstep(xf);
+        const ty = smoothstep(yf);
+        const a = hash2(xi, yi);
+        const b = hash2(xi + 1, yi);
+        const c = hash2(xi, yi + 1);
+        const d = hash2(xi + 1, yi + 1);
+        const ab = a + (b - a) * tx;
+        const cd = c + (d - c) * tx;
+        return ab + (cd - ab) * ty; // ~[0, 1]
+      }
+      function fbm(x, y) {
+        let v = 0;
+        let amp = 0.5;
+        let freq = 1;
+        for (let i = 0; i < 5; i++) {
+          v += amp * valueNoise(x * freq, y * freq);
+          freq *= 2;
+          amp *= 0.5;
+        }
+        return v; // ~[0, ~0.97]
+      }
+
+      // ---------------------------------------------------------------
+      // Terrain grid
+      // ---------------------------------------------------------------
+      const SIDE = 200;                  // 200 × 200 = 40,000 dots
+      const COUNT = SIDE * SIDE;
+      const WORLD_SPAN = 12;             // terrain footprint in world units
+      const NOISE_SCALE = 0.55;          // bigger → faster variation
+      const HEIGHT_SCALE = 2.4;          // peak-to-trough vertical range
+      const STEP = WORLD_SPAN / (SIDE - 1);
+
+      const positions = new Float32Array(COUNT * 3);
+      const heights = new Float32Array(COUNT); // normalized height for shader
+      let minY = Infinity;
+      let maxY = -Infinity;
+      for (let j = 0; j < SIDE; j++) {
+        for (let i = 0; i < SIDE; i++) {
+          const idx = j * SIDE + i;
+          const x = (i / (SIDE - 1) - 0.5) * WORLD_SPAN;
+          const z = (j / (SIDE - 1) - 0.5) * WORLD_SPAN;
+          const n = fbm(x * NOISE_SCALE + 17.3, z * NOISE_SCALE + 91.7);
+          // center on y=0 so the camera target at origin sits inside the relief
+          const y = (n - 0.5) * HEIGHT_SCALE;
+          positions[idx * 3 + 0] = x;
+          positions[idx * 3 + 1] = y;
+          positions[idx * 3 + 2] = z;
+          heights[idx] = n; // 0..1
+          if (y < minY) minY = y;
+          if (y > maxY) maxY = y;
+        }
+      }
+
+      const geometry = new THREE.BufferGeometry();
+      geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+      geometry.setAttribute('aHeight', new THREE.BufferAttribute(heights, 1));
+
+      // ---------------------------------------------------------------
+      // Material — soft disc point shader. Matches three-prototype.html's
+      // visual language. Color and brightness come from CSS variables so
+      // theme switching is live.
+      // ---------------------------------------------------------------
+      const dotColor = new THREE.Color();
+      function readDotColor() {
+        const cs = getComputedStyle(html);
+        dotColor.set(cs.getPropertyValue('--terrain-dot').trim() || '#f3efe1');
+      }
+      readDotColor();
+
+      const material = new THREE.ShaderMaterial({
+        transparent: true,
+        depthWrite: false,
+        uniforms: {
+          uPixelRatio: { value: renderer.getPixelRatio() },
+          uColor: { value: dotColor },
+          // base dot size in screen pixels at z = 12 (tuned for the default
+          // camera distance — far enough to read as landscape, close enough
+          // that individual dots are still discernible).
+          uSize: { value: 3.2 },
+        },
+        vertexShader: /* glsl */ `
+          attribute float aHeight;
+          varying float vHeight;
+          uniform float uPixelRatio;
+          uniform float uSize;
+          void main() {
+            vHeight = aHeight;
+            vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+            gl_PointSize = uSize * uPixelRatio * (12.0 / -mvPosition.z);
+            gl_Position = projectionMatrix * mvPosition;
+          }
+        `,
+        fragmentShader: /* glsl */ `
+          uniform vec3 uColor;
+          varying float vHeight;
+          void main() {
+            vec2 c = gl_PointCoord - vec2(0.5);
+            float d = length(c);
+            // soft circular dot — same recipe as the embedding-space view
+            float core = smoothstep(0.50, 0.38, d);
+            float rim  = smoothstep(0.50, 0.46, d) - smoothstep(0.46, 0.38, d);
+            float a = (core * 0.85 + rim * 0.55);
+            if (a < 0.01) discard;
+            // Peaks read slightly brighter than valleys — subtle depth cue.
+            // Range 0.55..1.0 keeps valleys visible without flattening the
+            // height information out entirely.
+            float brightness = 0.55 + 0.45 * vHeight;
+            gl_FragColor = vec4(uColor * brightness, a);
+          }
+        `,
+      });
+
+      const points = new THREE.Points(geometry, material);
+      scene.add(points);
+
+      function updateMaterialColors() {
+        readDotColor();
+        material.uniforms.uColor.value.copy(dotColor);
+      }
+
+      // ---------------------------------------------------------------
+      // Meta line
+      // ---------------------------------------------------------------
+      const metaLine = document.getElementById('meta-line');
+      metaLine.textContent =
+        `${SIDE.toLocaleString()} × ${SIDE.toLocaleString()} grid · ` +
+        `${COUNT.toLocaleString()} dots · fBm noise, 5 octaves`;
+
+      // ---------------------------------------------------------------
+      // Render loop
+      // ---------------------------------------------------------------
+      function tick() {
+        controls.update();
+        renderer.render(scene, camera);
+        requestAnimationFrame(tick);
+      }
+      tick();
+    </script>
+  </body>
+</html>

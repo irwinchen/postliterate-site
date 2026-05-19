@@ -1,0 +1,911 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Weight terrain — training (prototype) | Post-Literate</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600&family=Literata:ital,wght@0,400;0,500;1,400&family=Sono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      :root {
+        color-scheme: light;
+        --background: #f3efe1;
+        --text: #2c2c2c;
+        --text-secondary: #666;
+        --text-tertiary: #999;
+        --accent: #e53e33;
+        --accent-2: #3b6db4;
+        --accent-3: #549e44;
+        --border-subtle: rgba(0, 0, 0, 0.12);
+        --bg-subtle: rgba(0, 0, 0, 0.03);
+        --tile-bg: rgba(255, 255, 255, 0.6);
+        --terrain-dot: #2c2c2c;
+      }
+      [data-theme='dark'] {
+        color-scheme: dark;
+        --background: #1a1a1a;
+        --text: #c8c8c8;
+        --text-secondary: #a0a0a0;
+        --text-tertiary: #707070;
+        --accent: #ff6b5e;
+        --accent-2: #6e9fde;
+        --accent-3: #7cc468;
+        --border-subtle: rgba(255, 255, 255, 0.12);
+        --bg-subtle: rgba(255, 255, 255, 0.04);
+        --tile-bg: rgba(255, 255, 255, 0.04);
+        --terrain-dot: #f3efe1;
+      }
+
+      html,
+      body {
+        block-size: 100%;
+        overflow: hidden;
+        background: var(--background);
+        color: var(--text);
+        font-family: 'Outfit', system-ui, sans-serif;
+        -webkit-font-smoothing: antialiased;
+      }
+
+      .page-shell {
+        position: relative;
+        block-size: 100dvh;
+        inline-size: 100vw;
+      }
+
+      .page-nav {
+        position: absolute;
+        inset-block-start: 0;
+        inset-inline: 0;
+        z-index: 10;
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        padding-inline: 20px;
+        block-size: 40px;
+        border-block-end: 1px solid var(--border-subtle);
+        background: rgba(0, 0, 0, 0);
+        font-size: 13px;
+      }
+      .page-nav a,
+      .page-nav button {
+        color: var(--text-secondary);
+        text-decoration: none;
+        background: none;
+        border: 0;
+        font: inherit;
+        cursor: pointer;
+        padding: 0;
+      }
+      .page-nav a:hover,
+      .page-nav button:hover {
+        color: var(--accent);
+      }
+      .page-nav-sep {
+        color: var(--text-tertiary);
+      }
+      .page-nav-spacer {
+        flex: 1;
+      }
+
+      .stage {
+        position: absolute;
+        inset: 0;
+        overflow: hidden;
+      }
+
+      #scene {
+        position: absolute;
+        inset: 0;
+        display: block;
+        inline-size: 100%;
+        block-size: 100%;
+      }
+
+      .overlay {
+        position: absolute;
+        pointer-events: none;
+        font-size: 12px;
+        line-height: 1.4;
+        color: var(--text-secondary);
+        font-family: 'Sono', ui-monospace, monospace;
+      }
+      .overlay-top-left {
+        inset-block-start: 56px;
+        inset-inline-start: 20px;
+      }
+      .overlay-top-right {
+        inset-block-start: 56px;
+        inset-inline-end: 20px;
+        text-align: end;
+        max-inline-size: 320px;
+      }
+
+      .stage-title {
+        font-family: 'Literata', Georgia, serif;
+        font-size: 16px;
+        font-style: italic;
+        color: var(--text);
+      }
+      .meta-line {
+        margin-block-start: 4px;
+        color: var(--text-tertiary);
+      }
+
+      .theme-btn::before {
+        content: '◐';
+        margin-inline-end: 4px;
+      }
+
+      /* ---------------------------------------------------------------
+         Controls bar at the bottom of the stage. Single scrubber spans
+         both phases — pretraining (0..PHASE_SPLIT) then RLHF (PHASE_SPLIT..1).
+         --------------------------------------------------------------- */
+      .controls {
+        position: absolute;
+        inset-block-end: 0;
+        inset-inline: 0;
+        z-index: 5;
+        display: grid;
+        grid-template-columns: auto 1fr auto;
+        align-items: center;
+        gap: 18px;
+        padding: 14px 24px 18px;
+        background: linear-gradient(
+          to top,
+          color-mix(in srgb, var(--background) 92%, transparent),
+          transparent
+        );
+        font-family: 'Sono', ui-monospace, monospace;
+        font-size: 11px;
+        color: var(--text-secondary);
+        pointer-events: none;
+      }
+      .controls > * {
+        pointer-events: auto;
+      }
+
+      .play-btn {
+        font: 12px/1 'Sono', ui-monospace, monospace;
+        color: var(--text-secondary);
+        background: var(--tile-bg);
+        border: 1px solid var(--border-subtle);
+        padding: 8px 12px;
+        min-inline-size: 96px;
+        cursor: pointer;
+        transition: color 120ms, border-color 120ms;
+        backdrop-filter: blur(4px);
+        text-align: center;
+      }
+      .play-btn:hover {
+        color: var(--accent);
+        border-color: var(--accent);
+      }
+
+      .scrubber-wrap {
+        display: grid;
+        grid-template-rows: auto auto;
+        gap: 6px;
+      }
+      /* Clickable state markers positioned along the scrubber. Each chip
+         sits above its corresponding t value (0, PHASE_SPLIT, 1) and jumps
+         the scrubber to that state when clicked. */
+      .scrubber-markers {
+        position: relative;
+        block-size: 14px;
+      }
+      .marker {
+        position: absolute;
+        inset-block-start: 0;
+        font-family: 'Sono', ui-monospace, monospace;
+        font-size: 10px;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: var(--text-tertiary);
+        background: none;
+        border: 0;
+        padding: 0;
+        cursor: pointer;
+        white-space: nowrap;
+        transition: color 120ms;
+      }
+      .marker:hover {
+        color: var(--accent);
+      }
+      .marker.active {
+        color: var(--text);
+      }
+      .marker-start {
+        inset-inline-start: 0;
+      }
+      .marker-mid {
+        transform: translateX(-50%);
+      }
+      .marker-end {
+        inset-inline-end: 0;
+      }
+
+      .scrubber {
+        position: relative;
+        block-size: 22px;
+        cursor: pointer;
+        touch-action: none;
+        user-select: none;
+      }
+      .scrubber-track {
+        position: absolute;
+        inset-block-start: 50%;
+        inset-inline: 0;
+        block-size: 1px;
+        background: var(--border-subtle);
+        transform: translateY(-50%);
+      }
+      .scrubber-fill {
+        position: absolute;
+        inset-block-start: 50%;
+        inset-inline-start: 0;
+        block-size: 1px;
+        background: var(--text-secondary);
+        transform: translateY(-50%);
+      }
+      .scrubber-phase-tick {
+        position: absolute;
+        inset-block-start: 50%;
+        block-size: 10px;
+        inline-size: 1px;
+        background: var(--text-tertiary);
+        transform: translate(-50%, -50%);
+      }
+      .scrubber-thumb {
+        position: absolute;
+        inset-block-start: 50%;
+        inline-size: 12px;
+        block-size: 12px;
+        border-radius: 50%;
+        background: var(--text);
+        transform: translate(-50%, -50%);
+        transition: background 120ms;
+      }
+      .scrubber:hover .scrubber-thumb {
+        background: var(--accent);
+      }
+
+      .readout {
+        text-align: end;
+        font-variant-numeric: tabular-nums;
+        line-height: 1.35;
+        min-inline-size: 230px;
+      }
+      .readout .phase {
+        color: var(--text);
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        font-size: 10px;
+      }
+      .readout .counter {
+        color: var(--text-secondary);
+      }
+      .readout .caveat {
+        color: var(--text-tertiary);
+        font-size: 10px;
+      }
+    </style>
+
+    <script is:inline>
+      (function () {
+        var saved = localStorage.getItem('theme') || 'dark';
+        document.documentElement.setAttribute('data-theme', saved);
+      })();
+    </script>
+
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+          "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <div class="page-shell">
+      <nav class="page-nav">
+        <a href="/">Post-Literate</a>
+        <span class="page-nav-sep">›</span>
+        <span>How AI is trained</span>
+        <span class="page-nav-sep">›</span>
+        <span>Weight terrain — training</span>
+        <span class="page-nav-spacer"></span>
+        <button id="theme-toggle" class="theme-btn" title="Toggle light / dark"></button>
+      </nav>
+
+      <div class="stage">
+        <canvas id="scene"></canvas>
+
+        <div class="overlay overlay-top-left">
+          <div class="stage-title">a model's weights, during training</div>
+          <div class="meta-line" id="meta-line">loading…</div>
+        </div>
+
+        <div class="overlay overlay-top-right">
+          <span style="opacity: 0.85">grid is fixed · only heights change</span><br />
+          <span style="opacity: 0.6">each dot is one parameter the model is learning</span>
+        </div>
+
+        <div class="controls" id="controls">
+          <button class="play-btn" id="play-btn" type="button">play ▶</button>
+
+          <div class="scrubber-wrap">
+            <div class="scrubber-markers" id="scrubber-markers">
+              <button class="marker marker-start" type="button" data-t="0">untrained</button>
+              <button class="marker marker-mid" type="button" id="marker-mid" data-t="0.62">pretrained</button>
+              <button class="marker marker-end" type="button" data-t="1">post-training</button>
+            </div>
+            <div class="scrubber" id="scrubber" role="slider" aria-valuemin="0" aria-valuemax="1" aria-valuenow="0">
+              <div class="scrubber-track"></div>
+              <div class="scrubber-fill" id="scrubber-fill"></div>
+              <div class="scrubber-phase-tick" id="scrubber-phase-tick"></div>
+              <div class="scrubber-thumb" id="scrubber-thumb"></div>
+            </div>
+          </div>
+
+          <div class="readout">
+            <div class="phase" id="readout-phase">phase 1 · pretraining</div>
+            <div class="counter" id="readout-counter">0 tokens ingested</div>
+            <div class="caveat">illustrative · not a specific model</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script type="module">
+      import * as THREE from 'three';
+      import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+      // ---------------------------------------------------------------
+      // Theme
+      // ---------------------------------------------------------------
+      const html = document.documentElement;
+      function applyTheme(t) {
+        html.setAttribute('data-theme', t);
+        localStorage.setItem('theme', t);
+        updateMaterialColors();
+      }
+      document.getElementById('theme-toggle').addEventListener('click', () => {
+        const cur = html.getAttribute('data-theme');
+        applyTheme(cur === 'light' ? 'dark' : 'light');
+      });
+
+      // ---------------------------------------------------------------
+      // Scene setup
+      // ---------------------------------------------------------------
+      const canvas = document.getElementById('scene');
+      const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+      const scene = new THREE.Scene();
+
+      const camera = new THREE.PerspectiveCamera(
+        38,
+        canvas.clientWidth / canvas.clientHeight,
+        0.01,
+        200,
+      );
+      camera.position.set(7.5, 5.2, 9.5);
+
+      const renderer = new THREE.WebGLRenderer({
+        canvas,
+        antialias: true,
+        alpha: true,
+      });
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      renderer.setClearColor(0x000000, 0);
+
+      const stageEl = document.querySelector('.stage');
+
+      let viewW = 0;
+      let viewH = 0;
+      function resize() {
+        const rect = stageEl.getBoundingClientRect();
+        const w = Math.round(rect.width);
+        const h = Math.round(rect.height);
+        if (w === 0 || h === 0) return;
+        viewW = w;
+        viewH = h;
+        camera.aspect = w / h;
+        camera.updateProjectionMatrix();
+        renderer.setSize(w, h, false);
+      }
+      resize();
+      window.addEventListener('resize', resize);
+      if (typeof ResizeObserver !== 'undefined') {
+        new ResizeObserver(resize).observe(stageEl);
+      }
+
+      const controls = new OrbitControls(camera, stageEl);
+      controls.enableDamping = !reducedMotion;
+      controls.dampingFactor = 0.08;
+      controls.rotateSpeed = 0.8;
+      controls.zoomSpeed = 0.7;
+      controls.panSpeed = 0.6;
+      controls.minDistance = 2.5;
+      controls.maxDistance = 40;
+      controls.maxPolarAngle = Math.PI * 0.49;
+      controls.target.set(0, 0, 0);
+
+      // ---------------------------------------------------------------
+      // Noise — seeded value noise, fBm with 5 octaves.
+      // ---------------------------------------------------------------
+      function hash2(x, y) {
+        let h = (x | 0) * 374761393 + (y | 0) * 668265263 + 0x9e3779b9;
+        h = Math.imul(h ^ (h >>> 13), 1274126177);
+        h = h ^ (h >>> 16);
+        return (h >>> 0) / 4294967295;
+      }
+      function smoothstep01(t) {
+        return t * t * (3 - 2 * t);
+      }
+      function valueNoise(x, y) {
+        const xi = Math.floor(x);
+        const yi = Math.floor(y);
+        const xf = x - xi;
+        const yf = y - yi;
+        const tx = smoothstep01(xf);
+        const ty = smoothstep01(yf);
+        const a = hash2(xi, yi);
+        const b = hash2(xi + 1, yi);
+        const c = hash2(xi, yi + 1);
+        const d = hash2(xi + 1, yi + 1);
+        const ab = a + (b - a) * tx;
+        const cd = c + (d - c) * tx;
+        return ab + (cd - ab) * ty;
+      }
+      function fbm(x, y) {
+        let v = 0;
+        let amp = 0.5;
+        let freq = 1;
+        for (let i = 0; i < 5; i++) {
+          v += amp * valueNoise(x * freq, y * freq);
+          freq *= 2;
+          amp *= 0.5;
+        }
+        return v;
+      }
+
+      // ---------------------------------------------------------------
+      // Grid + three height fields
+      //   yRand   — small random scatter at t=0 (untrained init)
+      //   yMature — fully pretrained terrain (target of phase 1)
+      //   yRlhf   — after RLHF reshapes a couple of regions (target of phase 2)
+      // ---------------------------------------------------------------
+      const SIDE = 200;
+      const COUNT = SIDE * SIDE;
+      const WORLD_SPAN = 12;
+      const NOISE_SCALE = 0.55;
+      const HEIGHT_SCALE = 2.4;
+      const INIT_NOISE_AMPLITUDE = 0.12; // pre-training scatter amplitude
+
+      const xs = new Float32Array(COUNT);
+      const zs = new Float32Array(COUNT);
+      const yRand = new Float32Array(COUNT);
+      const yMature = new Float32Array(COUNT);
+      const yRlhf = new Float32Array(COUNT);
+      const yCurrent = new Float32Array(COUNT);
+
+      // Per-dot hash 0..1 used for the gradient-noise wobble and the init scatter.
+      const hashPerDot = new Float32Array(COUNT);
+
+      for (let j = 0; j < SIDE; j++) {
+        for (let i = 0; i < SIDE; i++) {
+          const idx = j * SIDE + i;
+          const x = (i / (SIDE - 1) - 0.5) * WORLD_SPAN;
+          const z = (j / (SIDE - 1) - 0.5) * WORLD_SPAN;
+          xs[idx] = x;
+          zs[idx] = z;
+          const r = hash2(i * 73 + 11, j * 131 + 7);
+          hashPerDot[idx] = r;
+          // Untrained init: small mean-zero scatter, similar to a real
+          // model's initialized weights.
+          yRand[idx] = (r - 0.5) * 2 * INIT_NOISE_AMPLITUDE;
+          // Mature: fBm-shaped terrain centered on y=0.
+          const n = fbm(x * NOISE_SCALE + 17.3, z * NOISE_SCALE + 91.7);
+          yMature[idx] = (n - 0.5) * HEIGHT_SCALE;
+        }
+      }
+
+      // ---------------------------------------------------------------
+      // Compute RLHF target — a couple of localized edits over yMature.
+      //   region A: polish — pull values toward the local 5×5 mean
+      //   region B: forbidden mountain — raise a steep bump
+      //   region C: small dampen — flatten another little corner
+      // ---------------------------------------------------------------
+      function gaussian(x, z, cx, cz, sigma) {
+        const dx = x - cx;
+        const dz = z - cz;
+        return Math.exp(-(dx * dx + dz * dz) / (2 * sigma * sigma));
+      }
+
+      // Precompute a heavily-blurred copy of yMature using a separable
+      // box blur. The polish region pulls toward this — a wide kernel
+      // means the smoothed target is nearly flat, so the polished area
+      // reads as a visible plateau (not just a subtler version of the
+      // surrounding terrain).
+      const BLUR_R = 10; // 21×21 effective kernel
+      const yBlurredTmp = new Float32Array(COUNT);
+      const yBlurred = new Float32Array(COUNT);
+      // Horizontal pass
+      for (let j = 0; j < SIDE; j++) {
+        for (let i = 0; i < SIDE; i++) {
+          let s = 0;
+          let n = 0;
+          for (let di = -BLUR_R; di <= BLUR_R; di++) {
+            const ii = i + di;
+            if (ii < 0 || ii >= SIDE) continue;
+            s += yMature[j * SIDE + ii];
+            n++;
+          }
+          yBlurredTmp[j * SIDE + i] = s / n;
+        }
+      }
+      // Vertical pass
+      for (let j = 0; j < SIDE; j++) {
+        for (let i = 0; i < SIDE; i++) {
+          let s = 0;
+          let n = 0;
+          for (let dj = -BLUR_R; dj <= BLUR_R; dj++) {
+            const jj = j + dj;
+            if (jj < 0 || jj >= SIDE) continue;
+            s += yBlurredTmp[jj * SIDE + i];
+            n++;
+          }
+          yBlurred[j * SIDE + i] = s / n;
+        }
+      }
+
+      // Three named RLHF edits. Each one is a localized Gaussian-weighted
+      // operation on top of yMature.
+      //   plateau  — smooth a region into a visible flat patch
+      //   valley   — carve a clear dip ("suppress this behavior")
+      //   mountain — raise a clear peak ("reinforce this behavior")
+      const plateau  = { cx: -2.6, cz:  1.7, sigma: 1.7, strength: 1.0 };
+      const valley   = { cx:  1.4, cz:  2.6, sigma: 1.05, depth: -1.4 };
+      const mountain = { cx:  2.4, cz: -2.2, sigma: 0.95, height: 1.6 };
+
+      for (let idx = 0; idx < COUNT; idx++) {
+        const x = xs[idx];
+        const z = zs[idx];
+        let y = yMature[idx];
+
+        const wPlateau = gaussian(x, z, plateau.cx, plateau.cz, plateau.sigma);
+        y = y + (yBlurred[idx] - y) * wPlateau * plateau.strength;
+
+        const wValley = gaussian(x, z, valley.cx, valley.cz, valley.sigma);
+        y = y + wValley * valley.depth;
+
+        const wMountain = gaussian(x, z, mountain.cx, mountain.cz, mountain.sigma);
+        y = y + wMountain * mountain.height;
+
+        yRlhf[idx] = y;
+      }
+
+      // Initialize yCurrent to phase-1 start (random scatter).
+      yCurrent.set(yRand);
+
+      // ---------------------------------------------------------------
+      // Geometry — x,z fixed in position attribute; y comes from aY.
+      // ---------------------------------------------------------------
+      const positions = new Float32Array(COUNT * 3);
+      for (let idx = 0; idx < COUNT; idx++) {
+        positions[idx * 3 + 0] = xs[idx];
+        positions[idx * 3 + 1] = 0;
+        positions[idx * 3 + 2] = zs[idx];
+      }
+      const geometry = new THREE.BufferGeometry();
+      geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+      const aYAttr = new THREE.BufferAttribute(yCurrent, 1);
+      aYAttr.setUsage(THREE.DynamicDrawUsage);
+      geometry.setAttribute('aY', aYAttr);
+
+      // ---------------------------------------------------------------
+      // Material — soft disc, height-based brightness ramp normalized on
+      // the absolute scale of yMature so the ramp stays stable while the
+      // dots are mid-morph.
+      // ---------------------------------------------------------------
+      const dotColor = new THREE.Color();
+      function readDotColor() {
+        const cs = getComputedStyle(html);
+        dotColor.set(cs.getPropertyValue('--terrain-dot').trim() || '#f3efe1');
+      }
+      readDotColor();
+
+      // Normalize brightness against the union of yMature and yRlhf so the
+      // new valley/mountain extend the brightness range correctly and the
+      // ramp doesn't shift mid-morph.
+      let yMin = Infinity;
+      let yMax = -Infinity;
+      for (let i = 0; i < COUNT; i++) {
+        if (yMature[i] < yMin) yMin = yMature[i];
+        if (yMature[i] > yMax) yMax = yMature[i];
+        if (yRlhf[i] < yMin) yMin = yRlhf[i];
+        if (yRlhf[i] > yMax) yMax = yRlhf[i];
+      }
+
+      const material = new THREE.ShaderMaterial({
+        transparent: true,
+        depthWrite: false,
+        uniforms: {
+          uPixelRatio: { value: renderer.getPixelRatio() },
+          uColor: { value: dotColor },
+          uSize: { value: 3.2 },
+          uYMin: { value: yMin },
+          uYMax: { value: yMax },
+        },
+        vertexShader: /* glsl */ `
+          attribute float aY;
+          varying float vNormY;
+          uniform float uPixelRatio;
+          uniform float uSize;
+          uniform float uYMin;
+          uniform float uYMax;
+          void main() {
+            vec3 pos = vec3(position.x, aY, position.z);
+            vNormY = clamp((aY - uYMin) / max(uYMax - uYMin, 0.001), 0.0, 1.0);
+            vec4 mvPosition = modelViewMatrix * vec4(pos, 1.0);
+            gl_PointSize = uSize * uPixelRatio * (12.0 / -mvPosition.z);
+            gl_Position = projectionMatrix * mvPosition;
+          }
+        `,
+        fragmentShader: /* glsl */ `
+          uniform vec3 uColor;
+          varying float vNormY;
+          void main() {
+            vec2 c = gl_PointCoord - vec2(0.5);
+            float d = length(c);
+            float core = smoothstep(0.50, 0.38, d);
+            float rim  = smoothstep(0.50, 0.46, d) - smoothstep(0.46, 0.38, d);
+            float a = (core * 0.85 + rim * 0.55);
+            if (a < 0.01) discard;
+            float brightness = 0.55 + 0.45 * vNormY;
+            gl_FragColor = vec4(uColor * brightness, a);
+          }
+        `,
+      });
+
+      const points = new THREE.Points(geometry, material);
+      scene.add(points);
+
+      function updateMaterialColors() {
+        readDotColor();
+        material.uniforms.uColor.value.copy(dotColor);
+      }
+
+      // ---------------------------------------------------------------
+      // Animation model
+      //   t in [0, 1] is the master scrubber position.
+      //   PHASE_SPLIT separates pretraining (left) from RLHF (right).
+      //   Within each phase, ease the local progress and lerp the
+      //   appropriate height pair.
+      // ---------------------------------------------------------------
+      const PHASE_SPLIT = 0.62;
+      const WOBBLE_AMPLITUDE = 0.04;  // world units; subtle gradient-noise jitter
+      const PRETRAIN_TARGET_TOKENS = 10e9; // illustrative — order-of-magnitude
+      const RLHF_TARGET_PREFS = 60000;     // illustrative
+
+      let t = 0;
+      let playing = false;
+      let lastFrameMs = 0;
+      const PLAY_DURATION_MS = 14000; // full sweep from 0 to 1
+
+      function easeInOutCubic(x) {
+        return x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2;
+      }
+
+      function setT(nextT) {
+        t = Math.max(0, Math.min(1, nextT));
+        applyT(t);
+        renderUi(t);
+      }
+
+      function applyT(tNow) {
+        let inPhase1 = tNow <= PHASE_SPLIT;
+        // Local 0..1 progress inside the active phase
+        const localT = inPhase1
+          ? tNow / PHASE_SPLIT
+          : (tNow - PHASE_SPLIT) / (1 - PHASE_SPLIT);
+        const eased = easeInOutCubic(localT);
+        const start = inPhase1 ? yRand : yMature;
+        const end = inPhase1 ? yMature : yRlhf;
+
+        // Wobble fades in at both endpoints — peaks at localT = 0.5.
+        // Sells "training is noisy" without obscuring the topology.
+        const wobbleEnvelope = 4 * eased * (1 - eased); // 0..1, bell shape
+        const wobblePhase = (performance.now() * 0.002) % (Math.PI * 2);
+
+        for (let i = 0; i < COUNT; i++) {
+          let y = start[i] + (end[i] - start[i]) * eased;
+          if (playing && wobbleEnvelope > 0.001) {
+            const r = hashPerDot[i];
+            // Each dot gets a sinusoid offset in a unique phase so the
+            // field shimmers rather than pulses uniformly.
+            const w =
+              Math.sin(wobblePhase + r * 6.283) * WOBBLE_AMPLITUDE * wobbleEnvelope;
+            y += w;
+          }
+          yCurrent[i] = y;
+        }
+        aYAttr.needsUpdate = true;
+      }
+
+      // ---------------------------------------------------------------
+      // UI — readout, labels, scrubber visual position
+      // ---------------------------------------------------------------
+      const readoutPhase = document.getElementById('readout-phase');
+      const readoutCounter = document.getElementById('readout-counter');
+      const fillEl = document.getElementById('scrubber-fill');
+      const thumbEl = document.getElementById('scrubber-thumb');
+      const phaseTickEl = document.getElementById('scrubber-phase-tick');
+      const scrubberEl = document.getElementById('scrubber');
+      const markerMidEl = document.getElementById('marker-mid');
+      const markerEls = Array.from(document.querySelectorAll('.marker'));
+
+      // Place the phase-boundary tick and the mid marker at PHASE_SPLIT.
+      const splitPct = (PHASE_SPLIT * 100).toFixed(2) + '%';
+      phaseTickEl.style.insetInlineStart = splitPct;
+      markerMidEl.style.insetInlineStart = splitPct;
+      // Keep the marker's data-t in sync with the JS constant so reading
+      // either source gives the same boundary value.
+      markerMidEl.dataset.t = String(PHASE_SPLIT);
+
+      function formatTokens(n) {
+        if (n >= 1e9) return (n / 1e9).toFixed(2) + 'B';
+        if (n >= 1e6) return (n / 1e6).toFixed(1) + 'M';
+        if (n >= 1e3) return (n / 1e3).toFixed(0) + 'K';
+        return Math.round(n).toString();
+      }
+      function formatPrefs(n) {
+        if (n >= 1e3) return (n / 1e3).toFixed(1) + 'K';
+        return Math.round(n).toString();
+      }
+
+      function renderUi(tNow) {
+        const pct = (tNow * 100).toFixed(2) + '%';
+        fillEl.style.inlineSize = pct;
+        thumbEl.style.insetInlineStart = pct;
+        scrubberEl.setAttribute('aria-valuenow', tNow.toFixed(3));
+
+        const inPhase1 = tNow <= PHASE_SPLIT;
+        if (inPhase1) {
+          const localT = tNow / PHASE_SPLIT;
+          const tokens = PRETRAIN_TARGET_TOKENS * easeInOutCubic(localT);
+          readoutPhase.textContent = 'phase 1 · pretraining';
+          readoutCounter.textContent = formatTokens(tokens) + ' tokens ingested';
+        } else {
+          const localT = (tNow - PHASE_SPLIT) / (1 - PHASE_SPLIT);
+          const prefs = RLHF_TARGET_PREFS * easeInOutCubic(localT);
+          readoutPhase.textContent = 'phase 2 · rlhf';
+          readoutCounter.textContent = formatPrefs(prefs) + ' human preferences applied';
+        }
+
+        // Light up the marker that matches the current state, if any.
+        // Tolerance is small — only exact-ish hits highlight.
+        for (const m of markerEls) {
+          const mt = parseFloat(m.dataset.t);
+          m.classList.toggle('active', Math.abs(mt - tNow) < 0.002);
+        }
+      }
+
+      // ---------------------------------------------------------------
+      // Scrubber interaction — pointer drag on the track sets t directly.
+      // ---------------------------------------------------------------
+      let dragging = false;
+      function setTFromPointerX(clientX) {
+        const r = scrubberEl.getBoundingClientRect();
+        const x = Math.max(0, Math.min(r.width, clientX - r.left));
+        setT(x / r.width);
+      }
+      scrubberEl.addEventListener('pointerdown', (e) => {
+        e.preventDefault();
+        dragging = true;
+        scrubberEl.setPointerCapture(e.pointerId);
+        // While the user is scrubbing manually, stop playback so the slider
+        // doesn't fight their input.
+        if (playing) setPlaying(false);
+        setTFromPointerX(e.clientX);
+      });
+      scrubberEl.addEventListener('pointermove', (e) => {
+        if (!dragging) return;
+        setTFromPointerX(e.clientX);
+      });
+      scrubberEl.addEventListener('pointerup', (e) => {
+        dragging = false;
+        try { scrubberEl.releasePointerCapture(e.pointerId); } catch (_) {}
+      });
+      scrubberEl.addEventListener('pointercancel', () => {
+        dragging = false;
+      });
+      // Stop pointerdown bubbling to OrbitControls on .stage so dragging the
+      // scrubber doesn't orbit the camera at the same time.
+      scrubberEl.addEventListener('pointerdown', (e) => e.stopPropagation());
+
+      // ---------------------------------------------------------------
+      // Play / pause
+      // ---------------------------------------------------------------
+      const playBtn = document.getElementById('play-btn');
+      function setPlaying(next) {
+        playing = next;
+        playBtn.textContent = playing ? 'pause ⏸' : (t >= 1 ? 'replay ↻' : 'play ▶');
+        if (playing) lastFrameMs = performance.now();
+      }
+      playBtn.addEventListener('click', () => {
+        if (!playing && t >= 1) {
+          // Restart from the beginning if we're at the end.
+          setT(0);
+        }
+        setPlaying(!playing);
+      });
+      playBtn.addEventListener('pointerdown', (e) => e.stopPropagation());
+
+      // ---------------------------------------------------------------
+      // State markers — clicking a marker jumps to that state and pauses.
+      // Stop propagation so the click doesn't bubble to OrbitControls.
+      // ---------------------------------------------------------------
+      for (const m of markerEls) {
+        m.addEventListener('pointerdown', (e) => e.stopPropagation());
+        m.addEventListener('click', (e) => {
+          e.stopPropagation();
+          if (playing) setPlaying(false);
+          const target = parseFloat(m.dataset.t);
+          if (!Number.isNaN(target)) setT(target);
+        });
+      }
+
+      // ---------------------------------------------------------------
+      // Meta line
+      // ---------------------------------------------------------------
+      document.getElementById('meta-line').textContent =
+        `${SIDE.toLocaleString()} × ${SIDE.toLocaleString()} grid · ` +
+        `${COUNT.toLocaleString()} dots · two phases · fBm target, illustrative`;
+
+      // ---------------------------------------------------------------
+      // Render loop
+      // ---------------------------------------------------------------
+      function tick(nowMs) {
+        controls.update();
+
+        if (playing) {
+          const dt = nowMs - lastFrameMs;
+          lastFrameMs = nowMs;
+          const advance = dt / PLAY_DURATION_MS;
+          const next = t + advance;
+          if (next >= 1) {
+            setT(1);
+            setPlaying(false);
+          } else {
+            setT(next);
+          }
+        } else {
+          // Still re-apply so wobble settles cleanly when pausing.
+          applyT(t);
+        }
+
+        renderer.render(scene, camera);
+        requestAnimationFrame(tick);
+      }
+
+      // Seed UI at t=0 and start the loop.
+      renderUi(0);
+      applyT(0);
+      requestAnimationFrame(tick);
+    </script>
+  </body>
+</html>
