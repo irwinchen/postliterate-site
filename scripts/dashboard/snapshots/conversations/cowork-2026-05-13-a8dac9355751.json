@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "id": "a8dac935-5751-4374-bde7-5c7baec36f2b",
+  "type": "cowork",
+  "project_label": "site",
+  "project_path": "/Users/irwinchen/Documents/postliterate-site",
+  "title": "Can you look at the recent work done on the Admin dashboard? It seems to be at…",
+  "started_at": "2026-05-13T16:44:10.418Z",
+  "last_activity_at": "2026-05-13T20:07:26.012Z",
+  "message_count": 18,
+  "first_prompt": "Can you look at the recent work done on the Admin dashboard? It seems to be at an older version. Currently it's missing the Figures which we added many commits ago. Also Outstanding Sources are not…",
+  "summary": "The session focused on updating the Admin dashboard's UI and functionality, addressing missing features like Figures and Outstanding Sources filenames, and resolving layout and performance issues. The team added the Corpus visualization to the Figures section, adjusted the title/refresh row to prevent scrolling, and explored Ollama's role in the backend; however, the refresh timeout and layout responsiveness for the Git Activity split remained open questions.",
+  "summary_status": "ready",
+  "artifacts": [],
+  "source_ref": {
+    "kind": "cowork",
+    "session_id": "a8dac935-5751-4374-bde7-5c7baec36f2b",
+    "source_key": "58517bfaddc3688b",
+    "date": "2026-05-13"
+  },
+  "ingested_at": "2026-05-14T00:35:52.262Z"
+}

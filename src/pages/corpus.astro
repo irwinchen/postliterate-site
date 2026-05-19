@@ -95,6 +95,38 @@ import CorpusBubbles from '../components/corpus-bubbles/CorpusBubbles.astro';
         color: var(--text-tertiary);
       }
 
+      /* Theme toggle — right-aligned in the nav. Sun shows in dark mode
+         (click → light), moon shows in light mode (click → dark). */
+      .theme-toggle {
+        margin-inline-start: auto;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        inline-size: 28px;
+        block-size: 28px;
+        padding: 0;
+        background: transparent;
+        border: 1px solid var(--border-subtle);
+        color: var(--text-secondary);
+        cursor: pointer;
+        transition: color 150ms ease-out, border-color 150ms ease-out;
+      }
+      .theme-toggle:hover,
+      .theme-toggle:focus-visible {
+        color: var(--accent);
+        border-color: var(--accent);
+        outline: none;
+      }
+      .theme-toggle-icon {
+        display: block;
+        inline-size: 16px;
+        block-size: 16px;
+      }
+      [data-theme='light'] .theme-toggle-sun,
+      [data-theme='dark'] .theme-toggle-moon {
+        display: none;
+      }
+
       .figure-wrap {
         flex: 1;
         min-block-size: 0;
@@ -111,6 +143,31 @@ import CorpusBubbles from '../components/corpus-bubbles/CorpusBubbles.astro';
         document.documentElement.setAttribute('data-theme', saved);
       })();
     </script>
+
+    <script is:inline>
+      // Theme toggle wiring — runs after DOM is ready so the button exists.
+      document.addEventListener('DOMContentLoaded', function () {
+        var btn = document.querySelector('.theme-toggle');
+        if (!btn) return;
+        function syncLabel() {
+          var current =
+            document.documentElement.getAttribute('data-theme') || 'light';
+          btn.setAttribute(
+            'aria-label',
+            current === 'dark' ? 'Switch to light mode' : 'Switch to dark mode',
+          );
+        }
+        syncLabel();
+        btn.addEventListener('click', function () {
+          var current =
+            document.documentElement.getAttribute('data-theme') || 'light';
+          var next = current === 'light' ? 'dark' : 'light';
+          document.documentElement.setAttribute('data-theme', next);
+          localStorage.setItem('theme', next);
+          syncLabel();
+        });
+      });
+    </script>
   </head>
   <body>
     <div class="page-shell">
@@ -118,6 +175,40 @@ import CorpusBubbles from '../components/corpus-bubbles/CorpusBubbles.astro';
         <a href="/">Post-Literate</a>
         <span class="page-nav-sep">›</span>
         <span>What do AI models train on?</span>
+        <button class="theme-toggle" type="button" aria-label="Toggle dark mode">
+          <svg
+            class="theme-toggle-icon theme-toggle-moon"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.75"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+          </svg>
+          <svg
+            class="theme-toggle-icon theme-toggle-sun"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.75"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <circle cx="12" cy="12" r="4" />
+            <path d="M12 2v2" />
+            <path d="M12 20v2" />
+            <path d="m4.93 4.93 1.41 1.41" />
+            <path d="m17.66 17.66 1.41 1.41" />
+            <path d="M2 12h2" />
+            <path d="M20 12h2" />
+            <path d="m6.34 17.66-1.41 1.41" />
+            <path d="m19.07 4.93-1.41 1.41" />
+          </svg>
+        </button>
       </nav>
       <div class="figure-wrap">
         <CorpusBubbles />

@@ -1,0 +1,71 @@
+{
+  "slug": "blank-2026-2",
+  "name": "Video games as stimuli in neuroimaging studies: a minireview",
+  "subtitle": "Blank et al., 2026",
+  "papers": [
+    "blank-2026-2"
+  ],
+  "networks": {
+    "salience-insula": {
+      "displayNum": "",
+      "label": "Anterior Insula / Salience",
+      "color": "#E53E33",
+      "source": "as defined in paper: anterior insula (AI) responses to unfair offers, defection, and contextually appropriate behaviors",
+      "parcels": [
+        "seeley.SN.AI-L",
+        "seeley.SN.AI-R"
+      ]
+    },
+    "acc-cingulate": {
+      "displayNum": "",
+      "label": "Anterior Cingulate Cortex",
+      "color": "#D89233",
+      "source": "as defined in paper: dorsal ACC activated during violent scenes; rostral ACC suppressed; posterior cingulate cortex identified for attack intent prediction",
+      "parcels": [
+        "seeley.SN.ACC"
+      ]
+    },
+    "dmn": {
+      "displayNum": "",
+      "label": "Default Mode Network",
+      "color": "#3B6DB4",
+      "source": "as defined in paper: DMN activated during overly easy tasks (boredom); medial prefrontal activity during wins/losses; precuneus activated during violent scenes",
+      "parcels": [
+        "yeo.DMN-dmPFC",
+        "yeo.DMN-Precuneus"
+      ]
+    },
+    "cen-control": {
+      "displayNum": "",
+      "label": "Cognitive Control / CEN",
+      "color": "#549E44",
+      "source": "as defined in paper: DLPFC active during flow state (cognitive control); inferior/superior parietal cortex active during competition, flow, and navigation",
+      "parcels": [
+        "yeo7.CEN.dlPFC-L",
+        "yeo7.CEN.dlPFC-R",
+        "yeo7.CEN.IPL-L",
+        "yeo7.CEN.IPL-R"
+      ]
+    },
+    "tom-network": {
+      "displayNum": "",
+      "label": "Theory of Mind Network",
+      "color": "#8E5BB8",
+      "source": "as defined in paper: temporoparietal junction activated during violent scenes; theory of mind network central for prediction of attack intents",
+      "parcels": [
+        "tom.TPJ-L",
+        "tom.TPJ-R"
+      ]
+    }
+  },
+  "networkOrder": [
+    "salience-insula",
+    "acc-cingulate",
+    "dmn",
+    "cen-control",
+    "tom-network"
+  ],
+  "uiMode": "chips-with-compare",
+  "defaultNetwork": "salience-insula",
+  "glossaryMode": "in-view-only"
+}

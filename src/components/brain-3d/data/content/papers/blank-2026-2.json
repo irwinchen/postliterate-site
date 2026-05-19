@@ -1,0 +1,233 @@
+{
+  "sections": [
+    {
+      "level": 2,
+      "heading": "Economic games in the fMRI scanner",
+      "paragraphs": [
+        {
+          "segments": [
+            {
+              "type": "text",
+              "value": "In the ultimatum game, there are two players: one proposes how to divide a sum of money, and the other responds either by accepting or rejecting. Given this design, the ultimatum game has been relatively easy to adapt to the fMRI environment, and thus, not surprisingly, the first study was carried out more than two decades ago. In this study, responses in the "
+            },
+            {
+              "type": "ref",
+              "value": "anterior insula (AI)",
+              "parcelId": "seeley.SN.AI-L"
+            },
+            {
+              "type": "text",
+              "value": " were observed when experimental participants received unfair offers in the ultimatum game (Sanfey et al., 2003). In a subsequent study, it was observed that unfair offers both to the players themselves and toward others whom they were playing on behalf of activated the AI, suggesting that AI supports perception of unfairness in general (Corradi-Dell'Acqua et al., 2013). In contrast, the ventromedial prefrontal cortex (VMPFC) only responded when the unfair treatment was directed against the self, and this effect was augmented for offers that the players rejected (Corradi-Dell'Acqua et al., 2013)."
+            }
+          ]
+        },
+        {
+          "segments": [
+            {
+              "type": "text",
+              "value": "In a separate set of studies, participants played the Prisoner's Dilemma game during fMRI. In this game, if both players choose to cooperate, they receive the same amount of money. If one player defects, the defector receives a larger sum than if both had cooperated. Additionally, the one who chose to cooperate in that round receives nothing. If both players defect, they get less than if both cooperate. During mutual cooperation, a significant increase in hemodynamic activity was observed in the striatal structures, the VMPFC, and the rostral "
+            },
+            {
+              "type": "ref",
+              "value": "anterior cingulate cortex (ACC)",
+              "parcelId": "seeley.SN.ACC"
+            },
+            {
+              "type": "text",
+              "value": " (Rilling et al., 2002). In contrast, when the other player defected while the participants chose to cooperate, there were robust responses in the "
+            },
+            {
+              "type": "ref",
+              "value": "AI",
+              "parcelId": "seeley.SN.AI-L"
+            },
+            {
+              "type": "text",
+              "value": " (Rilling et al., 2008). In addition to the AI, activations were observed in the hippocampus and the amygdala, together with a deactivation of the ventral striatum (Rilling et al., 2008). Since defecting is considered unfair to the other player, the observed AI activity aligns with the results from the ultimatum game (Sanfey et al., 2003; Corradi-Dell'Acqua et al., 2013). This conclusion is further supported by findings from ultimatum game play in neurological patients with insula lesions (Nitsch et al., 2022)."
+            }
+          ]
+        }
+      ],
+      "subsections": []
+    },
+    {
+      "level": 2,
+      "heading": "First-person shooter games",
+      "paragraphs": [
+        {
+          "segments": [
+            {
+              "type": "text",
+              "value": "In the first study, activation of the dorsal "
+            },
+            {
+              "type": "ref",
+              "value": "ACC",
+              "parcelId": "seeley.SN.ACC"
+            },
+            {
+              "type": "text",
+              "value": ", "
+            },
+            {
+              "type": "ref",
+              "value": "precuneus",
+              "parcelId": "yeo.DMN-Precuneus"
+            },
+            {
+              "type": "text",
+              "value": ", cerebellum, and "
+            },
+            {
+              "type": "ref",
+              "value": "temporoparietal junction",
+              "parcelId": "tom.TPJ-R"
+            },
+            {
+              "type": "text",
+              "value": " was observed during violent scenes, in addition to the suppression of activity in the rostral "
+            },
+            {
+              "type": "ref",
+              "value": "ACC",
+              "parcelId": "seeley.SN.ACC"
+            },
+            {
+              "type": "text",
+              "value": ", amygdala, intraparietal sulcus, OFC, posterior insula, and parahippocampal areas (Mathiak and Weber, 2006). The suppression of ACC and amygdala activity around the time of engaging in violence in the game was corroborated by a subsequent study (Weber et al., 2009a)."
+            }
+          ]
+        },
+        {
+          "segments": [
+            {
+              "type": "text",
+              "value": "Using this type of approach, the ventral "
+            },
+            {
+              "type": "text",
+              "value": " and "
+            },
+            {
+              "type": "ref",
+              "value": "theory of mind network",
+              "parcelId": "tom.TPJ-R"
+            },
+            {
+              "type": "text",
+              "value": " of the brain were identified as central for the prediction of attack intents of others (Ye et al., 2025)."
+            }
+          ]
+        }
+      ],
+      "subsections": []
+    },
+    {
+      "level": 2,
+      "heading": "Video games in studies of the flow state",
+      "paragraphs": [
+        {
+          "segments": [
+            {
+              "type": "text",
+              "value": "Flow state results when the task difficulty and individual ability are in balance: too difficult tasks tend to be anxiety-inducing, and too easy tasks are boring. When brain activity elicited during a balanced-difficulty task was contrasted with too difficult and too easy tasks, activity was observed in the "
+            },
+            {
+              "type": "ref",
+              "value": "dorsolateral prefrontal cortex (DLPFC)",
+              "parcelId": "yeo7.CEN.dlPFC-L"
+            },
+            {
+              "type": "text",
+              "value": ", the superior parietal lobule, "
+            },
+            {
+              "type": "ref",
+              "value": "AI",
+              "parcelId": "seeley.SN.AI-L"
+            },
+            {
+              "type": "text",
+              "value": ", and putamen, attributed to cognitive control, attention, and reward processing. Additionally, the DLPFC and putamen exhibited heightened functional connectivity during balanced task difficulty, suggesting that intrinsic reward and cognitive control are coupled during a flow state (Huskey et al., 2018). Interestingly, the DLPFC is also a hub in a brain network that supports the feeling of presence in virtual reality (Baumgartner et al., 2008; Jäncke et al., 2009). In contrast to balanced task difficulty, overly easy tasks resulted in activation of the default-mode network (DMN) (Huskey et al., 2018), consistent with findings suggesting that boredom during video gaming drives DMN activation (Mathiak et al., 2013)."
+            }
+          ]
+        },
+        {
+          "segments": [
+            {
+              "type": "text",
+              "value": "In one study, the time courses of factors known to contribute to flow experience, i.e., balance between ability and challenges, concentration, direct feedback, clear goals, and control over the activity, were used as predictors of fMRI responses (Klasen et al., 2012). In this analysis, the balance between ability and challenge resulted in activity in the striatal structures, cerebellum, thalamus, superior parietal cortex, and motor–premotor areas. Concentration, in turn, was associated with increased activity in the cerebellum, visual areas, "
+            },
+            {
+              "type": "ref",
+              "value": "precuneus",
+              "parcelId": "yeo.DMN-Precuneus"
+            },
+            {
+              "type": "text",
+              "value": ", and premotor cortex. During the presence of clear goals, activity was enhanced in the fusiform face area and the intraparietal sulcus. Finally, control was associated with the activity in the visual, cerebellar, thalamic, and motor regions (Klasen et al., 2012)."
+            }
+          ]
+        }
+      ],
+      "subsections": []
+    },
+    {
+      "level": 2,
+      "heading": "Video games in studies of emotions",
+      "paragraphs": [
+        {
+          "segments": [
+            {
+              "type": "text",
+              "value": "In the component process model of emotions (CPM), appraisal, motivation, physiology, and expression components dynamically interact to produce emotional states (Scherer, 2009). During video game play, the appraisal component, coping potential, and goal conduciveness recruited brain regions associated with action planning, uncertainty, valuation, reward processing, attention, and salience/relevance detection (Leitao et al., 2020). Motivation processes recruited the orbitofrontal, "
+            },
+            {
+              "type": "ref",
+              "value": "anterior cingulate",
+              "parcelId": "seeley.SN.ACC"
+            },
+            {
+              "type": "text",
+              "value": ", and posterior parietal cortices associated with approach and avoidance. The expression component, modeled with participants' facial electromyography, and the physiology component, measured using heart rate and electrical skin conductance, co-varied with activity in areas associated with control of facial muscles as well as subcortical, prefrontal, and "
+            },
+            {
+              "type": "ref",
+              "value": "insular",
+              "parcelId": "seeley.SN.AI-L"
+            },
+            {
+              "type": "text",
+              "value": " areas associated with affective interactions with peripheral physiology (Leitao et al., 2020)."
+            }
+          ]
+        }
+      ],
+      "subsections": []
+    },
+    {
+      "level": 2,
+      "heading": "Video games in studies of social cognition",
+      "paragraphs": [
+        {
+          "segments": [
+            {
+              "type": "text",
+              "value": "In an interesting study, players were engaged in either context-appropriate behaviors or context-inappropriate behaviors (King et al., 2006). Context-appropriate behaviors involved shooting an assailant and healing a wounded person. Context-inappropriate behaviors included shooting a wounded person and healing an assailant. During context-appropriate vs. context-inappropriate behaviors, enhanced activity was observed in the VMPFC and the amygdala, as well as in the "
+            },
+            {
+              "type": "ref",
+              "value": "AI",
+              "parcelId": "seeley.SN.AI-L"
+            },
+            {
+              "type": "text",
+              "value": " (King et al., 2006). These findings were interpreted to support, in healthy subjects, the somatic marker hypothesis formulated based on neurological patients with VMPFC and amygdala lesions failing to behave in a contextually appropriate manner (see Damasio, 1994). These results in the healthy video game players suggest that areas supporting contextually appropriate behaviors additionally include the AI (King et al., 2006), though the AI activity could also indicate empathy to the pain of others (Singer et al., 2004)."
+            }
+          ]
+        }
+      ],
+      "subsections": []
+    }
+  ]
+}

@@ -42,6 +42,14 @@
     ]
   },
   {
+    "id": "tokens",
+    "title": "From Text to Vector — GPT-2 Pipeline",
+    "page": "/tokens",
+    "images": [
+      { "file": "tokens.png" }
+    ]
+  },
+  {
     "id": "virgil",
     "title": "Virgil iOS App",
     "images": [

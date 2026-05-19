@@ -1,0 +1,1969 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>PostLiterate Reader — v0 Prototype</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Literata:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Outfit:wght@400;500;600&family=Sono:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.158.0/build/three.module.js",
+      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.158.0/examples/jsm/",
+      "d3-force-3d": "https://cdn.jsdelivr.net/npm/d3-force-3d@3.0.5/+esm"
+    }
+  }
+  </script>
+
+  <style>
+    :root { color-scheme: dark; }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      block-size: 100dvh;
+      inline-size: 100vw;
+      overflow: hidden;
+      background: #0B0D11;
+      font-family: 'Outfit', system-ui, sans-serif;
+      color: #F2ECD5;
+    }
+
+    #scene {
+      position: fixed;
+      inset: 0;
+      display: block;
+      inline-size: 100vw;
+      block-size: 100dvh;
+    }
+
+    #crosshair {
+      position: fixed;
+      inset-block-start: 50%;
+      inset-inline-start: 50%;
+      inline-size: 12px;
+      block-size: 12px;
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 200ms ease;
+      z-index: 10;
+    }
+    #crosshair.active { opacity: 0.5; }
+    #crosshair::before, #crosshair::after {
+      content: '';
+      position: absolute;
+      background: #F2ECD5;
+    }
+    #crosshair::before {
+      inset-block: 0;
+      inset-inline-start: 50%;
+      inline-size: 1px;
+      transform: translateX(-50%);
+    }
+    #crosshair::after {
+      inset-inline: 0;
+      inset-block-start: 50%;
+      block-size: 1px;
+      transform: translateY(-50%);
+    }
+
+    #instructions {
+      position: fixed;
+      inset-block-end: 32px;
+      inset-inline: 0;
+      text-align: center;
+      font-family: 'Sono', monospace;
+      font-size: 12px;
+      color: #6A6459;
+      pointer-events: none;
+      opacity: 1;
+      transition: opacity 600ms ease;
+      z-index: 10;
+      letter-spacing: 0.05em;
+    }
+    #instructions.hidden { opacity: 0; }
+
+    #edge-hud {
+      position: fixed;
+      inset-block-end: 32px;
+      inset-inline-end: 32px;
+      font-family: 'Sono', monospace;
+      font-size: 11px;
+      color: #6A6459;
+      pointer-events: none;
+      z-index: 10;
+      letter-spacing: 0.05em;
+      text-align: end;
+      display: grid;
+      row-gap: 4px;
+    }
+
+    #aux-panel {
+      position: fixed;
+      inline-size: 280px;
+      padding: 14px 18px;
+      background: #0B0D11;
+      border: 1px solid #6A6459;
+      color: #D0C5AE;
+      pointer-events: auto;
+      z-index: 20;
+      box-sizing: border-box;
+    }
+    #aux-panel[hidden] { display: none; }
+
+    #aux-panel .kind {
+      font-family: 'Sono', monospace;
+      font-weight: 500;
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 2.5px;
+      color: #F26357;
+      margin-block-end: 6px;
+    }
+    #aux-panel .kind:empty { display: none; }
+
+    #aux-panel .title {
+      font-family: 'Outfit', sans-serif;
+      font-weight: 600;
+      font-size: 18px;
+      color: #F2ECD5;
+      line-height: 1.25;
+      text-wrap: balance;
+      margin: 0 0 10px 0;
+    }
+
+    #aux-panel .meta {
+      font-family: 'Sono', monospace;
+      font-size: 11px;
+      color: #9A9588;
+      display: grid;
+      grid-template-columns: max-content 1fr;
+      column-gap: 14px;
+      row-gap: 3px;
+      border-inline-start: 1px solid #2A2F3A;
+      padding-inline-start: 12px;
+      padding-block: 4px;
+      margin-block-end: 10px;
+    }
+    #aux-panel .meta:empty { display: none; }
+    #aux-panel .meta .fm-key { color: #6A6459; text-transform: lowercase; }
+    #aux-panel .meta .fm-val { color: #D0C5AE; overflow: hidden; text-overflow: ellipsis; }
+
+    #aux-panel .body {
+      font-family: 'Literata', serif;
+      font-size: 13px;
+      line-height: 1.5;
+      color: #D0C5AE;
+      text-wrap: pretty;
+      margin: 0;
+    }
+    #aux-panel .body:empty { display: none; }
+
+    #aux-panel .read { display: none; }
+
+    #fly-tint {
+      position: fixed;
+      inset: 0;
+      background: #F2ECD5;
+      opacity: 0.09;
+      pointer-events: none;
+      z-index: 5;
+      transition: opacity 500ms ease;
+    }
+    #fly-tint.hidden { opacity: 0; }
+
+    #tether {
+      position: fixed;
+      inset: 0;
+      inline-size: 100vw;
+      block-size: 100dvh;
+      pointer-events: none;
+      z-index: 15;
+    }
+    #tether[hidden] { display: none; }
+
+    #source-modal {
+      position: fixed;
+      inset: 0;
+      z-index: 100;
+      display: grid;
+      place-items: center;
+    }
+    #source-modal[hidden] { display: none; }
+
+    .modal-backdrop {
+      position: absolute;
+      inset: 0;
+      background: rgba(11, 13, 17, 0.85);
+      backdrop-filter: blur(6px);
+    }
+
+    .modal-card {
+      position: relative;
+      inline-size: min(780px, calc(100vw - 48px));
+      max-block-size: calc(100dvh - 48px);
+      background: #0B0D11;
+      border: 1px solid #F26357;
+      color: #D0C5AE;
+      box-sizing: border-box;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .modal-header {
+      flex: 0 0 auto;
+      padding-block: 40px 20px;
+      padding-inline: 64px 96px;
+      background: #0B0D11;
+      border-block-end: 1px solid #2A2F3A;
+    }
+
+    .modal-scroll {
+      flex: 1 1 auto;
+      overflow-y: auto;
+      overscroll-behavior: contain;
+      scrollbar-gutter: stable;
+      scrollbar-color: #2A2F3A transparent;
+      scrollbar-width: thin;
+      padding: 28px 64px 56px;
+    }
+    .modal-scroll::-webkit-scrollbar { inline-size: 8px; }
+    .modal-scroll::-webkit-scrollbar-track { background: transparent; }
+    .modal-scroll::-webkit-scrollbar-thumb {
+      background: #2A2F3A;
+      border-radius: 4px;
+    }
+    .modal-scroll::-webkit-scrollbar-thumb:hover { background: #3A3F4A; }
+
+    .modal-close {
+      position: absolute;
+      inset-block-start: 12px;
+      inset-inline-end: 16px;
+      background: transparent;
+      border: 0;
+      color: #9A9588;
+      font: 500 28px 'Outfit', sans-serif;
+      line-height: 1;
+      padding: 8px 12px;
+      cursor: pointer;
+      z-index: 1;
+    }
+    .modal-close:hover,
+    .modal-close:focus-visible { color: #F2ECD5; }
+
+    .modal-title {
+      font-family: 'Literata', serif;
+      font-weight: 700;
+      font-size: 42px;
+      line-height: 1.1;
+      color: #F2ECD5;
+      text-wrap: balance;
+      margin: 0;
+    }
+
+    .modal-meta {
+      font-family: 'Sono', monospace;
+      font-size: 13px;
+      color: #9A9588;
+      display: grid;
+      grid-template-columns: max-content 1fr;
+      column-gap: 20px;
+      row-gap: 5px;
+      border-inline-start: 1px solid #2A2F3A;
+      padding-inline-start: 18px;
+      padding-block: 8px;
+      margin-block-end: 28px;
+    }
+    .modal-meta:empty { display: none; }
+    .modal-meta .fm-key { color: #6A6459; text-transform: lowercase; }
+    .modal-meta .fm-val { color: #D0C5AE; }
+
+    .modal-body {
+      font-family: 'Literata', serif;
+      color: #D0C5AE;
+      text-wrap: pretty;
+      margin-block-end: 32px;
+    }
+    .modal-body p {
+      font-size: 17px;
+      line-height: 1.7;
+      margin: 0 0 1em 0;
+    }
+    /* Lead paragraph — larger, lighter. Establishes the editorial voice and
+       makes the text-size modulation visible. */
+    .modal-body p:first-child {
+      font-size: 21px;
+      line-height: 1.55;
+      color: #E8E3D5;
+      margin-block-end: 1.2em;
+      text-wrap: pretty;
+    }
+    .modal-body p:last-child { margin-block-end: 0; }
+
+    .modal-actions { display: flex; gap: 16px; }
+
+    .modal-read {
+      font-family: 'Outfit', sans-serif;
+      font-size: 15px;
+      color: #F26357;
+      text-decoration: underline;
+      user-select: none;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="scene"></canvas>
+  <div id="fly-tint"></div>
+  <div id="crosshair"></div>
+  <div id="instructions">Click to enter &middot; WASD fly &middot; Look at a node to preview &middot; Click to open &middot; Esc to close</div>
+  <div id="edge-hud">
+    <div id="edge-hud-edges">[E] edges: on</div>
+    <div id="edge-hud-curve">[C] curve: off</div>
+    <div>[R] resettle layout</div>
+    <div>[H] recenter</div>
+  </div>
+
+  <div id="aux-panel" hidden>
+    <div class="kind"></div>
+    <div class="title"></div>
+    <div class="meta"></div>
+    <div class="body"></div>
+    <span class="read">Read &rsaquo;</span>
+  </div>
+
+  <svg id="tether" hidden>
+    <line x1="0" y1="0" x2="0" y2="0" stroke="#F26357" stroke-width="1" stroke-opacity="0.7"/>
+  </svg>
+
+  <div id="source-modal" hidden>
+    <div class="modal-backdrop"></div>
+    <article class="modal-card">
+      <button class="modal-close" aria-label="Close">&times;</button>
+      <header class="modal-header">
+        <h1 class="modal-title"></h1>
+      </header>
+      <div class="modal-scroll">
+        <div class="modal-meta"></div>
+        <div class="modal-body"></div>
+        <div class="modal-actions">
+          <a class="modal-read" href="#">Open source &rsaquo;</a>
+        </div>
+      </div>
+    </article>
+  </div>
+
+  <script type="application/json" id="scene-data">
+{
+  "nodes": [
+    {
+      "id": "synthetic-orality",
+      "title": "Synthetic Orality",
+      "kind": "concept",
+      "cardColor": "white",
+      "cardNumber": "012",
+      "position": [0, 3, 0],
+      "tier": "primary",
+      "body_preview": "Something has changed about how we read. The text we encounter now is increasingly produced by systems that borrow every surface feature of human speech — its rhythm, its hesitations, its appearance of thinking — while running on a substrate that has no stake in what it's saying.",
+      "body_full": "Something has changed about how we read. The text we encounter now is increasingly produced by systems that borrow every surface feature of human speech — its rhythm, its hesitations, its appearance of thinking — while running on a substrate that has no stake in what it's saying.\n\nThis is what I'll call synthetic orality: a third regime of speech, distinct from the primary orality of face-to-face conversation and the secondary orality Walter Ong identified in broadcast media. It has the warmth of speech but not its accountability. It sounds like thinking, but no one is thinking.\n\nThe medium matters because the medium shapes the mind. Literacy didn't just record speech — it restructured cognition. Synthetic orality does something different again: it collapses the critical distance that reading provides, while offering the illusion of conversation.\n\nWe need a word for this because the word doesn't exist yet. Calling it \"AI text\" flattens it into a technical artifact. Calling it \"generated content\" treats it as a commodity. But what's actually happening is philosophical: we're encountering speech-shaped objects that have none of the commitments of speech.\n\nThe argument of this project is that synthetic orality is neither a tool to pick up nor a threat to put down. It is a new thing, and we need to learn how to read it — which is to say, how to keep the critical distance that reading itself is supposed to provide."
+    },
+    {
+      "id": "updating-ong",
+      "title": "Updating Ong",
+      "kind": "concept",
+      "cardColor": "white",
+      "cardNumber": "018",
+      "position": [-2.2, 4.6, -3.0],
+      "tier": "secondary",
+      "body_preview": "Walter Ong described a 'secondary orality' — broadcast speech delivered through electronic media. The term doesn't cover what we're in now. We need a third category for speech that never passed through a speaker.",
+      "body_full": "Walter Ong described two regimes of spoken language. Primary orality is the speech of pre-literate cultures — everything anyone has ever said has been heard by someone else, in the moment, face to face. Secondary orality arrives with electronic broadcast media. It sounds like speech but is one-to-many, recorded, consumable across time.\n\nOng's framework doesn't cover what we're in now. Synthetic orality is speech that never passed through a speaker at all. It was generated by a system optimizing for plausibility. No one intended it, and no one is on the other end of the channel.\n\nWe need a third category. The distinction matters because the epistemic position of each regime is different. Primary orality assumes shared context and mutual presence. Secondary orality assumes a speaker with a stake in being understood. Synthetic orality assumes neither.\n\nMost of the anxieties about AI text — about misinformation, about authenticity, about trust — come from applying secondary-orality expectations to synthetic-orality artifacts. That's the category error this chapter is trying to correct."
+    },
+    {
+      "id": "pharmakon",
+      "title": "Pharmakon",
+      "kind": "concept",
+      "cardColor": "white",
+      "cardNumber": "022",
+      "position": [2.6, 4.9, 1.5],
+      "tier": "secondary",
+      "body_preview": "Plato's pharmakon — the word that means both remedy and poison. Writing, in the Phaedrus, is presented as both. The frame is useful for synthetic orality, which promises access and delivers something else.",
+      "body_full": "Plato's Phaedrus contains an odd section where Socrates recounts a myth about the invention of writing. The god Thoth offers writing to the Egyptian king Thamus as a gift — a pharmakon, which in Greek means both remedy and poison.\n\nThamus refuses it. Writing, he says, will weaken memory. People will seem wise without actually being wise. The dialogue is often read as a warning against literacy itself, but Plato's point is subtler: writing is both remedy and poison, and the same technology serves both functions.\n\nSynthetic orality is a pharmakon in this older sense. It can extend thinking or short-circuit it. The same interface that helps a novice draft an email helps an anxious person offload the work of figuring out what they actually think. The question is never whether the tool is good — it is whether the user is in a position to hold onto themselves while using it."
+    },
+    {
+      "id": "ong-orality-literacy",
+      "title": "Orality and Literacy",
+      "kind": "source",
+      "subtype": "book",
+      "author": "Walter J. Ong",
+      "year": 1982,
+      "publisher": "Methuen",
+      "pageCount": 232,
+      "bookDimensions": [5.5, 8.5, 0.6],
+      "position": [3.4, 3.6, -1.4],
+      "tier": "tertiary",
+      "body_preview": "Ong's argument that literacy is not a tool for recording speech but a technology that reshapes cognition — reorganizing memory, syntax, and the sense of self. Foundational for the book's thesis.",
+      "body_full": "Ong argues that literacy is not merely a tool for recording speech. It is a technology that reshapes cognition — reorganizing memory, syntax, and the sense of self. This is the foundational argument for thinking about media as technologies of mind rather than as neutral channels.\n\nPre-literate speech, in Ong's account, is situational, aggregative, redundant, close to the human lifeworld. Literate thinking is abstract, analytic, distanced, capable of treating concepts as objects. The shift from one to the other is not additive — it replaces the cognitive default.\n\nMost importantly: literacy interiorizes. The ability to read silently produces a particular kind of inner life — the reader as an isolated consciousness in dialogue with a text that is not present and cannot answer. Every subsequent communication technology modifies this interior.\n\nOng's framework is indispensable for thinking about synthetic orality. If we are in a third regime of language, the question becomes: what does this regime do to the inner life that literacy produced?"
+    },
+    {
+      "id": "polanyi-tacit-dimension",
+      "title": "The Tacit Dimension",
+      "kind": "source",
+      "subtype": "book",
+      "author": "Michael Polanyi",
+      "year": 1966,
+      "publisher": "University of Chicago Press",
+      "pageCount": 128,
+      "bookDimensions": [5.5, 8.5, 0.4],
+      "position": [-3.2, 2.5, -1.9],
+      "tier": "tertiary",
+      "body_preview": "Polanyi's argument that much of what we know we cannot articulate. We know more than we can tell. The structure of tacit knowledge is a from-to relation that synthetic orality cannot enter.",
+      "body_full": "We know more than we can tell. That is Polanyi's starting proposition — the claim that all knowing has a tacit dimension that cannot be made fully explicit.\n\nPolanyi's structure of tacit knowledge is a from-to relation. We know things by attending from proximal cues to a distal meaning. The proximal cues themselves usually remain subsidiary, unattended, below the threshold of articulation. We recognize a face without being able to describe the features we're using.\n\nThis structure is important for thinking about synthetic orality because synthetic orality operates only on the explicit. It has no access to the from-to relation of tacit knowing. Whatever it produces is necessarily flattened — all meaning, no attending.\n\nThe upshot: the kinds of understanding that matter most in human life — skill, judgment, taste, the recognition of someone you love — are tacit in Polanyi's sense. They can be pointed at, but not articulated. A technology that only manipulates the articulable is working with a thin slice of what knowing is."
+    },
+    {
+      "id": "mahr-csibra-episodic",
+      "title": "Why Do We Remember?",
+      "kind": "source",
+      "subtype": "paper",
+      "author": "Mahr & Csibra",
+      "year": 2018,
+      "venue": "Behavioral and Brain Sciences",
+      "position": [2.0, 1.3, 2.9],
+      "tier": "tertiary",
+      "body_preview": "A paper arguing that episodic memory is not for the private recall of one's own past, but for communicating past events to others with the epistemic weight of firsthand testimony.",
+      "body_full": "Mahr and Csibra propose that episodic memory is not primarily for the private recall of one's own past. It is structured to support the assertion of past events to other minds, with the epistemic weight of firsthand testimony.\n\nOn this view, memory is social before it is individual. The reason we can recall specific past moments with a phenomenal sense of \"remembering\" is that this phenomenology is doing communicative work — it is the basis on which we claim epistemic authority when we tell stories to others.\n\nSynthetic orality can produce narratives that sound like episodic recall. They have the surface features — specific details, temporal grounding, first-person framing — but none of the epistemic function. There is no memory behind the recollection. The narrative is generated on demand, without a past.\n\nThis matters because we extend epistemic credit based on the phenomenology of remembering. Synthetic orality exploits the trust-signaling structure of episodic memory while lacking the structure's grounding. The result is a kind of testimony-shaped object that cannot be examined in the way testimony is meant to be examined."
+    },
+    {
+      "id": "derrida-phaedrus",
+      "title": "Phaedrus",
+      "kind": "source",
+      "subtype": "book",
+      "author": "Plato (trans. Waterfield)",
+      "year": -370,
+      "publisher": "Oxford World's Classics",
+      "pageCount": 192,
+      "bookDimensions": [5.0, 7.75, 0.5],
+      "position": [-4.6, 4.3, 1.0],
+      "tier": "tertiary",
+      "body_preview": "Plato's dialogue on rhetoric, love, and the invention of writing. The section on Thoth offering writing to the Egyptian king has been a touchstone for two millennia of reflection on literacy.",
+      "body_full": "Plato's Phaedrus is a dialogue on rhetoric, love, and the invention of writing. The section where Socrates tells the myth of Thoth has been a touchstone for two millennia of reflection on literacy and its consequences.\n\nThe dialogue's suspicion of writing is often read as naive — surely Plato, of all people, should recognize the value of the written word. But his suspicion is specific. Writing, in Plato's framing, cannot answer questions. It circulates beyond the context of its production and cannot defend itself. It always says the same thing, no matter who asks.\n\nThis is exactly the problem with synthetic orality. It circulates even more promiscuously than writing, and it cannot defend itself because there is nothing behind it to defend. A static text at least has an author who had intentions. A synthetic utterance has neither author nor intention — only a distribution of likely next tokens."
+    },
+    {
+      "id": "scroll-berry-picking",
+      "title": "Scroll-Berry-Picking",
+      "kind": "essay",
+      "cardColor": "yellow",
+      "cardNumber": "043",
+      "chapterNumber": 4,
+      "position": [1.1, 5.6, -2.1],
+      "tier": "primary",
+      "body_preview": "A post arguing that endless scroll feeds are berry-picking — short bursts of novelty that exploit the same optimization loop as foraging for glucose. The algorithmic feed is the indoor berry patch.",
+      "body_full": "Endless scroll feeds are berry-picking.\n\nThat's the claim. The short bursts of novelty we get from scrolling a feed — the next post, the next video, the next headline — exploit the same optimization loop our ancestors used to forage glucose in summer berry patches. High-density caloric signal. Variable return. Ripe now, gone soon. Keep foraging.\n\nThe feed is the indoor berry patch. It's always summer. The berries never run out.\n\nWhat makes this worse than older novelty-seeking behaviors is the density. A forager could pick a whole morning's berries in an hour. A scrolling user gets the same hit-rate in thirty seconds. The cognitive machinery that made us good at foraging is running at a clock speed it was never designed for.\n\nAnd the feed is tuned. Each post has been selected to exceed baseline novelty. The algorithm isn't showing you a sample of the world — it's showing you the subset of the world that clears the bar of \"this will keep you scrolling.\" The indoor berry patch where every berry is perfectly ripe, every berry is the sweetest you have ever tasted, and the patch is infinite.\n\nThe way out isn't willpower. Nobody resists an infinitely dense berry patch through willpower. The way out is to recognize the pattern and move the body out of the patch."
+    },
+    {
+      "id": "timeline-communication",
+      "title": "Timeline of Human Communication",
+      "kind": "multimedia",
+      "cardColor": "pink",
+      "cardNumber": "014",
+      "mediaType": "interactive",
+      "position": [0.5, 0.9, -1.6],
+      "tier": "primary",
+      "body_preview": "An interactive timeline showing the scale of human communication regimes: 2.5M years of gesture, ~200k years of speech, ~5k years of writing, 500 years of print, 100 years of broadcast, 30 years of digital, 3 years of synthetic.",
+      "body_full": "An interactive timeline showing the scale of human communication regimes, laid out on a logarithmic axis to make the acceleration visible.\n\nThe scale is worth sitting with. Two and a half million years of gesture and grunting. About two hundred thousand years of speech. Five thousand years of writing — barely 0.2% of our species' communicative life. Five hundred years of print. A hundred years of broadcast. Thirty years of digital. Three years of synthetic.\n\nThe timeline asks the user to drag a slider and see how fast the regimes stack. The point is not that each regime replaces the last — they layer. We still gesture, still speak, still read. But each new regime arrives in dramatically less time than the last, compounding the cognitive load of adjustment.\n\nNo previous generation has been asked to integrate this many layers this fast. The timeline is the argument, made visually: the rate of change is the story."
+    }
+  ],
+  "links": [
+    { "source": "updating-ong",           "target": "synthetic-orality" },
+    { "source": "pharmakon",              "target": "synthetic-orality" },
+    { "source": "scroll-berry-picking",   "target": "synthetic-orality" },
+    { "source": "timeline-communication", "target": "synthetic-orality" },
+    { "source": "synthetic-orality",      "target": "polanyi-tacit-dimension" },
+    { "source": "synthetic-orality",      "target": "mahr-csibra-episodic" },
+    { "source": "updating-ong",           "target": "ong-orality-literacy" },
+    { "source": "pharmakon",              "target": "derrida-phaedrus" }
+  ]
+}
+  </script>
+
+  <script type="module">
+    import * as THREE from 'three';
+    import { PointerLockControls } from 'three/addons/controls/PointerLockControls.js';
+    import {
+      forceSimulation,
+      forceManyBody,
+      forceLink,
+      forceCenter,
+      forceX, forceY, forceZ,
+    } from 'd3-force-3d';
+
+    // ────────────────────────────────────────────────────────────
+    // Palette
+    // ────────────────────────────────────────────────────────────
+    const COLORS = {
+      void: '#0B0D11',
+      cardWhite: '#F2ECD5',
+      cardBorder: '#D8D2BF',
+      cardNumber: '#6A6459',
+      inkPrimary: '#111',
+      yellow: '#EBC96A',
+      yellowRule: '#B89A42',
+      pink: '#E8B4C0',
+      pinkDark: '#D88FA0',
+      pinkGlyph: '#8A4F5C',
+      bookCloth: '#6B5D4A',
+      bookClothDark: '#52463A',
+      bookClothLight: '#D0C5AE',
+      pageEdge: '#E8DFC7',
+      paper: '#F5F1E8',
+      paperLine: '#E8E2D4',
+      paperLabel: '#6A6459',
+      paperBody: '#7A766E',
+      paperAbstract: '#5A564E',
+      edgeBase: '#9A9588',
+      highlight: '#F26357',
+    };
+
+    const SWATCH = {
+      white: '#F2ECD5',
+      yellow: '#EBC96A',
+      pink: '#E8B4C0',
+      purple: '#B09BC5',
+    };
+
+    const OPACITY_BY_TIER = {
+      primary: 1.0,
+      secondary: 0.92,
+      tertiary: 0.65,
+    };
+
+    // ────────────────────────────────────────────────────────────
+    // v0.2.1 — Library, tether, recenter
+    // ────────────────────────────────────────────────────────────
+    const LIBRARY = {
+      halfX: 20,
+      halfZ: 20,
+      yFloor: 0,
+      yCeil: 12,
+      lineColor: 0xE8E8E8,
+      lineOpacity: 0.22,
+      gridOpacity: 0.15,
+    };
+
+    const EYE_HEIGHT = 3;
+
+    const TETHER = {
+      center: new THREE.Vector3(0, 4, 0),
+      radius: 25,
+      easeFactor: 0.08,
+    };
+
+    const CAMERA_HOME = {
+      position: new THREE.Vector3(0, EYE_HEIGHT, 10),
+      lookAt:   new THREE.Vector3(0, EYE_HEIGHT, 0),
+    };
+
+    const RECENTER = {
+      durationMs: 500,
+    };
+
+    // Tertiary/secondary nodes must render semi-transparent so they recede
+    // into the periphery. Materials coming from shared caches (pageEdgeMat)
+    // are cloned here so we don't mutate other meshes' materials.
+    function applyTierOpacity(mesh, tier) {
+      const op = OPACITY_BY_TIER[tier] ?? 1.0;
+      if (op >= 1.0) return;
+      const apply = (mat) => {
+        const m = mat.clone();
+        m.transparent = true;
+        m.opacity = op;
+        return m;
+      };
+      if (Array.isArray(mesh.material)) {
+        mesh.material = mesh.material.map(apply);
+      } else {
+        mesh.material = apply(mesh.material);
+      }
+    }
+
+    // ────────────────────────────────────────────────────────────
+    // Font loading — explicitly load each face we'll use in canvas
+    // ────────────────────────────────────────────────────────────
+    async function ensureFonts() {
+      const faces = [
+        '400 16px Literata',
+        'italic 400 28px Literata',
+        'italic 400 22px Literata',
+        '500 16px Literata',
+        '600 20px Literata',
+        '600 54px Literata',
+        '700 32px Literata',
+        '700 56px Literata',
+        '700 64px Literata',
+        '700 110px Literata',
+        '500 28px Sono',
+        '500 16px Sono',
+        '500 18px Sono',
+        '500 36px Sono',
+        '600 22px Outfit',
+        '400 200px Outfit',
+      ];
+      await Promise.all(faces.map(f => document.fonts.load(f, 'Ag0 ABCXYZ 012')));
+      await document.fonts.ready;
+    }
+
+    // ────────────────────────────────────────────────────────────
+    // Canvas helpers
+    // ────────────────────────────────────────────────────────────
+    function makeCanvas(w, h) {
+      const c = document.createElement('canvas');
+      c.width = w; c.height = h;
+      return c;
+    }
+
+    function wrapTextLines(ctx, text, maxWidth) {
+      // Split on whitespace, then further split each word on hyphens (keeping
+      // the hyphen at the end of each piece). Hyphen-continuation pieces
+      // re-join with no space; whitespace-separated tokens re-join with a space.
+      const tokens = [];
+      for (const w of text.trim().split(/\s+/)) {
+        if (!w) continue;
+        const pieces = w.split(/(?<=-)/);
+        for (let i = 0; i < pieces.length; i++) {
+          tokens.push({ text: pieces[i], isHyphenContinuation: i > 0 });
+        }
+      }
+      const lines = [];
+      let line = '';
+      for (const t of tokens) {
+        const sep = line === '' ? '' : (t.isHyphenContinuation ? '' : ' ');
+        const candidate = line + sep + t.text;
+        if (ctx.measureText(candidate).width > maxWidth && line) {
+          lines.push(line);
+          line = t.text;
+        } else {
+          line = candidate;
+        }
+      }
+      if (line) lines.push(line);
+      return lines;
+    }
+
+    function drawWrapped(ctx, text, x, y, maxWidth, lineHeight, align = 'left') {
+      const lines = wrapTextLines(ctx, text, maxWidth);
+      ctx.textAlign = align;
+      lines.forEach((l, i) => ctx.fillText(l, x, y + i * lineHeight));
+      return y + lines.length * lineHeight;
+    }
+
+    function asTexture(canvas) {
+      const tex = new THREE.CanvasTexture(canvas);
+      tex.colorSpace = THREE.SRGBColorSpace;
+      tex.anisotropy = 8;
+      tex.needsUpdate = true;
+      return tex;
+    }
+
+    // ────────────────────────────────────────────────────────────
+    // Texture generators
+    // ────────────────────────────────────────────────────────────
+    function drawCardFace(title, cardNumber, { bgColor = COLORS.cardWhite, isNote = false, swatch = '#F2ECD5' } = {}) {
+      const c = makeCanvas(512, 853);
+      const ctx = c.getContext('2d');
+
+      ctx.fillStyle = bgColor;
+      ctx.fillRect(0, 0, c.width, c.height);
+
+      ctx.strokeStyle = COLORS.cardBorder;
+      ctx.lineWidth = 1;
+      ctx.strokeRect(16.5, 16.5, c.width - 33, c.height - 33);
+
+      // Title
+      ctx.fillStyle = COLORS.inkPrimary;
+      const titleSize = isNote ? 38 : 54;
+      ctx.font = `600 ${titleSize}px Literata, serif`;
+      ctx.textBaseline = 'top';
+      drawWrapped(ctx, title, 48, 120, c.width - 96, titleSize * 1.15, 'left');
+
+      // Card number (letter-spaced, uppercase)
+      if (cardNumber) {
+        ctx.fillStyle = COLORS.cardNumber;
+        ctx.font = `500 28px Sono, monospace`;
+        ctx.letterSpacing = '2px';
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'alphabetic';
+        ctx.fillText(String(cardNumber).toUpperCase(), 72, 820);
+        ctx.letterSpacing = '0px';
+
+        // Swatch
+        ctx.fillStyle = swatch;
+        ctx.fillRect(48, 806, 14, 14);
+        ctx.strokeStyle = 'rgba(0,0,0,0.2)';
+        ctx.lineWidth = 0.5;
+        ctx.strokeRect(48.5, 806.5, 13, 13);
+      }
+
+      return asTexture(c);
+    }
+
+    function drawChapterFace(chapterNumber, title, cardNumber) {
+      const c = makeCanvas(512, 853);
+      const ctx = c.getContext('2d');
+
+      ctx.fillStyle = COLORS.yellow;
+      ctx.fillRect(0, 0, c.width, c.height);
+
+      // CHAPTER {n}
+      ctx.fillStyle = COLORS.inkPrimary;
+      ctx.font = `600 32px Sono, monospace`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'top';
+      ctx.letterSpacing = '4px';
+      ctx.fillText(`CHAPTER ${chapterNumber}`, c.width / 2, 200);
+      ctx.letterSpacing = '0px';
+
+      // Divider
+      ctx.strokeStyle = COLORS.yellowRule;
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(96, 320.5); ctx.lineTo(c.width - 96, 320.5);
+      ctx.stroke();
+
+      // Title
+      ctx.fillStyle = COLORS.inkPrimary;
+      ctx.font = `700 64px Literata, serif`;
+      drawWrapped(ctx, title, c.width / 2, 360, c.width - 96, 74, 'center');
+
+      // Card number + swatch
+      if (cardNumber) {
+        ctx.fillStyle = COLORS.cardNumber;
+        ctx.font = `500 28px Sono, monospace`;
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'alphabetic';
+        ctx.letterSpacing = '2px';
+        ctx.fillText(String(cardNumber).toUpperCase(), 72, 820);
+        ctx.letterSpacing = '0px';
+
+        ctx.fillStyle = SWATCH.yellow;
+        ctx.fillRect(48, 806, 14, 14);
+        ctx.strokeStyle = 'rgba(0,0,0,0.2)';
+        ctx.lineWidth = 0.5;
+        ctx.strokeRect(48.5, 806.5, 13, 13);
+      }
+
+      return asTexture(c);
+    }
+
+    function drawMultimediaFace(title, mediaType, cardNumber) {
+      const c = makeCanvas(512, 853);
+      const ctx = c.getContext('2d');
+
+      ctx.fillStyle = COLORS.pink;
+      ctx.fillRect(0, 0, c.width, c.height);
+
+      // Thumbnail area (upper 60%)
+      const thumbY = 40, thumbH = 480;
+      ctx.fillStyle = COLORS.pinkDark;
+      ctx.fillRect(40, thumbY, c.width - 80, thumbH);
+
+      // Glyph
+      const glyphMap = { video: '▶', audio: '♪', interactive: '⬚', image: '■' };
+      const glyph = glyphMap[mediaType] || '⬚';
+      ctx.fillStyle = COLORS.pinkGlyph;
+      ctx.font = `400 200px Outfit, sans-serif`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(glyph, c.width / 2, thumbY + thumbH / 2);
+
+      // Title
+      ctx.fillStyle = COLORS.inkPrimary;
+      ctx.font = `500 38px Literata, serif`;
+      ctx.textBaseline = 'top';
+      drawWrapped(ctx, title, c.width / 2, 560, c.width - 96, 44, 'center');
+
+      // Card number + swatch
+      if (cardNumber) {
+        ctx.fillStyle = COLORS.cardNumber;
+        ctx.font = `500 28px Sono, monospace`;
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'alphabetic';
+        ctx.letterSpacing = '2px';
+        ctx.fillText(String(cardNumber).toUpperCase(), 72, 820);
+        ctx.letterSpacing = '0px';
+
+        ctx.fillStyle = SWATCH.pink;
+        ctx.fillRect(48, 806, 14, 14);
+        ctx.strokeStyle = 'rgba(0,0,0,0.2)';
+        ctx.lineWidth = 0.5;
+        ctx.strokeRect(48.5, 806.5, 13, 13);
+      }
+
+      return asTexture(c);
+    }
+
+    function drawBookCover(title, author) {
+      const c = makeCanvas(512, 768);
+      const ctx = c.getContext('2d');
+
+      ctx.fillStyle = COLORS.bookCloth;
+      ctx.fillRect(0, 0, c.width, c.height);
+
+      // Inner border
+      ctx.strokeStyle = COLORS.bookClothDark;
+      ctx.lineWidth = 2;
+      ctx.strokeRect(24, 24, c.width - 48, c.height - 48);
+
+      // Title
+      ctx.fillStyle = COLORS.cardWhite;
+      ctx.font = `700 56px Literata, serif`;
+      ctx.textBaseline = 'top';
+      drawWrapped(ctx, title, c.width / 2, 200, c.width - 96, 68, 'center');
+
+      // Author
+      ctx.fillStyle = COLORS.bookClothLight;
+      ctx.font = `italic 400 28px Literata, serif`;
+      ctx.textAlign = 'center';
+      ctx.fillText(author, c.width / 2, 650);
+
+      return asTexture(c);
+    }
+
+    function drawBookSpine(title, author) {
+      const c = makeCanvas(80, 768);
+      const ctx = c.getContext('2d');
+
+      ctx.fillStyle = COLORS.bookCloth;
+      ctx.fillRect(0, 0, c.width, c.height);
+
+      // Rotate to draw along the long axis
+      ctx.save();
+      ctx.translate(c.width / 2, c.height / 2);
+      ctx.rotate(Math.PI / 2);
+
+      // Title centered along spine length
+      ctx.fillStyle = COLORS.cardWhite;
+      ctx.font = `600 20px Literata, serif`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(title, 0, 0);
+
+      // Author last name near one end
+      const lastName = author.split(/\s+/).pop().replace(/[^a-zA-Z.-]/g, '');
+      ctx.fillStyle = COLORS.bookClothLight;
+      ctx.font = `400 18px Literata, serif`;
+      ctx.fillText(lastName, c.height / 2 - 40, 0);
+
+      ctx.restore();
+
+      return asTexture(c);
+    }
+
+    function drawPaperFirstPage(title, author, venue, year) {
+      const c = makeCanvas(512, 665);
+      const ctx = c.getContext('2d');
+
+      ctx.fillStyle = COLORS.paper;
+      ctx.fillRect(0, 0, c.width, c.height);
+
+      // Venue + year strip
+      ctx.fillStyle = COLORS.paperLabel;
+      ctx.font = `500 18px Sono, monospace`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.letterSpacing = '1px';
+      ctx.fillText(`${venue || ''}${venue && year ? '  ·  ' : ''}${year || ''}`, c.width / 2, 36);
+      ctx.letterSpacing = '0px';
+
+      // Title
+      ctx.fillStyle = COLORS.inkPrimary;
+      ctx.font = `700 32px Literata, serif`;
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'top';
+      const titleBottom = drawWrapped(ctx, title, 48, 120, c.width - 96, 38, 'left');
+
+      // Author
+      ctx.fillStyle = COLORS.inkPrimary;
+      ctx.font = `italic 400 22px Literata, serif`;
+      ctx.fillText(author, 48, titleBottom + 18);
+
+      // Abstract label
+      ctx.fillStyle = '#3B3A36';
+      ctx.font = `500 16px Sono, monospace`;
+      ctx.letterSpacing = '3px';
+      ctx.fillText('ABSTRACT', 48, 330);
+      ctx.letterSpacing = '0px';
+
+      // Abstract body (placeholder lines)
+      ctx.fillStyle = COLORS.paperAbstract;
+      ctx.font = `400 16px Literata, serif`;
+      const abstractLines = [
+        'Episodic memory has long been considered a system for retrieving one\'s own',
+        'personal past. We argue that this framing understates its communicative',
+        'function: episodic recollection is structured to support the assertion of',
+        'past events to other minds, with epistemic weight attached.',
+      ];
+      abstractLines.forEach((l, i) => ctx.fillText(l, 48, 360 + i * 22));
+
+      // Body placeholder
+      ctx.fillStyle = COLORS.paperBody;
+      ctx.font = `400 16px Literata, serif`;
+      const bodyLines = [
+        'In this paper, we propose a revised account of the adaptive function of',
+        'episodic memory, drawing on research in developmental psychology, social',
+        'cognition, and the philosophy of testimony. We argue that episodic recall',
+        'evolved alongside communication, not in isolation from it, and that this',
+        'reframes several longstanding puzzles about memory\'s reconstructive nature.',
+      ];
+      bodyLines.forEach((l, i) => ctx.fillText(l, 48, 478 + i * 22));
+
+      return asTexture(c);
+    }
+
+    // Concept face — transparent background, big white type floating in the
+    // void. Drawn to a 16:9 canvas and displayed on a flat PlaneGeometry, so
+    // there's no card body, just the text and its card number.
+    function drawConceptFace(title, cardNumber) {
+      const c = makeCanvas(1280, 720);
+      const ctx = c.getContext('2d');
+      // Canvas starts fully transparent — do NOT fillRect.
+
+      ctx.font = `700 110px Literata, serif`;
+      const lines = wrapTextLines(ctx, title, c.width - 200);
+      const lineHeight = 128;
+      const titleBlockH = lines.length * lineHeight;
+
+      const indexH = cardNumber ? 44 : 0;
+      const indexGap = cardNumber ? 52 : 0;
+      const totalH = indexH + indexGap + titleBlockH;
+      const stackTop = (c.height - totalH) / 2;
+
+      // Card number above the title — Sono small caps, muted.
+      if (cardNumber) {
+        ctx.fillStyle = '#9A9588';
+        ctx.font = `500 36px Sono, monospace`;
+        ctx.letterSpacing = '6px';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(String(cardNumber).toUpperCase(), c.width / 2, stackTop + indexH / 2);
+        ctx.letterSpacing = '0px';
+      }
+
+      // Title below the index — Literata 700 110px, warm white (#F2ECD5).
+      ctx.fillStyle = COLORS.cardWhite;
+      ctx.font = `700 110px Literata, serif`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      const titleStart = stackTop + indexH + indexGap + lineHeight / 2;
+      lines.forEach((line, i) => ctx.fillText(line, c.width / 2, titleStart + i * lineHeight));
+
+      return asTexture(c);
+    }
+
+    function drawPaperEdge() {
+      const c = makeCanvas(40, 665);
+      const ctx = c.getContext('2d');
+
+      ctx.fillStyle = COLORS.paper;
+      ctx.fillRect(0, 0, c.width, c.height);
+
+      ctx.strokeStyle = COLORS.paperLine;
+      ctx.lineWidth = 1;
+      for (let y = 0; y < c.height; y += 4) {
+        ctx.beginPath();
+        ctx.moveTo(0, y + 0.5);
+        ctx.lineTo(c.width, y + 0.5);
+        ctx.stroke();
+      }
+
+      // Staple at top — two short dark segments angled inward
+      ctx.fillStyle = '#2A2A2A';
+      ctx.save();
+      ctx.translate(c.width / 2 - 3, 14);
+      ctx.rotate(-0.15);
+      ctx.fillRect(0, 0, 2, 8);
+      ctx.restore();
+      ctx.save();
+      ctx.translate(c.width / 2 + 3, 14);
+      ctx.rotate(0.15);
+      ctx.fillRect(0, 0, 2, 8);
+      ctx.restore();
+
+      return asTexture(c);
+    }
+
+    // ────────────────────────────────────────────────────────────
+    // Library wireframe — floor, walls, ceiling. Built once at init.
+    // ────────────────────────────────────────────────────────────
+    function buildLibrary(scene) {
+      const mat = new THREE.LineBasicMaterial({
+        color: LIBRARY.lineColor,
+        transparent: true,
+        opacity: LIBRARY.lineOpacity,
+        depthWrite: false,
+      });
+
+      const boxGeo = new THREE.BoxGeometry(
+        LIBRARY.halfX * 2,
+        LIBRARY.yCeil - LIBRARY.yFloor,
+        LIBRARY.halfZ * 2,
+      );
+      const boxEdges = new THREE.EdgesGeometry(boxGeo);
+      const boxMesh = new THREE.LineSegments(boxEdges, mat);
+      boxMesh.position.set(0, (LIBRARY.yCeil - LIBRARY.yFloor) / 2 + LIBRARY.yFloor, 0);
+      boxMesh.renderOrder = -1;
+      scene.add(boxMesh);
+
+      const floorGrid = new THREE.GridHelper(
+        LIBRARY.halfX * 2,
+        LIBRARY.halfX,
+        LIBRARY.lineColor,
+        LIBRARY.lineColor,
+      );
+      floorGrid.material.transparent = true;
+      floorGrid.material.opacity = LIBRARY.gridOpacity;
+      floorGrid.material.depthWrite = false;
+      floorGrid.position.y = LIBRARY.yFloor + 0.001;
+      floorGrid.renderOrder = -1;
+      scene.add(floorGrid);
+
+      const ceilGrid = new THREE.GridHelper(
+        LIBRARY.halfX * 2,
+        LIBRARY.halfX,
+        LIBRARY.lineColor,
+        LIBRARY.lineColor,
+      );
+      ceilGrid.material.transparent = true;
+      ceilGrid.material.opacity = LIBRARY.gridOpacity * 0.6;
+      ceilGrid.material.depthWrite = false;
+      ceilGrid.position.y = LIBRARY.yCeil - 0.001;
+      ceilGrid.renderOrder = -1;
+      scene.add(ceilGrid);
+    }
+
+    // ────────────────────────────────────────────────────────────
+    // Node builders — return a THREE.Mesh
+    // ────────────────────────────────────────────────────────────
+    const pageEdgeMatCache = new Map();
+    function pageEdgeMat(color) {
+      if (!pageEdgeMatCache.has(color)) {
+        pageEdgeMatCache.set(color, new THREE.MeshBasicMaterial({ color }));
+      }
+      return pageEdgeMatCache.get(color);
+    }
+
+    function buildCardMesh(node) {
+      const isNote = node.kind === 'note';
+      const w = isNote ? 0.45 : 0.6;
+      const h = isNote ? 0.75 : 1.0;
+      const d = isNote ? 0.03 : 0.04;
+
+      let bgColor = COLORS.cardWhite;
+      let swatch = SWATCH.white;
+      if (node.cardColor === 'yellow') { bgColor = COLORS.yellow; swatch = SWATCH.yellow; }
+      if (node.cardColor === 'pink')   { bgColor = COLORS.pink;   swatch = SWATCH.pink;   }
+      if (node.cardColor === 'purple') { bgColor = '#B09BC5';     swatch = SWATCH.purple; }
+
+      const faceTex = drawCardFace(node.title, node.cardNumber, { bgColor, isNote, swatch });
+      const sideMat = pageEdgeMat(bgColor);
+      const faceMat = new THREE.MeshBasicMaterial({ map: faceTex });
+      const backMat = new THREE.MeshBasicMaterial({ color: bgColor });
+
+      const geom = new THREE.BoxGeometry(w, h, d);
+      // Materials order: [+X, -X, +Y, -Y, +Z, -Z]
+      const materials = [sideMat, sideMat, sideMat, sideMat, faceMat, backMat];
+      const mesh = new THREE.Mesh(geom, materials);
+      mesh.userData.node = node;
+      mesh.userData.width = w;
+      mesh.userData.height = h;
+      mesh.userData.depth = d;
+      return mesh;
+    }
+
+    function buildChapterMesh(node) {
+      const w = 0.7, h = 1.0, d = 0.10;
+      const faceTex = drawChapterFace(node.chapterNumber, node.title, node.cardNumber);
+      const faceMat = new THREE.MeshBasicMaterial({ map: faceTex });
+      const edgeMat = new THREE.MeshBasicMaterial({ color: COLORS.yellow });
+      const backMat = new THREE.MeshBasicMaterial({ color: COLORS.yellow });
+
+      const geom = new THREE.BoxGeometry(w, h, d);
+      const materials = [edgeMat, edgeMat, edgeMat, edgeMat, faceMat, backMat];
+      const mesh = new THREE.Mesh(geom, materials);
+      mesh.userData.node = node;
+      mesh.userData.width = w;
+      mesh.userData.height = h;
+      mesh.userData.depth = d;
+      return mesh;
+    }
+
+    function buildMultimediaMesh(node) {
+      const w = 0.6, h = 1.0, d = 0.04;
+      const faceTex = drawMultimediaFace(node.title, node.mediaType, node.cardNumber);
+      const faceMat = new THREE.MeshBasicMaterial({ map: faceTex });
+      const sideMat = pageEdgeMat(COLORS.pink);
+      const backMat = new THREE.MeshBasicMaterial({ color: COLORS.pink });
+      const geom = new THREE.BoxGeometry(w, h, d);
+      const materials = [sideMat, sideMat, sideMat, sideMat, faceMat, backMat];
+      const mesh = new THREE.Mesh(geom, materials);
+      mesh.userData.node = node;
+      mesh.userData.width = w;
+      mesh.userData.height = h;
+      mesh.userData.depth = d;
+      return mesh;
+    }
+
+    function buildBookMesh(node) {
+      const SCALE = 1.2 / 8.5; // 8.5" reference height = 1.2 scene units
+      const dims = node.bookDimensions ?? [5.5, 8.5, null];
+      const w = dims[0] * SCALE;
+      const h = dims[1] * SCALE;
+      const pageCount = node.pageCount ?? 300;
+      const d = dims[2] != null
+        ? dims[2] * SCALE
+        : Math.min(0.50, Math.max(0.05, 0.05 + (pageCount / 1200) * 0.4));
+
+      const coverTex = drawBookCover(node.title, node.author);
+      const spineTex = drawBookSpine(node.title, node.author);
+
+      const coverMat = new THREE.MeshBasicMaterial({ map: coverTex });
+      const spineMat = new THREE.MeshBasicMaterial({ map: spineTex });
+      const backCoverMat = new THREE.MeshBasicMaterial({ color: COLORS.bookCloth });
+      const pageEdgeM = pageEdgeMat(COLORS.pageEdge);
+
+      const geom = new THREE.BoxGeometry(w, h, d);
+      // +X = spine, -X = fore-edge, +Y = top edge, -Y = bottom edge, +Z = cover, -Z = back cover
+      const materials = [spineMat, pageEdgeM, pageEdgeM, pageEdgeM, coverMat, backCoverMat];
+      const mesh = new THREE.Mesh(geom, materials);
+      mesh.userData.node = node;
+      mesh.userData.width = w;
+      mesh.userData.height = h;
+      mesh.userData.depth = d;
+      return mesh;
+    }
+
+    function buildPaperMesh(node) {
+      const w = 0.75, h = 0.97, d = 0.06;
+      const firstPageTex = drawPaperFirstPage(node.title, node.author, node.venue, node.year);
+      const edgeTex = drawPaperEdge();
+
+      const faceMat = new THREE.MeshBasicMaterial({ map: firstPageTex });
+      const edgeMat = new THREE.MeshBasicMaterial({ map: edgeTex });
+      const backMat = new THREE.MeshBasicMaterial({ color: COLORS.paper });
+
+      const geom = new THREE.BoxGeometry(w, h, d);
+      const materials = [edgeMat, edgeMat, edgeMat, edgeMat, faceMat, backMat];
+      const mesh = new THREE.Mesh(geom, materials);
+      mesh.userData.node = node;
+      mesh.userData.width = w;
+      mesh.userData.height = h;
+      mesh.userData.depth = d;
+      return mesh;
+    }
+
+    function buildConceptMesh(node) {
+      // Landscape plane, transparent canvas texture so the warm-white type
+      // reads as floating in the void rather than printed on a card body.
+      const w = 1.8, h = 1.0;
+      const faceTex = drawConceptFace(node.title, node.cardNumber);
+      const material = new THREE.MeshBasicMaterial({
+        map: faceTex,
+        transparent: true,
+        side: THREE.DoubleSide,
+        depthWrite: false,
+      });
+      const geom = new THREE.PlaneGeometry(w, h);
+      const mesh = new THREE.Mesh(geom, material);
+      mesh.userData.node = node;
+      mesh.userData.width = w;
+      mesh.userData.height = h;
+      mesh.userData.depth = 0;
+      mesh.renderOrder = 1;  // draw after opaque nodes for correct blending
+      return mesh;
+    }
+
+    function buildNode(node) {
+      if (node.kind === 'source' && node.subtype === 'book')  return buildBookMesh(node);
+      if (node.kind === 'source' && node.subtype === 'paper') return buildPaperMesh(node);
+      if (node.kind === 'essay' && node.cardColor === 'yellow') return buildChapterMesh(node);
+      if (node.kind === 'multimedia') return buildMultimediaMesh(node);
+      if (node.kind === 'concept') return buildConceptMesh(node);
+      // note, essay (white), or unknown → card
+      return buildCardMesh(node);
+    }
+
+    // ────────────────────────────────────────────────────────────
+    // Bootstrap
+    // ────────────────────────────────────────────────────────────
+    await ensureFonts();
+
+    const sceneData = JSON.parse(document.getElementById('scene-data').textContent);
+
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(COLORS.void);
+
+    const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.01, 1000);
+    camera.position.copy(CAMERA_HOME.position);
+    camera.lookAt(CAMERA_HOME.lookAt);
+
+    const renderer = new THREE.WebGLRenderer({
+      canvas: document.getElementById('scene'),
+      antialias: true,
+    });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+
+    // Library wireframe — built before nodes so it draws behind them
+    buildLibrary(scene);
+
+    // Build scene
+    const meshes = [];
+    for (const node of sceneData.nodes) {
+      const mesh = buildNode(node);
+      mesh.position.fromArray(node.position);
+      applyTierOpacity(mesh, node.tier);
+      scene.add(mesh);
+      meshes.push(mesh);
+    }
+
+    // ────────────────────────────────────────────────────────────
+    // Graph edges — one LineSegments object, per-vertex rgba gradient
+    // ────────────────────────────────────────────────────────────
+    const nodeById = new Map(meshes.map(m => [m.userData.node.id, m]));
+    const links = (sceneData.links || []).filter(l =>
+      nodeById.has(l.source) && nodeById.has(l.target)
+    );
+
+    const edgesGeom = new THREE.BufferGeometry();
+
+    const edgesMat = new THREE.LineBasicMaterial({
+      vertexColors: true,
+      transparent: true,
+      depthWrite: false,
+    });
+
+    const edgesMesh = new THREE.LineSegments(edgesGeom, edgesMat);
+    edgesMesh.frustumCulled = false;
+    edgesMesh.renderOrder = 0;
+    scene.add(edgesMesh);
+
+    const edgeBaseColor = new THREE.Color(COLORS.edgeBase);
+    const edgeHighlightColor = new THREE.Color(COLORS.highlight);
+
+    // Default (no hover) alpha per kind-pair. Supplemental material (sources,
+    // notes) recedes; primary-to-primary edges remain more visible. Keys are
+    // `kindA-kindB` with kinds sorted alphabetically.
+    const EDGE_ALPHA_DEFAULT = {
+      'concept-concept':    { tail: 0.18, head: 0.45 },
+      'chapter-concept':    { tail: 0.22, head: 0.55 },
+      'concept-essay':      { tail: 0.22, head: 0.55 },
+      'concept-multimedia': { tail: 0.22, head: 0.55 },
+      'concept-source':     { tail: 0.08, head: 0.22 },
+      'concept-note':       { tail: 0.05, head: 0.15 },
+      fallback:             { tail: 0.15, head: 0.40 },
+    };
+
+    // d3-force mutates link.source / link.target from string ids to node
+    // object refs once forceLink runs. These helpers work before and after.
+    const linkEndpointId = (e) => typeof e === 'string' ? e : e.id;
+    const linkEndpointNode = (e) => typeof e === 'string' ? nodeById.get(e).userData.node : e;
+
+    function pairKey(link) {
+      const a = linkEndpointNode(link.source).kind;
+      const b = linkEndpointNode(link.target).kind;
+      return [a, b].sort().join('-');
+    }
+
+    const _bp = new THREE.Vector3();
+    const _bq = new THREE.Vector3();
+    const _bctrl = new THREE.Vector3();
+    const _bmid = new THREE.Vector3();
+    const _bdir = new THREE.Vector3();
+    const _bperp = new THREE.Vector3();
+    const _balt = new THREE.Vector3(1, 0, 0);
+
+    function sampleBezier(s, ctrl, t, u, out) {
+      const a = 1 - u;
+      out.set(
+        a*a*s.x + 2*a*u*ctrl.x + u*u*t.x,
+        a*a*s.y + 2*a*u*ctrl.y + u*u*t.y,
+        a*a*s.z + 2*a*u*ctrl.z + u*u*t.z
+      );
+    }
+
+    function writeEdgePositions() {
+      const pos = edgesGeom.attributes.position.array;
+      if (edgeState.curved) {
+        const N = CURVE_SEGS;
+        for (let i = 0; i < links.length; i++) {
+          const s = nodeById.get(linkEndpointId(links[i].source)).position;
+          const t = nodeById.get(linkEndpointId(links[i].target)).position;
+          _bmid.addVectors(s, t).multiplyScalar(0.5);
+          _bdir.subVectors(t, s);
+          const len = _bdir.length();
+          const up = Math.abs(_bdir.y / len) > 0.9 ? _balt : worldUp;
+          _bperp.crossVectors(_bdir, up).normalize();
+          _bctrl.copy(_bmid).addScaledVector(_bperp, len * 0.25);
+          let o = i * N * 6;
+          for (let j = 0; j < N; j++) {
+            sampleBezier(s, _bctrl, t, j / N, _bp);
+            sampleBezier(s, _bctrl, t, (j + 1) / N, _bq);
+            pos[o++] = _bp.x; pos[o++] = _bp.y; pos[o++] = _bp.z;
+            pos[o++] = _bq.x; pos[o++] = _bq.y; pos[o++] = _bq.z;
+          }
+        }
+      } else {
+        for (let i = 0; i < links.length; i++) {
+          const s = nodeById.get(linkEndpointId(links[i].source)).position;
+          const t = nodeById.get(linkEndpointId(links[i].target)).position;
+          const o = i * 6;
+          pos[o]   = s.x; pos[o+1] = s.y; pos[o+2] = s.z;
+          pos[o+3] = t.x; pos[o+4] = t.y; pos[o+5] = t.z;
+        }
+      }
+      edgesGeom.attributes.position.needsUpdate = true;
+    }
+
+    function currentHighlightId() {
+      if (hoverState.mesh) return hoverState.mesh.userData.node.id;
+      if (modalState.active && modalState.targetMesh) return modalState.targetMesh.userData.node.id;
+      return null;
+    }
+
+    function writeEdgeColors() {
+      const hoveredId = currentHighlightId();
+      const anyHover = hoveredId != null;
+      const col = edgesGeom.attributes.color.array;
+      const N = edgeState.curved ? CURVE_SEGS : 1;
+
+      for (let i = 0; i < links.length; i++) {
+        const link = links[i];
+        const srcId = linkEndpointId(link.source);
+        const tgtId = linkEndpointId(link.target);
+        const incident = anyHover && (srcId === hoveredId || tgtId === hoveredId);
+
+        let tailA, headA, c;
+        if (incident) {
+          tailA = 0.50; headA = 1.00; c = edgeHighlightColor;
+        } else if (anyHover) {
+          tailA = 0.06; headA = 0.12; c = edgeBaseColor;
+        } else {
+          const alphas = EDGE_ALPHA_DEFAULT[pairKey(link)] ?? EDGE_ALPHA_DEFAULT.fallback;
+          tailA = alphas.tail; headA = alphas.head; c = edgeBaseColor;
+        }
+
+        let o = i * N * 8;
+        for (let j = 0; j < N; j++) {
+          const a0 = tailA + (headA - tailA) * (j / N);
+          const a1 = tailA + (headA - tailA) * ((j + 1) / N);
+          col[o++] = c.r; col[o++] = c.g; col[o++] = c.b; col[o++] = a0;
+          col[o++] = c.r; col[o++] = c.g; col[o++] = c.b; col[o++] = a1;
+        }
+      }
+      edgesGeom.attributes.color.needsUpdate = true;
+    }
+
+    const edgeState = {
+      mode: 'always',
+      tabHeld: false,
+      curved: false,
+    };
+
+    const CURVE_SEGS = 16;
+
+    function vertsPerEdge() { return edgeState.curved ? CURVE_SEGS * 2 : 2; }
+
+    function rebuildEdgeBuffers() {
+      const vpe = vertsPerEdge();
+      edgesGeom.setAttribute('position', new THREE.BufferAttribute(new Float32Array(links.length * vpe * 3), 3));
+      edgesGeom.setAttribute('color',    new THREE.BufferAttribute(new Float32Array(links.length * vpe * 4), 4));
+    }
+
+    function updateCurveHud() {
+      const el = document.getElementById('edge-hud-curve');
+      if (el) el.textContent = edgeState.curved ? '[C] curve: on' : '[C] curve: off';
+    }
+
+    function shouldShowEdges() {
+      return edgeState.mode === 'always' || edgeState.tabHeld;
+    }
+
+    function updateEdgeHud() {
+      const el = document.getElementById('edge-hud-edges');
+      if (!el) return;
+      if (edgeState.mode === 'always') {
+        el.textContent = '[E] edges: on';
+      } else if (edgeState.tabHeld) {
+        el.textContent = '[E] edges: off · revealing…';
+      } else {
+        el.textContent = '[E] edges: off · [Tab] reveal';
+      }
+    }
+
+    function applyEdgeVisibility() {
+      edgesMesh.visible = shouldShowEdges();
+      updateEdgeHud();
+    }
+
+    // ────────────────────────────────────────────────────────────
+    // Force simulation — d3-force-3d, driven from the render loop
+    // ────────────────────────────────────────────────────────────
+    // Seed node.x/y/z from the hand-placed positions so convergence starts
+    // from roughly where v0.1 ended up instead of snapping from random init.
+    sceneData.nodes.forEach(n => {
+      const p = n.position || [0, 0, 0];
+      const [px, py, pz] = Array.isArray(p) ? p : [p.x, p.y, p.z];
+      n.x = px; n.y = py; n.z = pz;
+    });
+
+    const linkDistance = (link) => {
+      const pair = [link.source.kind, link.target.kind].sort().join('-');
+      if (pair === 'chapter-concept' && link.source.tier === 'primary') return 2.0;
+      if (pair === 'concept-concept') return 2.5;
+      if (pair === 'concept-source') return 3.5;
+      return 3.0;
+    };
+
+    const linkStrength = (link) => {
+      if (link.source.tier === 'tertiary') return 0.1;
+      return 0.2;
+    };
+
+    const charge = (n) => {
+      if (n.tier === 'primary') return -20;
+      if (n.tier === 'secondary') return -10;
+      return -5;
+    };
+
+    const anchorAxis = (axis, arrIdx) => (n) => {
+      if (n.anchor) return n.anchor[axis];
+      const p = n.position;
+      if (Array.isArray(p)) return p[arrIdx];
+      if (p && typeof p === 'object') return p[axis] ?? 0;
+      return 0;
+    };
+    const anchorStrength = (n) => n.tier === 'primary' ? 0.9 : 0.75;
+
+    const sim = forceSimulation(sceneData.nodes, 3)
+      .velocityDecay(0.3)
+      .alphaDecay(0.02)
+      .force('link', forceLink(links)
+        .id(n => n.id)
+        .distance(linkDistance)
+        .strength(linkStrength))
+      .force('charge', forceManyBody().strength(charge).distanceMax(12))
+      .force('center', forceCenter(0, EYE_HEIGHT, 0).strength(0.03))
+      .force('anchor-x', forceX(anchorAxis('x', 0)).strength(anchorStrength))
+      .force('anchor-y', forceY(anchorAxis('y', 1)).strength(anchorStrength))
+      .force('anchor-z', forceZ(anchorAxis('z', 2)).strength(anchorStrength))
+      .stop();
+
+    const SIM_ALPHA_MIN = 0.005;
+
+    // ────────────────────────────────────────────────────────────
+    // Focus highlight — a reusable edges outline that moves between nodes
+    // ────────────────────────────────────────────────────────────
+    const highlightMesh = new THREE.LineSegments(
+      new THREE.EdgesGeometry(new THREE.BoxGeometry(1, 1, 1)),
+      new THREE.LineBasicMaterial({ color: 0xF26357, transparent: true, opacity: 0.9 })
+    );
+    highlightMesh.visible = false;
+    highlightMesh.renderOrder = 999;
+    scene.add(highlightMesh);
+
+    function showHighlight(mesh) {
+      const { width, height, depth } = mesh.userData;
+      // Pad outward by ~4% and extend depth a hair so the ring stays visible
+      // at glancing angles instead of z-fighting the face.
+      highlightMesh.scale.set(width * 1.04, height * 1.04, depth * 1.15 + 0.02);
+      highlightMesh.position.copy(mesh.position);
+      highlightMesh.visible = true;
+    }
+
+    function hideHighlight() {
+      highlightMesh.visible = false;
+    }
+
+    // ────────────────────────────────────────────────────────────
+    // Controls + input
+    // ────────────────────────────────────────────────────────────
+    const controls = new PointerLockControls(camera, document.body);
+
+    const crosshair = document.getElementById('crosshair');
+    const instructions = document.getElementById('instructions');
+    const flyTint = document.getElementById('fly-tint');
+
+    renderer.domElement.addEventListener('click', () => {
+      if (!controls.isLocked && !modalState.active) controls.lock();
+    });
+
+    controls.addEventListener('lock', () => {
+      crosshair.classList.add('active');
+      instructions.classList.add('hidden');
+      flyTint.classList.add('hidden');
+    });
+    controls.addEventListener('unlock', () => {
+      crosshair.classList.remove('active');
+      clearHover();
+      flyTint.classList.remove('hidden');
+    });
+
+    const keys = new Set();
+    window.addEventListener('keydown', (e) => {
+      keys.add(e.code);
+      if (e.code === 'KeyR') resetCamera();
+      if (e.key === 'h' || e.key === 'H') startRecenter(camera);
+      if (e.code === 'Escape' && modalState.active) closeModal();
+      if (e.code === 'KeyE' && !e.repeat) {
+        edgeState.mode = edgeState.mode === 'always' ? 'hidden' : 'always';
+        applyEdgeVisibility();
+      }
+      if (e.code === 'KeyC' && !e.repeat) {
+        edgeState.curved = !edgeState.curved;
+        rebuildEdgeBuffers();
+        writeEdgePositions();
+        writeEdgeColors();
+        updateCurveHud();
+      }
+      if (e.code === 'Tab') {
+        e.preventDefault();
+        if (!edgeState.tabHeld) {
+          edgeState.tabHeld = true;
+          applyEdgeVisibility();
+        }
+      }
+    });
+    window.addEventListener('keyup', (e) => {
+      keys.delete(e.code);
+      if (e.code === 'Tab') {
+        e.preventDefault();
+        edgeState.tabHeld = false;
+        applyEdgeVisibility();
+      }
+    });
+
+    function resetCamera() {
+      cancelRecenter();
+      if (modalState.active) closeModal();
+      camera.position.copy(CAMERA_HOME.position);
+      camera.lookAt(CAMERA_HOME.lookAt);
+      sim.alpha(0.5).restart();
+    }
+
+    // ────────────────────────────────────────────────────────────
+    // Soft tether — spring camera back when it drifts past TETHER.radius
+    // ────────────────────────────────────────────────────────────
+    function applyTether(camera) {
+      const offset = camera.position.clone().sub(TETHER.center);
+      const dist = offset.length();
+      if (dist > TETHER.radius) {
+        const target = TETHER.center.clone()
+          .add(offset.normalize().multiplyScalar(TETHER.radius));
+        camera.position.lerp(target, TETHER.easeFactor);
+      }
+    }
+
+    // ────────────────────────────────────────────────────────────
+    // Recenter — smooth 500ms animation back to CAMERA_HOME
+    // ────────────────────────────────────────────────────────────
+    const recenterState = {
+      active: false,
+      startPos: new THREE.Vector3(),
+      startQuat: new THREE.Quaternion(),
+      targetQuat: new THREE.Quaternion(),
+      startTime: 0,
+    };
+
+    function easeInOutCubic(t) {
+      return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+    }
+
+    function syncControllerFromCameraQuaternion(camera) {
+      // PointerLockControls re-reads camera.quaternion on each mousemove — no manual sync needed.
+    }
+
+    function startRecenter(camera) {
+      recenterState.active = true;
+      recenterState.startPos.copy(camera.position);
+      recenterState.startQuat.copy(camera.quaternion);
+
+      const tmp = new THREE.PerspectiveCamera();
+      tmp.position.copy(CAMERA_HOME.position);
+      tmp.lookAt(CAMERA_HOME.lookAt);
+      recenterState.targetQuat.copy(tmp.quaternion);
+
+      recenterState.startTime = performance.now();
+    }
+
+    function tickRecenter(camera) {
+      if (!recenterState.active) return false;
+
+      const t = Math.min(1, (performance.now() - recenterState.startTime) / RECENTER.durationMs);
+      const eased = easeInOutCubic(t);
+
+      camera.position.lerpVectors(recenterState.startPos, CAMERA_HOME.position, eased);
+      camera.quaternion.slerpQuaternions(recenterState.startQuat, recenterState.targetQuat, eased);
+
+      if (t >= 1) {
+        recenterState.active = false;
+        syncControllerFromCameraQuaternion(camera);
+      }
+      return true;
+    }
+
+    function cancelRecenter() {
+      recenterState.active = false;
+    }
+
+    // ────────────────────────────────────────────────────────────
+    // Panel (shared between hover preview and click-to-focus)
+    // ────────────────────────────────────────────────────────────
+    const panel = document.getElementById('aux-panel');
+    const panelKind = panel.querySelector('.kind');
+    const panelTitle = panel.querySelector('.title');
+    const panelMeta = panel.querySelector('.meta');
+    const panelBody = panel.querySelector('.body');
+    const tetherSvg = document.getElementById('tether');
+    const tetherLine = tetherSvg.querySelector('line');
+
+    const hoverState = { mesh: null };
+
+    function renderFrontmatter(container, entries) {
+      container.innerHTML = '';
+      for (const [key, val] of entries) {
+        if (val == null || val === '') continue;
+        const k = document.createElement('span');
+        k.className = 'fm-key';
+        k.textContent = key;
+        const v = document.createElement('span');
+        v.className = 'fm-val';
+        v.textContent = String(val);
+        container.append(k, v);
+      }
+    }
+
+    function hoverFrontmatterEntries(n) {
+      return [
+        ['author', n.author],
+        ['year', n.year],
+        ['venue', n.venue],
+      ];
+    }
+
+    function modalFrontmatterEntries(n) {
+      return [
+        ['type', kindLabel(n)],
+        ['author', n.author],
+        ['year', n.year],
+        ['venue', n.venue],
+        ['publisher', n.publisher],
+        ['pages', n.pageCount],
+        ['card', n.cardNumber],
+        ['chapter', n.chapterNumber],
+      ];
+    }
+
+    function showHoverPanel(mesh) {
+      const n = mesh.userData.node;
+      panelKind.textContent = kindLabel(n);
+      panelTitle.textContent = n.title;
+      renderFrontmatter(panelMeta, hoverFrontmatterEntries(n));
+      panelBody.textContent = n.body_preview || '';
+      panel.hidden = false;
+      tetherSvg.hidden = false;
+      tetherLine.setAttribute('stroke', '#F26357');
+      tetherLine.setAttribute('stroke-opacity', '0.6');
+      showHighlight(mesh);
+      updatePanelPosition(mesh);
+    }
+
+    function hidePanel() {
+      panel.hidden = true;
+      tetherSvg.hidden = true;
+    }
+
+    function clearHover() {
+      hoverState.mesh = null;
+      hidePanel();
+      if (!modalState.active) hideHighlight();
+    }
+
+    function updatePanelPosition(mesh) {
+      if (!mesh) return;
+      const w = window.innerWidth, h = window.innerHeight;
+
+      const center = mesh.position.clone().project(camera);
+      if (center.z > 1) {
+        panel.style.visibility = 'hidden';
+        tetherSvg.style.visibility = 'hidden';
+        return;
+      }
+      panel.style.visibility = 'visible';
+      tetherSvg.style.visibility = 'visible';
+
+      const rightWorld = mesh.position.clone().add(new THREE.Vector3(mesh.userData.width / 2, 0, 0));
+      const rightNdc = rightWorld.project(camera);
+
+      const centerPx = { x: (center.x * 0.5 + 0.5) * w, y: (-center.y * 0.5 + 0.5) * h };
+      const rightPx =  { x: (rightNdc.x * 0.5 + 0.5) * w, y: (-rightNdc.y * 0.5 + 0.5) * h };
+
+      const halfProjWidth = Math.abs(rightPx.x - centerPx.x);
+      let panelLeft = centerPx.x + halfProjWidth + 24;
+      let panelTop = centerPx.y - 40;
+
+      const panelWidth = 280;
+      if (panelLeft + panelWidth > w - 16) panelLeft = w - panelWidth - 16;
+      if (panelTop < 16) panelTop = 16;
+      if (panelTop > h - 180) panelTop = h - 180;
+
+      panel.style.left = `${panelLeft}px`;
+      panel.style.top = `${panelTop}px`;
+
+      tetherSvg.setAttribute('width', w);
+      tetherSvg.setAttribute('height', h);
+      tetherLine.setAttribute('x1', centerPx.x);
+      tetherLine.setAttribute('y1', centerPx.y);
+      tetherLine.setAttribute('x2', panelLeft);
+      tetherLine.setAttribute('y2', panelTop + 40);
+    }
+
+    panel.querySelector('.read').addEventListener('click', (e) => {
+      e.stopPropagation();
+    });
+
+    // ────────────────────────────────────────────────────────────
+    // Modal (2D stationary source view)
+    // ────────────────────────────────────────────────────────────
+    const modal = document.getElementById('source-modal');
+    const modalTitle = modal.querySelector('.modal-title');
+    const modalMeta = modal.querySelector('.modal-meta');
+    const modalBody = modal.querySelector('.modal-body');
+    const modalClose = modal.querySelector('.modal-close');
+    const modalBackdrop = modal.querySelector('.modal-backdrop');
+    const modalCard = modal.querySelector('.modal-card');
+
+    function kindLabel(n) {
+      if (n.kind === 'source' && n.subtype) return n.subtype;
+      return n.kind || '';
+    }
+
+    const modalState = { active: false, targetMesh: null };
+    let closeAnim = null;
+    let modalOpenAt = 0;
+
+    const MODAL_IN_EASE = 'cubic-bezier(0.2, 0.9, 0.3, 1.1)';
+    const MODAL_OUT_EASE = 'cubic-bezier(0.4, 0, 0.6, 1)';
+    const BACKDROP_DISMISS_GATE_MS = 350;
+
+    function cancelModalAnimations() {
+      for (const a of modalCard.getAnimations()) a.cancel();
+      for (const a of modalBackdrop.getAnimations()) a.cancel();
+    }
+
+    function openModal(mesh) {
+      if (modalState.active && modalState.targetMesh === mesh) return;
+
+      const n = mesh.userData.node;
+      modalTitle.textContent = n.title;
+      renderFrontmatter(modalMeta, modalFrontmatterEntries(n));
+
+      modalBody.innerHTML = '';
+      const source = n.body_full || n.body_preview || '';
+      const paragraphs = source
+        .split(/\n\s*\n/)
+        .map(p => p.trim())
+        .filter(Boolean);
+      for (const p of paragraphs) {
+        const el = document.createElement('p');
+        el.textContent = p;
+        modalBody.append(el);
+      }
+
+      cancelModalAnimations();
+      closeAnim = null;
+
+      modalState.active = true;
+      modalState.targetMesh = mesh;
+      modal.hidden = false;
+      modalOpenAt = performance.now();
+
+      if (controls.isLocked) controls.unlock();
+      showHighlight(mesh);
+      clearHover();
+
+      modalCard.animate(
+        [{ transform: 'scale(0.88)', opacity: 0 }, { transform: 'scale(1)', opacity: 1 }],
+        { duration: 220, easing: MODAL_IN_EASE }
+      );
+      modalBackdrop.animate(
+        [{ opacity: 0 }, { opacity: 1 }],
+        { duration: 220, easing: 'ease-out' }
+      );
+
+      writeEdgeColors();
+    }
+
+    function closeModal() {
+      if (!modalState.active) return;
+      modalState.active = false;
+      modalState.targetMesh = null;
+      hideHighlight();
+
+      cancelModalAnimations();
+
+      const cardAnim = modalCard.animate(
+        [{ transform: 'scale(1)', opacity: 1 }, { transform: 'scale(0.92)', opacity: 0 }],
+        { duration: 160, easing: MODAL_OUT_EASE, fill: 'forwards' }
+      );
+      modalBackdrop.animate(
+        [{ opacity: 1 }, { opacity: 0 }],
+        { duration: 160, easing: 'ease-in', fill: 'forwards' }
+      );
+
+      closeAnim = cardAnim;
+      cardAnim.finished.then(() => {
+        if (closeAnim === cardAnim) {
+          modal.hidden = true;
+          cancelModalAnimations();
+          closeAnim = null;
+        }
+      }).catch(() => {});
+
+      writeEdgeColors();
+
+      try { controls.lock(); } catch (_) {}
+    }
+
+    modalClose.addEventListener('click', (e) => { e.stopPropagation(); closeModal(); });
+    modalBackdrop.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (performance.now() - modalOpenAt < BACKDROP_DISMISS_GATE_MS) return;
+      closeModal();
+    });
+
+    // ────────────────────────────────────────────────────────────
+    // Raycast + click
+    // ────────────────────────────────────────────────────────────
+    const raycaster = new THREE.Raycaster();
+    const centerNdc = new THREE.Vector2(0, 0);
+
+    function raycastFromCenter() {
+      raycaster.setFromCamera(centerNdc, camera);
+      const hits = raycaster.intersectObjects(meshes, false);
+      return hits.length > 0 ? hits[0].object : null;
+    }
+
+    document.addEventListener('click', (e) => {
+      if (modal.contains(e.target)) return;
+      if (!controls.isLocked) return;
+      const hit = raycastFromCenter();
+      if (hit) openModal(hit);
+    });
+
+    // ────────────────────────────────────────────────────────────
+    // Render loop
+    // ────────────────────────────────────────────────────────────
+    const forward = new THREE.Vector3();
+    const right = new THREE.Vector3();
+    const worldUp = new THREE.Vector3(0, 1, 0);
+    const move = new THREE.Vector3();
+    const BASE_SPEED = 3;
+
+    let lastTime = performance.now();
+
+    function step() {
+      const now = performance.now();
+      const dt = Math.min(0.1, (now - lastTime) / 1000);
+      lastTime = now;
+
+      if (recenterState.active && controls.isLocked && !modalState.active) {
+        if (keys.has('KeyW') || keys.has('KeyS') || keys.has('KeyA') || keys.has('KeyD') || keys.has('KeyQ')) {
+          cancelRecenter();
+        }
+      }
+
+      tickRecenter(camera);
+
+      if (sim.alpha() > SIM_ALPHA_MIN) {
+        sim.tick();
+        for (const mesh of meshes) {
+          const n = mesh.userData.node;
+          mesh.position.set(n.x, n.y, n.z);
+        }
+        writeEdgePositions();
+      }
+
+      if (controls.isLocked && !modalState.active) {
+        camera.getWorldDirection(forward);
+        forward.y = 0;
+        if (forward.lengthSq() > 0) forward.normalize();
+        right.copy(forward).cross(worldUp).normalize();
+
+        move.set(0, 0, 0);
+        if (keys.has('KeyW')) move.add(forward);
+        if (keys.has('KeyS')) move.sub(forward);
+        if (keys.has('KeyD')) move.add(right);
+        if (keys.has('KeyA')) move.sub(right);
+        if (keys.has('KeyQ')) move.sub(worldUp);
+
+        const boost = keys.has('ShiftLeft') || keys.has('ShiftRight') ? 2.5 : 1;
+        const brake = keys.has('Space') ? 0.3 : 1;
+
+        if (move.lengthSq() > 0) {
+          move.normalize().multiplyScalar(BASE_SPEED * boost * brake * dt);
+          camera.position.add(move);
+        }
+      }
+
+      applyTether(camera);
+
+      if (controls.isLocked && !modalState.active) {
+        const hit = raycastFromCenter();
+        if (hit !== hoverState.mesh) {
+          hoverState.mesh = hit;
+          if (hit) {
+            showHoverPanel(hit);
+          } else {
+            hidePanel();
+            hideHighlight();
+          }
+          writeEdgeColors();
+        }
+        if (hoverState.mesh) updatePanelPosition(hoverState.mesh);
+      }
+
+      renderer.render(scene, camera);
+      requestAnimationFrame(step);
+    }
+
+    // ────────────────────────────────────────────────────────────
+    // Resize
+    // ────────────────────────────────────────────────────────────
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+
+    // Pre-settle: run simulation to completion before first render so nodes
+    // start at rest rather than visibly jiggling into position.
+    while (sim.alpha() > SIM_ALPHA_MIN) sim.tick();
+    for (const mesh of meshes) {
+      const n = mesh.userData.node;
+      mesh.position.set(n.x, n.y, n.z);
+    }
+
+    rebuildEdgeBuffers();
+    writeEdgePositions();
+    writeEdgeColors();
+    applyEdgeVisibility();
+    updateCurveHud();
+
+    step();
+  </script>
+</body>
+</html>

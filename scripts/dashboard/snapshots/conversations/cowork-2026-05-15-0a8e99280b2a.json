@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "id": "0a8e9928-0b2a-47ca-a042-2eaaf6e10039",
+  "type": "cowork",
+  "project_label": "site",
+  "project_path": "/Users/irwinchen/Documents/postliterate-site",
+  "title": "Read Claude-Work/PROJECTS/Brain-Viz-Multinetwork-Plan.md and look for anything…",
+  "started_at": "2026-05-14T00:44:09.519Z",
+  "last_activity_at": "2026-05-15T12:13:15.990Z",
+  "message_count": 17,
+  "first_prompt": "Read Claude-Work/PROJECTS/Brain-Viz-Multinetwork-Plan.md and look for anything that might have been missed before we get ready to execute.",
+  "summary": null,
+  "summary_status": "pending",
+  "artifacts": [],
+  "source_ref": {
+    "kind": "cowork",
+    "session_id": "0a8e9928-0b2a-47ca-a042-2eaaf6e10039",
+    "source_key": "752d15d366b7292c",
+    "date": "2026-05-14"
+  },
+  "ingested_at": "2026-05-19T20:32:36.574Z"
+}

@@ -15,7 +15,8 @@
     "admin": "node scripts/admin.mjs",
     "test": "vitest run",
     "bubbles:build": "node src/lib/corpus-bubbles/build.mjs",
-    "tokens:build": "node src/lib/corpus-tokens/build.mjs"
+    "tokens:build": "node src/lib/corpus-tokens/build.mjs",
+    "figures:screenshots": "node scripts/figure-screenshots.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.96.0",
@@ -31,6 +32,7 @@
     "d3-force": "^3.0.0",
     "d3-hierarchy": "^3.1.2",
     "jsdom": "^29.0.1",
+    "playwright": "^1.60.0",
     "vitest": "^4.1.1"
   }
 }

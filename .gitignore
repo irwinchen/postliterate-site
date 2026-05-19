@@ -45,3 +45,8 @@ scripts/dashboard/snapshots/summaries/
 # dashboard claude.ai bulk-export archive (extracted from user's zip drops,
 # slim cache + extraction stamp; regenerated when a newer zip is dropped)
 scripts/dashboard/snapshots/claude-archive/
+
+# figure-screenshots: change-detection manifest + last-run report
+# (local state, regenerated on every run of scripts/figure-screenshots.mjs)
+scripts/dashboard/.figure-hashes.json
+scripts/dashboard/.figure-screenshots-last-run.json
