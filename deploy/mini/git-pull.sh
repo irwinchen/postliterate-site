@@ -4,9 +4,13 @@
 # and can be run manually any time.
 #
 # Strategy:
-#   - Always fast-forward only. If the working tree has diverged, we abort
-#     and log loudly rather than mangle anything. The Mini's clone is
-#     read-only by convention; divergence means someone edited locally.
+#   - Always fast-forward only. If history has truly diverged (local commits
+#     that aren't on origin), abort and log loudly rather than mangle
+#     anything — that means someone committed on the Mini, which shouldn't
+#     happen in the appliance model (see CLAUDE.md -> Two-Machine Workflow).
+#   - If the working tree is merely dirty (e.g. the dashboard rewrote a
+#     tracked file), stash the changes first so the pull can't stall, keep
+#     the stash so nothing is ever destroyed, and log it loudly.
 #   - On success, restart the dashboard service so it picks up new code.
 #   - Idempotent: safe to run repeatedly. No-ops if already up to date.
 set -euo pipefail
@@ -58,9 +62,28 @@ if ! "$GIT" merge-base --is-ancestor "$LOCAL_REV" "$REMOTE_REV"; then
   exit 2
 fi
 
+# Self-heal a dirty working tree. The Mini owns no real work, but the
+# dashboard rewrites tracked files; a dirty tree must not silently stall the
+# sync (which is what used to happen). Stash tracked changes, keep the stash
+# (never auto-drop — nothing is ever destroyed), and log loudly so a human
+# can recover if the change was unexpectedly real.
+STASHED=0
+if [[ -n "$("$GIT" status --porcelain --untracked-files=no)" ]]; then
+  STASH_MSG="auto-stash before pull $(ts)"
+  if "$GIT" stash push -m "$STASH_MSG" >/dev/null 2>&1; then
+    STASHED=1
+    log "WARN: working tree was dirty; stashed local changes as \"$STASH_MSG\""
+    log "      recover with: git stash list  /  git stash show -p stash@{0}"
+  else
+    log "ERROR: working tree dirty and 'git stash' failed; refusing to pull."
+    exit 3
+  fi
+fi
+
 if "$GIT" pull --ff-only --quiet origin main; then
   NEW_REV="$("$GIT" rev-parse HEAD)"
   log "pulled $LOCAL_REV → $NEW_REV"
+  [[ "$STASHED" == "1" ]] && log "NOTE: a pre-pull auto-stash is waiting in 'git stash list' — review and drop it if it was just cache noise."
 
   # Reinstall dependencies if package.json or lockfile changed.
   if "$GIT" diff --name-only "$LOCAL_REV" "$NEW_REV" | grep -qE '^(package(-lock)?\.json)$'; then

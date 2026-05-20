@@ -17,6 +17,7 @@ When in doubt, ask rather than write.
 ---
 
 # postliterate-site
+Make sure this is up to date with the most recent git pull. This runs the postliterate.org website as well as the Admin dashboard (which runs on the Mac Mini).
 
 ## Project
 
@@ -25,6 +26,28 @@ Astro + Vercel static site for **postliterate.org**, the public-facing companion
 Sibling repos:
 - **Vault (book + thinking):** `/Users/irwinchen/vaults/PostLiterate`
 - **Virgil (iOS reader):** `/Users/irwinchen/Documents/DeepReader/apps/Virgil`
+
+## Two-Machine Workflow (canonical — other docs point here)
+
+This repo lives on two machines. To prevent the git divergence and stale-lock
+problems they used to cause, exactly one machine edits and the other only mirrors.
+GitHub `origin/main` is the single source of truth. This section is authoritative;
+`deploy/mini/README.md` and `scripts/dashboard/DESIGN.md` defer to it.
+
+- **MacBook = workshop.** All edits, commits, and pushes originate here. `git pull`
+  at the start of a session; commit and push when you stop. This is the only machine
+  that writes to `origin/main`.
+- **Mac Mini (`mediaserver`) = appliance.** It pulls, serves the admin/dashboard on
+  `:4322`, and runs the on-machine Ollama summaries. It never edits or commits. An
+  `org.postliterate.git-pull` launchd timer fast-forwards it from `origin/main` every
+  30 minutes; `deploy/mini/git-pull.sh` forces an immediate sync. If you ever need to
+  touch code on the Mini, treat it as an exception: commit and push from there, then
+  immediately go back to the MacBook-only rule.
+
+Why this is strict: when both machines committed, their heads diverged and the Mini's
+auto-pull silently stalled on a dirty working tree (the dashboard rewrites cache files).
+Keeping all writes on one machine removes the whole class of problem. Dashboard refresh
+and Ollama summaries run on the Mini regardless — only *editing code* moves to the MacBook.
 
 ## Source Transparency Protocol (Always Active)
 
