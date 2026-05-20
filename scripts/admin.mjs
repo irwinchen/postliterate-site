@@ -14,7 +14,7 @@ import { createServer } from 'node:http';
 import { createServer as createNetServer } from 'node:net';
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'node:fs';
 import { join, resolve, sep } from 'node:path';
-import { spawn } from 'node:child_process';
+import { spawn, execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import {
   ROOT,
@@ -105,6 +105,41 @@ function readBody(req) {
       }
     });
   });
+}
+
+// Run `git pull --ff-only` in this repo and report what happened. Returns
+// { ok, alreadyUpToDate, fromSha, toSha, error? } — never throws. Used by
+// /api/refresh to fast-forward the site repo before snapshotting so the
+// dashboard reflects pushed work from other machines.
+function gitPullSiteRepo() {
+  const git = (args) =>
+    execFileSync('git', ['-C', ROOT, ...args], {
+      encoding: 'utf8',
+      timeout: 30_000,
+      stdio: ['ignore', 'pipe', 'pipe'],
+    }).trim();
+
+  let fromSha = null;
+  try {
+    fromSha = git(['rev-parse', 'HEAD']);
+  } catch (err) {
+    return { ok: false, error: `git rev-parse failed: ${err.message}` };
+  }
+
+  try {
+    git(['pull', '--ff-only']);
+  } catch (err) {
+    const detail = (err.stderr || err.stdout || err.message || '').toString().trim();
+    return { ok: false, fromSha, error: detail || 'git pull failed' };
+  }
+
+  let toSha = fromSha;
+  try {
+    toSha = git(['rev-parse', 'HEAD']);
+  } catch {
+    // If we got here the pull succeeded; treat as up-to-date.
+  }
+  return { ok: true, fromSha, toSha, alreadyUpToDate: fromSha === toSha };
 }
 
 function getDevServerStatus() {
@@ -528,8 +563,12 @@ async function handleRequest(req, res) {
       }
       refreshInFlight = { startedAt: new Date().toISOString() };
       try {
+        // Fast-forward the site repo first so the snapshot reflects any
+        // pushed work. Pull failures (offline, non-ff, dirty tree) are
+        // surfaced to the UI but never abort the refresh.
+        const git_pull = gitPullSiteRepo();
         const snapshot = await refresh();
-        json(res, { ok: true, refreshed_at: snapshot.refreshed_at });
+        json(res, { ok: true, refreshed_at: snapshot.refreshed_at, git_pull });
       } catch (err) {
         json(res, { error: err.message }, 500);
       } finally {

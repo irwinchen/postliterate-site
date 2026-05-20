@@ -499,6 +499,7 @@
 
     .status-bar.success { color: var(--green); }
     .status-bar.error { color: var(--accent); }
+    .status-bar.warning { color: var(--warning); }
 
     /* ── Empty state ─────────────────────────── */
     .empty {
@@ -3912,7 +3913,7 @@
     btn.classList.add('refreshing');
     btn.innerHTML = '<i data-lucide="refresh-cw"></i> Refreshing…';
     lucide.createIcons();
-    setStatus('Refreshing dashboard snapshot... (~45s — Ollama summarising)');
+    setStatus('Pulling latest & refreshing snapshot... (~45s — Ollama summarising)');
     // Hold the visible spinner for at least this long so a fast response
     // (e.g. 409 already_running) doesn't flash by unnoticed.
     const minHold = new Promise((r) => setTimeout(r, 400));
@@ -3920,7 +3921,22 @@
       const res = await fetch(API + '/api/refresh', { method: 'POST' });
       const data = await res.json();
       if (data.ok) {
-        setStatus('Snapshot refreshed at ' + fmtTime(data.refreshed_at), 'success');
+        // Build a status line that mentions the git pull only when it had
+        // something to say — either a fast-forward happened or the pull
+        // failed (offline, non-ff, dirty tree). "Already up to date" is
+        // the common case and stays silent.
+        const p = data.git_pull;
+        let prefix = '';
+        let level = 'success';
+        if (p && p.ok && !p.alreadyUpToDate) {
+          const from = (p.fromSha || '').slice(0, 7);
+          const to = (p.toSha || '').slice(0, 7);
+          prefix = 'Pulled ' + from + '..' + to + '. ';
+        } else if (p && !p.ok) {
+          prefix = 'Pull failed (' + (p.error || 'unknown') + '). ';
+          level = 'warning';
+        }
+        setStatus(prefix + 'Snapshot refreshed at ' + fmtTime(data.refreshed_at), level);
         await fetchDashboard();
       } else if (res.status === 409 && data.already_running) {
         // Another refresh (startup or in-flight) is still going. Don't

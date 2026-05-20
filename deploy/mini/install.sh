@@ -22,10 +22,16 @@ yellow() { printf '\033[33m%s\033[0m\n' "$*"; }
 red()    { printf '\033[31m%s\033[0m\n' "$*" >&2; }
 
 # ── Sanity checks ────────────────────────────────────────────────────
-if [[ "$REPO_ROOT" != "$HOME/Documents/postliterate-site" ]]; then
-  yellow "Note: repo is at $REPO_ROOT, not the conventional ~/Documents/postliterate-site."
-  yellow "The launchd plists will reference this exact path. If you move the repo later, rerun this installer."
+if [[ "$REPO_ROOT" == "$HOME/Documents/"* ]]; then
+  red "✗ Repo is under ~/Documents ($REPO_ROOT)."
+  red "  That folder is iCloud-synced and TCC-protected, so:"
+  red "    - launchd-spawned scripts get 'Operation not permitted' (TCC),"
+  red "    - uncommitted edits on another Mac leak in via iCloud and break git pulls."
+  red "  Move the clone to e.g. ~/code/postliterate-site and rerun this installer."
+  exit 1
 fi
+yellow "Note: repo is at $REPO_ROOT."
+yellow "The launchd plists will reference this exact path. If you move the repo later, rerun this installer."
 
 if [[ ! -f "$REPO_ROOT/scripts/admin.mjs" ]]; then
   red "✗ Cannot find scripts/admin.mjs. Are you in the postliterate-site repo?"
@@ -122,7 +128,7 @@ if [[ "${INSTALL_GITPULL:-0}" == "1" ]]; then
   reload_agent "$GITPULL_LABEL" "$GITPULL_PLIST"
 else
   yellow "  Skipping auto git-pull timer (default — Mini is dev host)."
-  yellow "  Pull manually via: ~/Documents/postliterate-site/deploy/mini/git-pull.sh"
+  yellow "  Pull manually via: $REPO_ROOT/deploy/mini/git-pull.sh"
   yellow "  Re-enable timer with: INSTALL_GITPULL=1 $0"
 fi
 
