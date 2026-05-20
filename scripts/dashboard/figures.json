@@ -79,5 +79,13 @@
     "images": [
       { "file": "terrain-model.png" }
     ]
+  },
+  {
+    "id": "model-face",
+    "title": "Human Imprint — RLHF as Visual Metaphor",
+    "page": "/face",
+    "images": [
+      { "file": "model-face.png" }
+    ]
   }
 ]
