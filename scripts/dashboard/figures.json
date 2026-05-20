@@ -87,5 +87,12 @@
     "images": [
       { "file": "model-face.png" }
     ]
+  },
+  {
+    "id": "vector-space-3d",
+    "title": "3D Vector Space (prototype)",
+    "images": [
+      { "file": "3D-vector-space.png" }
+    ]
   }
 ]
