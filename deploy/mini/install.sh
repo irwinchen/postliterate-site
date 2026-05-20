@@ -118,18 +118,16 @@ reload_agent() {
 green "✓ Loading $DASHBOARD_LABEL"
 reload_agent "$DASHBOARD_LABEL" "$DASHBOARD_PLIST"
 
-# Auto git-pull is opt-in. By default we don't install the timer
-# because the Mini is now a primary dev host (running Claude Code
-# locally) — auto-pull would fight uncommitted changes. Re-enable
-# explicitly by running the install with INSTALL_GITPULL=1 set, or
-# use deploy/mini/git-pull.sh manually whenever you want to sync.
-if [[ "${INSTALL_GITPULL:-0}" == "1" ]]; then
-  green "✓ Loading $GITPULL_LABEL (INSTALL_GITPULL=1 set)"
-  reload_agent "$GITPULL_LABEL" "$GITPULL_PLIST"
-else
-  yellow "  Skipping auto git-pull timer (default — Mini is dev host)."
+# Auto git-pull is enabled by default. The Mini runs a read-only mirror;
+# the launchd timer keeps it current every 30 min. Opt out with
+# INSTALL_GITPULL=0 only if the Mini is temporarily being used for
+# development (where auto-pull would fight uncommitted edits).
+if [[ "${INSTALL_GITPULL:-1}" == "0" ]]; then
+  yellow "  Skipping auto git-pull timer (INSTALL_GITPULL=0 set)."
   yellow "  Pull manually via: $REPO_ROOT/deploy/mini/git-pull.sh"
-  yellow "  Re-enable timer with: INSTALL_GITPULL=1 $0"
+else
+  green "✓ Loading $GITPULL_LABEL"
+  reload_agent "$GITPULL_LABEL" "$GITPULL_PLIST"
 fi
 
 # ── Verify dashboard is up ───────────────────────────────────────────
