@@ -3270,9 +3270,12 @@
     // Live-page link. project.page accepts three forms:
     //   - absolute http(s) URL → used as-is (external sources, e.g. OECD)
     //   - "/dashboard/..."     → same origin as the dashboard (port 4322)
-    //   - any other "/..."     → Astro dev server (port 4321), so the
-    //                            site's actual pages open in a new tab.
-    // After deploy the third branch should point at the production origin.
+    //   - any other "/..."     → site page. Routes to localhost:4321 only
+    //                            when the dashboard itself is on localhost
+    //                            (MacBook dev); from any other host (e.g.
+    //                            mediaserver.local on the Mini) it points at
+    //                            the production origin since the Mini is an
+    //                            appliance with no Astro dev server.
     const liveLinkFor = (p) => {
       if (!p.page) return '';
       let href;
@@ -3281,7 +3284,11 @@
       } else if (p.page.startsWith('/dashboard/')) {
         href = p.page;
       } else {
-        href = `${window.location.protocol}//${window.location.hostname}:4321${p.page}`;
+        const host = window.location.hostname;
+        const isLocalDev = host === 'localhost' || host === '127.0.0.1' || host === '::1';
+        href = isLocalDev
+          ? `${window.location.protocol}//${host}:4321${p.page}`
+          : `https://postliterate.org${p.page}`;
       }
       // stopPropagation so clicking the link doesn't also open the lightbox
       // when the link sits inside the card button.
