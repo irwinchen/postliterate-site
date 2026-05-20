@@ -469,6 +469,15 @@
       const colors = new Float32Array(N * 3);
       const sizes = new Float32Array(N);
       const opacities = new Float32Array(N);
+      // Per-point hover flag (0/1). Mutated each frame in tick() when the
+      // raycaster's hit index changes. Drives an outline ring in the
+      // fragment shader so the user can see which dot is under the cursor
+      // even in a tight cluster.
+      const hovers = new Float32Array(N);
+      // Per-point token kind (1 = sentence/red, 0 = comparison/grey). Lets
+      // the shader give sentence dots a wider, accent-tinted outline on
+      // hover while comparison dots get a thinner white ring.
+      const kinds = new Float32Array(N);
 
       // PCA extent → scale into a viewing cube ~ [-2, 2] on each axis
       const ext = DATA.extent;
@@ -492,6 +501,7 @@
         // the comparison cloud.
         sizes[i] = t.kind === 'sentence' ? 9 : 6;
         opacities[i] = 1;
+        kinds[i] = t.kind === 'sentence' ? 1 : 0;
       }
 
       const accentColor = new THREE.Color();
@@ -520,6 +530,8 @@
         'aOpacity',
         new THREE.BufferAttribute(opacities, 1),
       );
+      geometry.setAttribute('aHover', new THREE.BufferAttribute(hovers, 1));
+      geometry.setAttribute('aKind', new THREE.BufferAttribute(kinds, 1));
 
       updateMaterialColors();
 
@@ -533,29 +545,69 @@
         vertexShader: /* glsl */ `
           attribute float size;
           attribute float aOpacity;
+          attribute float aHover;
+          attribute float aKind;
           varying vec3 vColor;
           varying float vOpacity;
+          varying float vHover;
+          varying float vKind;
           uniform float uPixelRatio;
+          // Scale-up factor when the point is hovered. Must match the
+          // counter-scale in the fragment shader's discScale so the inner
+          // dot stays the same on-screen size while the outer ring
+          // becomes visible in the freed perimeter.
+          const float HOVER_SCALE = 1.8;
           void main() {
             vColor = color;
             vOpacity = aOpacity;
+            vHover = aHover;
+            vKind = aKind;
             vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
-            gl_PointSize = size * uPixelRatio * (12.0 / -mvPosition.z);
+            float hoverScale = mix(1.0, HOVER_SCALE, aHover);
+            gl_PointSize = size * hoverScale * uPixelRatio * (12.0 / -mvPosition.z);
             gl_Position = projectionMatrix * mvPosition;
           }
         `,
         fragmentShader: /* glsl */ `
           varying vec3 vColor;
           varying float vOpacity;
+          varying float vHover;
+          varying float vKind;
           void main() {
             vec2 c = gl_PointCoord - vec2(0.5);
             float d = length(c);
-            // soft disc with a tiny rim
-            float core = smoothstep(0.50, 0.40, d);
-            float rim  = smoothstep(0.50, 0.46, d) - smoothstep(0.46, 0.40, d);
-            float a = (core * 0.85 + rim * 0.6) * vOpacity;
-            if (a < 0.01) discard;
-            gl_FragColor = vec4(vColor, a);
+
+            // Counter-scale the inner disc so the dot itself doesn't grow
+            // when hovered — only the perimeter expands, making room for
+            // an outline ring outside the original dot bounds.
+            float discScale = mix(1.0, 1.0 / 1.8, vHover);
+            float dInner = d / discScale;
+            float core = smoothstep(0.50, 0.40, dInner);
+            float rim  = smoothstep(0.50, 0.46, dInner) - smoothstep(0.46, 0.40, dInner);
+            float discA = (core * 0.85 + rim * 0.6) * vOpacity;
+
+            // Outline ring (hover only). Wider + slightly brighter for
+            // sentence (red) tokens so the "this is one of the highlighted
+            // ones" cue reads even in a dense cluster.
+            float ringOuter = 0.48;
+            float ringInner = mix(0.42, 0.38, vKind);
+            float ring =
+              smoothstep(ringOuter, ringOuter - 0.015, d)
+              - smoothstep(ringInner, ringInner - 0.015, d);
+            float ringA = ring * vHover * mix(0.65, 0.95, vKind) * vOpacity;
+
+            // Ring color: white for comparison dots; a brighter-red blend
+            // of the dot color for sentence dots so red rings still read
+            // against the surrounding cloud.
+            vec3 ringColor = mix(vec3(1.0), mix(vColor, vec3(1.0), 0.30), vKind);
+
+            // At any pixel, show whichever element (disc or ring) is more
+            // present — they don't spatially overlap, so a simple max
+            // composite avoids muddy in-between blends.
+            vec3 col = discA >= ringA ? vColor : ringColor;
+            float alpha = max(discA, ringA);
+            if (alpha < 0.01) discard;
+            gl_FragColor = vec4(col, alpha);
           }
         `,
       });
@@ -815,6 +867,11 @@
         const hits = raycaster.intersectObject(points);
         const newHover = hits.length > 0 ? hits[0].index : -1;
         if (newHover !== hoverIdx) {
+          // Flip the aHover attribute for the leaving + entering dot so
+          // the shader can render an outline ring on the current target.
+          if (hoverIdx >= 0 && hoverIdx < N) hovers[hoverIdx] = 0;
+          if (newHover >= 0) hovers[newHover] = 1;
+          geometry.attributes.aHover.needsUpdate = true;
           hoverIdx = newHover;
           // Labels are always visible, so no floating tooltip needed.
           // Just nudge the cursor to feedback the dot is clickable.
