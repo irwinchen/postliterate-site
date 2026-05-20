@@ -1,0 +1,1034 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Human imprint — visual metaphor | Post-Literate</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600&family=Literata:ital,wght@0,400;0,500;1,400&family=Sono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      :root {
+        color-scheme: light;
+        --background: #f3efe1;
+        --text: #2c2c2c;
+        --text-secondary: #666;
+        --text-tertiary: #999;
+        --accent: #e53e33;
+        --accent-2: #3b6db4;
+        --accent-3: #549e44;
+        --border-subtle: rgba(0, 0, 0, 0.12);
+        --bg-subtle: rgba(0, 0, 0, 0.03);
+        --tile-bg: rgba(255, 255, 255, 0.6);
+        --terrain-dot: #2c2c2c;
+      }
+      [data-theme='dark'] {
+        color-scheme: dark;
+        --background: #1a1a1a;
+        --text: #c8c8c8;
+        --text-secondary: #a0a0a0;
+        --text-tertiary: #707070;
+        --accent: #ff6b5e;
+        --accent-2: #6e9fde;
+        --accent-3: #7cc468;
+        --border-subtle: rgba(255, 255, 255, 0.12);
+        --bg-subtle: rgba(255, 255, 255, 0.04);
+        --tile-bg: rgba(255, 255, 255, 0.04);
+        --terrain-dot: #f3efe1;
+      }
+
+      html,
+      body {
+        block-size: 100%;
+        overflow: hidden;
+        background: var(--background);
+        color: var(--text);
+        font-family: 'Outfit', system-ui, sans-serif;
+        -webkit-font-smoothing: antialiased;
+      }
+
+      .page-shell {
+        position: relative;
+        block-size: 100dvh;
+        inline-size: 100vw;
+      }
+
+      .page-nav {
+        position: absolute;
+        inset-block-start: 0;
+        inset-inline: 0;
+        z-index: 10;
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        padding-inline: 20px;
+        block-size: 40px;
+        border-block-end: 1px solid var(--border-subtle);
+        background: rgba(0, 0, 0, 0);
+        font-size: 13px;
+      }
+      .page-nav a,
+      .page-nav button {
+        color: var(--text-secondary);
+        text-decoration: none;
+        background: none;
+        border: 0;
+        font: inherit;
+        cursor: pointer;
+        padding: 0;
+      }
+      .page-nav a:hover,
+      .page-nav button:hover {
+        color: var(--accent);
+      }
+      .page-nav-sep {
+        color: var(--text-tertiary);
+      }
+      .page-nav-spacer {
+        flex: 1;
+      }
+
+      .stage {
+        position: absolute;
+        inset: 0;
+        overflow: hidden;
+      }
+
+      #scene {
+        position: absolute;
+        inset: 0;
+        display: block;
+        inline-size: 100%;
+        block-size: 100%;
+      }
+
+      .overlay {
+        position: absolute;
+        pointer-events: none;
+        font-size: 12px;
+        line-height: 1.4;
+        color: var(--text-secondary);
+        font-family: 'Sono', ui-monospace, monospace;
+      }
+      .overlay-top-left {
+        inset-block-start: 56px;
+        inset-inline-start: 20px;
+      }
+      .overlay-top-right {
+        inset-block-start: 56px;
+        inset-inline-end: 20px;
+        text-align: end;
+        max-inline-size: 340px;
+      }
+
+      .stage-title {
+        font-family: 'Literata', Georgia, serif;
+        font-size: 16px;
+        font-style: italic;
+        color: var(--text);
+      }
+      .meta-line {
+        margin-block-start: 4px;
+        color: var(--text-tertiary);
+      }
+
+      .theme-btn::before {
+        content: '◐';
+        margin-inline-end: 4px;
+      }
+
+      /* ---------------------------------------------------------------
+         Single-phase scrubber: post-training → human imprint.
+         --------------------------------------------------------------- */
+      .controls {
+        position: absolute;
+        inset-block-end: 0;
+        inset-inline: 0;
+        z-index: 5;
+        display: grid;
+        grid-template-columns: auto 1fr auto;
+        align-items: center;
+        gap: 18px;
+        padding: 14px 24px 18px;
+        background: linear-gradient(
+          to top,
+          color-mix(in srgb, var(--background) 92%, transparent),
+          transparent
+        );
+        font-family: 'Sono', ui-monospace, monospace;
+        font-size: 11px;
+        color: var(--text-secondary);
+        pointer-events: none;
+      }
+      .controls > * {
+        pointer-events: auto;
+      }
+
+      .play-btn {
+        font: 12px/1 'Sono', ui-monospace, monospace;
+        color: var(--text-secondary);
+        background: var(--tile-bg);
+        border: 1px solid var(--border-subtle);
+        padding: 8px 12px;
+        min-inline-size: 96px;
+        cursor: pointer;
+        transition: color 120ms, border-color 120ms;
+        backdrop-filter: blur(4px);
+        text-align: center;
+      }
+      .play-btn:hover {
+        color: var(--accent);
+        border-color: var(--accent);
+      }
+
+      .scrubber-wrap {
+        display: grid;
+        grid-template-rows: auto auto;
+        gap: 6px;
+      }
+      .scrubber-markers {
+        position: relative;
+        block-size: 14px;
+      }
+      .marker {
+        position: absolute;
+        inset-block-start: 0;
+        font-family: 'Sono', ui-monospace, monospace;
+        font-size: 10px;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: var(--text-tertiary);
+        background: none;
+        border: 0;
+        padding: 0;
+        cursor: pointer;
+        white-space: nowrap;
+        transition: color 120ms;
+      }
+      .marker:hover {
+        color: var(--accent);
+      }
+      .marker.active {
+        color: var(--text);
+      }
+      .marker-start {
+        inset-inline-start: 0;
+      }
+      .marker-end {
+        inset-inline-end: 0;
+      }
+
+      .scrubber {
+        position: relative;
+        block-size: 22px;
+        cursor: pointer;
+        touch-action: none;
+        user-select: none;
+      }
+      .scrubber-track {
+        position: absolute;
+        inset-block-start: 50%;
+        inset-inline: 0;
+        block-size: 1px;
+        background: var(--border-subtle);
+        transform: translateY(-50%);
+      }
+      .scrubber-fill {
+        position: absolute;
+        inset-block-start: 50%;
+        inset-inline-start: 0;
+        block-size: 1px;
+        background: var(--text-secondary);
+        transform: translateY(-50%);
+      }
+      .scrubber-thumb {
+        position: absolute;
+        inset-block-start: 50%;
+        inline-size: 12px;
+        block-size: 12px;
+        border-radius: 50%;
+        background: var(--text);
+        transform: translate(-50%, -50%);
+        transition: background 120ms;
+      }
+      .scrubber:hover .scrubber-thumb {
+        background: var(--accent);
+      }
+
+      .readout {
+        text-align: end;
+        font-variant-numeric: tabular-nums;
+        line-height: 1.35;
+        min-inline-size: 230px;
+      }
+      .readout .phase {
+        color: var(--text);
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        font-size: 10px;
+      }
+      .readout .counter {
+        color: var(--text-secondary);
+      }
+      .readout .caveat {
+        color: var(--text-tertiary);
+        font-size: 10px;
+      }
+    </style>
+
+    <script is:inline>
+      (function () {
+        var saved = localStorage.getItem('theme') || 'dark';
+        document.documentElement.setAttribute('data-theme', saved);
+      })();
+    </script>
+
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+          "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <div class="page-shell">
+      <nav class="page-nav">
+        <a href="/">Post-Literate</a>
+        <span class="page-nav-sep">›</span>
+        <a href="/terrain">Weight terrain</a>
+        <span class="page-nav-sep">›</span>
+        <span>Human imprint</span>
+        <span class="page-nav-spacer"></span>
+        <button id="theme-toggle" class="theme-btn" title="Toggle light / dark"></button>
+      </nav>
+
+      <div class="stage">
+        <canvas id="scene"></canvas>
+
+        <div class="overlay overlay-top-left">
+          <div class="stage-title">the human shape, surfacing through the weights</div>
+          <div class="meta-line" id="meta-line">loading…</div>
+        </div>
+
+        <div class="overlay overlay-top-right">
+          <span style="opacity: 0.85">RLHF, as visual metaphor</span><br />
+          <span style="opacity: 0.6">a face pushes up through the post-trained terrain</span>
+        </div>
+
+        <div class="controls" id="controls">
+          <button class="play-btn" id="play-btn" type="button">play ▶</button>
+
+          <div class="scrubber-wrap">
+            <div class="scrubber-markers" id="scrubber-markers">
+              <button class="marker marker-start" type="button" data-t="0">post-training</button>
+              <button class="marker marker-end" type="button" data-t="1">human imprint</button>
+            </div>
+            <div class="scrubber" id="scrubber" role="slider" aria-valuemin="0" aria-valuemax="1" aria-valuenow="0">
+              <div class="scrubber-track"></div>
+              <div class="scrubber-fill" id="scrubber-fill"></div>
+              <div class="scrubber-thumb" id="scrubber-thumb"></div>
+            </div>
+          </div>
+
+          <div class="readout">
+            <div class="phase" id="readout-phase">post-training</div>
+            <div class="counter" id="readout-counter">imprint forming · 0%</div>
+            <div class="caveat">metaphor · not a measurement</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script type="module">
+      import * as THREE from 'three';
+      import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+      // ---------------------------------------------------------------
+      // Theme
+      // ---------------------------------------------------------------
+      const html = document.documentElement;
+      function applyTheme(t) {
+        html.setAttribute('data-theme', t);
+        localStorage.setItem('theme', t);
+        updateMaterialColors();
+      }
+      document.getElementById('theme-toggle').addEventListener('click', () => {
+        const cur = html.getAttribute('data-theme');
+        applyTheme(cur === 'light' ? 'dark' : 'light');
+      });
+
+      // ---------------------------------------------------------------
+      // Scene setup
+      // ---------------------------------------------------------------
+      const canvas = document.getElementById('scene');
+      const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+      const scene = new THREE.Scene();
+
+      const camera = new THREE.PerspectiveCamera(
+        38,
+        canvas.clientWidth / canvas.clientHeight,
+        0.01,
+        200,
+      );
+      // Start oblique like /terrain so the seam reads. The camera then
+      // rotates toward straight-down during the animation so the face
+      // reveals itself fully at t = 1.
+      camera.position.set(6.0, 7.0, 9.5);
+
+      const renderer = new THREE.WebGLRenderer({
+        canvas,
+        antialias: true,
+        alpha: true,
+      });
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      renderer.setClearColor(0x000000, 0);
+
+      const stageEl = document.querySelector('.stage');
+
+      let viewW = 0;
+      let viewH = 0;
+      function resize() {
+        const rect = stageEl.getBoundingClientRect();
+        const w = Math.round(rect.width);
+        const h = Math.round(rect.height);
+        if (w === 0 || h === 0) return;
+        viewW = w;
+        viewH = h;
+        camera.aspect = w / h;
+        camera.updateProjectionMatrix();
+        renderer.setSize(w, h, false);
+      }
+      resize();
+      window.addEventListener('resize', resize);
+      if (typeof ResizeObserver !== 'undefined') {
+        new ResizeObserver(resize).observe(stageEl);
+      }
+
+      const controls = new OrbitControls(camera, stageEl);
+      controls.enableDamping = !reducedMotion;
+      controls.dampingFactor = 0.08;
+      controls.rotateSpeed = 0.8;
+      controls.zoomSpeed = 0.7;
+      controls.panSpeed = 0.6;
+      controls.minDistance = 2.5;
+      controls.maxDistance = 40;
+      // Allow the camera to go essentially straight-down (face read view).
+      controls.maxPolarAngle = Math.PI * 0.51;
+      controls.target.set(0, 0, 0.2);
+
+      // Camera is scripted by t: at t = 0 we sit at the oblique angle
+      // /terrain ended on; at t = 1 we're nearly straight-down so the
+      // face's schema (two eyes + nose + mouth) reads clearly. The user
+      // can still pause + drag to inspect — OrbitControls' 'start'
+      // event releases the scripted lock until the next setT().
+      const camStart = { dist: 13.24, polar: 1.013, azim: 0.563 };
+      const camEnd   = { dist: 12.0,  polar: 0.08,  azim: 0.0 };
+      const camTarget = new THREE.Vector3(0, 0, 0.2);
+      let cameraScripted = true;
+      controls.addEventListener('start', () => {
+        cameraScripted = false;
+      });
+
+      function applyCameraForT(tNow) {
+        if (!cameraScripted) return;
+        const eased = easeInOutCubic(tNow);
+        const dist  = camStart.dist  + (camEnd.dist  - camStart.dist)  * eased;
+        const polar = camStart.polar + (camEnd.polar - camStart.polar) * eased;
+        const azim  = camStart.azim  + (camEnd.azim  - camStart.azim)  * eased;
+        const sinP = Math.sin(polar);
+        camera.position.set(
+          camTarget.x + dist * sinP * Math.sin(azim),
+          camTarget.y + dist * Math.cos(polar),
+          camTarget.z + dist * sinP * Math.cos(azim),
+        );
+        controls.target.copy(camTarget);
+        camera.lookAt(camTarget);
+      }
+
+      // ---------------------------------------------------------------
+      // Noise — seeded value noise, fBm with 5 octaves.
+      // Same constants/seeds as /terrain so this page picks up exactly
+      // where that one ends.
+      // ---------------------------------------------------------------
+      function hash2(x, y) {
+        let h = (x | 0) * 374761393 + (y | 0) * 668265263 + 0x9e3779b9;
+        h = Math.imul(h ^ (h >>> 13), 1274126177);
+        h = h ^ (h >>> 16);
+        return (h >>> 0) / 4294967295;
+      }
+      function smoothstep01(t) {
+        return t * t * (3 - 2 * t);
+      }
+      function smoothstep(edge0, edge1, x) {
+        const t = Math.max(0, Math.min(1, (x - edge0) / (edge1 - edge0)));
+        return t * t * (3 - 2 * t);
+      }
+      function valueNoise(x, y) {
+        const xi = Math.floor(x);
+        const yi = Math.floor(y);
+        const xf = x - xi;
+        const yf = y - yi;
+        const tx = smoothstep01(xf);
+        const ty = smoothstep01(yf);
+        const a = hash2(xi, yi);
+        const b = hash2(xi + 1, yi);
+        const c = hash2(xi, yi + 1);
+        const d = hash2(xi + 1, yi + 1);
+        const ab = a + (b - a) * tx;
+        const cd = c + (d - c) * tx;
+        return ab + (cd - ab) * ty;
+      }
+      function fbm(x, y) {
+        let v = 0;
+        let amp = 0.5;
+        let freq = 1;
+        for (let i = 0; i < 5; i++) {
+          v += amp * valueNoise(x * freq, y * freq);
+          freq *= 2;
+          amp *= 0.5;
+        }
+        return v;
+      }
+
+      // ---------------------------------------------------------------
+      // Grid + height fields
+      //   yRlhf  — post-training terrain (the START state — same as /terrain end)
+      //   yFace  — procedural face heightmap, added on top of yRlhf
+      //   yMask  — elliptical mask: where on the plane the face lives
+      //   dCenter — distance from face centroid, used for radial reveal
+      // ---------------------------------------------------------------
+      const SIDE = 200;
+      const COUNT = SIDE * SIDE;
+      const WORLD_SPAN = 12;
+      const NOISE_SCALE = 0.55;
+      const HEIGHT_SCALE = 2.4;
+
+      const xs = new Float32Array(COUNT);
+      const zs = new Float32Array(COUNT);
+      const yMature = new Float32Array(COUNT);
+      const yRlhf = new Float32Array(COUNT);
+      const yFace = new Float32Array(COUNT);
+      const faceMask = new Float32Array(COUNT);
+      const dCenter = new Float32Array(COUNT);
+      const yCurrent = new Float32Array(COUNT);
+      const hashPerDot = new Float32Array(COUNT);
+
+      for (let j = 0; j < SIDE; j++) {
+        for (let i = 0; i < SIDE; i++) {
+          const idx = j * SIDE + i;
+          const x = (i / (SIDE - 1) - 0.5) * WORLD_SPAN;
+          const z = (j / (SIDE - 1) - 0.5) * WORLD_SPAN;
+          xs[idx] = x;
+          zs[idx] = z;
+          hashPerDot[idx] = hash2(i * 73 + 11, j * 131 + 7);
+          const n = fbm(x * NOISE_SCALE + 17.3, z * NOISE_SCALE + 91.7);
+          yMature[idx] = (n - 0.5) * HEIGHT_SCALE;
+        }
+      }
+
+      // ---------------------------------------------------------------
+      // Rebuild yRlhf using the same recipe as /terrain so the start
+      // state here matches the end state there.
+      // ---------------------------------------------------------------
+      function gaussianIso(x, z, cx, cz, sigma) {
+        const dx = x - cx;
+        const dz = z - cz;
+        return Math.exp(-(dx * dx + dz * dz) / (2 * sigma * sigma));
+      }
+      function gaussian2(x, z, cx, cz, sx, sz) {
+        const dx = x - cx;
+        const dz = z - cz;
+        return Math.exp(-((dx * dx) / (2 * sx * sx) + (dz * dz) / (2 * sz * sz)));
+      }
+
+      // Box-blur pass over yMature, used by the plateau edit.
+      const BLUR_R = 10;
+      const yBlurredTmp = new Float32Array(COUNT);
+      const yBlurred = new Float32Array(COUNT);
+      for (let j = 0; j < SIDE; j++) {
+        for (let i = 0; i < SIDE; i++) {
+          let s = 0;
+          let n = 0;
+          for (let di = -BLUR_R; di <= BLUR_R; di++) {
+            const ii = i + di;
+            if (ii < 0 || ii >= SIDE) continue;
+            s += yMature[j * SIDE + ii];
+            n++;
+          }
+          yBlurredTmp[j * SIDE + i] = s / n;
+        }
+      }
+      for (let j = 0; j < SIDE; j++) {
+        for (let i = 0; i < SIDE; i++) {
+          let s = 0;
+          let n = 0;
+          for (let dj = -BLUR_R; dj <= BLUR_R; dj++) {
+            const jj = j + dj;
+            if (jj < 0 || jj >= SIDE) continue;
+            s += yBlurredTmp[jj * SIDE + i];
+            n++;
+          }
+          yBlurred[j * SIDE + i] = s / n;
+        }
+      }
+
+      const plateau  = { cx: -2.6, cz:  1.7, sigma: 1.7,  strength: 1.0 };
+      const valley   = { cx:  1.4, cz:  2.6, sigma: 1.05, depth: -1.4 };
+      const mountain = { cx:  2.4, cz: -2.2, sigma: 0.95, height: 1.6 };
+
+      for (let idx = 0; idx < COUNT; idx++) {
+        const x = xs[idx];
+        const z = zs[idx];
+        let y = yMature[idx];
+        const wPlateau = gaussianIso(x, z, plateau.cx, plateau.cz, plateau.sigma);
+        y = y + (yBlurred[idx] - y) * wPlateau * plateau.strength;
+        const wValley = gaussianIso(x, z, valley.cx, valley.cz, valley.sigma);
+        y = y + wValley * valley.depth;
+        const wMountain = gaussianIso(x, z, mountain.cx, mountain.cz, mountain.sigma);
+        y = y + wMountain * mountain.height;
+        yRlhf[idx] = y;
+      }
+
+      // ---------------------------------------------------------------
+      // Face — sampled from an actual portrait photograph.
+      //
+      // The PNG is letterboxed onto a SIDE×SIDE canvas (transparent
+      // background) so the photo's image-y axis aligns with the world
+      // z axis: image top → forehead → world -z, image bottom → chin
+      // → world +z. Alpha gives a free background mask (no luminance
+      // thresholding needed). Luminance, centered on the foreground
+      // mean, becomes height: bright = raised, dark = recessed. This
+      // is a shading-map approximation, not true depth, but it matches
+      // how a top-lit face would actually look as terrain — eye
+      // sockets, mouth, under-nose, and under-chin all read as
+      // recessed because that's how they shadow in real life.
+      //
+      // Loaded async: the scene shows pure post-RLHF terrain until the
+      // image resolves, then the face data is filled in and the
+      // material's brightness range is recomputed.
+      // ---------------------------------------------------------------
+
+      // Range of luminance → height. Tuned to match the amplitude of
+      // the RLHF mountain/valley features so the face neither vanishes
+      // into them nor dominates them.
+      const FACE_HEIGHT_SCALE = 2.4;
+
+      let faceLoaded = false;
+      let faceCentroidX = 0;
+      let faceCentroidZ = 0;
+
+      // Initialize face fields to zero so the scene can render
+      // immediately as plain RLHF terrain while the image loads.
+      // dCenter is computed from the actual centroid once loaded.
+      for (let idx = 0; idx < COUNT; idx++) {
+        yFace[idx] = 0;
+        faceMask[idx] = 0;
+        dCenter[idx] = 0;
+      }
+
+      // Initialize yCurrent to the start state (RLHF terrain, no face).
+      yCurrent.set(yRlhf);
+
+      async function loadFaceImage(url) {
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        await new Promise((resolve, reject) => {
+          img.onload = resolve;
+          img.onerror = () => reject(new Error('failed to load ' + url));
+          img.src = url;
+        });
+
+        // Letterbox into a SIDE×SIDE canvas, preserving aspect, so the
+        // face doesn't get squashed and the background outside the
+        // image bounds stays transparent.
+        const sampleCanvas = document.createElement('canvas');
+        sampleCanvas.width = SIDE;
+        sampleCanvas.height = SIDE;
+        const ctx = sampleCanvas.getContext('2d');
+        ctx.clearRect(0, 0, SIDE, SIDE);
+
+        const imgAspect = img.naturalWidth / img.naturalHeight;
+        let destW, destH, destX, destY;
+        if (imgAspect < 1) {
+          destH = SIDE;
+          destW = SIDE * imgAspect;
+          destX = (SIDE - destW) / 2;
+          destY = 0;
+        } else {
+          destW = SIDE;
+          destH = SIDE / imgAspect;
+          destX = 0;
+          destY = (SIDE - destH) / 2;
+        }
+        ctx.drawImage(img, destX, destY, destW, destH);
+        const pixels = ctx.getImageData(0, 0, SIDE, SIDE).data;
+
+        // First pass: collect foreground luminance, compute mean so the
+        // face is mean-zero (doesn't bias the whole region up or down).
+        const lumArr = new Float32Array(COUNT);
+        const alphaArr = new Float32Array(COUNT);
+        let sumLum = 0;
+        let nFg = 0;
+        let sumX = 0;
+        let sumZ = 0;
+        for (let j = 0; j < SIDE; j++) {
+          for (let i = 0; i < SIDE; i++) {
+            const idx = j * SIDE + i;
+            const p = idx * 4;
+            const r = pixels[p] / 255;
+            const g = pixels[p + 1] / 255;
+            const b = pixels[p + 2] / 255;
+            const a = pixels[p + 3] / 255;
+            const lum = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+            lumArr[idx] = lum;
+            alphaArr[idx] = a;
+            if (a > 0.5) {
+              sumLum += lum;
+              nFg++;
+              sumX += xs[idx];
+              sumZ += zs[idx];
+            }
+          }
+        }
+        if (nFg === 0) throw new Error('no foreground pixels in face image');
+        const meanLum = sumLum / nFg;
+        faceCentroidX = sumX / nFg;
+        faceCentroidZ = sumZ / nFg;
+
+        // Second pass: write heights, mask, and radial-reveal distances.
+        // Mask uses the alpha channel directly — the PNG already has a
+        // clean cut-out, so the antialiased edge gives a soft band for
+        // free.
+        let yFinalMin = Infinity;
+        let yFinalMax = -Infinity;
+        for (let idx = 0; idx < COUNT; idx++) {
+          const a = alphaArr[idx];
+          yFace[idx] = (lumArr[idx] - meanLum) * FACE_HEIGHT_SCALE;
+          faceMask[idx] = a;
+          const rdx = xs[idx] - faceCentroidX;
+          const rdz = zs[idx] - faceCentroidZ;
+          dCenter[idx] = Math.sqrt(rdx * rdx + rdz * rdz);
+          const yFinal = yRlhf[idx] + yFace[idx] * faceMask[idx];
+          if (yFinal < yFinalMin) yFinalMin = yFinal;
+          if (yFinal > yFinalMax) yFinalMax = yFinal;
+        }
+
+        // Re-scan yMin/yMax including the new final state so the
+        // brightness ramp covers eyes-as-dark and forehead-as-bright.
+        let newMin = Infinity;
+        let newMax = -Infinity;
+        for (let i = 0; i < COUNT; i++) {
+          if (yRlhf[i] < newMin) newMin = yRlhf[i];
+          if (yRlhf[i] > newMax) newMax = yRlhf[i];
+        }
+        if (yFinalMin < newMin) newMin = yFinalMin;
+        if (yFinalMax > newMax) newMax = yFinalMax;
+        material.uniforms.uYMin.value = newMin;
+        material.uniforms.uYMax.value = newMax;
+
+        faceLoaded = true;
+        document.getElementById('meta-line').textContent =
+          `${SIDE.toLocaleString()} × ${SIDE.toLocaleString()} grid · ` +
+          `${COUNT.toLocaleString()} dots · radial emergence · sampled from portrait`;
+      }
+
+      // ---------------------------------------------------------------
+      // Geometry — x, z fixed in position attribute; y comes from aY.
+      // ---------------------------------------------------------------
+      const positions = new Float32Array(COUNT * 3);
+      for (let idx = 0; idx < COUNT; idx++) {
+        positions[idx * 3 + 0] = xs[idx];
+        positions[idx * 3 + 1] = 0;
+        positions[idx * 3 + 2] = zs[idx];
+      }
+      const geometry = new THREE.BufferGeometry();
+      geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+      const aYAttr = new THREE.BufferAttribute(yCurrent, 1);
+      aYAttr.setUsage(THREE.DynamicDrawUsage);
+      geometry.setAttribute('aY', aYAttr);
+
+      // ---------------------------------------------------------------
+      // Material — same soft-disc + brightness ramp as /terrain.
+      // Normalize against the union of yRlhf and final face state so
+      // the ramp stays stable through the morph.
+      // ---------------------------------------------------------------
+      const dotColor = new THREE.Color();
+      function readDotColor() {
+        const cs = getComputedStyle(html);
+        dotColor.set(cs.getPropertyValue('--terrain-dot').trim() || '#f3efe1');
+      }
+      readDotColor();
+
+      // Initial brightness ramp covers yRlhf only — yFace adds to this
+      // range once the portrait loads (loadFaceImage updates the
+      // uniforms in place).
+      let yMin = Infinity;
+      let yMax = -Infinity;
+      for (let i = 0; i < COUNT; i++) {
+        if (yRlhf[i] < yMin) yMin = yRlhf[i];
+        if (yRlhf[i] > yMax) yMax = yRlhf[i];
+      }
+
+      const material = new THREE.ShaderMaterial({
+        transparent: true,
+        depthWrite: false,
+        uniforms: {
+          uPixelRatio: { value: renderer.getPixelRatio() },
+          uColor: { value: dotColor },
+          uSize: { value: 3.2 },
+          uYMin: { value: yMin },
+          uYMax: { value: yMax },
+        },
+        vertexShader: /* glsl */ `
+          attribute float aY;
+          varying float vNormY;
+          uniform float uPixelRatio;
+          uniform float uSize;
+          uniform float uYMin;
+          uniform float uYMax;
+          void main() {
+            vec3 pos = vec3(position.x, aY, position.z);
+            vNormY = clamp((aY - uYMin) / max(uYMax - uYMin, 0.001), 0.0, 1.0);
+            vec4 mvPosition = modelViewMatrix * vec4(pos, 1.0);
+            gl_PointSize = uSize * uPixelRatio * (12.0 / -mvPosition.z);
+            gl_Position = projectionMatrix * mvPosition;
+          }
+        `,
+        fragmentShader: /* glsl */ `
+          uniform vec3 uColor;
+          varying float vNormY;
+          void main() {
+            vec2 c = gl_PointCoord - vec2(0.5);
+            float d = length(c);
+            float core = smoothstep(0.50, 0.38, d);
+            float rim  = smoothstep(0.50, 0.46, d) - smoothstep(0.46, 0.38, d);
+            float a = (core * 0.85 + rim * 0.55);
+            if (a < 0.01) discard;
+            float brightness = 0.55 + 0.45 * vNormY;
+            gl_FragColor = vec4(uColor * brightness, a);
+          }
+        `,
+      });
+
+      const points = new THREE.Points(geometry, material);
+      scene.add(points);
+
+      function updateMaterialColors() {
+        readDotColor();
+        material.uniforms.uColor.value.copy(dotColor);
+      }
+
+      // ---------------------------------------------------------------
+      // Animation model
+      //
+      //   t in [0, 1] is scrubber position.
+      //   Eased local progress drives a radial wavefront expanding from
+      //   the face centroid; each dot's face contribution turns on as
+      //   the wavefront passes it, so the face appears to push up from
+      //   the centre outward instead of fading in uniformly.
+      // ---------------------------------------------------------------
+      const WOBBLE_AMPLITUDE = 0.04;
+      // Reveal radius needs to cover the face footprint plus the
+      // smoothing band; anything beyond just keeps reveal pinned at 1.
+      const MAX_REVEAL_R = 7.0;
+      const REVEAL_BAND = 0.55;
+      const PLAY_DURATION_MS = 9000;
+
+      let t = 0;
+      let playing = false;
+      let lastFrameMs = 0;
+
+      function easeInOutCubic(x) {
+        return x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2;
+      }
+
+      function setT(nextT) {
+        t = Math.max(0, Math.min(1, nextT));
+        // Any setT call (scrub, marker, play tick) re-asserts the
+        // scripted camera so the guided view comes back even after the
+        // user has manually orbited.
+        cameraScripted = true;
+        applyT(t);
+        renderUi(t);
+      }
+
+      function applyT(tNow) {
+        applyCameraForT(tNow);
+        const eased = easeInOutCubic(tNow);
+        const frontR = MAX_REVEAL_R * eased;
+        const pinned = eased >= 0.999;
+        // Bell envelope so wobble peaks mid-emergence and settles at
+        // both endpoints — the face is "calm" before and after.
+        const wobbleEnvelope = 4 * eased * (1 - eased);
+        const wobblePhase = (performance.now() * 0.002) % (Math.PI * 2);
+
+        for (let i = 0; i < COUNT; i++) {
+          let reveal;
+          if (pinned) {
+            reveal = 1;
+          } else {
+            // 1 inside the wavefront, 0 outside, smooth band across.
+            reveal = 1 - smoothstep(frontR, frontR + REVEAL_BAND, dCenter[i]);
+          }
+          let y = yRlhf[i] + yFace[i] * faceMask[i] * reveal;
+          if (playing && wobbleEnvelope > 0.001) {
+            const r = hashPerDot[i];
+            const w =
+              Math.sin(wobblePhase + r * 6.283) * WOBBLE_AMPLITUDE * wobbleEnvelope;
+            y += w;
+          }
+          yCurrent[i] = y;
+        }
+        aYAttr.needsUpdate = true;
+      }
+
+      // ---------------------------------------------------------------
+      // UI — readout, labels, scrubber visual position
+      // ---------------------------------------------------------------
+      const readoutPhase = document.getElementById('readout-phase');
+      const readoutCounter = document.getElementById('readout-counter');
+      const fillEl = document.getElementById('scrubber-fill');
+      const thumbEl = document.getElementById('scrubber-thumb');
+      const scrubberEl = document.getElementById('scrubber');
+      const markerEls = Array.from(document.querySelectorAll('.marker'));
+
+      function renderUi(tNow) {
+        const pct = (tNow * 100).toFixed(2) + '%';
+        fillEl.style.inlineSize = pct;
+        thumbEl.style.insetInlineStart = pct;
+        scrubberEl.setAttribute('aria-valuenow', tNow.toFixed(3));
+
+        const eased = easeInOutCubic(tNow);
+        const pctInt = Math.round(eased * 100);
+        if (tNow <= 0.001) {
+          readoutPhase.textContent = 'post-training';
+          readoutCounter.textContent = 'imprint forming · 0%';
+        } else if (tNow >= 0.999) {
+          readoutPhase.textContent = 'human imprint';
+          readoutCounter.textContent = 'imprint complete';
+        } else {
+          readoutPhase.textContent = 'emerging';
+          readoutCounter.textContent = 'imprint forming · ' + pctInt + '%';
+        }
+
+        for (const m of markerEls) {
+          const mt = parseFloat(m.dataset.t);
+          m.classList.toggle('active', Math.abs(mt - tNow) < 0.002);
+        }
+      }
+
+      // ---------------------------------------------------------------
+      // Scrubber interaction — pointer drag on the track sets t directly.
+      // ---------------------------------------------------------------
+      let dragging = false;
+      function setTFromPointerX(clientX) {
+        const r = scrubberEl.getBoundingClientRect();
+        const x = Math.max(0, Math.min(r.width, clientX - r.left));
+        setT(x / r.width);
+      }
+      scrubberEl.addEventListener('pointerdown', (e) => {
+        e.preventDefault();
+        dragging = true;
+        scrubberEl.setPointerCapture(e.pointerId);
+        if (playing) setPlaying(false);
+        setTFromPointerX(e.clientX);
+      });
+      scrubberEl.addEventListener('pointermove', (e) => {
+        if (!dragging) return;
+        setTFromPointerX(e.clientX);
+      });
+      scrubberEl.addEventListener('pointerup', (e) => {
+        dragging = false;
+        try { scrubberEl.releasePointerCapture(e.pointerId); } catch (_) {}
+      });
+      scrubberEl.addEventListener('pointercancel', () => {
+        dragging = false;
+      });
+      scrubberEl.addEventListener('pointerdown', (e) => e.stopPropagation());
+
+      // ---------------------------------------------------------------
+      // Play / pause
+      // ---------------------------------------------------------------
+      const playBtn = document.getElementById('play-btn');
+      function setPlaying(next) {
+        playing = next;
+        playBtn.textContent = playing ? 'pause ⏸' : (t >= 1 ? 'replay ↻' : 'play ▶');
+        if (playing) lastFrameMs = performance.now();
+      }
+      playBtn.addEventListener('click', () => {
+        if (!playing && t >= 1) setT(0);
+        setPlaying(!playing);
+      });
+      playBtn.addEventListener('pointerdown', (e) => e.stopPropagation());
+
+      // ---------------------------------------------------------------
+      // State markers — clicking a marker jumps to that state and pauses.
+      // ---------------------------------------------------------------
+      for (const m of markerEls) {
+        m.addEventListener('pointerdown', (e) => e.stopPropagation());
+        m.addEventListener('click', (e) => {
+          e.stopPropagation();
+          if (playing) setPlaying(false);
+          const target = parseFloat(m.dataset.t);
+          if (!Number.isNaN(target)) setT(target);
+        });
+      }
+
+      // ---------------------------------------------------------------
+      // Meta line — starts in a loading state; loadFaceImage rewrites
+      // it on success (and we surface errors here too).
+      // ---------------------------------------------------------------
+      document.getElementById('meta-line').textContent =
+        `${SIDE.toLocaleString()} × ${SIDE.toLocaleString()} grid · loading portrait…`;
+
+      loadFaceImage('/images/face/borges.png').catch((err) => {
+        document.getElementById('meta-line').textContent =
+          'failed to load portrait — ' + err.message;
+        console.error(err);
+      });
+
+      // ---------------------------------------------------------------
+      // Render loop
+      // ---------------------------------------------------------------
+      function tick(nowMs) {
+        controls.update();
+
+        if (playing) {
+          const dt = nowMs - lastFrameMs;
+          lastFrameMs = nowMs;
+          const advance = dt / PLAY_DURATION_MS;
+          const next = t + advance;
+          if (next >= 1) {
+            setT(1);
+            setPlaying(false);
+          } else {
+            setT(next);
+          }
+        } else {
+          applyT(t);
+        }
+
+        renderer.render(scene, camera);
+        requestAnimationFrame(tick);
+      }
+
+      renderUi(0);
+      applyT(0);
+      requestAnimationFrame(tick);
+    </script>
+  </body>
+</html>
