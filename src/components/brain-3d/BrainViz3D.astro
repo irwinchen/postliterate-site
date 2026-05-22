@@ -172,15 +172,38 @@ const hasPaperContent = Boolean(
   <div class="brain-3d__tooltip" data-bind="tooltip" role="tooltip" aria-hidden="true"></div>
 </div>
 
-<script type="module" define:vars={{ rawParcels: parcelsRaw, rawPapers: papersRaw, viewConfig, contentConfig, glossaryMode, isPaperView }}>
-  import { loadParcelRegistry } from '/src/lib/brain-viz/parcel-registry.js';
-  import { loadView } from '/src/lib/brain-viz/view-loader.js';
-  import { createViewState } from '/src/lib/brain-viz/view-state.js';
-  import { createGlossaryState } from '/src/lib/brain-viz/glossary-state.js';
-  import { createViewContent } from '/src/lib/brain-viz/content.js';
-  import { computeVisibleLabels } from '/src/lib/brain-viz/label-visibility.js';
-  import { pickContrastText } from '/src/lib/brain-viz/emissive.js';
-  import { createBrainRenderer } from '/src/components/brain-3d/renderer.js';
+<script
+  type="application/json"
+  data-brain-viz-config
+  is:inline
+  set:html={JSON.stringify({
+    rawParcels: parcelsRaw,
+    rawPapers: papersRaw,
+    viewConfig,
+    contentConfig,
+    glossaryMode,
+    isPaperView,
+  })}
+></script>
+
+<script>
+  // Imports use relative paths so Astro/Vite bundles them for production.
+  // Page data is read from the JSON blob above instead of `define:vars`,
+  // because `define:vars` forces a script `is:inline`, which prevents Vite
+  // from processing the imports — leaving `/src/...` paths that 404 once
+  // deployed to a static host.
+  import { loadParcelRegistry } from '../../lib/brain-viz/parcel-registry.js';
+  import { loadView } from '../../lib/brain-viz/view-loader.js';
+  import { createViewState } from '../../lib/brain-viz/view-state.js';
+  import { createGlossaryState } from '../../lib/brain-viz/glossary-state.js';
+  import { createViewContent } from '../../lib/brain-viz/content.js';
+  import { computeVisibleLabels } from '../../lib/brain-viz/label-visibility.js';
+  import { pickContrastText } from '../../lib/brain-viz/emissive.js';
+  import { createBrainRenderer } from './renderer.js';
+
+  const { rawParcels, rawPapers, viewConfig, contentConfig, glossaryMode, isPaperView } = JSON.parse(
+    document.querySelector('[data-brain-viz-config]').textContent
+  );
 
   // Anatomical group display names. Subtitles are intentionally omitted in the
   // compact glossary layout; reintroduce as <details> tooltips later if needed.

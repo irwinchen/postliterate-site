@@ -29,18 +29,34 @@ if (!Array.isArray(viewConfigs) || viewConfigs.length === 0) {
   <div class="brain-3d__tooltip" data-bind="tooltip" role="tooltip" aria-hidden="true"></div>
 </div>
 
-<script type="module" define:vars={{
-  rawParcels: parcelsRaw,
-  rawPapers: papersRaw,
-  viewConfigs,
-  initialActive: initialActive ?? [],
-}}>
-  import { loadParcelRegistry } from '/src/lib/brain-viz/parcel-registry.js';
-  import { loadCompare } from '/src/lib/brain-viz/compare-loader.js';
-  import { createCrossPaperState } from '/src/lib/brain-viz/cross-paper-state.js';
-  import { createGlossaryState } from '/src/lib/brain-viz/glossary-state.js';
-  import { pickContrastText } from '/src/lib/brain-viz/emissive.js';
-  import { createBrainRenderer } from '/src/components/brain-3d/renderer.js';
+<script
+  type="application/json"
+  data-brain-compare-config
+  is:inline
+  set:html={JSON.stringify({
+    rawParcels: parcelsRaw,
+    rawPapers: papersRaw,
+    viewConfigs,
+    initialActive: initialActive ?? [],
+  })}
+></script>
+
+<script>
+  // Imports use relative paths so Astro/Vite bundles them for production.
+  // Page data is read from the JSON blob above instead of `define:vars`,
+  // because `define:vars` forces a script `is:inline`, which prevents Vite
+  // from processing the imports — leaving `/src/...` paths that 404 once
+  // deployed to a static host.
+  import { loadParcelRegistry } from '../../lib/brain-viz/parcel-registry.js';
+  import { loadCompare } from '../../lib/brain-viz/compare-loader.js';
+  import { createCrossPaperState } from '../../lib/brain-viz/cross-paper-state.js';
+  import { createGlossaryState } from '../../lib/brain-viz/glossary-state.js';
+  import { pickContrastText } from '../../lib/brain-viz/emissive.js';
+  import { createBrainRenderer } from './renderer.js';
+
+  const { rawParcels, rawPapers, viewConfigs, initialActive } = JSON.parse(
+    document.querySelector('[data-brain-compare-config]').textContent
+  );
 
   const GROUP_NAMES = {
     'frontal':              'Frontal',
