@@ -105,11 +105,9 @@ if (!Array.isArray(viewConfigs) || viewConfigs.length === 0) {
     group.className = 'brain-3d__chip-group';
     group.dataset.viewSlug = viewSlug;
 
-    const header = document.createElement('a');
+    const header = document.createElement('div');
     header.className = 'brain-3d__chip-group-label';
-    header.href = `/brain/${viewSlug}`;
     header.textContent = viewMeta.name;
-    header.title = `Open ${viewMeta.name} on its own page`;
     group.appendChild(header);
 
     const row = document.createElement('div');

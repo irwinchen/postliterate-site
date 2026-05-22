@@ -2327,12 +2327,19 @@
   })();
 
   // ── Dev server ──────────────────────────────
+  // Latest dev-server status, polled by fetchDevStatus. Read by liveLinkFor
+  // so figure "Open →" links target localhost only when the dev server is
+  // actually up; otherwise they fall back to postliterate.org.
+  let devServerStatus = { running: false, port: null };
+
   async function fetchDevStatus() {
     try {
       const res = await fetch(API + '/api/dev-server');
       const data = await res.json();
+      devServerStatus = data;
       updateDevUI(data);
     } catch {
+      devServerStatus = { running: false, port: null };
       updateDevUI({ running: false });
     }
   }
@@ -3271,12 +3278,13 @@
     // Live-page link. project.page accepts three forms:
     //   - absolute http(s) URL → used as-is (external sources, e.g. OECD)
     //   - "/dashboard/..."     → same origin as the dashboard (port 4322)
-    //   - any other "/..."     → site page. Routes to localhost:4321 only
-    //                            when the dashboard itself is on localhost
-    //                            (MacBook dev); from any other host (e.g.
-    //                            mediaserver.local on the Mini) it points at
-    //                            the production origin since the Mini is an
-    //                            appliance with no Astro dev server.
+    //   - any other "/..."     → site page. Uses the Astro dev server only
+    //                            when the dashboard is on localhost AND the
+    //                            dev server is actually running (status
+    //                            tracked via fetchDevStatus). Otherwise
+    //                            falls back to the production origin so the
+    //                            link works from the Mini, from a MacBook
+    //                            without dev running, etc.
     const liveLinkFor = (p) => {
       if (!p.page) return '';
       let href;
@@ -3286,9 +3294,10 @@
         href = p.page;
       } else {
         const host = window.location.hostname;
-        const isLocalDev = host === 'localhost' || host === '127.0.0.1' || host === '::1';
-        href = isLocalDev
-          ? `${window.location.protocol}//${host}:4321${p.page}`
+        const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1';
+        const devUp = !!(devServerStatus && devServerStatus.running && devServerStatus.port);
+        href = (isLocalHost && devUp)
+          ? `${window.location.protocol}//${host}:${devServerStatus.port}${p.page}`
           : `https://postliterate.org${p.page}`;
       }
       // stopPropagation so clicking the link doesn't also open the lightbox

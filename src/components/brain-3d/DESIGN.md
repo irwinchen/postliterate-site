@@ -207,24 +207,12 @@ renderer drive both single-view and compare shells without modification.
 
 ## Known issues / loose ends
 
-These date from Phase D's "single-view routes deleted" decision and are not yet
-reconciled:
-
-1. **`src/pages/brain.astro` redirects to `/brain/four-modes` → 404.**
-   The redirect target was a single-view page that Phase D deleted. Likely
-   fix: redirect to `/brain/compare` instead. (The bare `/brain` URL is
-   probably not linked from anywhere on the site, so this may be cosmetic.)
-2. **`BrainCompare3D.astro:110` — chip-group headers link to `/brain/${viewSlug}` → 404.**
-   The compare shell renders each view's name as an anchor with
-   `header.href = `/brain/${viewSlug}`` and `title = `Open ${viewMeta.name} on its own page``,
-   but those single-view pages no longer exist. Two ways to reconcile:
-   either reinstate per-view pages (the deleted files were thin wrappers around
-   `BrainViz3D` — see commit `deb4de4^:src/pages/brain/four-modes.astro` for the
-   shape) or change the headers to non-anchor labels.
-3. **`BrainViz3D.astro` is orphaned.** The single-view shell is fully
-   functional but has no consumer page. Either resurrect single-view routes
-   (option above) or delete the shell, the `view-state` module, and the
-   sequential semantics. Decision is open.
+_None at the moment. The Phase D loose ends listed here previously
+(`brain.astro` redirect to a deleted route; chip-group headers anchoring to
+deleted per-view pages; `BrainViz3D` orphaned) were resolved on 2026-05-22:
+the redirect now points at `/brain/compare`; the chip-group headers were
+changed from anchors to plain labels (no per-view deep link); and `BrainViz3D`
+is actively used by `/brain/papers/<slug>` so the "orphaned" claim was stale._
 
 ## Adding a new view
 
