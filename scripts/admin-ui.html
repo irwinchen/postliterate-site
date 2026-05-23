@@ -2077,6 +2077,7 @@
   <a href="#reminders-section">Reminders</a>
   <a href="#cards-section">Cards</a>
   <a href="#figures-section">Figures</a>
+  <a href="#apps-section">Apps</a>
   <a href="#vault-watch-section">Vault Watch</a>
   <a href="#recent-work-section">Recent Work</a>
   <a href="#posts-section">Posts</a>
@@ -2133,6 +2134,17 @@
     </button>
     <div class="section-body" id="figures-body">
       <div class="loading">Loading figures...</div>
+    </div>
+  </section>
+
+  <!-- ── Apps (Virgil, prototypes, etc.) ──────────────────────────── -->
+  <section class="dashboard-section" id="apps-section">
+    <button class="section-toggle" onclick="toggleSection('apps-section')">
+      <h2 class="section-heading">Apps</h2>
+      <i data-lucide="chevron-down"></i>
+    </button>
+    <div class="section-body" id="apps-body">
+      <div class="loading">Loading apps...</div>
     </div>
   </section>
 
@@ -2821,6 +2833,7 @@
       renderCards(dashboardData);
       renderVaultWatch(dashboardData);
       renderFigures(dashboardData);
+      renderApps(dashboardData);
       renderReminders(dashboardData);
       renderRecentWork(dashboardData);
     } catch {
@@ -2830,7 +2843,7 @@
 
   function renderDashboardEmpty() {
     const msg = '<div class="empty">No snapshot yet — click Refresh to generate one.</div>';
-    ['cards-body', 'vault-watch-body', 'figures-body', 'reminders-body', 'recent-work-body'].forEach(id => {
+    ['cards-body', 'vault-watch-body', 'figures-body', 'apps-body', 'reminders-body', 'recent-work-body'].forEach(id => {
       const el = document.getElementById(id);
       if (el) el.innerHTML = msg;
     });
@@ -3262,53 +3275,58 @@
     return renderNoteCardList(items, '00_Inbox', 'Inbox is empty.');
   }
 
-  // ── Figures (Phase 7) ────────────────────────
-  function renderFigures(data) {
-    const el = document.getElementById('figures-body');
-    if (!data || !data.figures) {
-      el.innerHTML = '<div class="empty">Figures not yet computed — click Refresh.</div>';
-      return;
-    }
-    const projects = (data.figures.projects) || [];
-    if (projects.length === 0) {
-      el.innerHTML = '<div class="empty">No projects registered. Add entries to <code>scripts/dashboard/figures.json</code>.</div>';
-      return;
-    }
+  // ── Figures / Apps (Phase 7) ────────────────────────
+  //
+  // Both sections render the same project-card grid; they just pull from
+  // disjoint slices of data.figures.projects partitioned by the entry's
+  // `section` field ("figures" default, "apps" for the apps section).
+  // The shared helper does the lookup/render so the two thin wrappers
+  // only decide which slice to show and where.
 
-    // Live-page link. project.page accepts three forms:
-    //   - absolute http(s) URL → used as-is (external sources, e.g. OECD)
-    //   - "/dashboard/..."     → same origin as the dashboard (port 4322)
-    //   - any other "/..."     → site page. Uses the Astro dev server only
-    //                            when the dashboard is on localhost AND the
-    //                            dev server is actually running (status
-    //                            tracked via fetchDevStatus). Otherwise
-    //                            falls back to the production origin so the
-    //                            link works from the Mini, from a MacBook
-    //                            without dev running, etc.
-    const liveLinkFor = (p) => {
-      if (!p.page) return '';
-      let href;
-      if (/^https?:\/\//i.test(p.page)) {
-        href = p.page;
-      } else if (p.page.startsWith('/dashboard/')) {
-        href = p.page;
-      } else {
-        const host = window.location.hostname;
-        const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1';
-        const devUp = !!(devServerStatus && devServerStatus.running && devServerStatus.port);
-        href = (isLocalHost && devUp)
-          ? `${window.location.protocol}//${host}:${devServerStatus.port}${p.page}`
-          : `https://postliterate.org${p.page}`;
-      }
-      // stopPropagation so clicking the link doesn't also open the lightbox
-      // when the link sits inside the card button.
-      return `<a class="figure-page-link" href="${escapeHtml(href)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">Open →</a>`;
-    };
+  // Live-page link. project.page accepts three forms:
+  //   - absolute http(s) URL → used as-is (external sources, e.g. OECD)
+  //   - "/dashboard/..."     → same origin as the dashboard (port 4322)
+  //   - any other "/..."     → site page. Uses the Astro dev server only
+  //                            when the dashboard is on localhost AND the
+  //                            dev server is actually running (status
+  //                            tracked via fetchDevStatus). Otherwise
+  //                            falls back to the production origin so the
+  //                            link works from the Mini, from a MacBook
+  //                            without dev running, etc.
+  function figureLiveLinkFor(p) {
+    if (!p.page) return '';
+    let href;
+    if (/^https?:\/\//i.test(p.page)) {
+      href = p.page;
+    } else if (p.page.startsWith('/dashboard/')) {
+      href = p.page;
+    } else {
+      const host = window.location.hostname;
+      const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1';
+      const devUp = !!(devServerStatus && devServerStatus.running && devServerStatus.port);
+      href = (isLocalHost && devUp)
+        ? `${window.location.protocol}//${host}:${devServerStatus.port}${p.page}`
+        : `https://postliterate.org${p.page}`;
+    }
+    // stopPropagation so clicking the link doesn't also open the lightbox
+    // when the link sits inside the card button.
+    return `<a class="figure-page-link" href="${escapeHtml(href)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">Open →</a>`;
+  }
+
+  function renderProjectGrid(el, data, projects, emptyMsg) {
+    if (!data || !data.figures) {
+      el.innerHTML = '<div class="empty">Not yet computed — click Refresh.</div>';
+      return;
+    }
+    if (projects.length === 0) {
+      el.innerHTML = `<div class="empty">${emptyMsg}</div>`;
+      return;
+    }
 
     const cards = projects.map((p) => {
       const titleHtml = escapeHtml(p.title);
       const creditHtml = p.credit ? `<div class="figure-credit">${escapeHtml(p.credit)}</div>` : '';
-      const liveLink = liveLinkFor(p);
+      const liveLink = figureLiveLinkFor(p);
       if (!p.has_any) {
         const fileHints = p.images.map((i) => escapeHtml(i.file)).join(', ');
         return `
@@ -3344,13 +3362,35 @@
 
     el.innerHTML = `<div class="figures-grid">${cards}</div>`;
 
-    // Wire card clicks (event delegation would also work; explicit is fine
-    // because the section re-renders on every refresh).
     el.querySelectorAll('.figure-card[data-project-id]').forEach((btn) => {
       btn.addEventListener('click', () => openLightbox(btn.dataset.projectId));
     });
 
     lucide.createIcons();
+  }
+
+  function renderFigures(data) {
+    const el = document.getElementById('figures-body');
+    const all = (data && data.figures && data.figures.projects) || [];
+    const projects = all.filter((p) => (p.section || 'figures') === 'figures');
+    renderProjectGrid(
+      el,
+      data,
+      projects,
+      'No projects registered. Add entries to <code>scripts/dashboard/figures.json</code>.',
+    );
+  }
+
+  function renderApps(data) {
+    const el = document.getElementById('apps-body');
+    const all = (data && data.figures && data.figures.projects) || [];
+    const projects = all.filter((p) => p.section === 'apps');
+    renderProjectGrid(
+      el,
+      data,
+      projects,
+      'No apps registered. Tag entries in <code>scripts/dashboard/figures.json</code> with <code>"section": "apps"</code>.',
+    );
   }
 
   // ── Lightbox ─────────────────────────────────

@@ -52,6 +52,7 @@
   {
     "id": "virgil",
     "title": "Virgil iOS App",
+    "section": "apps",
     "images": [
       { "file": "virgil-home.png", "caption": "Home" },
       { "file": "virgil-reader.png", "caption": "Reader" }
@@ -60,6 +61,7 @@
   {
     "id": "virgil-reader-extension",
     "title": "Virgil Reader (Browser Extension)",
+    "section": "apps",
     "images": [
       { "file": "virgil-reader-extension.png" }
     ]
@@ -67,6 +69,7 @@
   {
     "id": "reader-3d",
     "title": "3D Reader Prototype",
+    "section": "apps",
     "page": "/reader",
     "images": [
       { "file": "reader.png" }

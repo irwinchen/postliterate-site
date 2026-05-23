@@ -90,6 +90,9 @@ export async function getFigures() {
       // resolution to a full URL happens in the browser (combines with the
       // current host + Astro dev port).
       page: entry.page || null,
+      // Dashboard section the entry renders under: "figures" (default) or
+      // "apps". The admin UI partitions by this field into two grids.
+      section: entry.section || 'figures',
       images,
       cover,
       image_count: images.length,
