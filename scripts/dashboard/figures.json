@@ -94,5 +94,12 @@
     "images": [
       { "file": "3D-vector-space.png" }
     ]
+  },
+  {
+    "id": "media-vs-meeting",
+    "title": "Media Model vs The Meeting",
+    "images": [
+      { "file": "media-v-intersubjective.png" }
+    ]
   }
 ]

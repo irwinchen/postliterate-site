@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Media Model and the Meeting</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/css/bootstrap.min.css" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Literata:ital,opsz,wght@0,7..72,400;0,7..72,500;1,7..72,400&family=Sono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#F3EFE1;
+    --ink:#1c1a17;
+    --muted:#6e675c;
+    --line:#c9c2b3;
+    --red:#E53E33;
+    --blue:#3B6DB4;
+    --green:#549E44;
+    --panel:#faf8f1;
+    --sans:'Outfit',sans-serif;
+    --serif:'Literata',serif;
+    --mono:'Sono',monospace;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:var(--sans);
+    font-weight:300;
+    line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:1180px;margin:0 auto;padding:64px 24px 96px}
+
+  /* ---- Masthead ---- */
+  .kicker{
+    font-family:var(--mono);
+    font-size:.72rem;
+    letter-spacing:.22em;
+    text-transform:uppercase;
+    color:var(--red);
+    margin:0 0 18px;
+  }
+  h1{
+    font-family:var(--serif);
+    font-weight:500;
+    font-size:clamp(2rem,4.4vw,3.4rem);
+    line-height:1.08;
+    letter-spacing:-.01em;
+    margin:0 0 28px;
+    max-width:18ch;
+  }
+  .epigraph{
+    border-left:2px solid var(--red);
+    padding:4px 0 4px 22px;
+    max-width:60ch;
+    margin:0 0 8px;
+  }
+  .epigraph p{
+    font-family:var(--serif);
+    font-style:italic;
+    font-size:1.06rem;
+    color:#3a352e;
+    margin:0;
+  }
+  .epigraph cite{
+    display:block;
+    font-family:var(--mono);
+    font-style:normal;
+    font-size:.74rem;
+    letter-spacing:.04em;
+    color:var(--muted);
+    margin-top:12px;
+  }
+
+  .rule{height:1px;background:var(--line);border:0;margin:56px 0}
+
+  /* ---- Panels ---- */
+  .panel{
+    background:var(--panel);
+    border:1px solid var(--line);
+    height:100%;
+    display:flex;
+    flex-direction:column;
+  }
+  .panel-head{
+    padding:22px 26px 18px;
+    border-bottom:1px solid var(--line);
+  }
+  .panel-num{
+    font-family:var(--mono);
+    font-size:.72rem;
+    letter-spacing:.18em;
+    color:var(--muted);
+    display:block;
+    margin-bottom:10px;
+  }
+  .panel-title{
+    font-family:var(--serif);
+    font-weight:500;
+    font-size:1.5rem;
+    margin:0 0 6px;
+  }
+  .panel-sub{
+    font-family:var(--mono);
+    font-size:.74rem;
+    letter-spacing:.04em;
+    color:var(--muted);
+    margin:0;
+  }
+  .stage{padding:14px 18px 6px;flex:1;display:flex;align-items:center}
+  .stage svg{width:100%;height:auto;display:block}
+  .panel-foot{
+    padding:8px 26px 24px;
+  }
+  .panel-foot p{
+    font-family:var(--serif);
+    font-size:.96rem;
+    line-height:1.55;
+    color:#3a352e;
+    margin:0;
+  }
+
+  /* ---- SVG type ---- */
+  .lbl{font-family:'Outfit',sans-serif;font-weight:500;font-size:13px;fill:var(--ink)}
+  .lbl-sm{font-family:'Sono',monospace;font-weight:400;font-size:10.5px;letter-spacing:.08em;fill:var(--muted)}
+  .lbl-node{font-family:'Outfit',sans-serif;font-weight:600;font-size:13px}
+  .box{fill:#efe9da;stroke:var(--ink);stroke-width:1.4}
+
+  /* ---- Animations: conduit ---- */
+  .signal{fill:var(--red)}
+  @keyframes travel{
+    0%   {transform:translateX(0);opacity:0}
+    8%   {opacity:1}
+    92%  {opacity:1}
+    100% {transform:translateX(286px);opacity:0}
+  }
+  .packet{animation:travel 3.4s cubic-bezier(.55,0,.45,1) infinite}
+  @keyframes blink{0%,100%{opacity:.25}50%{opacity:1}}
+  .flow-line{stroke:var(--line);stroke-width:1.4;stroke-dasharray:5 6;animation:march 1.6s linear infinite}
+  @keyframes march{to{stroke-dashoffset:-22}}
+
+  /* ---- Animations: meeting ---- */
+  @keyframes breatheA{0%,100%{transform:scale(1)}50%{transform:scale(1.035)}}
+  @keyframes breatheB{0%,100%{transform:scale(1.035)}50%{transform:scale(1)}}
+  .consc-a{transform-origin:150px 140px;animation:breatheA 4.2s ease-in-out infinite}
+  .consc-b{transform-origin:430px 140px;animation:breatheB 4.2s ease-in-out infinite}
+  @keyframes pulseDot{
+    0%{offset-distance:0%;opacity:0}
+    10%{opacity:1}
+    90%{opacity:1}
+    100%{offset-distance:100%;opacity:0}
+  }
+  .dot-ab{
+    fill:var(--red);
+    offset-path:path('M 196 140 L 384 140');
+    animation:pulseDot 2.8s ease-in-out infinite;
+  }
+  .dot-ba{
+    fill:var(--red);
+    offset-path:path('M 384 140 L 196 140');
+    animation:pulseDot 2.8s ease-in-out infinite;
+    animation-delay:1.4s;
+  }
+  .meet{fill:var(--red);opacity:.07}
+  @keyframes meetPulse{0%,100%{opacity:.05}50%{opacity:.13}}
+  .meet-anim{animation:meetPulse 4.2s ease-in-out infinite}
+
+  /* ---- Comparison strip ---- */
+  .compare{margin-top:8px}
+  .crow{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:0;
+    border-top:1px solid var(--line);
+  }
+  .crow:last-child{border-bottom:1px solid var(--line)}
+  .cell{
+    padding:16px 4px;
+    font-size:.92rem;
+  }
+  .cell.l{padding-right:28px;border-right:1px solid var(--line);color:var(--muted)}
+  .cell.r{padding-left:28px;color:var(--ink)}
+  .cell .tag{
+    font-family:var(--mono);
+    font-size:.66rem;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    display:block;
+    margin-bottom:6px;
+  }
+  .cell.l .tag{color:#a39a88}
+  .cell.r .tag{color:var(--red)}
+
+  /* ---- Closing band ---- */
+  .band{
+    margin-top:64px;
+    border:1px solid var(--ink);
+    background:var(--ink);
+    color:#f3efe1;
+    padding:40px 42px;
+  }
+  .band .kicker{color:#f0a59f;margin-bottom:14px}
+  .band h2{
+    font-family:var(--serif);
+    font-weight:500;
+    font-size:clamp(1.4rem,2.6vw,2rem);
+    margin:0 0 18px;
+    max-width:24ch;
+    line-height:1.18;
+  }
+  .band p{
+    font-family:var(--serif);
+    font-size:1.04rem;
+    line-height:1.6;
+    color:#d8d2c4;
+    max-width:64ch;
+    margin:0 0 14px;
+  }
+  .band p:last-child{margin-bottom:0}
+  .band .em{color:#fff;font-style:italic}
+
+  footer{
+    margin-top:48px;
+    font-family:var(--mono);
+    font-size:.72rem;
+    letter-spacing:.04em;
+    color:var(--muted);
+  }
+
+  @media (max-width:575px){
+    .crow{grid-template-columns:1fr}
+    .cell.l{border-right:0;border-bottom:1px solid var(--line);padding-right:4px}
+    .cell.r{padding-left:4px}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <p class="kicker">After Walter Ong · Orality and Literacy</p>
+  <h1>The conduit moves a signal. Communication is a meeting.</h1>
+
+  <div class="epigraph">
+    <p>"Communication is intersubjective. The media model is not. There is no adequate model in the physical universe for this operation of consciousness, which is distinctively human and which signals the capacity of human beings to form true communities wherein person shares with person interiorly, intersubjectively."</p>
+    <cite>— Walter J. Ong, Orality and Literacy (1982)</cite>
+  </div>
+
+  <hr class="rule">
+
+  <div class="row g-4">
+
+    <!-- ============ PANEL A: THE MEDIA MODEL ============ -->
+    <div class="col-12 col-lg-6">
+      <div class="panel">
+        <div class="panel-head">
+          <span class="panel-num">MODEL 01</span>
+          <h2 class="panel-title">The Media Model</h2>
+          <p class="panel-sub">encode → transmit → decode</p>
+        </div>
+        <div class="stage">
+          <svg viewBox="0 0 580 220" role="img" aria-label="A sender encodes a message, a signal travels along a line, a receiver decodes it.">
+            <!-- connecting line -->
+            <line class="flow-line" x1="150" y1="110" x2="430" y2="110"/>
+            <!-- sender -->
+            <rect class="box" x="40" y="78" width="110" height="64"/>
+            <text class="lbl-node" x="95" y="115" text-anchor="middle" fill="#1c1a17">SENDER</text>
+            <text class="lbl-sm" x="95" y="166" text-anchor="middle">ENCODE</text>
+            <!-- receiver -->
+            <rect class="box" x="430" y="78" width="110" height="64"/>
+            <text class="lbl-node" x="485" y="115" text-anchor="middle" fill="#1c1a17">RECEIVER</text>
+            <text class="lbl-sm" x="485" y="166" text-anchor="middle">DECODE</text>
+            <!-- traveling packet -->
+            <g class="packet">
+              <rect class="signal" x="150" y="101" width="18" height="18"/>
+            </g>
+            <!-- signal label -->
+            <text class="lbl-sm" x="290" y="64" text-anchor="middle">SIGNAL</text>
+            <!-- arrowhead at receiver -->
+            <polygon points="424,110 414,104 414,116" fill="#c9c2b3"/>
+          </svg>
+        </div>
+        <div class="panel-foot">
+          <p>The message is the same object at both ends. Nothing on the receiving side is anticipated, modeled, or changed. Transport, not contact — one direction, sealed packets, an audience that only receives.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ PANEL B: INTERSUBJECTIVE COMMUNICATION ============ -->
+    <div class="col-12 col-lg-6">
+      <div class="panel">
+        <div class="panel-head">
+          <span class="panel-num">MODEL 02</span>
+          <h2 class="panel-title">The Meeting</h2>
+          <p class="panel-sub">each consciousness holds a model of the other</p>
+        </div>
+        <div class="stage">
+          <svg viewBox="0 0 580 220" role="img" aria-label="Two consciousnesses, each containing a model of the other, exchange signals in both directions and are mutually changed.">
+            <!-- shared zone -->
+            <ellipse class="meet meet-anim" cx="290" cy="140" rx="62" ry="78"/>
+            <!-- consciousness A -->
+            <g class="consc-a">
+              <circle cx="150" cy="140" r="74" fill="none" stroke="#3B6DB4" stroke-width="1.6"/>
+              <text class="lbl-node" x="150" y="92" text-anchor="middle" fill="#3B6DB4">A</text>
+              <!-- A's model of B -->
+              <circle cx="150" cy="156" r="26" fill="none" stroke="#549E44" stroke-width="1.3" stroke-dasharray="3 4"/>
+              <text x="150" y="160" text-anchor="middle" font-family="Sono,monospace" font-size="9.5" letter-spacing=".04em" fill="#6e675c">B′</text>
+            </g>
+            <!-- consciousness B -->
+            <g class="consc-b">
+              <circle cx="430" cy="140" r="74" fill="none" stroke="#549E44" stroke-width="1.6"/>
+              <text class="lbl-node" x="430" y="92" text-anchor="middle" fill="#549E44">B</text>
+              <!-- B's model of A -->
+              <circle cx="430" cy="156" r="26" fill="none" stroke="#3B6DB4" stroke-width="1.3" stroke-dasharray="3 4"/>
+              <text x="430" y="160" text-anchor="middle" font-family="Sono,monospace" font-size="9.5" letter-spacing=".04em" fill="#6e675c">A′</text>
+            </g>
+            <!-- reciprocal signal dots -->
+            <circle class="dot-ab" r="5"/>
+            <circle class="dot-ba" r="5"/>
+            <text class="lbl-sm" x="290" y="234" text-anchor="middle" dy="-8">SHARED INTERIOR</text>
+          </svg>
+        </div>
+        <div class="panel-foot">
+          <p>Each side carries a working model of the other — B′ inside A, A′ inside B — and adjusts to it before a word is spoken. The exchange runs both ways at once. Both are at stake; both are changed. The overlap is not a channel but a meeting.</p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ============ COMPARISON ============ -->
+  <div class="compare">
+    <div class="crow">
+      <div class="cell l"><span class="tag">Media Model</span>One direction, sender to receiver.</div>
+      <div class="cell r"><span class="tag">The Meeting</span>Reciprocal — each anticipates the other.</div>
+    </div>
+    <div class="crow">
+      <div class="cell l"><span class="tag">Media Model</span>The message is carried intact.</div>
+      <div class="cell r"><span class="tag">The Meeting</span>Meaning is formed between two interiors.</div>
+    </div>
+    <div class="crow">
+      <div class="cell l"><span class="tag">Media Model</span>The receiver is unchanged machinery.</div>
+      <div class="cell r"><span class="tag">The Meeting</span>Both parties are altered by the exchange.</div>
+    </div>
+    <div class="crow">
+      <div class="cell l"><span class="tag">Media Model</span>No model of the other is required.</div>
+      <div class="cell r"><span class="tag">The Meeting</span>Holding a model of the other is the whole act.</div>
+    </div>
+  </div>
+
+  <!-- ============ CLOSING BAND: THE CHATBOT ============ -->
+  <div class="band">
+    <p class="kicker">Where does the chatbot sit?</p>
+    <h2>It is the conduit perfected — running Model 01 while performing Model 02.</h2>
+    <p>A language model takes an input string and returns an output string by prediction. Structurally it is the left panel, the most literal instance of the thing Ong set his definition against. It does not hold an interior that holds a model of yours; the reciprocity is lopsided.</p>
+    <p>What is new is that this conduit produces every outward sign of the right panel. It performs subjecthood well enough that the distinction now has to be <span class="em">argued</span> rather than assumed. Ong's line is not falsified. It is staged — pulled apart into the appearance of meeting and the substance of it, with the first running at full power and the second left in question.</p>
+  </div>
+
+  <footer>media-model-vs-communication · for the After the Book project</footer>
+
+</div>
+</body>
+</html>
