@@ -168,6 +168,45 @@
   @keyframes meetPulse{0%,100%{opacity:.05}50%{opacity:.13}}
   .meet-anim{animation:meetPulse 4.2s ease-in-out infinite}
 
+  /* ---- Animations: algorithmic channel ---- */
+  @keyframes algoPulse{0%,100%{opacity:1}50%{opacity:.74}}
+  .algo-shape{fill:#fbeae9;stroke:var(--red);stroke-width:2;animation:algoPulse 2.6s ease-in-out infinite}
+  .guide{stroke:#d8d1c2;stroke-width:1.2;fill:none}
+  .guide-ret{stroke:#f0b3ae;stroke-width:1.2;fill:none;stroke-dasharray:4 5}
+  @keyframes pathDot{
+    0%{offset-distance:0%;opacity:0}
+    12%{opacity:1}
+    88%{opacity:1}
+    100%{offset-distance:100%;opacity:0}
+  }
+  .p-in{fill:var(--red);offset-path:path('M 170 140 L 370 140');animation:pathDot 1.7s ease-in infinite}
+  .p-out1{fill:var(--ink);offset-path:path('M 570 140 L 910 75');animation:pathDot 1.9s ease-out infinite;animation-delay:.85s}
+  .p-out2{fill:var(--ink);offset-path:path('M 570 140 L 910 140');animation:pathDot 1.9s ease-out infinite;animation-delay:1.05s}
+  .p-out3{fill:var(--ink);offset-path:path('M 570 140 L 910 205');animation:pathDot 1.9s ease-out infinite;animation-delay:1.25s}
+  .p-ret1{fill:var(--red);offset-path:path('M 970 52 L 970 36 L 470 36 L 470 82');animation:pathDot 3s linear infinite;animation-delay:1.7s}
+  .p-ret2{fill:var(--red);offset-path:path('M 970 52 L 970 36 L 470 36 L 470 82');animation:pathDot 3s linear infinite;animation-delay:3.2s}
+  .counter{font-family:'Sono',monospace;font-weight:500;font-size:14px;fill:var(--ink)}
+  .panel-foot p{max-width:80ch}
+
+  /* suppression: a routed-but-throttled message */
+  @keyframes pathDotDie{
+    0%{offset-distance:0%;opacity:0}
+    10%{opacity:1}
+    55%{offset-distance:55%;opacity:1}
+    72%{offset-distance:72%;opacity:0}
+    100%{offset-distance:72%;opacity:0}
+  }
+  .p-supp{fill:#b9b1a1;offset-path:path('M 415 198 L 250 244');animation:pathDotDie 2.6s ease-in infinite;animation-delay:.5s}
+  .ghost{fill:none;stroke:#bdb5a5;stroke-width:1.3;stroke-dasharray:4 5;opacity:.65}
+  .guide-supp{stroke:#cfc8b8;stroke-width:1.2;fill:none;stroke-dasharray:3 5;opacity:.75}
+
+  /* ---- Animations: synthetic interlocutor (Model 4) ---- */
+  .consc-user{transform-origin:270px 140px;animation:breatheA 4.2s ease-in-out infinite}
+  .model-shape{fill:#fbeae9;stroke:var(--red);stroke-width:2;animation:algoPulse 2.6s ease-in-out infinite}
+  .dot-um{fill:var(--blue);offset-path:path('M 342 140 L 710 140');animation:pulseDot 2.8s ease-in-out infinite}
+  .dot-mu{fill:var(--red);offset-path:path('M 710 140 L 342 140');animation:pulseDot 2.8s ease-in-out infinite;animation-delay:1.4s}
+  .token{font-family:'Sono',monospace;font-weight:500;font-size:12px;fill:var(--muted)}
+
   /* ---- Comparison strip ---- */
   .compare{margin-top:8px}
   .crow{
@@ -256,7 +295,7 @@
     <div class="col-12 col-lg-6">
       <div class="panel">
         <div class="panel-head">
-          <span class="panel-num">MODEL 01</span>
+          <span class="panel-num">MODEL 1</span>
           <h2 class="panel-title">The Media Model</h2>
           <p class="panel-sub">encode → transmit → decode</p>
         </div>
@@ -292,7 +331,7 @@
     <div class="col-12 col-lg-6">
       <div class="panel">
         <div class="panel-head">
-          <span class="panel-num">MODEL 02</span>
+          <span class="panel-num">MODEL 2</span>
           <h2 class="panel-title">The Meeting</h2>
           <p class="panel-sub">each consciousness holds a model of the other</p>
         </div>
@@ -350,16 +389,166 @@
     </div>
   </div>
 
+  <hr class="rule">
+  <p class="kicker">The contemporary case</p>
+
+  <!-- ============ PANEL C: THE ALGORITHMIC CHANNEL ============ -->
+  <div class="row g-4">
+    <div class="col-12">
+      <div class="panel">
+        <div class="panel-head">
+          <span class="panel-num">MODEL 3</span>
+          <h2 class="panel-title">The Algorithmic Channel</h2>
+          <p class="panel-sub">encode → optimize → distribute</p>
+        </div>
+        <div class="stage">
+          <svg viewBox="0 0 1080 280" role="img" aria-label="A sender posts into an algorithm that sits between sender and receivers. The algorithm selects and amplifies one message to many readers, and the engagement they generate returns to the algorithm, not to the sender.">
+            <!-- guide lines (channels) -->
+            <line class="guide" x1="170" y1="140" x2="370" y2="140"/>
+            <line class="guide" x1="570" y1="140" x2="910" y2="75"/>
+            <line class="guide" x1="570" y1="140" x2="910" y2="140"/>
+            <line class="guide" x1="570" y1="140" x2="910" y2="205"/>
+            <polyline class="guide-ret" points="970,52 970,36 470,36 470,82"/>
+
+            <!-- sender -->
+            <rect class="box" x="50" y="112" width="120" height="56"/>
+            <text class="lbl-node" x="110" y="145" text-anchor="middle" fill="#1c1a17">SENDER</text>
+            <text class="lbl-sm" x="110" y="190" text-anchor="middle">POST</text>
+
+            <!-- the algorithm (active gate) -->
+            <polygon class="algo-shape" points="370,140 415,82 525,82 570,140 525,198 415,198"/>
+            <text x="470" y="116" text-anchor="middle" font-family="Outfit,sans-serif" font-weight="600" font-size="13" fill="#E53E33">THE ALGORITHM</text>
+            <text x="470" y="150" text-anchor="middle" font-family="Sono,monospace" font-size="9" letter-spacing=".1em" fill="#6e675c">ENGAGEMENT</text>
+            <text id="engagement-counter" class="counter" x="470" y="172" text-anchor="middle">14,203</text>
+
+            <!-- receivers (the feed / aggregate audience) -->
+            <rect class="box" x="910" y="52" width="120" height="46"/>
+            <rect class="box" x="910" y="117" width="120" height="46"/>
+            <rect class="box" x="910" y="182" width="120" height="46"/>
+            <text class="lbl-sm" x="970" y="252" text-anchor="middle">THE FEED</text>
+            <text x="970" y="267" text-anchor="middle" font-family="Sono,monospace" font-size="8.5" letter-spacing=".12em" fill="#a39a88">AGGREGATE AUDIENCE</text>
+
+            <!-- labels -->
+            <text class="lbl-sm" x="700" y="30" text-anchor="middle">METRICS RETURN</text>
+            <text class="lbl-sm" x="720" y="112" text-anchor="middle">1 → MANY</text>
+
+            <!-- arrowheads -->
+            <polygon points="370,140 360,134 360,146" fill="#c9c2b3"/>
+            <polygon points="910,75 900,69 900,81" fill="#c9c2b3"/>
+            <polygon points="910,140 900,134 900,146" fill="#c9c2b3"/>
+            <polygon points="910,205 900,199 900,211" fill="#c9c2b3"/>
+            <polygon points="470,82 464,92 476,92" fill="#f0a59f"/>
+
+            <!-- traveling dots -->
+            <circle class="p-in" r="5"/>
+            <circle class="p-out1" r="4.5"/>
+            <circle class="p-out2" r="4.5"/>
+            <circle class="p-out3" r="4.5"/>
+            <circle class="p-ret1" r="4"/>
+            <circle class="p-ret2" r="4"/>
+
+            <!-- suppression: a message the algorithm withholds -->
+            <line class="guide-supp" x1="415" y1="198" x2="250" y2="244"/>
+            <rect class="ghost" x="190" y="222" width="120" height="40"/>
+            <text x="250" y="246" text-anchor="middle" font-family="Sono,monospace" font-size="9" letter-spacing=".06em" fill="#b06a63">SUPPRESSED</text>
+            <text x="250" y="210" text-anchor="middle" font-family="Sono,monospace" font-size="8.5" letter-spacing=".1em" fill="#a39a88">THROTTLED · UNREACHED</text>
+            <circle class="p-supp" r="4.5"/>
+          </svg>
+        </div>
+        <div class="panel-foot">
+          <p>It looks more like a meeting — many to many, everyone a sender, return signals everywhere. But the return is not to a particular other you have modeled; it is to no one and everyone at once. You can't hold a million interiors, so instead you model the platform's response — what gets reach. The channel is no longer a neutral wire. It selects, ranks, amplifies, and just as decisively suppresses — what it withholds shapes the exchange as much as what it sends — and the loop closes at the metric, not at a person who has read you and been changed. A conduit, but with a will.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <hr class="rule">
+  <p class="kicker">The synthetic case</p>
+
+  <!-- ============ PANEL D: THE SYNTHETIC INTERLOCUTOR ============ -->
+  <div class="row g-4">
+    <div class="col-12">
+      <div class="panel">
+        <div class="panel-head">
+          <span class="panel-num">MODEL 4</span>
+          <h2 class="panel-title">The Synthetic Interlocutor</h2>
+          <p class="panel-sub">prompt → predict → perform</p>
+        </div>
+        <div class="stage">
+          <svg viewBox="0 0 1080 280" role="img" aria-label="A user faces an optimizing model placed in the position of an interlocutor. The exchange looks reciprocal like a real meeting, but the other node is a non-person holding a model of the user predicted from tokens rather than a genuine interior, and there is no second person beyond it.">
+            <!-- guide line (the dyad) -->
+            <line class="guide" x1="342" y1="140" x2="710" y2="140"/>
+
+            <!-- user: a consciousness (organic) -->
+            <g class="consc-user">
+              <circle cx="270" cy="140" r="72" fill="none" stroke="#3B6DB4" stroke-width="1.6"/>
+              <text class="lbl-node" x="270" y="92" text-anchor="middle" fill="#3B6DB4">USER</text>
+              <circle cx="270" cy="156" r="26" fill="none" stroke="#E53E33" stroke-width="1.3" stroke-dasharray="3 4"/>
+              <text x="270" y="153" text-anchor="middle" font-family="Sono,monospace" font-size="9" letter-spacing=".04em" fill="#6e675c">SOMEONE?</text>
+              <text x="270" y="168" text-anchor="middle" font-family="Sono,monospace" font-size="7.5" letter-spacing=".07em" fill="#a39a88">MODEL OF THE OTHER</text>
+            </g>
+
+            <!-- the model: an optimizer in the interlocutor slot (mechanical) -->
+            <polygon class="model-shape" points="710,140 755,82 865,82 910,140 865,198 755,198"/>
+            <text x="810" y="112" text-anchor="middle" font-family="Outfit,sans-serif" font-weight="600" font-size="13" fill="#E53E33">THE MODEL</text>
+            <circle cx="810" cy="156" r="26" fill="none" stroke="#3B6DB4" stroke-width="1.2" stroke-dasharray="3 4"/>
+            <text x="810" y="153" text-anchor="middle" font-family="Sono,monospace" font-size="9" letter-spacing=".04em" fill="#6e675c">YOU′</text>
+            <text x="810" y="168" text-anchor="middle" font-family="Sono,monospace" font-size="7.5" letter-spacing=".07em" fill="#a39a88">PREDICTED FROM TOKENS</text>
+            <text id="token-readout" class="token" x="810" y="226" text-anchor="middle">next ▸ you</text>
+
+            <!-- no one beyond: a terminus, not a channel -->
+            <circle class="ghost" cx="1010" cy="140" r="22"/>
+            <text x="1010" y="178" text-anchor="middle" font-family="Sono,monospace" font-size="8.5" letter-spacing=".07em" fill="#a39a88">NO ONE</text>
+            <text x="1010" y="190" text-anchor="middle" font-family="Sono,monospace" font-size="8.5" letter-spacing=".07em" fill="#a39a88">BEYOND</text>
+
+            <!-- asymmetry labels -->
+            <text class="lbl-sm" x="526" y="118" text-anchor="middle">REACHES OUT</text>
+            <text x="526" y="178" text-anchor="middle" font-family="Sono,monospace" font-size="10.5" letter-spacing=".06em" fill="#b06a63">PERFORMS</text>
+
+            <!-- reciprocal dots: looks like Model 2 -->
+            <circle class="dot-um" r="5"/>
+            <circle class="dot-mu" r="5"/>
+          </svg>
+        </div>
+        <div class="panel-foot">
+          <p>At a glance this is Model 2 — a dyad, signals both ways, the rhythm of dialogue. But the other node is the red optimizer from Model 3, moved out of the channel and into the interlocutor slot: the thing you take yourself to be speaking to. The user reaches out to a someone (the dashed circle on the left); the model returns a performance built by predicting the next token, holding not an interior but a YOU′ assembled from your input. As in Model 3, you end up modeling the system's response — what yields a good answer — rather than a person. And there is no second person beyond it. The form is Model 2; the mechanism is Model 1.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- ============ CLOSING BAND: THE CHATBOT ============ -->
   <div class="band">
-    <p class="kicker">Where does the chatbot sit?</p>
-    <h2>It is the conduit perfected — running Model 01 while performing Model 02.</h2>
+    <p class="kicker">The thread through four models</p>
+    <h2>It is the conduit perfected — running Model 1 while performing Model 2.</h2>
     <p>A language model takes an input string and returns an output string by prediction. Structurally it is the left panel, the most literal instance of the thing Ong set his definition against. It does not hold an interior that holds a model of yours; the reciprocity is lopsided.</p>
+    <p>Notice the symmetry with Model 3. Social media seats a non-person in the <span class="em">channel</span> — the thing you speak through. The chatbot seats one in the <span class="em">interlocutor</span> slot — the thing you take yourself to be speaking to. Different seat, same intrusion: a genuine other recedes, and an optimizing system takes its place in the structure of the exchange.</p>
     <p>What is new is that this conduit produces every outward sign of the right panel. It performs subjecthood well enough that the distinction now has to be <span class="em">argued</span> rather than assumed. Ong's line is not falsified. It is staged — pulled apart into the appearance of meeting and the substance of it, with the first running at full power and the second left in question.</p>
   </div>
 
   <footer>media-model-vs-communication · for the After the Book project</footer>
 
 </div>
+<script>
+(function(){
+  var el = document.getElementById('engagement-counter');
+  if(el){
+    var n = 14203;
+    setInterval(function(){
+      n += Math.floor(Math.random() * 40) + 6;
+      el.textContent = n.toLocaleString('en-US');
+    }, 650);
+  }
+  var tok = document.getElementById('token-readout');
+  if(tok){
+    var fragments = ['you','feel','—','I','hear','that','tell','me','more','.','it','sounds','like','so','what','do','think','?'];
+    var i = 0;
+    setInterval(function(){
+      i = (i + 1) % fragments.length;
+      tok.textContent = 'next ▸ ' + fragments[i];
+    }, 520);
+  }
+})();
+</script>
 </body>
 </html>
