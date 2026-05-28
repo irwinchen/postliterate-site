@@ -322,14 +322,19 @@ export async function getClaudeExports() {
     let artifacts = [];
 
     // Classify relevance before deciding whether to summarize. Reuse a
-    // prior verdict when source_key is unchanged; classify fresh otherwise.
+    // prior verdict when source_key is unchanged AND the prior verdict was
+    // decisive (heuristic or a confident LLM call). If the prior was
+    // "unknown" because Ollama was unreachable at the time, retry — the
+    // LLM may be back now and able to resolve the case.
     let relevance;
     if (!stale) {
       const prior = loadByKey('chat', conv.uuid);
-      if (prior?.book_relevance) {
+      const priorMethod = prior?.book_relevance_method;
+      const priorIsDecisive = prior?.book_relevance && priorMethod !== 'ollama_unavailable';
+      if (priorIsDecisive) {
         relevance = {
           verdict: prior.book_relevance,
-          method: prior.book_relevance_method || 'cached',
+          method: priorMethod || 'cached',
           reason: prior.book_relevance_reason || '',
         };
       }
