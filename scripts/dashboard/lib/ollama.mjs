@@ -49,6 +49,11 @@ export async function generate({ system, prompt, model, options }) {
         system,
         prompt,
         stream: false,
+        // Disable reasoning-mode for qwen3 / deepseek-r1 / etc. Without
+        // this they spend their entire `num_predict` budget on
+        // <think>...</think> content and leave nothing after the strip.
+        // For non-reasoning models the flag is ignored.
+        think: false,
         options: {
           temperature: 0.2,
           num_predict: 800,
