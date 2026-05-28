@@ -160,9 +160,10 @@ export async function refresh() {
       acc[it.type] = (acc[it.type] || 0) + 1;
       return acc;
     }, {});
+    const filteredNote = w.filtered_out ? ` · ${w.filtered_out} hidden as not book-relevant` : '';
     console.log(
       `  Working conversations: ${w.returned} of ${w.total} ` +
-        `(cowork: ${byType.cowork || 0}, chat: ${byType.chat || 0}, debrief: ${byType.debrief || 0}).`
+        `(cowork: ${byType.cowork || 0}, chat: ${byType.chat || 0}, debrief: ${byType.debrief || 0})${filteredNote}.`
     );
   } catch (err) {
     console.warn(`  Warning: working-conversations failed — ${err.message}`);

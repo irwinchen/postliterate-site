@@ -94,6 +94,11 @@ function buildNormalized({ filename, fm, sourceKey, markdownPath, body }) {
     first_prompt: null,
     summary,
     summary_status: summary ? 'ready' : 'skipped',
+    // Debriefs are author-filed by the `session-debrief` skill specifically
+    // for this project, so they're book-relevant by construction.
+    book_relevance: 'yes',
+    book_relevance_method: 'author_filed',
+    book_relevance_reason: 'session debrief',
     artifacts,
     source_ref: {
       kind: 'debrief',

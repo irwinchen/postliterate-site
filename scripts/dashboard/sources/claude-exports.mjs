@@ -43,6 +43,7 @@ import { isAvailable, getOllamaConfig } from '../lib/ollama.mjs';
 import { summarize } from '../lib/summary-cache.mjs';
 import { saveNormalized, shouldReingest, getExistingSummary, loadByKey, pruneStale } from '../lib/conversation-store.mjs';
 import { extractArtifacts, stripArtifactTags } from '../lib/artifact-extractor.mjs';
+import { classifyBookRelevance, CLASSIFIER_VERSION } from '../lib/book-relevance.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const DROP_DIR = join(homedir(), 'Documents/postliterate-chat-exports');
@@ -211,10 +212,13 @@ ${lines}`;
 const SYSTEM_PROMPT_HASH = createHash('sha256').update(SYSTEM_PROMPT).digest('hex').slice(0, 8);
 
 function sourceKeyFor(conv) {
-  return `${SYSTEM_PROMPT_HASH}|${conv.uuid}|${conv.updated_at || conv.created_at || ''}`;
+  // Include CLASSIFIER_VERSION so a bumped classifier invalidates existing
+  // normalized records and forces re-classification (and re-summarization)
+  // on the next refresh.
+  return `${SYSTEM_PROMPT_HASH}|cls${CLASSIFIER_VERSION}|${conv.uuid}|${conv.updated_at || conv.created_at || ''}`;
 }
 
-function buildNormalized(conv, { summary, summaryStatus, artifacts }) {
+function buildNormalized(conv, { summary, summaryStatus, artifacts, relevance }) {
   const msgs = conv.chat_messages || [];
   const firstHuman = msgs.find((m) => m.sender === 'human');
   const first_prompt = firstHuman ? String(firstHuman.text || '').slice(0, 200) : null;
@@ -234,6 +238,9 @@ function buildNormalized(conv, { summary, summaryStatus, artifacts }) {
     first_prompt,
     summary,
     summary_status: summaryStatus,
+    book_relevance: relevance.verdict,
+    book_relevance_method: relevance.method,
+    book_relevance_reason: relevance.reason,
     artifacts,
     source_ref: {
       kind: 'chat',
@@ -314,8 +321,37 @@ export async function getClaudeExports() {
     let summaryStatus;
     let artifacts = [];
 
+    // Classify relevance before deciding whether to summarize. Reuse a
+    // prior verdict when source_key is unchanged; classify fresh otherwise.
+    let relevance;
+    if (!stale) {
+      const prior = loadByKey('chat', conv.uuid);
+      if (prior?.book_relevance) {
+        relevance = {
+          verdict: prior.book_relevance,
+          method: prior.book_relevance_method || 'cached',
+          reason: prior.book_relevance_reason || '',
+        };
+      }
+    }
+    if (!relevance) {
+      relevance = await classifyBookRelevance({
+        title: conv.name,
+        firstPrompt: first_prompt,
+      });
+    }
+
     if (msgs.length === 0) {
       summaryStatus = 'skipped';
+    } else if (relevance.verdict === 'no') {
+      // Junk by classification — never summarize. Hidden by the aggregator.
+      summaryStatus = 'skipped';
+      convSummary = null;
+    } else if (relevance.verdict === 'unknown') {
+      // Ambiguous + Ollama can't decide. Keep visible but don't waste
+      // cycles summarizing something that may be junk.
+      summaryStatus = 'skipped';
+      convSummary = null;
     } else if (convSummary) {
       summaryStatus = 'ready';
     } else if (ollamaUp) {
@@ -344,7 +380,7 @@ export async function getClaudeExports() {
 
     // Side effect: write normalized JSON for the working-conversations aggregator.
     try {
-      saveNormalized(buildNormalized(conv, { summary: convSummary, summaryStatus, artifacts }));
+      saveNormalized(buildNormalized(conv, { summary: convSummary, summaryStatus, artifacts, relevance }));
     } catch (err) {
       console.warn(`  claude-exports saveNormalized failed (${conv.uuid?.slice(0, 8)}): ${err.message}`);
     }

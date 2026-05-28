@@ -208,6 +208,11 @@ function buildNormalized(g, { sessionSummary, summaryStatus }) {
     first_prompt,
     summary: sessionSummary,
     summary_status: summaryStatus,
+    // Cowork sessions are already pre-filtered by RELEVANT_PROJECT_PREFIXES
+    // to the site repo + vault, so they're book-relevant by construction.
+    book_relevance: 'yes',
+    book_relevance_method: 'project_prefilter',
+    book_relevance_reason: `project ${label}`,
     artifacts: [],
     source_ref: {
       kind: 'cowork',

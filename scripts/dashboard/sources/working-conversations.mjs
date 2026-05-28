@@ -20,15 +20,23 @@ export async function getWorkingConversations() {
   const ollamaUp = await isAvailable();
 
   const all = listNormalized();
-  all.sort((a, b) =>
+  // Filter out items the relevance classifier marked "no". "yes" and
+  // "unknown" both stay visible; missing field (legacy records pre-dating
+  // the classifier) also stays visible, since absence is not evidence of
+  // junk. Records with verdict "no" will be re-evaluated on their next
+  // source_key change.
+  const relevant = all.filter((c) => c.book_relevance !== 'no');
+  relevant.sort((a, b) =>
     String(b.last_activity_at || '').localeCompare(String(a.last_activity_at || ''))
   );
-  const items = all.slice(0, MAX_RETURNED);
+  const items = relevant.slice(0, MAX_RETURNED);
 
   return {
     ollama_available: ollamaUp,
     model: cfg.model,
-    total: all.length,
+    total: relevant.length,
+    total_before_filter: all.length,
+    filtered_out: all.length - relevant.length,
     returned: items.length,
     items,
   };
