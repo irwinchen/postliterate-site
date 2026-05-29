@@ -82,10 +82,21 @@ const SYSTEM_PROMPT =
   "It's part of a book project called 'After the Book' on literacy, orality, and AI. " +
   "You see both Irwin's questions and Claude's responses. Use third person — DO NOT write as Irwin.\n\n" +
   "Write 2-3 sentences of plain prose (no bullets, no headers, no bold). " +
-  "Sentence 1: what Irwin was trying to figure out, build, or work through — the actual question driving the conversation. " +
-  "Sentence 2-3: how the conversation evolved — what got proposed, what got rejected or refined, what was concluded or left open. " +
+  "Conversations often drift: they start on one question and end up somewhere else as the work unfolds. " +
+  "Sentence 1: name the DOMINANT or FINAL subject of the conversation — what it became, not just what it started as. " +
+  "Sentence 2-3: trace the trajectory — what came first, what came up later, what got decided or left open. " +
   "Be specific: name books, authors, files, or concrete decisions rather than gesturing at them. " +
   "Don't restate the opening prompt verbatim — the dashboard already shows it separately.";
+
+// Title generation: a single short line (≤8 words) that names the actual
+// dominant subject, not the opening question. Replaces the claude.ai title
+// outright in normalized records.
+const TITLE_SYSTEM_PROMPT =
+  "You generate a short title for one Claude.ai conversation. " +
+  "Output ONE line, at most 8 words. " +
+  "Name the dominant or final subject of the work — what the conversation became, not the opening question. " +
+  "If the conversation drifted from its starting topic, name what it became. " +
+  "No quotes, no period at the end, no 'Title:' label, no markdown.";
 
 // ── Zip discovery ───────────────────────────────────────────────
 function findLatestZip() {
@@ -207,18 +218,43 @@ Messages: ${msgs.length}${more}
 ${lines}`;
 }
 
-// Hash the system prompt into the source key so prompt changes invalidate
-// existing normalized records and force re-summarization on next refresh.
-const SYSTEM_PROMPT_HASH = createHash('sha256').update(SYSTEM_PROMPT).digest('hex').slice(0, 8);
+// Hash both prompts into the source key so prompt changes (summary OR
+// title) invalidate existing normalized records and force re-processing
+// on next refresh.
+const PROMPT_HASH = createHash('sha256')
+  .update(SYSTEM_PROMPT)
+  .update('␟')
+  .update(TITLE_SYSTEM_PROMPT)
+  .digest('hex')
+  .slice(0, 8);
 
 function sourceKeyFor(conv) {
   // Include CLASSIFIER_VERSION so a bumped classifier invalidates existing
   // normalized records and forces re-classification (and re-summarization)
   // on the next refresh.
-  return `${SYSTEM_PROMPT_HASH}|cls${CLASSIFIER_VERSION}|${conv.uuid}|${conv.updated_at || conv.created_at || ''}`;
+  return `${PROMPT_HASH}|cls${CLASSIFIER_VERSION}|${conv.uuid}|${conv.updated_at || conv.created_at || ''}`;
 }
 
-function buildNormalized(conv, { summary, summaryStatus, artifacts, relevance }) {
+// Normalize and cap an LLM-generated title: strip wrapping quotes/markdown,
+// trailing punctuation, surrounding whitespace; cap to a reasonable length.
+function cleanLlmTitle(raw) {
+  if (typeof raw !== 'string') return null;
+  let t = raw.trim();
+  // Models sometimes echo "Title: ..." despite the system prompt; strip.
+  t = t.replace(/^\s*title\s*[:\-—]\s*/i, '');
+  // Strip surrounding quotes (single, double, smart) and markdown emphasis.
+  t = t.replace(/^[\s"'`*_“”‘’]+|[\s"'`*_“”‘’]+$/g, '');
+  // Drop trailing terminal punctuation; titles read better without.
+  t = t.replace(/[.!?…]+$/g, '');
+  // First non-empty line only.
+  t = t.split(/\r?\n/).find((line) => line.trim()) || '';
+  t = t.trim();
+  if (!t) return null;
+  if (t.length > 90) t = t.slice(0, 90).replace(/\s+\S*$/, '') + '…';
+  return t;
+}
+
+function buildNormalized(conv, { summary, summaryStatus, artifacts, relevance, llmTitle }) {
   const msgs = conv.chat_messages || [];
   const firstHuman = msgs.find((m) => m.sender === 'human');
   const first_prompt = firstHuman ? String(firstHuman.text || '').slice(0, 200) : null;
@@ -231,7 +267,10 @@ function buildNormalized(conv, { summary, summaryStatus, artifacts, relevance })
     type: 'chat',
     project_label: null,
     project_path: null,
-    title: conv.name || '(untitled)',
+    // Prefer the LLM-generated title that reflects the dominant/final
+    // subject of the conversation. Fall back to the claude.ai-imported
+    // title only when the LLM didn't run or returned nothing usable.
+    title: llmTitle || conv.name || '(untitled)',
     started_at: created,
     last_activity_at: updated,
     message_count: msgs.length,
@@ -346,6 +385,16 @@ export async function getClaudeExports() {
       });
     }
 
+    // Reuse a prior LLM-generated title when the conversation hasn't
+    // changed; otherwise we'll regenerate alongside the summary.
+    let llmTitle = null;
+    if (!stale) {
+      const prior = loadByKey('chat', conv.uuid);
+      if (prior?.title && prior.title !== conv.name) {
+        llmTitle = prior.title;
+      }
+    }
+
     if (msgs.length === 0) {
       summaryStatus = 'skipped';
     } else if (relevance.verdict === 'no') {
@@ -357,14 +406,30 @@ export async function getClaudeExports() {
       // cycles summarizing something that may be junk.
       summaryStatus = 'skipped';
       convSummary = null;
-    } else if (convSummary) {
+    } else if (convSummary && llmTitle) {
+      // Both prior outputs reusable.
       summaryStatus = 'ready';
     } else if (ollamaUp) {
-      convSummary = await summarize({
-        system: SYSTEM_PROMPT,
-        prompt: buildPrompt(conv),
-        label: `claude-export-${conv.uuid.slice(0, 8)}`,
-      });
+      const promptBody = buildPrompt(conv);
+      // Sequential — Ollama serializes per-model requests anyway, so
+      // Promise.all() just queues the second call behind the first and
+      // doubles the effective timeout window.
+      if (!llmTitle) {
+        const titleRaw = await summarize({
+          system: TITLE_SYSTEM_PROMPT,
+          prompt: promptBody,
+          label: `claude-title-${conv.uuid.slice(0, 8)}`,
+          options: { num_predict: 32, temperature: 0.1 },
+        });
+        llmTitle = cleanLlmTitle(titleRaw) || null;
+      }
+      if (!convSummary) {
+        convSummary = await summarize({
+          system: SYSTEM_PROMPT,
+          prompt: promptBody,
+          label: `claude-export-${conv.uuid.slice(0, 8)}`,
+        });
+      }
       summaryStatus = convSummary ? 'ready' : 'pending';
     } else {
       summaryStatus = 'pending';
@@ -385,7 +450,7 @@ export async function getClaudeExports() {
 
     // Side effect: write normalized JSON for the working-conversations aggregator.
     try {
-      saveNormalized(buildNormalized(conv, { summary: convSummary, summaryStatus, artifacts, relevance }));
+      saveNormalized(buildNormalized(conv, { summary: convSummary, summaryStatus, artifacts, relevance, llmTitle }));
     } catch (err) {
       console.warn(`  claude-exports saveNormalized failed (${conv.uuid?.slice(0, 8)}): ${err.message}`);
     }

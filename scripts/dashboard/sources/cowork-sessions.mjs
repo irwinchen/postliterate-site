@@ -34,7 +34,7 @@ import { join } from 'node:path';
 import { homedir } from 'node:os';
 import { isAvailable, getOllamaConfig } from '../lib/ollama.mjs';
 import { summarize } from '../lib/summary-cache.mjs';
-import { saveNormalized, shouldReingest, getExistingSummary, pruneStale } from '../lib/conversation-store.mjs';
+import { saveNormalized, shouldReingest, getExistingSummary, loadByKey, pruneStale } from '../lib/conversation-store.mjs';
 
 const HISTORY_PATH = join(homedir(), '.claude/history.jsonl');
 const DAYS_BACK = 7;
@@ -135,10 +135,21 @@ const SYSTEM_PROMPT =
   "You summarize a single Claude Code (Cowork) session for the writing+coding project 'After the Book'. " +
   "You are given the user's prompts from one session in chronological order. The user is Irwin Chen — DO NOT write in first person as him; use third person.\n\n" +
   "Write 2-3 sentences of plain prose (no bullets, no headers, no bold). " +
-  "Sentence 1: what the session was actually about — the problem or question being worked on. " +
-  "Sentence 2-3: how the work evolved — what got tried, what was decided, where it landed or what's still open. " +
+  "Sessions often drift: they start on one task and end up somewhere else as work unfolds. " +
+  "Sentence 1: name the DOMINANT or FINAL thread of work — what the session became, not just what it started as. " +
+  "Sentence 2-3: trace the trajectory — what came first, what came up later, what got decided or left open. " +
   "Be specific: name the files, decisions, or topics rather than gesturing at them. " +
   "Don't restate the first prompt verbatim — the dashboard already shows it separately.";
+
+// Title generation: a single short line (≤8 words) describing the dominant
+// or final thread of work, not the opening prompt. Replaces the
+// first-prompt-derived title in normalized records.
+const TITLE_SYSTEM_PROMPT =
+  "You generate a short title for one Claude Code (Cowork) session. " +
+  "Output ONE line, at most 8 words. " +
+  "Name the dominant or final thread of work — what the session became, not the opening prompt. " +
+  "If the session drifted from its starting task, name what it became. " +
+  "No quotes, no period at the end, no 'Title:' label, no markdown.";
 
 function truncate(s, n) {
   if (typeof s !== 'string') return '';
@@ -160,14 +171,19 @@ User prompts in chronological order:
 ${lines}`;
 }
 
-// Hash the system prompt into the source key so that any change to
-// SYSTEM_PROMPT invalidates the normalized records, forcing re-summarization
-// on the next refresh.
-const SYSTEM_PROMPT_HASH = createHash('sha256').update(SYSTEM_PROMPT).digest('hex').slice(0, 8);
+// Hash both prompts into the source key so any change to summary OR
+// title prompt invalidates existing normalized records and forces
+// re-processing on the next refresh.
+const PROMPT_HASH = createHash('sha256')
+  .update(SYSTEM_PROMPT)
+  .update('␟')
+  .update(TITLE_SYSTEM_PROMPT)
+  .digest('hex')
+  .slice(0, 8);
 
 function sourceKeyFor(g) {
   return createHash('sha256')
-    .update(SYSTEM_PROMPT_HASH)
+    .update(PROMPT_HASH)
     .update('␟')
     .update(g.session_id)
     .update('␟')
@@ -178,7 +194,21 @@ function sourceKeyFor(g) {
     .slice(0, 16);
 }
 
-function buildNormalized(g, { sessionSummary, summaryStatus }) {
+// Normalize and cap an LLM-generated title.
+function cleanLlmTitle(raw) {
+  if (typeof raw !== 'string') return null;
+  let t = raw.trim();
+  t = t.replace(/^\s*title\s*[:\-—]\s*/i, '');
+  t = t.replace(/^[\s"'`*_“”‘’]+|[\s"'`*_“”‘’]+$/g, '');
+  t = t.replace(/[.!?…]+$/g, '');
+  t = t.split(/\r?\n/).find((line) => line.trim()) || '';
+  t = t.trim();
+  if (!t) return null;
+  if (t.length > 90) t = t.slice(0, 90).replace(/\s+\S*$/, '') + '…';
+  return t;
+}
+
+function buildNormalized(g, { sessionSummary, summaryStatus, llmTitle }) {
   const date = new Date(g.first_ts).toISOString().slice(0, 10);
   // Use the first SUBSTANTIVE prompt for the lead-in. Skip slash commands
   // and short conversational fillers ("ok", "yes", "continue") — index on
@@ -193,7 +223,11 @@ function buildNormalized(g, { sessionSummary, summaryStatus }) {
   const firstSubstantive = g.prompts.find((p) => !isFiller(p.text)) || g.prompts[0];
   const first_prompt = truncate(firstSubstantive?.text || '', 200);
   const label = projectLabel(g.project_path);
-  const title = first_prompt ? truncate(first_prompt, 80) : `Cowork session ${g.session_id.slice(0, 8)}`;
+  // Prefer the LLM-generated title that reflects the dominant/final
+  // thread of work. Fall back to the first-prompt-derived title when
+  // the LLM didn't run or returned nothing usable.
+  const fallbackTitle = first_prompt ? truncate(first_prompt, 80) : `Cowork session ${g.session_id.slice(0, 8)}`;
+  const title = llmTitle || fallbackTitle;
 
   return {
     schema_version: 1,
@@ -243,16 +277,39 @@ export async function getCoworkSessions() {
     let sessionSummary = stale ? null : getExistingSummary('cowork', g.session_id);
     let summaryStatus;
 
+    // Reuse a prior LLM-generated title when the session content
+    // hasn't changed; otherwise we'll regenerate alongside the summary.
+    let llmTitle = null;
+    if (!stale) {
+      const prior = loadByKey('cowork', g.session_id);
+      const fallbackForCheck = truncate(g.prompts[0]?.text || '', 80);
+      if (prior?.title && prior.title !== fallbackForCheck) {
+        llmTitle = prior.title;
+      }
+    }
+
     if (g.prompts.length === 0) {
       summaryStatus = 'skipped';
-    } else if (sessionSummary) {
+    } else if (sessionSummary && llmTitle) {
       summaryStatus = 'ready';
     } else if (ollamaUp) {
-      sessionSummary = await summarize({
-        system: SYSTEM_PROMPT,
-        prompt: buildSessionPrompt(g),
-        label: `cowork-${date}-${g.session_id.slice(0, 8)}`,
-      });
+      const promptBody = buildSessionPrompt(g);
+      if (!llmTitle) {
+        const titleRaw = await summarize({
+          system: TITLE_SYSTEM_PROMPT,
+          prompt: promptBody,
+          label: `cowork-title-${date}-${g.session_id.slice(0, 8)}`,
+          options: { num_predict: 32, temperature: 0.1 },
+        });
+        llmTitle = cleanLlmTitle(titleRaw) || null;
+      }
+      if (!sessionSummary) {
+        sessionSummary = await summarize({
+          system: SYSTEM_PROMPT,
+          prompt: promptBody,
+          label: `cowork-${date}-${g.session_id.slice(0, 8)}`,
+        });
+      }
       summaryStatus = sessionSummary ? 'ready' : 'pending';
     } else {
       summaryStatus = 'pending';
@@ -262,7 +319,7 @@ export async function getCoworkSessions() {
     // aggregator. Cheap when the source_key hasn't changed (still writes,
     // but the file is small and rename is atomic).
     try {
-      saveNormalized(buildNormalized(g, { sessionSummary, summaryStatus }));
+      saveNormalized(buildNormalized(g, { sessionSummary, summaryStatus, llmTitle }));
     } catch (err) {
       console.warn(`  cowork-sessions saveNormalized failed (${g.session_id.slice(0, 8)}): ${err.message}`);
     }
