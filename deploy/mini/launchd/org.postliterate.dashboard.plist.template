@@ -40,13 +40,16 @@
     -->
     <key>OLLAMA_MODEL</key>
     <string>qwen3.5:4b</string>
-    <!-- Per-call deadline in ms. qwen3.5:4b on an M4/16 GB resolves
-         short prompts (book-relevance YES/NO) in well under a second
-         and dense summaries in ~5-15s; 30s is generous headroom.
-         Earlier 90s was needed because qwen3:14b on the same hardware
-         was memory-pressured and slow. -->
+    <!-- Per-call deadline in ms. Set to 60s for queue tolerance. A
+         single qwen3.5:4b call on this Mini finishes in 1-15s, but
+         a refresh sends ~25 chats × 2 calls (title + summary) =
+         ~50 requests; Ollama serializes per model, so a request can
+         sit in queue behind ~10 others for >30s before being served.
+         Earlier 30s setting made the queue tail cascade-fail. 60s
+         absorbs queue depth while still detecting actual runner
+         hangs. -->
     <key>OLLAMA_TIMEOUT_MS</key>
-    <string>30000</string>
+    <string>60000</string>
     <!-- Bind to localhost explicitly. Tailscale Serve already holds the
          Tailnet IPs at :11434 and forwards them to 127.0.0.1:11434, so
          pointing the dashboard at 0.0.0.0/all-interfaces is wrong here. -->
