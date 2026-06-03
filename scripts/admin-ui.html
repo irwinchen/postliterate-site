@@ -2162,6 +2162,8 @@
       text-align: center;
     }
     .today-prompt-text { font-family: 'Literata', Georgia, serif; font-size: 0.95rem; font-style: italic; line-height: 1.4; }
+    .today-file { margin-block-start: 0.6rem; font-family: 'Sono', monospace; font-size: 0.78rem; color: var(--muted); }
+    .today-file code { color: var(--blue); }
     .today-checklist { list-style: none; margin: 0.7rem 0 0; padding: 0; display: flex; flex-direction: column; gap: 0.4rem; }
     .today-check label { display: flex; gap: 0.55rem; align-items: baseline; cursor: pointer; font-family: 'Literata', Georgia, serif; font-size: 0.92rem; line-height: 1.4; }
     .today-check input { margin: 0; flex: none; transform: translateY(2px); accent-color: var(--blue); }
@@ -3652,11 +3654,17 @@
     // read block gets the week's reading as a check-off list (state persisted
     // in localStorage, keyed by week + index).
     function blockExtra(b) {
-      if (b.kind === 'write' && w && (w.write_toward || w.write_start || w.write_land)) {
+      if (b.kind === 'write' && w) {
+        const fileHtml = w.draft_file
+          ? `<div class="today-file">Write into <code>${escapeHtml(w.draft_file)}</code></div>`
+          : '';
         const row = (tag, text) => text
           ? `<div class="today-prompt-row"><span class="today-prompt-tag">${tag}</span><span class="today-prompt-text">${escapeHtml(text)}</span></div>`
           : '';
-        return `<div class="today-prompt">${row('Toward', w.write_toward)}${row('Start', w.write_start)}${row('Land', w.write_land)}</div>`;
+        const promptHtml = (w.write_toward || w.write_start || w.write_land)
+          ? `<div class="today-prompt">${row('Toward', w.write_toward)}${row('Start', w.write_start)}${row('Land', w.write_land)}</div>`
+          : '';
+        return fileHtml + promptHtml;
       }
       if (b.kind === 'read' && w) {
         const items = Array.isArray(w.reading) ? w.reading : (w.reading ? [w.reading] : []);
