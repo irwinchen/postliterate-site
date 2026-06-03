@@ -20,6 +20,7 @@
 import { writeFileSync, mkdirSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { getBookPlan } from './sources/book-plan.mjs';
 import { getCards } from './sources/cards.mjs';
 import { getVaultWatch } from './sources/vault-watch.mjs';
 import { getFigures } from './sources/figures.mjs';
@@ -43,6 +44,7 @@ export async function refresh() {
 
   const snapshot = {
     refreshed_at: new Date().toISOString(),
+    book_plan: null,   // Today panel — daily/weekly writing plan (book-plan.json)
     cards: null,       // Phase 2 — parse 06_Meta/Book/Cards/INDEX.md
     vault_watch: null, // Phase 3 — outstanding sources, reading queue
     figures: null,     // Phase 7 — project image galleries
@@ -51,6 +53,19 @@ export async function refresh() {
                        //   into working_conversations)
     working_conversations: null, // Phase 6 Slice 3 — unified feed
   };
+
+  // Today panel — writing plan
+  try {
+    snapshot.book_plan = await getBookPlan();
+    const bp = snapshot.book_plan;
+    console.log(
+      `  Book plan: phase=${bp.phase}` +
+        (bp.week ? `, week ${bp.week.n}/${bp.weeks_total} (${bp.week.draft})` : '') +
+        `, ${bp.blocks.length} block(s) today.`
+    );
+  } catch (err) {
+    console.warn(`  Warning: book-plan failed — ${err.message}`);
+  }
 
   // Phase 2 — Cards
   try {

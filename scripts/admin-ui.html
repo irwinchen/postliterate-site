@@ -2052,6 +2052,125 @@
       .dev-server-status > span:first-child { display: none; }
       .last-refreshed { font-size: 0.7rem; }
     }
+
+    /* ── Today / writing plan panel ─────────────────────────────── */
+    .today-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 1rem;
+      flex-wrap: wrap;
+      border-block-end: 1.5px solid var(--border);
+      padding-block-end: 0.6rem;
+      margin-block-end: 1rem;
+    }
+    .today-day {
+      font-family: 'Outfit', system-ui, sans-serif;
+      font-weight: 700;
+      font-size: 1.1rem;
+    }
+    .today-date { color: var(--muted); font-weight: 600; font-family: 'Sono', monospace; font-size: 0.85rem; }
+    .today-phase {
+      font-family: 'Outfit', system-ui, sans-serif;
+      font-weight: 600;
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--accent);
+    }
+    .today-note {
+      font-family: 'Literata', Georgia, serif;
+      color: var(--muted);
+      margin-block-end: 1rem;
+    }
+    .today-blocks { display: flex; flex-direction: column; gap: 0.75rem; margin-block-end: 1.25rem; }
+    .today-block {
+      display: grid;
+      grid-template-columns: 4rem 1fr;
+      gap: 0.9rem;
+      border: 1.5px solid var(--border);
+      border-inline-start-width: 4px;
+      padding: 0.85rem 1rem;
+    }
+    .today-block--write { border-inline-start-color: var(--accent); }
+    .today-block--read  { border-inline-start-color: var(--blue); }
+    .today-block--admin { border-inline-start-color: var(--green); }
+    .today-block-when {
+      font-family: 'Sono', monospace;
+      font-weight: 700;
+      font-size: 0.85rem;
+      color: var(--muted);
+      padding-block-start: 0.1rem;
+    }
+    .today-block-title { font-family: 'Outfit', system-ui, sans-serif; font-weight: 700; margin-block-end: 0.2rem; }
+    .today-block-body { font-family: 'Literata', Georgia, serif; font-size: 0.92rem; line-height: 1.4; }
+    .today-week {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      margin-block-end: 1rem;
+    }
+    .today-week-col { border: 1.5px solid var(--border); padding: 0.85rem 1rem; }
+    .today-week-val { font-family: 'Literata', Georgia, serif; font-size: 0.95rem; line-height: 1.4; }
+    .today-guard, .today-schedule { margin-block-end: 1rem; }
+    .today-guard summary, .today-schedule summary {
+      cursor: pointer;
+      font-family: 'Outfit', system-ui, sans-serif;
+      font-weight: 600;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--muted);
+    }
+    .today-guard ul { margin-block: 0.6rem 0; padding-inline-start: 1.2rem; font-family: 'Literata', Georgia, serif; font-size: 0.9rem; }
+    .today-guard li { margin-block-end: 0.3rem; }
+    .today-table { width: 100%; border-collapse: collapse; margin-block-start: 0.6rem; font-size: 0.82rem; }
+    .today-table th, .today-table td { text-align: start; padding: 0.4rem 0.5rem; border-block-end: 1px solid var(--border); vertical-align: top; }
+    .today-table th { font-family: 'Outfit', system-ui, sans-serif; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); }
+    .today-table td { font-family: 'Literata', Georgia, serif; }
+    .today-row--active { background: color-mix(in srgb, var(--accent) 10%, transparent); }
+    .today-row--active td:first-child { font-weight: 700; color: var(--accent); }
+    .today-meta { font-family: 'Outfit', system-ui, sans-serif; font-size: 0.8rem; color: var(--muted); border-block-start: 1.5px solid var(--border); padding-block-start: 0.6rem; }
+    .today-src { font-family: 'Sono', monospace; font-size: 0.7rem; color: var(--muted); margin-block-start: 0.35rem; }
+    .today-banner {
+      font-family: 'Outfit', system-ui, sans-serif;
+      font-weight: 700;
+      font-size: 1rem;
+      border-inline-start: 4px solid var(--accent);
+      padding: 0.5rem 0.85rem;
+      margin-block-end: 1rem;
+      background: color-mix(in srgb, var(--accent) 7%, transparent);
+    }
+    .today-prompt {
+      margin-block-start: 0.7rem;
+      border-block-start: 1px dashed var(--border);
+      padding-block-start: 0.6rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+    }
+    .today-prompt-row { display: grid; grid-template-columns: 4.5rem 1fr; gap: 0.6rem; align-items: baseline; }
+    .today-prompt-tag {
+      font-family: 'Outfit', system-ui, sans-serif;
+      font-weight: 700;
+      font-size: 0.6rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--accent);
+      border: 1.5px solid var(--accent);
+      padding: 0.08rem 0;
+      text-align: center;
+    }
+    .today-prompt-text { font-family: 'Literata', Georgia, serif; font-size: 0.95rem; font-style: italic; line-height: 1.4; }
+    .today-checklist { list-style: none; margin: 0.7rem 0 0; padding: 0; display: flex; flex-direction: column; gap: 0.4rem; }
+    .today-check label { display: flex; gap: 0.55rem; align-items: baseline; cursor: pointer; font-family: 'Literata', Georgia, serif; font-size: 0.92rem; line-height: 1.4; }
+    .today-check input { margin: 0; flex: none; transform: translateY(2px); accent-color: var(--blue); }
+    .today-check.done span { text-decoration: line-through; color: var(--muted); }
+    .today-check-empty { margin-block-start: 0.7rem; font-family: 'Literata', Georgia, serif; font-style: italic; color: var(--muted); }
+    @media (max-width: 640px) {
+      .today-block { grid-template-columns: 1fr; }
+      .today-week { grid-template-columns: 1fr; }
+    }
   </style>
 </head>
 <body>
@@ -2073,6 +2192,7 @@
 </header>
 
 <nav class="section-nav">
+  <a href="#today-section">Today</a>
   <a href="#dashboard-section">Cover</a>
   <a href="#reminders-section">Reminders</a>
   <a href="#cards-section">Cards</a>
@@ -2088,6 +2208,17 @@
 </nav>
 
 <main>
+
+  <!-- ── Today / Writing plan ────────────────────────────────────── -->
+  <section class="dashboard-section" id="today-section">
+    <button class="section-toggle" onclick="toggleSection('today-section')">
+      <h2 class="section-heading">Today</h2>
+      <i data-lucide="chevron-down"></i>
+    </button>
+    <div class="section-body" id="today-body">
+      <div class="loading">Loading today's plan...</div>
+    </div>
+  </section>
 
   <!-- ── Dashboard / Working title ───────────────────────────────── -->
   <section class="dashboard-section" id="dashboard-section">
@@ -2830,6 +2961,7 @@
       if (!res.ok) throw new Error('not available');
       dashboardData = await res.json();
       updateLastRefreshed(dashboardData && dashboardData.refreshed_at);
+      renderToday(dashboardData);
       renderCards(dashboardData);
       renderVaultWatch(dashboardData);
       renderFigures(dashboardData);
@@ -2843,7 +2975,7 @@
 
   function renderDashboardEmpty() {
     const msg = '<div class="empty">No snapshot yet — click Refresh to generate one.</div>';
-    ['cards-body', 'vault-watch-body', 'figures-body', 'apps-body', 'reminders-body', 'recent-work-body'].forEach(id => {
+    ['today-body', 'cards-body', 'vault-watch-body', 'figures-body', 'apps-body', 'reminders-body', 'recent-work-body'].forEach(id => {
       const el = document.getElementById(id);
       if (el) el.innerHTML = msg;
     });
@@ -3486,7 +3618,135 @@
     });
   })();
 
-  // ── Reminders (Phase 5) ──────────────────────
+  // ── Today / writing plan ─────────────────────
+  function bpReadState() {
+    try { return JSON.parse(localStorage.getItem('bp-read') || '{}'); } catch { return {}; }
+  }
+  function bpSetRead(key, val) {
+    const s = bpReadState();
+    if (val) s[key] = true; else delete s[key];
+    try { localStorage.setItem('bp-read', JSON.stringify(s)); } catch {}
+  }
+  function renderToday(data) {
+    const el = document.getElementById('today-body');
+    if (!el) return;
+    const p = data && data.book_plan;
+    if (!p || p.error) {
+      el.innerHTML = '<div class="empty">No writing plan yet — check scripts/dashboard/book-plan.json, then Refresh.</div>';
+      return;
+    }
+
+    const t = p.today || {};
+    const phaseTag = {
+      draft: 'Drafting day',
+      review: 'Review day (Fri)',
+      weekend: 'Rest',
+      preflight: 'Not started',
+      wrapup: 'Complete',
+    }[p.phase] || p.phase;
+
+    const w = p.week;
+    const readState = bpReadState();
+
+    // Per-block extras: the write block gets a Toward/Start/Land prompt; the
+    // read block gets the week's reading as a check-off list (state persisted
+    // in localStorage, keyed by week + index).
+    function blockExtra(b) {
+      if (b.kind === 'write' && w && (w.write_toward || w.write_start || w.write_land)) {
+        const row = (tag, text) => text
+          ? `<div class="today-prompt-row"><span class="today-prompt-tag">${tag}</span><span class="today-prompt-text">${escapeHtml(text)}</span></div>`
+          : '';
+        return `<div class="today-prompt">${row('Toward', w.write_toward)}${row('Start', w.write_start)}${row('Land', w.write_land)}</div>`;
+      }
+      if (b.kind === 'read' && w) {
+        const items = Array.isArray(w.reading) ? w.reading : (w.reading ? [w.reading] : []);
+        if (!items.length) return `<div class="today-check-empty">No reading this week — focus on writing.</div>`;
+        const lis = items.map((it, i) => {
+          const key = 'wk' + w.n + ':' + i;
+          const done = readState[key] ? ' done' : '';
+          const chk = readState[key] ? ' checked' : '';
+          return `<li class="today-check${done}"><label><input type="checkbox" data-key="${escapeHtml(key)}"${chk}><span>${escapeHtml(it)}</span></label></li>`;
+        }).join('');
+        return `<ul class="today-checklist">${lis}</ul>`;
+      }
+      return '';
+    }
+
+    // Block list (draft / review days)
+    const blocksHtml = (p.blocks || []).map((b) => `
+      <div class="today-block today-block--${escapeHtml(b.kind || 'admin')}">
+        <div class="today-block-when">${escapeHtml(b.hours || '')}</div>
+        <div class="today-block-main">
+          <div class="today-block-title">${escapeHtml(b.n ? b.n + '. ' : '')}${escapeHtml(b.title || '')}</div>
+          <div class="today-block-body">${escapeHtml(b.body || '')}</div>
+          ${blockExtra(b)}
+        </div>
+      </div>`).join('');
+
+    // Prominent banner: what you're writing this week.
+    const bannerHtml = w ? `<div class="today-banner">${escapeHtml(w.draft_label || w.draft || '')}</div>` : '';
+
+    // Phase-specific lead
+    let leadHtml = '';
+    if (p.phase === 'preflight') {
+      leadHtml = `<div class="today-note">${escapeHtml(t.label || 'Starts soon')}. Week 1 below — the daily shape kicks in Monday.</div>`;
+    } else if (p.phase === 'weekend') {
+      leadHtml = `<div class="today-note">No drafting today. ${p.next_week ? 'Next up — Week ' + p.next_week.n + ': ' + escapeHtml(p.next_week.draft_label || p.next_week.draft || '') : 'Pick back up Monday.'}</div>`;
+    } else if (p.phase === 'wrapup') {
+      leadHtml = `<div class="today-note">${escapeHtml(t.label || 'Done')}. Reset start_date in book-plan.json for the next push.</div>`;
+    }
+
+    // Guardrails
+    const guardHtml = (p.guardrails && p.guardrails.length) ? `
+      <details class="today-guard">
+        <summary>Guardrails</summary>
+        <ul>${p.guardrails.map((g) => `<li>${escapeHtml(g)}</li>`).join('')}</ul>
+      </details>` : '';
+
+    // Full schedule table (highlight active week)
+    const rowsHtml = (p.weeks || []).map((wk) => {
+      const active = w && wk.n === w.n ? ' class="today-row--active"' : '';
+      return `<tr${active}>
+        <td>${escapeHtml(String(wk.n))}</td>
+        <td>${escapeHtml(wk.start || '')}</td>
+        <td>${escapeHtml(wk.draft || '')}</td>
+        <td>${escapeHtml(wk.draft_label || '')}</td>
+        <td>${escapeHtml((Array.isArray(wk.reading) ? wk.reading : (wk.reading ? [wk.reading] : [])).join(' · '))}</td>
+      </tr>`;
+    }).join('');
+    const scheduleHtml = rowsHtml ? `
+      <details class="today-schedule">
+        <summary>Full ${escapeHtml(String(p.weeks_total || p.weeks.length))}-week schedule</summary>
+        <table class="today-table">
+          <thead><tr><th>Wk</th><th>Starts</th><th>Write</th><th>Target</th><th>Read</th></tr></thead>
+          <tbody>${rowsHtml}</tbody>
+        </table>
+      </details>` : '';
+
+    el.innerHTML = `
+      <div class="today-head">
+        <div class="today-day">${escapeHtml(t.weekday || '')} <span class="today-date">${escapeHtml(t.iso || '')}</span></div>
+        <div class="today-phase">${escapeHtml(t.label || phaseTag)}</div>
+      </div>
+      ${bannerHtml}
+      ${leadHtml}
+      ${blocksHtml ? `<div class="today-blocks">${blocksHtml}</div>` : ''}
+      ${guardHtml}
+      ${scheduleHtml}
+      <div class="today-meta">${escapeHtml(p.target || '')}${p.role ? ' · ' + escapeHtml(p.role) : ''}</div>
+      <div class="today-src">Plan: <code>scripts/dashboard/book-plan.json</code></div>
+    `;
+
+    // Persist reading check-offs (localStorage; survives refresh/reload).
+    el.querySelectorAll('.today-check input[type="checkbox"]').forEach((cb) => {
+      cb.addEventListener('change', () => {
+        bpSetRead(cb.dataset.key, cb.checked);
+        const li = cb.closest('.today-check');
+        if (li) li.classList.toggle('done', cb.checked);
+      });
+    });
+  }
+
   function renderReminders(data) {
     const el = document.getElementById('reminders-body');
     if (!data || !data.reminders) {

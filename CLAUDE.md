@@ -14,6 +14,10 @@ This rule does not apply to:
 
 When in doubt, ask rather than write.
 
+## No "It's not X, it's Y"
+
+Never use the "It's not X, it's Y" formulation (and its close variants: "not just X but Y," "X isn't about A — it's about B," and other negation-then-correction antitheses). It is a hollow rhetorical tic that signals AI-generated prose. Make the positive claim directly. This applies to all prose and commentary — blog drafts, on-site copy, dashboard content, summaries, critiques, chat responses, and any suggested text.
+
 ---
 
 # postliterate-site
