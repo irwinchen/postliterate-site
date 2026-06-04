@@ -39,6 +39,9 @@ scripts/dashboard/snapshots/latest.json
 # dashboard daily writing archive (one file per day, regenerated on refresh)
 scripts/dashboard/snapshots/writing/
 
+# Today panel draft word-count baselines (per-week, regenerated on refresh)
+scripts/dashboard/snapshots/draft-words.json
+
 # dashboard LLM summary cache (content-hash keyed, regenerated as needed)
 scripts/dashboard/snapshots/summaries/
 

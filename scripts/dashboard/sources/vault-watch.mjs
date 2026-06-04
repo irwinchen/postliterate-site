@@ -431,6 +431,38 @@ function readArticleStatus(slug) {
   return val || null;
 }
 
+// Set the `status:` frontmatter of any Source Note by vault-relative path
+// (e.g., "01_Sources/Articles/Foo.md" or "01_Sources/Books/Bar.md"). Used by
+// the Today panel's reading checklist. Guards against path traversal and
+// writes outside 01_Sources/.
+export function setSourceNoteStatus(relPath, status) {
+  if (typeof relPath !== 'string' || !relPath.startsWith('01_Sources/') || relPath.includes('..')) {
+    return { path: relPath, found: false, updated: false, reason: 'invalid path' };
+  }
+  if (!READING_STATUSES.includes(status)) {
+    return { path: relPath, found: false, updated: false, reason: 'invalid status' };
+  }
+  const abs = join(VAULT, relPath);
+  if (!existsSync(abs)) return { path: relPath, found: false, updated: false };
+
+  const text = readFileSync(abs, 'utf8');
+  const fm = text.match(/^(---\r?\n)([\s\S]*?)(\r?\n---)/);
+  if (!fm) return { path: relPath, found: true, updated: false, reason: 'no frontmatter' };
+
+  const [head, body, tail] = [fm[1], fm[2], fm[3]];
+  const after = text.slice(fm[0].length);
+  const prevMatch = body.match(/^status\s*:\s*(.*)$/m);
+  const previous = prevMatch ? prevMatch[1].trim().replace(/^["']|["']$/g, '') : null;
+
+  const newBody = /^status\s*:/m.test(body)
+    ? body.replace(/^status\s*:.*$/m, `status: ${status}`)
+    : `${body.replace(/\s+$/, '')}\nstatus: ${status}`;
+
+  if (newBody === body) return { path: relPath, found: true, updated: false, status };
+  writeFileSync(abs, head + newBody + tail + after, 'utf8');
+  return { path: relPath, found: true, updated: true, previous, status };
+}
+
 // ── Mutation: set a reading-queue item's status ────────────────
 //
 // Writes the queue line as `- [<status>] [[Slug]] …` and the matching

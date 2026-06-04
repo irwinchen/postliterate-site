@@ -2164,6 +2164,13 @@
     .today-prompt-text { font-family: 'Literata', Georgia, serif; font-size: 0.95rem; font-style: italic; line-height: 1.4; }
     .today-file { margin-block-start: 0.6rem; font-family: 'Sono', monospace; font-size: 0.78rem; color: var(--muted); }
     .today-file code { color: var(--blue); }
+    .today-stats { display: flex; gap: 1rem; flex-wrap: wrap; margin-block-end: 1rem; }
+    .today-stat { border: 1.5px solid var(--border); padding: 0.6rem 0.85rem; min-inline-size: 8.5rem; flex: 1 1 8.5rem; }
+    .today-stat-val { font-family: 'Literata', Georgia, serif; font-size: 1.4rem; font-weight: 700; line-height: 1.1; margin-block-start: 0.1rem; }
+    .today-bar { margin-block-start: 0.45rem; block-size: 4px; background: color-mix(in srgb, var(--muted) 30%, transparent); }
+    .today-bar span { display: block; block-size: 100%; background: var(--accent); }
+    .today-src-tag { margin-inline-start: 0.5rem; font-family: 'Sono', monospace; font-size: 0.65rem; color: var(--muted); border: 1px solid var(--border); padding: 0 0.3rem; white-space: nowrap; }
+    .today-src-tag.done { color: var(--green); border-color: var(--green); }
     .today-checklist { list-style: none; margin: 0.7rem 0 0; padding: 0; display: flex; flex-direction: column; gap: 0.4rem; }
     .today-check label { display: flex; gap: 0.55rem; align-items: baseline; cursor: pointer; font-family: 'Literata', Georgia, serif; font-size: 0.92rem; line-height: 1.4; }
     .today-check input { margin: 0; flex: none; transform: translateY(2px); accent-color: var(--blue); }
@@ -3667,13 +3674,19 @@
         return fileHtml + promptHtml;
       }
       if (b.kind === 'read' && w) {
-        const items = Array.isArray(w.reading) ? w.reading : (w.reading ? [w.reading] : []);
+        const raw = Array.isArray(w.reading) ? w.reading : (w.reading ? [w.reading] : []);
+        const items = raw.map((it) => (typeof it === 'string' ? { label: it } : it));
         if (!items.length) return `<div class="today-check-empty">No reading this week — focus on writing.</div>`;
         const lis = items.map((it, i) => {
           const key = 'wk' + w.n + ':' + i;
           const done = readState[key] ? ' done' : '';
           const chk = readState[key] ? ' checked' : '';
-          return `<li class="today-check${done}"><label><input type="checkbox" data-key="${escapeHtml(key)}"${chk}><span>${escapeHtml(it)}</span></label></li>`;
+          const srcs = it.source ? (Array.isArray(it.source) ? it.source : [it.source]) : [];
+          const srcAttr = srcs.length ? ` data-sources="${escapeHtml(JSON.stringify(srcs)).replace(/"/g, '&quot;')}"` : '';
+          const tag = srcs.length
+            ? `<span class="today-src-tag" title="Checking sets status: read in the source note${srcs.length > 1 ? 's' : ''}">↦ read</span>`
+            : '';
+          return `<li class="today-check${done}"><label><input type="checkbox" data-key="${escapeHtml(key)}"${srcAttr}${chk}><span>${escapeHtml(it.label)}</span>${tag}</label></li>`;
         }).join('');
         return `<ul class="today-checklist">${lis}</ul>`;
       }
@@ -3719,7 +3732,7 @@
         <td>${escapeHtml(wk.start || '')}</td>
         <td>${escapeHtml(wk.draft || '')}</td>
         <td>${escapeHtml(wk.draft_label || '')}</td>
-        <td>${escapeHtml((Array.isArray(wk.reading) ? wk.reading : (wk.reading ? [wk.reading] : [])).join(' · '))}</td>
+        <td>${escapeHtml((Array.isArray(wk.reading) ? wk.reading : (wk.reading ? [wk.reading] : [])).map((it) => typeof it === 'string' ? it : it.label).join(' · '))}</td>
       </tr>`;
     }).join('');
     const scheduleHtml = rowsHtml ? `
@@ -3731,12 +3744,24 @@
         </table>
       </details>` : '';
 
+    const dw = p.draft_words;
+    const pct = dw && dw.current != null
+      ? Math.min(100, Math.round((100 * dw.current) / (dw.current_target || 2000)))
+      : 0;
+    const statsHtml = dw ? `
+      <div class="today-stats">
+        <div class="today-stat"><div class="kpi-label">Written this week</div><div class="today-stat-val">${dw.this_week >= 0 ? '+' : ''}${dw.this_week} words</div></div>
+        ${dw.current != null ? `<div class="today-stat"><div class="kpi-label">This chapter</div><div class="today-stat-val">${dw.current} / ${dw.current_target}</div><div class="today-bar"><span style="inline-size:${pct}%"></span></div></div>` : ''}
+        <div class="today-stat"><div class="kpi-label">03_Chapters total</div><div class="today-stat-val">${dw.total} words</div></div>
+      </div>` : '';
+
     el.innerHTML = `
       <div class="today-head">
         <div class="today-day">${escapeHtml(t.weekday || '')} <span class="today-date">${escapeHtml(t.iso || '')}</span></div>
         <div class="today-phase">${escapeHtml(t.label || phaseTag)}</div>
       </div>
       ${bannerHtml}
+      ${statsHtml}
       ${leadHtml}
       ${blocksHtml ? `<div class="today-blocks">${blocksHtml}</div>` : ''}
       ${guardHtml}
@@ -3746,11 +3771,40 @@
     `;
 
     // Persist reading check-offs (localStorage; survives refresh/reload).
+    // When an item maps to source note(s), checking it sets their frontmatter
+    // status to "read" in the vault.
     el.querySelectorAll('.today-check input[type="checkbox"]').forEach((cb) => {
-      cb.addEventListener('change', () => {
+      cb.addEventListener('change', async () => {
         bpSetRead(cb.dataset.key, cb.checked);
         const li = cb.closest('.today-check');
         if (li) li.classList.toggle('done', cb.checked);
+        const tag = li && li.querySelector('.today-src-tag');
+        if (cb.checked && cb.dataset.sources) {
+          let sources = [];
+          try { sources = JSON.parse(cb.dataset.sources); } catch {}
+          if (!sources.length) return;
+          if (tag) tag.textContent = '… marking';
+          try {
+            const res = await fetch(API + '/api/book-plan/read', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ sources }),
+            });
+            const data = await res.json();
+            if (res.ok && data.ok) {
+              const updated = (data.results || []).filter((r) => r.updated || r.found).length;
+              const missing = (data.results || []).filter((r) => !r.found).length;
+              if (tag) {
+                tag.textContent = missing ? `⚠ ${missing} not found` : `✓ read${updated > 1 ? ' ×' + updated : ''}`;
+                tag.classList.toggle('done', !missing);
+              }
+            } else if (tag) {
+              tag.textContent = '⚠ ' + ((data && data.error) ? 'error' : 'failed');
+            }
+          } catch {
+            if (tag) tag.textContent = '⚠ offline';
+          }
+        }
       });
     });
   }

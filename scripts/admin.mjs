@@ -36,6 +36,7 @@ import { refresh } from './dashboard/refresh.mjs';
 import {
   getVaultWatch,
   setReadingQueueItemStatus,
+  setSourceNoteStatus,
   READING_STATUSES,
 } from './dashboard/sources/vault-watch.mjs';
 import { getTodos, toggleTodo } from './dashboard/sources/todos.mjs';
@@ -505,6 +506,25 @@ async function handleRequest(req, res) {
         }
 
         json(res, { ok: true, ...result, queue });
+      } catch (err) {
+        json(res, { error: err.message }, 500);
+      }
+      return;
+    }
+
+    // POST /api/book-plan/read — mark source note(s) status: read from the
+    // Today panel's reading checklist. Body: { sources: [vault-rel-path, ...] }.
+    if (method === 'POST' && path === '/api/book-plan/read') {
+      if (READ_ONLY) { json(res, { error: 'Server is in read-only mode' }, 403); return; }
+      const body = await readBody(req);
+      const sources = Array.isArray(body && body.sources) ? body.sources : [];
+      if (!sources.length || !sources.every((s) => typeof s === 'string')) {
+        json(res, { error: 'sources (non-empty array of vault-relative paths) required' }, 400);
+        return;
+      }
+      try {
+        const results = sources.map((s) => setSourceNoteStatus(s, 'read'));
+        json(res, { ok: true, results });
       } catch (err) {
         json(res, { error: err.message }, 500);
       }

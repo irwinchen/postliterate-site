@@ -21,12 +21,16 @@
  *   }
  */
 
-import { readFileSync, existsSync } from 'node:fs';
+import { readFileSync, existsSync, readdirSync, writeFileSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { homedir } from 'node:os';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const PLAN_PATH = join(__dirname, '..', 'book-plan.json');
+const VAULT = process.env.VAULT_PATH || join(homedir(), 'vaults/PostLiterate');
+const CHAPTERS_DIR = join(VAULT, '03_Chapters');
+const DRAFT_WORDS_PATH = join(__dirname, '..', 'snapshots', 'draft-words.json');
 
 const WEEKDAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
@@ -42,6 +46,74 @@ function todayIso(now = new Date()) {
 function weekdayIndex(iso) {
   // Noon avoids any TZ/DST edge flipping the date.
   return new Date(`${iso}T12:00:00`).getDay(); // 0=Sun … 6=Sat
+}
+
+// Count prose words only: strip YAML frontmatter, HTML comments, and markdown
+// heading lines (the scaffolding), then count whitespace tokens. Keeps the
+// count honest about *written prose*, not the section skeleton.
+function countProseWords(text) {
+  let t = text.replace(/^---\r?\n[\s\S]*?\r?\n---\r?\n?/, '');
+  t = t.replace(/<!--[\s\S]*?-->/g, ' ');
+  t = t
+    .split(/\r?\n/)
+    .filter((l) => !/^\s*#/.test(l))
+    .join(' ');
+  return t.trim().split(/\s+/).filter(Boolean).length;
+}
+
+function frontmatterNum(text, key) {
+  const fm = text.match(/^---\r?\n([\s\S]*?)\r?\n---/);
+  if (!fm) return null;
+  const m = fm[1].match(new RegExp('^' + key + '\\s*:\\s*(\\d+)', 'm'));
+  return m ? Number(m[1]) : null;
+}
+
+// Word counts for the prose drafts in 03_Chapters (*.draft.md). Tracks a
+// per-week baseline (snapshots/draft-words.json) so `this_week` = words added
+// since the active week began. Baseline is recorded on the first refresh of a
+// non-preflight week.
+function getDraftWords(activeWeek, phase) {
+  let by_file;
+  try {
+    if (!existsSync(CHAPTERS_DIR)) return null;
+    by_file = readdirSync(CHAPTERS_DIR)
+      .filter((f) => f.endsWith('.draft.md'))
+      .map((f) => {
+        const text = readFileSync(join(CHAPTERS_DIR, f), 'utf8');
+        return { file: f, words: countProseWords(text), target: frontmatterNum(text, 'word_target') };
+      })
+      .sort((a, b) => a.file.localeCompare(b.file));
+  } catch {
+    return null;
+  }
+  const total = by_file.reduce((s, x) => s + x.words, 0);
+
+  let current = null;
+  let current_target = null;
+  if (activeWeek && activeWeek.draft_file) {
+    const base = activeWeek.draft_file.split('/').pop();
+    const hit = by_file.find((x) => x.file === base);
+    current = hit ? hit.words : 0;
+    current_target = (hit && hit.target) || 2000;
+  }
+
+  let this_week = 0;
+  try {
+    let state = {};
+    if (existsSync(DRAFT_WORDS_PATH)) state = JSON.parse(readFileSync(DRAFT_WORDS_PATH, 'utf8'));
+    state.week_baselines = state.week_baselines || {};
+    if (activeWeek && phase !== 'preflight') {
+      if (state.week_baselines[activeWeek.start] === undefined) {
+        state.week_baselines[activeWeek.start] = total;
+        writeFileSync(DRAFT_WORDS_PATH, JSON.stringify(state, null, 2), 'utf8');
+      }
+      this_week = total - state.week_baselines[activeWeek.start];
+    }
+  } catch {
+    this_week = 0;
+  }
+
+  return { total, current, current_target, this_week, by_file };
 }
 
 export async function getBookPlan(now = new Date()) {
@@ -69,7 +141,7 @@ export async function getBookPlan(now = new Date()) {
   };
 
   if (weeks.length === 0) {
-    return { ...base, phase: 'preflight' };
+    return { ...base, phase: 'preflight', draft_words: getDraftWords(null, 'preflight') };
   }
 
   const first = weeks[0];
@@ -84,6 +156,7 @@ export async function getBookPlan(now = new Date()) {
       week: first,
       next_week: weeks[1] || null,
       blocks: (plan.daily_blocks && plan.daily_blocks.draft) || [],
+      draft_words: getDraftWords(first, 'preflight'),
       today: { iso, weekday: WEEKDAYS[dow], label: `Plan begins ${first.start}` },
     };
   }
@@ -94,6 +167,7 @@ export async function getBookPlan(now = new Date()) {
       ...base,
       phase: 'wrapup',
       week: last,
+      draft_words: getDraftWords(last, 'wrapup'),
       today: { iso, weekday: WEEKDAYS[dow], label: 'Sample package window complete' },
     };
   }
@@ -136,6 +210,7 @@ export async function getBookPlan(now = new Date()) {
     blocks,
     week: active,
     next_week: next,
+    draft_words: getDraftWords(active, phase),
     today: { iso, weekday: WEEKDAYS[dow], label },
   };
 }

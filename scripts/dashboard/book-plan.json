@@ -36,10 +36,10 @@
       "write_start": "Open on §1 The Buffer: the gap between what a text says and what you think.",
       "write_land": "Land on §5 The Numbers: the armor (Level 2) was never universal — and it's thinning.",
       "reading": [
-        "Saygin 2016 — digest (load-bearing for Ch.2 §2 'connectivity precedes function')",
-        "Postman 1985 — pull 1–2 typography quotes (Ch.2 §1)",
+        { "label": "Saygin 2016 — digest (load-bearing for Ch.2 §2 'connectivity precedes function')", "source": "01_Sources/Articles/Saygin2016 Connectivity Precedes Function.md" },
+        { "label": "Postman 1985 — pull 1–2 typography quotes (Ch.2 §1)", "source": "01_Sources/Books/Postman1985 - Amusing Ourselves to Death.md" },
         "Source the 'ex-illiterates regress' claim — Kosmidis 2018 or Dehaene (Ch.2 §2 GAP)",
-        "Yao 2011 + Alderson-Day 2020 — read-ahead for Ch.4 (voice cortex / ToM)",
+        { "label": "Yao 2011 + Alderson-Day 2020 — read-ahead for Ch.4 (voice cortex / ToM)", "source": ["01_Sources/Articles/Yao2011 Silent Reading of Direct versus Indirect Speech.md", "01_Sources/Articles/Alderson-Day2020 Processing Speech and Thoughts during Silent Reading.md"] },
         "Polanyi — start The Tacit Dimension (for Ch.8)"
       ]
     },
@@ -51,11 +51,11 @@
       "write_start": "Pick up §2 (the brain) and §3 (separation of knower from known).",
       "write_land": "Close the chapter on the political loop: who has a structural interest in keeping Level 2 low.",
       "reading": [
-        "Huettig 2018 + Parsons 2001 — digest (Ch.2 §2 spatial / metalinguistic claims)",
-        "Thiong'o — one colonial-literacy quote (Ch.2 §4)",
-        "Epley 2007 + both Dawkins columns — read-ahead for Ch.4",
+        { "label": "Huettig 2018 + Parsons 2001 — digest (Ch.2 §2 spatial / metalinguistic claims)", "source": ["01_Sources/Articles/Huettig2018 The Culturally Co-Opted Brain.md", "01_Sources/Articles/Parsons2001 New Evidence for Distinct Right and Left Brain Systems.md"] },
+        { "label": "Thiong'o — one colonial-literacy quote (Ch.2 §4)", "source": "01_Sources/Books/Thiong’o1986 - Decolonising the Mind.md" },
+        { "label": "Epley 2007 + both Dawkins columns — read-ahead for Ch.4", "source": ["01_Sources/Articles/Epley2007 On Seeing Human.md", "01_Sources/Articles/Dawkins2026 When Dawkins Met Claude.md", "01_Sources/Articles/Dawkins2026 When Claudia Met Claudius.md"] },
         "Polanyi — finish The Tacit Dimension",
-        "Pre-Training Corpus Composition report — digest (already in vault, unused)"
+        { "label": "Pre-Training Corpus Composition report — digest (already in vault, unused)", "source": "01_Sources/Reports/Pre-Training Corpus Composition Analysis.md" }
       ]
     },
     {
@@ -91,10 +91,10 @@
       "write_start": "Open on what genuine dialogue is: speech that creates obligation, both parties altered.",
       "write_land": "Land on the asymmetry of stakes — the corpus reanimated, with no self at risk.",
       "reading": [
-        "Shen 2026 — AI & skill formation (digest)",
-        "Sharma 2024 — sycophancy (digest)",
-        "Kosmyna 2025 — Your Brain on ChatGPT (handle carefully — contested in the field)",
-        "Bommasani 2023 — Foundation Model Transparency Index"
+        { "label": "Shen 2026 — AI & skill formation (digest)", "source": "01_Sources/Articles/Shen2026 How AI Impacts Skill Formation.md" },
+        { "label": "Sharma 2024 — sycophancy (digest)", "source": "01_Sources/Articles/Sharma2024 Towards Understanding Sycophancy in Language Models.md" },
+        { "label": "Kosmyna 2025 — Your Brain on ChatGPT (handle carefully — contested in the field)", "source": "01_Sources/Articles/Kosmyna2025 - Your Brain on ChatGPT.md" },
+        { "label": "Bommasani 2023 — Foundation Model Transparency Index", "source": "01_Sources/Articles/Bommasani2023 Foundation Model Transparency Index.md" }
       ]
     },
     {
