@@ -30,7 +30,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const PLAN_PATH = join(__dirname, '..', 'book-plan.json');
 const VAULT = process.env.VAULT_PATH || join(homedir(), 'vaults/PostLiterate');
 const CHAPTERS_DIR = join(VAULT, '03_Chapters');
-const DRAFT_WORDS_PATH = join(__dirname, '..', 'snapshots', 'draft-words.json');
+const DRAFT_WORDS_PATH = process.env.DRAFT_WORDS_PATH || join(__dirname, '..', 'snapshots', 'draft-words.json');
 
 const WEEKDAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
@@ -46,6 +46,15 @@ function todayIso(now = new Date()) {
 function weekdayIndex(iso) {
   // Noon avoids any TZ/DST edge flipping the date.
   return new Date(`${iso}T12:00:00`).getDay(); // 0=Sun … 6=Sat
+}
+
+function prevIso(iso) {
+  const d = new Date(`${iso}T12:00:00`);
+  d.setDate(d.getDate() - 1);
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
 }
 
 // Count prose words only: strip YAML frontmatter, HTML comments, and markdown
@@ -68,52 +77,127 @@ function frontmatterNum(text, key) {
   return m ? Number(m[1]) : null;
 }
 
-// Word counts for the prose drafts in 03_Chapters (*.draft.md). Tracks a
-// per-week baseline (snapshots/draft-words.json) so `this_week` = words added
-// since the active week began. Baseline is recorded on the first refresh of a
-// non-preflight week.
-function getDraftWords(activeWeek, phase) {
-  let by_file;
+// Recursively collect every *.md under dir, returning full paths.
+function listMarkdown(dir) {
+  let out = [];
+  for (const entry of readdirSync(dir, { withFileTypes: true })) {
+    if (entry.name.startsWith('.')) continue;
+    const full = join(dir, entry.name);
+    if (entry.isDirectory()) out = out.concat(listMarkdown(full));
+    else if (entry.isFile() && entry.name.endsWith('.md')) out.push(full);
+  }
+  return out;
+}
+
+// Word counts across the whole 03_Chapters folder. `total` is the sum of prose
+// words in *every* .md file under 03_Chapters (any chapter, section, or draft),
+// so "words today" captures writing anywhere in the folder. Tracks per-week and
+// daily baselines (snapshots/draft-words.json) so `this_week` / `today` = words
+// added since each window began. Also returns one progress entry per sample
+// chapter for the activity rings.
+function getDraftWords(activeWeek, phase, opts = {}) {
+  const { weeks = [], iso = null, dailyGoal = 600, seedDay = null } = opts;
+  let files; // [{ rel, words, target }] — rel is the path within 03_Chapters
   try {
     if (!existsSync(CHAPTERS_DIR)) return null;
-    by_file = readdirSync(CHAPTERS_DIR)
-      .filter((f) => f.endsWith('.draft.md'))
-      .map((f) => {
-        const text = readFileSync(join(CHAPTERS_DIR, f), 'utf8');
-        return { file: f, words: countProseWords(text), target: frontmatterNum(text, 'word_target') };
+    files = listMarkdown(CHAPTERS_DIR)
+      .map((full) => {
+        const text = readFileSync(full, 'utf8');
+        return {
+          rel: full.slice(CHAPTERS_DIR.length + 1),
+          words: countProseWords(text),
+          target: frontmatterNum(text, 'word_target'),
+        };
       })
-      .sort((a, b) => a.file.localeCompare(b.file));
+      .sort((a, b) => a.rel.localeCompare(b.rel));
   } catch {
     return null;
   }
-  const total = by_file.reduce((s, x) => s + x.words, 0);
+  const total = files.reduce((s, x) => s + x.words, 0);
 
-  let current = null;
-  let current_target = null;
-  if (activeWeek && activeWeek.draft_file) {
-    const base = activeWeek.draft_file.split('/').pop();
-    const hit = by_file.find((x) => x.file === base);
-    current = hit ? hit.words : 0;
-    current_target = (hit && hit.target) || 2000;
+  // One ring per sample chapter (the plan's draft_file targets). Introduction
+  // leads, then the numbered chapters in order (Ch.2 → Ch.4 → Ch.5). Files that
+  // don't exist yet read as 0 words so the ring is present from the start.
+  const chapters = [];
+  const seenCh = new Set();
+  for (const wk of weeks) {
+    const f = wk.draft_file;
+    if (!f || !f.startsWith('03_Chapters/') || seenCh.has(f)) continue;
+    seenCh.add(f);
+    const rel = f.slice('03_Chapters/'.length);
+    const base = rel.split('/').pop();
+    const hit = files.find((x) => x.rel === rel);
+    chapters.push({
+      label: wk.draft || base,
+      title: base.replace(/\.draft\.md$/, '').replace(/\.md$/, '').replace(/^\d+[_ ]+/, '').trim(),
+      file: f,
+      words: hit ? hit.words : 0,
+      target: (hit && hit.target) || 2000,
+    });
   }
+  // Introduction (no numeric filename prefix) first, then numbered chapters.
+  chapters.sort((a, b) => {
+    const an = /^\d/.test(a.file.split('/').pop());
+    const bn = /^\d/.test(b.file.split('/').pop());
+    if (an !== bn) return an ? 1 : -1;
+    return a.file.localeCompare(b.file);
+  });
 
+  // Daily writing history (snapshots/draft-words.json → `history` map keyed by
+  // ISO date, each { start, end } of the 03_Chapters prose total). `today` is
+  // today's delta; `this_week` is the plan-week delta. History is tracked in
+  // every phase (writing happens before the plan formally starts); the weekly
+  // baseline only snaps once the plan is running.
   let this_week = 0;
+  let today = 0;
+  let history = [];
   try {
     let state = {};
     if (existsSync(DRAFT_WORDS_PATH)) state = JSON.parse(readFileSync(DRAFT_WORDS_PATH, 'utf8'));
     state.week_baselines = state.week_baselines || {};
-    if (activeWeek && phase !== 'preflight') {
+    state.history = state.history || {};
+    delete state.day_baselines; // superseded by `history`
+    let dirty = false;
+
+    // First-ever run: anchor the series at seedDay (yesterday) with the current
+    // total, so the chart starts there and real per-day counts accrue forward.
+    if (seedDay && Object.keys(state.history).length === 0) {
+      state.history[seedDay] = { start: total, end: total };
+      dirty = true;
+    }
+    if (iso) {
+      if (state.history[iso] === undefined) {
+        state.history[iso] = { start: total, end: total };
+        dirty = true;
+      } else if (state.history[iso].end !== total) {
+        state.history[iso].end = total;
+        dirty = true;
+      }
+      today = Math.max(0, state.history[iso].end - state.history[iso].start);
+      // Keep the series bounded (~4 months).
+      const days = Object.keys(state.history).sort();
+      while (days.length > 120) { delete state.history[days.shift()]; dirty = true; }
+    }
+    if (phase !== 'preflight' && activeWeek) {
       if (state.week_baselines[activeWeek.start] === undefined) {
         state.week_baselines[activeWeek.start] = total;
-        writeFileSync(DRAFT_WORDS_PATH, JSON.stringify(state, null, 2), 'utf8');
+        dirty = true;
       }
       this_week = total - state.week_baselines[activeWeek.start];
     }
+    if (dirty) writeFileSync(DRAFT_WORDS_PATH, JSON.stringify(state, null, 2), 'utf8');
+
+    history = Object.keys(state.history).sort().map((d) => ({
+      date: d,
+      words: Math.max(0, (state.history[d].end || 0) - (state.history[d].start || 0)),
+    }));
   } catch {
     this_week = 0;
+    today = 0;
+    history = [];
   }
 
-  return { total, current, current_target, this_week, by_file };
+  return { total, this_week, today, daily_goal: dailyGoal, chapters, history };
 }
 
 export async function getBookPlan(now = new Date()) {
@@ -125,6 +209,8 @@ export async function getBookPlan(now = new Date()) {
   const weeks = Array.isArray(plan.weeks) ? plan.weeks : [];
   const iso = todayIso(now);
   const dow = weekdayIndex(iso);
+  const dailyGoal = plan.daily_word_goal || 600;
+  const dwOpts = { weeks, iso, dailyGoal, seedDay: prevIso(iso) };
 
   const base = {
     target: plan.target || '',
@@ -141,7 +227,7 @@ export async function getBookPlan(now = new Date()) {
   };
 
   if (weeks.length === 0) {
-    return { ...base, phase: 'preflight', draft_words: getDraftWords(null, 'preflight') };
+    return { ...base, phase: 'preflight', draft_words: getDraftWords(null, 'preflight', dwOpts) };
   }
 
   const first = weeks[0];
@@ -156,7 +242,7 @@ export async function getBookPlan(now = new Date()) {
       week: first,
       next_week: weeks[1] || null,
       blocks: (plan.daily_blocks && plan.daily_blocks.draft) || [],
-      draft_words: getDraftWords(first, 'preflight'),
+      draft_words: getDraftWords(first, 'preflight', dwOpts),
       today: { iso, weekday: WEEKDAYS[dow], label: `Plan begins ${first.start}` },
     };
   }
@@ -167,7 +253,7 @@ export async function getBookPlan(now = new Date()) {
       ...base,
       phase: 'wrapup',
       week: last,
-      draft_words: getDraftWords(last, 'wrapup'),
+      draft_words: getDraftWords(last, 'wrapup', dwOpts),
       today: { iso, weekday: WEEKDAYS[dow], label: 'Sample package window complete' },
     };
   }
@@ -210,7 +296,7 @@ export async function getBookPlan(now = new Date()) {
     blocks,
     week: active,
     next_week: next,
-    draft_words: getDraftWords(active, phase),
+    draft_words: getDraftWords(active, phase, dwOpts),
     today: { iso, weekday: WEEKDAYS[dow], label },
   };
 }

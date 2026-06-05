@@ -23,6 +23,7 @@
       --accent:       light-dark(#E53E33, #ff6b5e);
       --blue:         light-dark(#3B6DB4, #6b9fd4);
       --green:        light-dark(#549E44, #7bc46a);
+      --purple:       light-dark(#7B5EA7, #b08fd4);
       --border:       light-dark(#1a1a1a, #4a4a4a);
       --muted:        light-dark(#6b6b6b, #a0a0a0);
 
@@ -2164,11 +2165,84 @@
     .today-prompt-text { font-family: 'Literata', Georgia, serif; font-size: 0.95rem; font-style: italic; line-height: 1.4; }
     .today-file { margin-block-start: 0.6rem; font-family: 'Sono', monospace; font-size: 0.78rem; color: var(--muted); }
     .today-file code { color: var(--blue); }
-    .today-stats { display: flex; gap: 1rem; flex-wrap: wrap; margin-block-end: 1rem; }
-    .today-stat { border: 1.5px solid var(--border); padding: 0.6rem 0.85rem; min-inline-size: 8.5rem; flex: 1 1 8.5rem; }
-    .today-stat-val { font-family: 'Literata', Georgia, serif; font-size: 1.4rem; font-weight: 700; line-height: 1.1; margin-block-start: 0.1rem; }
-    .today-bar { margin-block-start: 0.45rem; block-size: 4px; background: color-mix(in srgb, var(--muted) 30%, transparent); }
-    .today-bar span { display: block; block-size: 100%; background: var(--accent); }
+    /* Activity rings: a hero "today" ring + one ring per chapter draft. */
+    .today-rings {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: flex-start;
+      gap: 1.5rem 1.25rem;
+      margin-block-end: 1.5rem;
+      padding-block-end: 1.25rem;
+      border-block-end: 1.5px solid var(--border);
+    }
+    .ring-group { display: flex; flex-wrap: wrap; gap: 1.25rem; align-items: flex-start; }
+    .ring-group--chapters {
+      padding-inline-start: 1.25rem;
+      border-inline-start: 1.5px dashed var(--border);
+    }
+    .ring-card { display: flex; flex-direction: column; align-items: center; gap: 0.45rem; }
+    .ring-wrap { position: relative; display: grid; place-items: center; }
+    .ring-svg { display: block; transform: rotate(-90deg); inline-size: 100%; block-size: 100%; }
+    .ring-track { fill: none; stroke: color-mix(in srgb, var(--muted) 22%, transparent); }
+    .ring-arc {
+      fill: none;
+      stroke-linecap: round;
+      transition: stroke-dashoffset 900ms cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    .ring-center { position: absolute; inset: 0; display: grid; place-items: center; text-align: center; line-height: 1; }
+    .ring-val { font-family: 'Outfit', system-ui, sans-serif; font-weight: 700; }
+    .ring-sub { font-family: 'Sono', monospace; color: var(--muted); margin-block-start: 0.15rem; }
+    .ring-label {
+      font-family: 'Outfit', system-ui, sans-serif;
+      font-weight: 700;
+      font-size: 0.8rem;
+      text-align: center;
+      max-inline-size: 7.5rem;
+      text-wrap: balance;
+    }
+    .ring-label small { display: block; font-weight: 600; font-size: 0.68rem; color: var(--muted); margin-block-start: 0.1rem; }
+    .ring-meta { flex-basis: 100%; align-self: end; font-family: 'Outfit', system-ui, sans-serif; font-size: 0.78rem; color: var(--muted); }
+    .ring-meta b { color: var(--fg); font-weight: 700; }
+    /* Writing-activity history: words written per day over time. */
+    .today-activity { margin-block-end: 1.5rem; }
+    .act-head {
+      display: flex; align-items: baseline; justify-content: space-between; gap: 1rem;
+      font-family: 'Outfit', system-ui, sans-serif; font-weight: 700;
+      font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.06em;
+      color: var(--muted); margin-block-end: 0.7rem;
+    }
+    .act-sub { text-transform: none; letter-spacing: 0; font-weight: 600; font-size: 0.7rem; }
+    .act-chart {
+      position: relative; display: flex; align-items: flex-end; gap: 0.3rem;
+      block-size: 88px; padding-block-start: 0.5rem;
+    }
+    /* daily-goal reference line */
+    .act-chart::before {
+      content: ''; position: absolute; inset-inline: 0; inset-block-end: var(--goal, 100%);
+      border-block-start: 1.5px dashed color-mix(in srgb, var(--accent) 55%, transparent);
+      pointer-events: none;
+    }
+    .act-bar { flex: 1 1 0; min-inline-size: 0; display: flex; align-items: flex-end; justify-content: center; block-size: 100%; }
+    .act-bar > span {
+      inline-size: 100%; max-inline-size: 1.5rem; min-block-size: 2px;
+      background: var(--blue); border-radius: 2px 2px 0 0;
+      transition: block-size 700ms cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    .act-bar--today > span { background: var(--accent); }
+    .act-bar--empty > span { background: color-mix(in srgb, var(--muted) 30%, transparent); }
+    .act-labels { display: flex; gap: 0.3rem; margin-block-start: 0.35rem; }
+    .act-label { flex: 1 1 0; min-inline-size: 0; text-align: center; font-family: 'Sono', monospace; font-size: 0.6rem; color: var(--muted); white-space: nowrap; overflow: hidden; }
+    .act-label--today { color: var(--accent); font-weight: 700; }
+    @media (prefers-reduced-motion: reduce) { .act-bar > span { transition: none; } }
+    /* Hero (today) ring sizing */
+    .ring-card--hero .ring-wrap { inline-size: 132px; block-size: 132px; }
+    .ring-card--hero .ring-val { font-size: 1.9rem; }
+    .ring-card--hero .ring-sub { font-size: 0.72rem; }
+    /* Chapter rings sizing */
+    .ring-card--chapter .ring-wrap { inline-size: 92px; block-size: 92px; }
+    .ring-card--chapter .ring-val { font-size: 1.05rem; }
+    .ring-card--chapter .ring-sub { font-size: 0.6rem; }
+    @media (prefers-reduced-motion: reduce) { .ring-arc { transition: none; } }
     .today-src-tag { margin-inline-start: 0.5rem; font-family: 'Sono', monospace; font-size: 0.65rem; color: var(--muted); border: 1px solid var(--border); padding: 0 0.3rem; white-space: nowrap; }
     .today-src-tag.done { color: var(--green); border-color: var(--green); }
     .today-checklist { list-style: none; margin: 0.7rem 0 0; padding: 0; display: flex; flex-direction: column; gap: 0.4rem; }
@@ -2179,6 +2253,7 @@
     @media (max-width: 640px) {
       .today-block { grid-template-columns: 1fr; }
       .today-week { grid-template-columns: 1fr; }
+      .ring-group--chapters { padding-inline-start: 0; border-inline-start: none; }
     }
   </style>
 </head>
@@ -2916,6 +2991,11 @@
     lucide.createIcons();
   }
 
+  // Start at the top of the page on every load. The dashboard renders
+  // asynchronously and manages its own focus, so the browser's scroll-position
+  // restoration just lands us mid-page (on Cover) after a reload.
+  if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+
   // ── Activity log ────────────────────────────
   // ── Section nav active state ────────────────
   const navLinks = document.querySelectorAll('.section-nav a');
@@ -3078,12 +3158,13 @@
 
     lucide.createIcons();
 
-    // Auto-select first regular card
+    // Auto-select first regular card (without scrolling the page — this fires
+    // after the async load, and scrolling here bumps us off the top).
     const firstEntry = sections.flatMap(s => s.entries).find(e => e.kind === 'card');
-    if (firstEntry) selectCard(firstEntry.slug);
+    if (firstEntry) selectCard(firstEntry.slug, { scroll: false });
   }
 
-  function selectCard(slug) {
+  function selectCard(slug, opts) {
     // Update sidebar active state
     document.querySelectorAll('.cards-sidebar-entry').forEach(el => {
       el.classList.toggle('active', el.dataset.slug === slug);
@@ -3091,7 +3172,7 @@
 
     // Scroll selected entry into view
     const activeEl = document.querySelector(`.cards-sidebar-entry[data-slug="${CSS.escape(slug)}"]`);
-    if (activeEl) activeEl.scrollIntoView({ block: 'nearest' });
+    if (activeEl && !(opts && opts.scroll === false)) activeEl.scrollIntoView({ block: 'nearest' });
 
     const reader = document.getElementById('cardsReader');
     const card = _cardsContent[slug];
@@ -3744,16 +3825,87 @@
         </table>
       </details>` : '';
 
+    // Activity rings: a hero "words written today" ring + one progress ring per
+    // chapter draft (Ch.2 → Ch.4 → Ch.5 → Introduction). Arcs animate in from
+    // empty on render (see post-render pass below).
     const dw = p.draft_words;
-    const pct = dw && dw.current != null
-      ? Math.min(100, Math.round((100 * dw.current) / (dw.current_target || 2000)))
-      : 0;
-    const statsHtml = dw ? `
-      <div class="today-stats">
-        <div class="today-stat"><div class="kpi-label">Written this week</div><div class="today-stat-val">${dw.this_week >= 0 ? '+' : ''}${dw.this_week} words</div></div>
-        ${dw.current != null ? `<div class="today-stat"><div class="kpi-label">This chapter</div><div class="today-stat-val">${dw.current} / ${dw.current_target}</div><div class="today-bar"><span style="inline-size:${pct}%"></span></div></div>` : ''}
-        <div class="today-stat"><div class="kpi-label">03_Chapters total</div><div class="today-stat-val">${dw.total} words</div></div>
-      </div>` : '';
+    const fmt = (n) => (n || 0).toLocaleString();
+    const ring = ({ value, max, color, cls, big, sub, label, stroke }) => {
+      const r = (100 - stroke) / 2;
+      const C = 2 * Math.PI * r;
+      const frac = max > 0 ? Math.min(1, Math.max(0, value / max)) : 0;
+      const offset = (C * (1 - frac)).toFixed(2);
+      return `
+        <div class="ring-card ${cls}">
+          <div class="ring-wrap">
+            <svg class="ring-svg" viewBox="0 0 100 100" aria-hidden="true">
+              <circle class="ring-track" cx="50" cy="50" r="${r}" stroke-width="${stroke}"></circle>
+              <circle class="ring-arc" cx="50" cy="50" r="${r}" stroke-width="${stroke}" stroke="${color}" stroke-dasharray="${C.toFixed(2)}" stroke-dashoffset="${C.toFixed(2)}" data-offset="${offset}"></circle>
+            </svg>
+            <div class="ring-center"><div class="ring-val">${big}</div>${sub ? `<div class="ring-sub">${sub}</div>` : ''}</div>
+          </div>
+          <div class="ring-label">${label}</div>
+        </div>`;
+    };
+    let statsHtml = '';
+    if (dw) {
+      const palette = ['var(--blue)', 'var(--green)', 'var(--purple)', 'var(--accent)'];
+      const today = dw.today || 0;
+      const wkSign = dw.this_week >= 0 ? '+' : '−';
+      const heroRing = ring({
+        value: Math.max(0, today), max: dw.daily_goal || 600, color: 'var(--accent)',
+        cls: 'ring-card--hero', stroke: 12,
+        big: fmt(today), sub: `of ${fmt(dw.daily_goal)}`,
+        label: `Words today<small>${wkSign}${fmt(Math.abs(dw.this_week || 0))} this week</small>`,
+      });
+      const chapters = dw.chapters || [];
+      const chapterRings = chapters.map((c, i) => {
+        const cpct = c.target > 0 ? Math.round((100 * c.words) / c.target) : 0;
+        return ring({
+          value: c.words, max: c.target, color: palette[i % palette.length],
+          cls: 'ring-card--chapter', stroke: 10,
+          big: fmt(c.words), sub: `${cpct}%`,
+          label: `${escapeHtml(c.label)}<small>${escapeHtml(c.title || '')}</small>`,
+        });
+      }).join('');
+      const totW = chapters.reduce((s, c) => s + c.words, 0);
+      const totT = chapters.reduce((s, c) => s + c.target, 0);
+      const overall = totT > 0 ? Math.round((100 * totW) / totT) : 0;
+      const metaHtml = chapters.length
+        ? `<div class="ring-meta">Sample package · <b>${fmt(totW)}</b> / ${fmt(totT)} words · ${overall}%</div>`
+        : '';
+      statsHtml = `
+      <div class="today-rings">
+        <div class="ring-group ring-group--today">${heroRing}</div>
+        ${chapterRings ? `<div class="ring-group ring-group--chapters">${chapterRings}</div>` : ''}
+        ${metaHtml}
+      </div>`;
+    }
+
+    // Writing activity over time — words written per day (last 30 days). Bars
+    // animate up from zero on render; the dashed line marks the daily goal.
+    let activityHtml = '';
+    if (dw && dw.history && dw.history.length) {
+      const hist = dw.history.slice(-30);
+      const goal = dw.daily_goal || 600;
+      const maxV = Math.max(goal, ...hist.map((h) => h.words), 1);
+      const goalPct = Math.min(100, Math.round((100 * goal) / maxV));
+      const shortDate = (d) => { const p = d.split('-'); return `${+p[1]}/${+p[2]}`; };
+      const bars = hist.map((h) => {
+        const isToday = h.date === t.iso;
+        const cls = isToday ? ' act-bar--today' : (h.words > 0 ? '' : ' act-bar--empty');
+        const hp = h.words > 0 ? Math.max(3, Math.round((100 * h.words) / maxV)) : 0;
+        return `<div class="act-bar${cls}" title="${escapeHtml(h.date)} · ${fmt(h.words)} words"><span style="block-size:0" data-h="${hp}%"></span></div>`;
+      }).join('');
+      const labels = hist.map((h) =>
+        `<div class="act-label${h.date === t.iso ? ' act-label--today' : ''}">${shortDate(h.date)}</div>`).join('');
+      activityHtml = `
+      <div class="today-activity">
+        <div class="act-head"><span>Writing activity</span><span class="act-sub">words/day · goal ${fmt(goal)}</span></div>
+        <div class="act-chart" style="--goal:${goalPct}%">${bars}</div>
+        <div class="act-labels">${labels}</div>
+      </div>`;
+    }
 
     el.innerHTML = `
       <div class="today-head">
@@ -3762,6 +3914,7 @@
       </div>
       ${bannerHtml}
       ${statsHtml}
+      ${activityHtml}
       ${leadHtml}
       ${blocksHtml ? `<div class="today-blocks">${blocksHtml}</div>` : ''}
       ${guardHtml}
@@ -3769,6 +3922,18 @@
       <div class="today-meta">${escapeHtml(p.target || '')}${p.role ? ' · ' + escapeHtml(p.role) : ''}</div>
       <div class="today-src">Plan: <code>scripts/dashboard/book-plan.json</code></div>
     `;
+
+    // Animate ring arcs from empty → target on the next frame (the markup
+    // starts at full dashoffset; flipping to data-offset triggers the CSS
+    // transition). Honors prefers-reduced-motion via the stylesheet.
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      el.querySelectorAll('.ring-arc').forEach((arc) => {
+        if (arc.dataset.offset != null) arc.style.strokeDashoffset = arc.dataset.offset;
+      });
+      el.querySelectorAll('.act-bar > span[data-h]').forEach((bar) => {
+        bar.style.blockSize = bar.dataset.h;
+      });
+    }));
 
     // Persist reading check-offs (localStorage; survives refresh/reload).
     // When an item maps to source note(s), checking it sets their frontmatter
@@ -4364,10 +4529,10 @@
 
   function applyMobileMode() {
     if (isMobileLayout()) {
+      // Honor a deep-link hash, otherwise start at the top (Today) rather than
+      // restoring the last-viewed tab — a reload should land at the top.
       const fromHash = location.hash.replace(/^#/, '') || null;
-      let fromStorage = null;
-      try { fromStorage = localStorage.getItem('mobileActiveSection'); } catch {}
-      setMobileActiveSection(fromHash || fromStorage || 'reminders-section');
+      setMobileActiveSection(fromHash || 'today-section');
     } else {
       clearMobileSectionSelection();
     }

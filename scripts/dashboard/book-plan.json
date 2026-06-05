@@ -6,6 +6,7 @@
   "role": "You write every sentence of prose. Claude does research, evidence matrices, and critique only.",
   "cadence": "5 days/week · 5 hours/day · Mon–Thu draft, Fri revise + plan",
   "start_date": "2026-06-08",
+  "daily_word_goal": 600,
 
   "daily_blocks": {
     "draft": [
