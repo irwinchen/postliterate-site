@@ -2134,13 +2134,25 @@
     .today-meta { font-family: 'Outfit', system-ui, sans-serif; font-size: 0.8rem; color: var(--muted); border-block-start: 1.5px solid var(--border); padding-block-start: 0.6rem; }
     .today-src { font-family: 'Sono', monospace; font-size: 0.7rem; color: var(--muted); margin-block-start: 0.35rem; }
     .today-banner {
+      border-inline-start: 4px solid var(--accent);
+      padding: 0.65rem 1rem;
+      margin-block-end: 1.25rem;
+      background: color-mix(in srgb, var(--accent) 7%, transparent);
+    }
+    .today-banner-tag {
       font-family: 'Outfit', system-ui, sans-serif;
       font-weight: 700;
-      font-size: 1rem;
-      border-inline-start: 4px solid var(--accent);
-      padding: 0.5rem 0.85rem;
-      margin-block-end: 1rem;
-      background: color-mix(in srgb, var(--accent) 7%, transparent);
+      font-size: 0.62rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--accent);
+      margin-block-end: 0.35rem;
+    }
+    .today-banner-prompt {
+      font-family: 'Literata', Georgia, serif;
+      font-size: 1.08rem;
+      line-height: 1.45;
+      text-wrap: pretty;
     }
     .today-prompt {
       margin-block-start: 0.7rem;
@@ -2212,28 +2224,12 @@
       color: var(--muted); margin-block-end: 0.7rem;
     }
     .act-sub { text-transform: none; letter-spacing: 0; font-weight: 600; font-size: 0.7rem; }
-    .act-chart {
-      position: relative; display: flex; align-items: flex-end; gap: 0.3rem;
-      block-size: 88px; padding-block-start: 0.5rem;
-    }
-    /* daily-goal reference line */
-    .act-chart::before {
-      content: ''; position: absolute; inset-inline: 0; inset-block-end: var(--goal, 100%);
-      border-block-start: 1.5px dashed color-mix(in srgb, var(--accent) 55%, transparent);
-      pointer-events: none;
-    }
-    .act-bar { flex: 1 1 0; min-inline-size: 0; display: flex; align-items: flex-end; justify-content: center; block-size: 100%; }
-    .act-bar > span {
-      inline-size: 100%; max-inline-size: 1.5rem; min-block-size: 2px;
-      background: var(--blue); border-radius: 2px 2px 0 0;
-      transition: block-size 700ms cubic-bezier(0.22, 1, 0.36, 1);
-    }
-    .act-bar--today > span { background: var(--accent); }
-    .act-bar--empty > span { background: color-mix(in srgb, var(--muted) 30%, transparent); }
-    .act-labels { display: flex; gap: 0.3rem; margin-block-start: 0.35rem; }
-    .act-label { flex: 1 1 0; min-inline-size: 0; text-align: center; font-family: 'Sono', monospace; font-size: 0.6rem; color: var(--muted); white-space: nowrap; overflow: hidden; }
-    .act-label--today { color: var(--accent); font-weight: 700; }
-    @media (prefers-reduced-motion: reduce) { .act-bar > span { transition: none; } }
+    /* small multiples: one little ring per day */
+    .act-rings { display: flex; flex-wrap: wrap; gap: 1rem 0.85rem; }
+    .ring-card--day .ring-wrap { inline-size: 52px; block-size: 52px; }
+    .ring-card--day .ring-val { font-size: 0.72rem; }
+    .ring-card--day .ring-label { font-family: 'Sono', monospace; font-weight: 600; font-size: 0.62rem; }
+    .ring-card--day-today .ring-label { color: var(--accent); font-weight: 700; }
     /* Hero (today) ring sizing */
     .ring-card--hero .ring-wrap { inline-size: 132px; block-size: 132px; }
     .ring-card--hero .ring-val { font-size: 1.9rem; }
@@ -3785,8 +3781,16 @@
         </div>
       </div>`).join('');
 
-    // Prominent banner: what you're writing this week.
-    const bannerHtml = w ? `<div class="today-banner">${escapeHtml(w.draft_label || w.draft || '')}</div>` : '';
+    // Prominent header: today's targeted writing prompt for the week's chapter
+    // (generated daily from the draft + evidence matrix). The tag shows the
+    // chapter and the specific section the prompt is aimed at today.
+    const dp = p.daily_prompt;
+    const bannerTag = (w ? (w.draft_label || w.draft || '') : '') + (dp && dp.section ? ' · ' + dp.section : '');
+    const bannerHtml = w ? `
+      <div class="today-banner">
+        <div class="today-banner-tag">${escapeHtml(bannerTag)}</div>
+        ${w.prompt ? `<div class="today-banner-prompt">${escapeHtml(w.prompt)}</div>` : ''}
+      </div>` : '';
 
     // Phase-specific lead
     let leadHtml = '';
@@ -3882,28 +3886,27 @@
       </div>`;
     }
 
-    // Writing activity over time — words written per day (last 30 days). Bars
-    // animate up from zero on render; the dashed line marks the daily goal.
+    // Writing activity over time — small multiples: one little ring per day
+    // (words that day vs the daily goal), most recent last. Today is in accent.
     let activityHtml = '';
     if (dw && dw.history && dw.history.length) {
-      const hist = dw.history.slice(-30);
+      const hist = dw.history.slice(-14);
       const goal = dw.daily_goal || 600;
-      const maxV = Math.max(goal, ...hist.map((h) => h.words), 1);
-      const goalPct = Math.min(100, Math.round((100 * goal) / maxV));
       const shortDate = (d) => { const p = d.split('-'); return `${+p[1]}/${+p[2]}`; };
-      const bars = hist.map((h) => {
+      const dayRings = hist.map((h) => {
         const isToday = h.date === t.iso;
-        const cls = isToday ? ' act-bar--today' : (h.words > 0 ? '' : ' act-bar--empty');
-        const hp = h.words > 0 ? Math.max(3, Math.round((100 * h.words) / maxV)) : 0;
-        return `<div class="act-bar${cls}" title="${escapeHtml(h.date)} · ${fmt(h.words)} words"><span style="block-size:0" data-h="${hp}%"></span></div>`;
+        return ring({
+          value: h.words, max: goal,
+          color: isToday ? 'var(--accent)' : 'var(--blue)',
+          cls: 'ring-card--day' + (isToday ? ' ring-card--day-today' : ''),
+          stroke: 9, big: fmt(h.words), sub: '',
+          label: shortDate(h.date),
+        });
       }).join('');
-      const labels = hist.map((h) =>
-        `<div class="act-label${h.date === t.iso ? ' act-label--today' : ''}">${shortDate(h.date)}</div>`).join('');
       activityHtml = `
       <div class="today-activity">
-        <div class="act-head"><span>Writing activity</span><span class="act-sub">words/day · goal ${fmt(goal)}</span></div>
-        <div class="act-chart" style="--goal:${goalPct}%">${bars}</div>
-        <div class="act-labels">${labels}</div>
+        <div class="act-head"><span>Writing activity</span><span class="act-sub">words per day · goal ${fmt(goal)}</span></div>
+        <div class="act-rings">${dayRings}</div>
       </div>`;
     }
 
@@ -3929,9 +3932,6 @@
     requestAnimationFrame(() => requestAnimationFrame(() => {
       el.querySelectorAll('.ring-arc').forEach((arc) => {
         if (arc.dataset.offset != null) arc.style.strokeDashoffset = arc.dataset.offset;
-      });
-      el.querySelectorAll('.act-bar > span[data-h]').forEach((bar) => {
-        bar.style.blockSize = bar.dataset.h;
       });
     }));
 

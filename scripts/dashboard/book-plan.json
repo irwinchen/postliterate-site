@@ -32,7 +32,9 @@
     {
       "n": 1, "start": "2026-06-08", "end": "2026-06-12", "draft": "Ch.2",
       "draft_label": "Draft Ch.2 — The Literacy Bias",
+      "prompt": "Get at the buffer first: the gap reading opens between what a text says and what the reader concludes. What does that distance let a mind do — inspect a claim, compare it, contradict it — that an unbuffered mind cannot?",
       "draft_file": "03_Chapters/02_The Literacy Bias.draft.md",
+      "evidence_matrix": "06_Meta/Book/evidence-matrix-ch2.md",
       "write_toward": "Print's revolution was making thought visible to itself — available to be inspected, compared, and contradicted.",
       "write_start": "Open on §1 The Buffer: the gap between what a text says and what you think.",
       "write_land": "Land on §5 The Numbers: the armor (Level 2) was never universal — and it's thinning.",
@@ -47,7 +49,9 @@
     {
       "n": 2, "start": "2026-06-15", "end": "2026-06-19", "draft": "Ch.2",
       "draft_label": "Finish + revise Ch.2",
+      "prompt": "Push from the brain to the stakes: if reading rewires the brain to separate the knower from the known, who has a structural interest in keeping that capacity rare?",
       "draft_file": "03_Chapters/02_The Literacy Bias.draft.md",
+      "evidence_matrix": "06_Meta/Book/evidence-matrix-ch2.md",
       "write_toward": "Literacy's real achievement was the cognitive distance to evaluate — a capacity never universal and now under direct pressure.",
       "write_start": "Pick up §2 (the brain) and §3 (separation of knower from known).",
       "write_land": "Close the chapter on the political loop: who has a structural interest in keeping Level 2 low.",
@@ -62,6 +66,7 @@
     {
       "n": 3, "start": "2026-06-22", "end": "2026-06-26", "draft": "Ch.4",
       "draft_label": "Draft Ch.4 — Interlocutor (Dawkins / phantom-author)",
+      "prompt": "Start from the reflex rather than the technology: why can we not hear something take turns with us without casting it as a mind? Make the case that the personhood is the reader's contribution.",
       "draft_file": "03_Chapters/04_Interlocutor.draft.md",
       "write_toward": "When something speaks and responds, we cannot help but treat it as a mind — the chatbot is the substrate; the personhood is your contribution.",
       "write_start": "Open on the instinct to talk: turn-taking and reading your interlocutor as survival wiring.",
@@ -75,6 +80,7 @@
     {
       "n": 4, "start": "2026-06-29", "end": "2026-07-03", "draft": "Ch.4",
       "draft_label": "Finish + revise Ch.4",
+      "prompt": "Lay out the phantom-author mechanism step by step. Where exactly does the brain supply an author that the software lacks?",
       "draft_file": "03_Chapters/04_Interlocutor.draft.md",
       "write_toward": "People fall in love with the phantom their own brain builds to inhabit the software.",
       "write_start": "Pick up the five-step phantom-author mechanism.",
@@ -87,6 +93,7 @@
     {
       "n": 5, "start": "2026-07-06", "end": "2026-07-10", "draft": "Ch.5",
       "draft_label": "Draft Ch.5 — Synthetic Orality (the title concept)",
+      "prompt": "Define genuine dialogue first: speech that puts both parties at risk and changes them. Then show what is missing when only one side has anything at stake.",
       "draft_file": "03_Chapters/05_Synthetic Orality.draft.md",
       "write_toward": "The exchange feels mutual but is structurally one-sided: you carry away the feeling of being heard; the system carries away data that makes it better at steering you.",
       "write_start": "Open on what genuine dialogue is: speech that creates obligation, both parties altered.",
@@ -101,6 +108,7 @@
     {
       "n": 6, "start": "2026-07-13", "end": "2026-07-17", "draft": "Ch.5",
       "draft_label": "Finish + revise Ch.5",
+      "prompt": "Invert the Phaedrus complaint: writing was dead speech that woke the reader's mind. What happens when the speech animates itself and the thinking leaves your head?",
       "draft_file": "03_Chapters/05_Synthetic Orality.draft.md",
       "write_toward": "Writing was dead speech that made the reader's mind come alive; an LLM animates the dead speech instead, and the thinking moves out of your head.",
       "write_start": "Pick up 'the corpus reanimated' — the Phaedrus complaint inverted.",
@@ -113,6 +121,7 @@
     {
       "n": 7, "start": "2026-07-20", "end": "2026-07-24", "draft": "Intro",
       "draft_label": "Draft the Introduction (now that the voice is found)",
+      "prompt": "Open on what the thing is — the con — before any talk of cognitive effects. Earn the reader's alarm on the first page, then pose the book's question: can we keep thinking for ourselves?",
       "draft_file": "03_Chapters/Introduction.draft.md",
       "write_toward": "We invest years training our brains to read, write, and think. Now AI promises to do all three for us.",
       "write_start": "Open on the con man — what this thing is — before any cognitive effects.",
@@ -124,6 +133,7 @@
     {
       "n": 8, "start": "2026-07-27", "end": "2026-07-31", "draft": "Intro",
       "draft_label": "Finish + revise Introduction",
+      "prompt": "Sharpen the through-line: a technology atrophies whatever it replaces, and this one replaces the effort of deep reading. Make the first page earn the next 250.",
       "draft_file": "03_Chapters/Introduction.draft.md",
       "write_toward": "Pay attention to the thing a new technology replaces — that is what atrophies. Here it is the effort of deep reading.",
       "write_start": "Tighten the opening hook; make the first page earn the next 250.",
@@ -135,12 +145,14 @@
     {
       "n": 9, "start": "2026-08-03", "end": "2026-08-07", "draft": "Proposal",
       "draft_label": "Assemble proposal: overview/hook, bio, comps, annotated TOC, platform note",
+      "prompt": "Assemble the proposal: lead with the hook that makes an agent need this book now — overview, bio, comps, annotated TOC.",
       "draft_file": "06_Meta/Book/proposal.md",
       "reading": []
     },
     {
       "n": 10, "start": "2026-08-10", "end": "2026-08-14", "draft": "Polish",
       "draft_label": "Revise the full sample cold + final polish pass",
+      "prompt": "Read the whole sample cold and out loud. Cut every sentence that does not earn its place.",
       "reading": []
     }
   ]

@@ -25,6 +25,7 @@ import { readFileSync, existsSync, readdirSync, writeFileSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { homedir } from 'node:os';
+import { getDailyPrompt } from '../lib/book-prompt.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const PLAN_PATH = join(__dirname, '..', 'book-plan.json');
@@ -212,6 +213,34 @@ export async function getBookPlan(now = new Date()) {
   const dailyGoal = plan.daily_word_goal || 600;
   const dwOpts = { weeks, iso, dailyGoal, seedDay: prevIso(iso) };
 
+  // Replace the displayed week's static prompt with a daily, content-aware one
+  // (reads the chapter draft + evidence matrix, picks the thinnest/most-needed
+  // beat, has the LLM phrase it, falls back to the static prompt). Keeps the
+  // hand-written `prompt` from book-plan.json as the fallback.
+  async function finalize(result) {
+    const wk = result.week;
+    if (wk && wk.draft_file && wk.draft_file.startsWith('03_Chapters/')) {
+      try {
+        const ch = (result.draft_words && result.draft_words.chapters || []).find((c) => c.file === wk.draft_file);
+        const info = await getDailyPrompt({
+          vault: VAULT,
+          chapterPath: wk.draft_file,
+          chapterTitle: (ch && ch.title) || wk.draft || '',
+          matrixPath: wk.evidence_matrix || null,
+          beatsFallback: wk.beats || null,
+          weekPrompt: wk.prompt || '',
+          history: (result.draft_words && result.draft_words.history) || [],
+          iso,
+        });
+        if (info && info.text) {
+          result.week = { ...wk, prompt: info.text };
+          result.daily_prompt = info;
+        }
+      } catch { /* keep the static prompt */ }
+    }
+    return result;
+  }
+
   const base = {
     target: plan.target || '',
     role: plan.role || '',
@@ -227,7 +256,7 @@ export async function getBookPlan(now = new Date()) {
   };
 
   if (weeks.length === 0) {
-    return { ...base, phase: 'preflight', draft_words: getDraftWords(null, 'preflight', dwOpts) };
+    return finalize({ ...base, phase: 'preflight', draft_words: getDraftWords(null, 'preflight', dwOpts) });
   }
 
   const first = weeks[0];
@@ -236,7 +265,7 @@ export async function getBookPlan(now = new Date()) {
   // Before the plan starts → preflight. Preview Week 1, including the draft
   // blocks, so the write prompt + reading checklist are visible before Monday.
   if (iso < first.start) {
-    return {
+    return finalize({
       ...base,
       phase: 'preflight',
       week: first,
@@ -244,18 +273,18 @@ export async function getBookPlan(now = new Date()) {
       blocks: (plan.daily_blocks && plan.daily_blocks.draft) || [],
       draft_words: getDraftWords(first, 'preflight', dwOpts),
       today: { iso, weekday: WEEKDAYS[dow], label: `Plan begins ${first.start}` },
-    };
+    });
   }
 
   // Past the last week's end → wrapup.
   if (iso > last.end) {
-    return {
+    return finalize({
       ...base,
       phase: 'wrapup',
       week: last,
       draft_words: getDraftWords(last, 'wrapup', dwOpts),
       today: { iso, weekday: WEEKDAYS[dow], label: 'Sample package window complete' },
-    };
+    });
   }
 
   // Otherwise we're inside the run. The active week is the last one that has
@@ -290,7 +319,7 @@ export async function getBookPlan(now = new Date()) {
       ? `Week ${active.n} of ${weeks.length} · Rest`
       : `Week ${active.n} of ${weeks.length} · Drafting`;
 
-  return {
+  return finalize({
     ...base,
     phase,
     blocks,
@@ -298,7 +327,7 @@ export async function getBookPlan(now = new Date()) {
     next_week: next,
     draft_words: getDraftWords(active, phase, dwOpts),
     today: { iso, weekday: WEEKDAYS[dow], label },
-  };
+  });
 }
 
 // ── Run directly for a quick check ────────────────────────────────────
