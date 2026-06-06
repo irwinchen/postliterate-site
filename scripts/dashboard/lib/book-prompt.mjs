@@ -11,11 +11,14 @@
  *   3. Fall back to a deterministic, still-targeted prompt when no LLM is
  *      reachable (which is the normal state on the author's MacBook).
  *
- * "Both" chapter-map source: evidence matrix when one exists, otherwise a beats
- * list from book-plan.json, otherwise the draft's own ## headings.
+ * Chapter-map source (in priority order): evidence matrix when one exists, then
+ * a beats list from book-plan.json, then a beat sheet in 03_Chapters/Drafts
+ * (a card with `kind: beat-sheet` + matching `chapter`), then the draft's own
+ * ## headings. The matching chapter's beat sheet is also always fed to the LLM
+ * as the chapter's intended shape, even when the matrix drives beat selection.
  */
 
-import { readFileSync, existsSync } from 'node:fs';
+import { readFileSync, existsSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { summarize } from './summary-cache.mjs';
 import { isAvailable } from './ollama.mjs';
@@ -78,8 +81,63 @@ export function parseMatrix(md) {
   return out;
 }
 
+function chapterTokenFromPath(p) {
+  const base = (p || '').split('/').pop() || '';
+  const m = base.match(/^(\d+)/);
+  return m ? String(parseInt(m[1], 10)) : norm(base.replace(/\.draft\.md$/, '').replace(/\.md$/, ''));
+}
+
+function chapterMatches(sheetCh, token) {
+  if (!sheetCh || !token) return false;
+  const a = String(sheetCh).trim();
+  if (/^\d+$/.test(a) && /^\d+$/.test(token)) return parseInt(a, 10) === parseInt(token, 10);
+  const na = norm(a);
+  const nt = norm(token);
+  return na === nt || na.includes(nt) || nt.includes(na);
+}
+
+// Find the beat sheet for a chapter in 03_Chapters/Drafts: a markdown card with
+// frontmatter `kind: beat-sheet` whose `chapter` matches. Returns the parsed
+// beats + a condensed summary for the LLM, or null.
+export function loadBeatSheet(vault, token) {
+  let names;
+  const dir = join(vault, '03_Chapters', 'Drafts');
+  try { names = readdirSync(dir); } catch { return null; }
+  for (const name of names) {
+    if (!name.endsWith('.md')) continue;
+    let text;
+    try { text = readFileSync(join(dir, name), 'utf8'); } catch { continue; }
+    const fm = text.match(/^---\r?\n([\s\S]*?)\r?\n---/);
+    if (!fm || !/^\s*kind\s*:\s*beat-sheet\s*$/m.test(fm[1])) continue;
+    const chm = fm[1].match(/^\s*chapter\s*:\s*["']?([^"'\n]+?)["']?\s*$/m);
+    const ch = chm ? chm[1].trim() : null;
+    if (token && ch && !chapterMatches(ch, token)) continue;
+
+    const beats = [];
+    const spine = [];
+    let curBeat = null;
+    let inSpine = false;
+    for (const line of text.split(/\r?\n/)) {
+      const h2 = line.match(/^##\s+(.*\S)\s*$/);
+      const h3 = line.match(/^###\s+(.*\S)\s*$/);
+      if (h2) { inSpine = /spine/i.test(h2[1]); curBeat = null; continue; }
+      if (h3) { curBeat = { title: h3[1].replace(/^Beat\s*\d+\s*[—–-]\s*/i, '').trim(), gist: '' }; beats.push(curBeat); continue; }
+      const t = line.trim();
+      if (!t) continue;
+      if (inSpine && /^[-*]/.test(t)) spine.push(t.replace(/^[-*]\s*/, '').replace(/\*\*/g, ''));
+      else if (curBeat && !curBeat.gist) curBeat.gist = t.replace(/`/g, '');
+    }
+    const condensed = [
+      spine.length ? 'Spine: ' + spine.join(' | ') : '',
+      ...beats.map((b, i) => `Beat ${i + 1}: ${b.title}${b.gist ? ` — ${b.gist}` : ''}`),
+    ].filter(Boolean).join('\n').slice(0, 1800);
+    return { file: name, chapter: ch, beats, condensed };
+  }
+  return null;
+}
+
 // Merge the "needs" map with the draft's actual word counts.
-function buildBeats(matrixSections, draftSections, beatsFallback) {
+function buildBeats(matrixSections, draftSections, beatsFallback, beatSheetBeats) {
   if (matrixSections && matrixSections.length) {
     return matrixSections.map((ms) => {
       const d = draftSections.find((ds) => titleMatch(ds.title, ms.title));
@@ -92,6 +150,12 @@ function buildBeats(matrixSections, draftSections, beatsFallback) {
       const d = draftSections.find((ds) => titleMatch(ds.title, title));
       const actions = typeof b === 'object' && b.prompt ? [b.prompt] : [];
       return { title, words: d ? d.words : 0, gaps: 0, digests: 0, actions };
+    });
+  }
+  if (beatSheetBeats && beatSheetBeats.length) {
+    return beatSheetBeats.map((b) => {
+      const d = draftSections.find((ds) => titleMatch(ds.title, b.heading));
+      return { title: b.heading, words: d ? d.words : 0, gaps: 0, digests: 0, actions: b.prompt ? [b.prompt] : [] };
     });
   }
   return (draftSections || []).map((ds) => ({ title: ds.title, words: ds.words, gaps: 0, digests: 0, actions: [] }));
@@ -137,7 +201,10 @@ export async function getDailyPrompt({ vault, chapterPath, chapterTitle, matrixP
     }
   } catch { /* no matrix */ }
 
-  const beats = buildBeats(matrixSections, draftSections, beatsFallback);
+  const beatSheet = loadBeatSheet(vault, chapterTokenFromPath(chapterPath));
+  const beatSheetBeats = beatSheet ? beatSheet.beats.map((b) => ({ heading: b.title, prompt: b.gist })) : null;
+
+  const beats = buildBeats(matrixSections, draftSections, beatsFallback, beatSheetBeats);
   const target = pickTarget(beats);
   let text = fallbackText(target, weekPrompt);
   let source = 'fallback';
@@ -152,8 +219,9 @@ export async function getDailyPrompt({ vault, chapterPath, chapterTitle, matrixP
         .join('\n');
       const needs = (target.actions || []).slice(0, 3).map((a) => `- ${a}`).join('\n')
         || '- no specific evidence gaps logged; develop the argument and the prose';
-      const system = `You are a sharp writing coach helping a nonfiction author make daily progress on one book chapter. Given what they have drafted and what the chapter still needs, write ONE punchy prompt (1-2 sentences, about 35 words max) telling them exactly what to work on TODAY. Be specific and a little provocative; aim at the thinnest or most-needed part. Address the author as "you". Output only the prompt — no preamble, no quotation marks, no markdown. Never use the "it's not X, it's Y" construction.`;
-      const prompt = `Chapter: ${chapterTitle}\nToday: ${iso}\n\nSection word counts so far:\n${breakdown}\n\nFocus today on the section that needs the most work: “${target.title}” (${target.words} words).\nWhat that section still needs:\n${needs}\n\nRecent daily output: ${recent}\n\nWrite today's prompt.`;
+      const sheetBlock = beatSheet ? `\n\nChapter beat sheet (the intended shape — use it to aim the prompt):\n${beatSheet.condensed}` : '';
+      const system = `You are a sharp writing coach helping a nonfiction author make daily progress on one book chapter. Given what they have drafted, what the chapter still needs, and the chapter's beat sheet, write ONE punchy prompt (1-2 sentences, about 35 words max) telling them exactly what to work on TODAY. Be specific and a little provocative; aim at the thinnest or most-needed part, and ground it in the beat sheet when one is given. Address the author as "you". Output only the prompt — no preamble, no quotation marks, no markdown. Never use the "it's not X, it's Y" construction.`;
+      const prompt = `Chapter: ${chapterTitle}\nToday: ${iso}\n\nSection word counts so far:\n${breakdown}\n\nFocus today on the section that needs the most work: “${target.title}” (${target.words} words).\nWhat that section still needs:\n${needs}${sheetBlock}\n\nRecent daily output: ${recent}\n\nWrite today's prompt.`;
       try {
         const out = await summarize({ system, prompt, options: { temperature: 0.5, num_predict: 200 }, label: `book-prompt ${iso}` });
         if (out) {
@@ -164,5 +232,5 @@ export async function getDailyPrompt({ vault, chapterPath, chapterTitle, matrixP
     }
   }
 
-  return { text, section: target ? target.title : null, source, generated_for: iso };
+  return { text, section: target ? target.title : null, source, beat_sheet: beatSheet ? beatSheet.file : null, generated_for: iso };
 }
