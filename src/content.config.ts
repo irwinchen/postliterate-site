@@ -10,6 +10,10 @@ const blog = defineCollection({
     tags: z.array(z.string()).optional(),
     social: z.string().optional(),
     bsky_post: z.string().optional(),
+    // POSSE syndication targets. Optional; default none. See scripts/syndicate.mjs.
+    syndicate: z.array(z.enum(['mastodon', 'bluesky'])).optional(),
+    // Syndication blurb. Falls back to `description`, then the first paragraph.
+    excerpt: z.string().optional(),
   }),
 });
 
