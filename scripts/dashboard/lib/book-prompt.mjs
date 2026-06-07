@@ -14,8 +14,10 @@
  * Chapter-map source (in priority order): evidence matrix when one exists, then
  * a beats list from book-plan.json, then a beat sheet in 03_Chapters/Drafts
  * (a card with `kind: beat-sheet` + matching `chapter`), then the draft's own
- * ## headings. The matching chapter's beat sheet is also always fed to the LLM
- * as the chapter's intended shape, even when the matrix drives beat selection.
+ * ## headings. The matching chapter's beat sheet — and the whole-book synopsis
+ * card (`kind: synopsis`, its per-chapter Job/Spine/Guardrail section + the book
+ * spine) — are always fed to the LLM as the chapter's intended shape, even when
+ * the matrix drives beat selection.
  */
 
 import { readFileSync, existsSync, readdirSync } from 'node:fs';
@@ -66,9 +68,16 @@ export function parseMatrix(md) {
   const out = [];
   let cur = null;
   for (const line of (md || '').split(/\r?\n/)) {
-    const h = line.match(/^##\s+(§\S+.*\S)\s*$/);
-    if (h) { cur = { title: h[1].replace(/^§\S+\s*/, '').trim(), gaps: 0, digests: 0, actions: [] }; out.push(cur); continue; }
-    if (/^##\s/.test(line)) { cur = null; continue; }   // a non-§ section ends the chapter map
+    // Section headings come in two shapes: the old `## §N Title` and the
+    // beat-mirrored `## Beat N — Title`.
+    const h = line.match(/^##\s+((?:§\S+|Beat\s+\d+)\b.*\S)\s*$/i);
+    if (h) {
+      const title = h[1].replace(/^§\S+\s*/, '').replace(/^Beat\s+\d+\s*[—–-]\s*/i, '').trim();
+      cur = { title, gaps: 0, digests: 0, actions: [] };
+      out.push(cur);
+      continue;
+    }
+    if (/^##\s/.test(line)) { cur = null; continue; }   // any other section ends the chapter map
     if (!cur || !/^\s*\|/.test(line)) continue;
     const cells = line.split('|').map((c) => c.trim());
     if (cells.some((c) => /^:?-{2,}:?$/.test(c))) continue;   // separator row
@@ -132,6 +141,50 @@ export function loadBeatSheet(vault, token) {
       ...beats.map((b, i) => `Beat ${i + 1}: ${b.title}${b.gist ? ` — ${b.gist}` : ''}`),
     ].filter(Boolean).join('\n').slice(0, 1800);
     return { file: name, chapter: ch, beats, condensed };
+  }
+  return null;
+}
+
+function synopsisHeadingMatches(heading, token) {
+  const num = heading.match(/^Ch\.?\s*(\d+)\b/i);
+  if (/^\d+$/.test(token)) return !!num && parseInt(num[1], 10) === parseInt(token, 10);
+  return /introduction/i.test(heading) && /intro/.test(token);
+}
+
+// Load the whole-book synopsis card (kind: synopsis) from 03_Chapters/Drafts and
+// pull the book spine + the current chapter's Job/Spine/Guardrail section.
+export function loadSynopsis(vault, token) {
+  const dir = join(vault, '03_Chapters', 'Drafts');
+  let names;
+  try { names = readdirSync(dir); } catch { return null; }
+  for (const name of names) {
+    if (!name.endsWith('.md')) continue;
+    let text;
+    try { text = readFileSync(join(dir, name), 'utf8'); } catch { continue; }
+    const fm = text.match(/^---\r?\n([\s\S]*?)\r?\n---/);
+    if (!fm || !/^\s*kind\s*:\s*synopsis\s*$/m.test(fm[1])) continue;
+
+    const spine = [];
+    const chapter = [];
+    let inSpine = false;
+    let curIsTarget = false;
+    for (const line of text.split(/\r?\n/)) {
+      const h2 = line.match(/^##\s+(.*\S)\s*$/);
+      const h3 = line.match(/^###\s+(.*\S)\s*$/);
+      if (h2) { inSpine = /whole-book spine/i.test(h2[1]); curIsTarget = false; continue; }
+      if (h3) { curIsTarget = synopsisHeadingMatches(h3[1], token); continue; }
+      const t = line.trim();
+      if (inSpine && /^[-*]/.test(t)) spine.push(t.replace(/^[-*]\s*/, '').replace(/\*\*/g, ''));
+      else if (curIsTarget) chapter.push(line);
+    }
+    const unwiki = (s) => s.replace(/\[\[([^\]|]+)(\|[^\]]+)?\]\]/g, '$1');
+    const chapterText = unwiki(chapter.join('\n')).replace(/\n{3,}/g, '\n\n').trim().slice(0, 1600);
+    if (!chapterText) return null; // synopsis exists but no section for this chapter
+    return {
+      file: name,
+      spine: spine.length ? ('Whole-book spine: ' + spine.join(' | ')).slice(0, 900) : '',
+      chapter: chapterText,
+    };
   }
   return null;
 }
@@ -201,8 +254,10 @@ export async function getDailyPrompt({ vault, chapterPath, chapterTitle, matrixP
     }
   } catch { /* no matrix */ }
 
-  const beatSheet = loadBeatSheet(vault, chapterTokenFromPath(chapterPath));
+  const token = chapterTokenFromPath(chapterPath);
+  const beatSheet = loadBeatSheet(vault, token);
   const beatSheetBeats = beatSheet ? beatSheet.beats.map((b) => ({ heading: b.title, prompt: b.gist })) : null;
+  const synopsis = loadSynopsis(vault, token);
 
   const beats = buildBeats(matrixSections, draftSections, beatsFallback, beatSheetBeats);
   const target = pickTarget(beats);
@@ -214,16 +269,25 @@ export async function getDailyPrompt({ vault, chapterPath, chapterTitle, matrixP
     try { llmOk = await isAvailable(); } catch { llmOk = false; }
     if (llmOk) {
       const recent = (history || []).slice(-5).map((h) => `${h.date}: ${h.words}w`).join(', ') || 'none logged yet';
-      const breakdown = beats
-        .map((b) => `- ${b.title}: ${b.words}w${b.gaps ? ` [${b.gaps} GAP]` : ''}${b.digests ? ` [${b.digests} to-digest]` : ''}`)
+      // What's actually on the page (the draft's own sections) is shown
+      // separately from the beat/evidence map, since the two may not line up
+      // 1:1 while the draft is mid-restructure.
+      const drafted = (draftSections.length
+        ? draftSections.map((s) => `- ${s.title}: ${s.words}w`)
+        : ['- nothing drafted yet']).join('\n');
+      const beatStatus = beats
+        .map((b) => `- ${b.title}${b.gaps ? ` [${b.gaps} GAP]` : ''}${b.digests ? ` [${b.digests} to-digest]` : ''}`)
         .join('\n');
       const needs = (target.actions || []).slice(0, 3).map((a) => `- ${a}`).join('\n')
         || '- no specific evidence gaps logged; develop the argument and the prose';
       const sheetBlock = beatSheet ? `\n\nChapter beat sheet (the intended shape — use it to aim the prompt):\n${beatSheet.condensed}` : '';
-      const system = `You are a sharp writing coach helping a nonfiction author make daily progress on one book chapter. Given what they have drafted, what the chapter still needs, and the chapter's beat sheet, write ONE punchy prompt (1-2 sentences, about 35 words max) telling them exactly what to work on TODAY. Be specific and a little provocative; aim at the thinnest or most-needed part, and ground it in the beat sheet when one is given. Address the author as "you". Output only the prompt — no preamble, no quotation marks, no markdown. Never use the "it's not X, it's Y" construction.`;
-      const prompt = `Chapter: ${chapterTitle}\nToday: ${iso}\n\nSection word counts so far:\n${breakdown}\n\nFocus today on the section that needs the most work: “${target.title}” (${target.words} words).\nWhat that section still needs:\n${needs}${sheetBlock}\n\nRecent daily output: ${recent}\n\nWrite today's prompt.`;
+      const synopsisBlock = synopsis
+        ? `\n\nFrom the whole-book synopsis:\n${synopsis.spine}\n\nThis chapter's job, spine, and guardrail (synopsis):\n${synopsis.chapter}`
+        : '';
+      const system = `You are a sharp writing coach helping a nonfiction author make daily progress on one book chapter. Given what they have drafted, what the chapter still needs, the chapter's beat sheet, and the whole-book synopsis, write ONE punchy prompt (1-2 sentences, about 35 words max) telling them exactly what to work on TODAY. Be specific and a little provocative; aim at the thinnest or most-needed part, ground it in the beat sheet and synopsis, and respect the chapter's guardrail. Address the author as "you". Output only the prompt — no preamble, no quotation marks, no markdown. Never use the "it's not X, it's Y" construction.`;
+      const prompt = `Chapter: ${chapterTitle}\nToday: ${iso}\n\nWhat you've drafted so far (the draft's own sections):\n${drafted}\n\nChapter beats and evidence status:\n${beatStatus}\n\nFocus today on the beat that needs the most work: “${target.title}”.\nWhat it still needs:\n${needs}${sheetBlock}${synopsisBlock}\n\nRecent daily output: ${recent}\n\nWrite today's prompt.`;
       try {
-        const out = await summarize({ system, prompt, options: { temperature: 0.5, num_predict: 200 }, label: `book-prompt ${iso}` });
+        const out = await summarize({ system, prompt, options: { temperature: 0.5, num_predict: 200, num_ctx: 8192 }, label: `book-prompt ${iso}` });
         if (out) {
           text = out.replace(/\s+/g, ' ').replace(/^["“']|["”']$/g, '').trim();
           source = 'llm';
@@ -232,5 +296,12 @@ export async function getDailyPrompt({ vault, chapterPath, chapterTitle, matrixP
     }
   }
 
-  return { text, section: target ? target.title : null, source, beat_sheet: beatSheet ? beatSheet.file : null, generated_for: iso };
+  return {
+    text,
+    section: target ? target.title : null,
+    source,
+    beat_sheet: beatSheet ? beatSheet.file : null,
+    synopsis: synopsis ? synopsis.file : null,
+    generated_for: iso,
+  };
 }
