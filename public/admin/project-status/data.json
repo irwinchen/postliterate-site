@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-05-13T19:28:40.150Z",
+  "generated_at": "2026-06-10T13:03:00.448Z",
   "scope": {
     "past_days": 3,
     "workflow": "blog-first",
@@ -109,6 +109,14 @@
       "id": "blog-published-how-im-using-ai",
       "title": "How I'm Using AI",
       "date_published": "2026-03-05",
+      "status": "published",
+      "notes": null,
+      "social_companion": "missing"
+    },
+    {
+      "id": "blog-published-normalizing-ai",
+      "title": "Normalizing AI",
+      "date_published": "2026-05-28",
       "status": "published",
       "notes": null,
       "social_companion": "missing"
@@ -249,162 +257,162 @@
   ],
   "website_activity": [
     {
-      "id": "site-commit-7a48f5b",
+      "id": "site-commit-a341133",
       "type": "commit",
-      "title": "Dashboard: mobile tab view, working title hero, Outstanding Sources widened",
-      "date": "2026-05-10T10:02:19-04:00",
+      "title": "gitignore: ignore Claude Code local state (settings.local.json, scheduled_tasks.lock)",
+      "date": "2026-06-10T08:59:12-04:00",
       "status": "pending",
       "notes": null
     },
     {
-      "id": "site-commit-0f7fe8f",
+      "id": "site-commit-2b69bc0",
       "type": "commit",
-      "title": "Add /corpus screenshot to figures",
-      "date": "2026-05-13T12:27:50-04:00",
+      "title": "Add POSSE syndication step for Mastodon and Bluesky",
+      "date": "2026-06-07T11:58:04Z",
       "status": "pending",
       "notes": null
     },
     {
-      "id": "site-commit-440f462",
+      "id": "site-commit-41abb9b",
       "type": "commit",
-      "title": "/corpus copy: rewrite header + drop Source Transparency tags from footer",
-      "date": "2026-05-13T12:26:44-04:00",
+      "title": "feat(dashboard): factor the whole-book synopsis into the daily prompt",
+      "date": "2026-06-06T21:44:59-04:00",
       "status": "pending",
       "notes": null
     },
     {
-      "id": "site-commit-15c6995",
+      "id": "site-commit-738e081",
       "type": "commit",
-      "title": "Swap /corpus to CorpusBubbles; remove old treemap",
-      "date": "2026-05-13T12:06:46-04:00",
+      "title": "feat(dashboard): factor beat sheets into the daily writing prompt",
+      "date": "2026-06-06T18:09:47-04:00",
       "status": "pending",
       "notes": null
     },
     {
-      "id": "site-commit-53970c7",
+      "id": "site-commit-f8c6839",
       "type": "commit",
-      "title": "Rewrite corpus-bubbles as d3 zoomable circle pack",
-      "date": "2026-05-12T21:50:53-04:00",
+      "title": "feat(dashboard): daily content-aware writing prompt + day-ring activity",
+      "date": "2026-06-06T11:59:11-04:00",
       "status": "pending",
       "notes": null
     },
     {
-      "id": "site-commit-1a34aff",
+      "id": "site-commit-4262791",
       "type": "commit",
-      "title": "phases 1-4 of corpus-bubbles redesign",
-      "date": "2026-05-12T14:54:58-04:00",
+      "title": "feat(dashboard): Today panel activity rings + writing history",
+      "date": "2026-06-05T12:29:27-04:00",
       "status": "pending",
       "notes": null
     },
     {
-      "id": "site-commit-7b3b949",
+      "id": "site-commit-b948627",
       "type": "commit",
-      "title": "Add corpus treemap interactive figure",
-      "date": "2026-05-12T16:14:32Z",
+      "title": "feat(dashboard): Today panel — draft word counts + checklist write-back",
+      "date": "2026-06-04T10:00:39-04:00",
       "status": "pending",
       "notes": null
     },
     {
-      "id": "site-commit-cc6a595",
+      "id": "site-commit-37ff054",
       "type": "commit",
-      "title": "DESIGN.md: log Phase 6 follow-up + operational gotchas",
-      "date": "2026-05-09T17:08:17-04:00",
+      "title": "feat(dashboard): point Today panel at per-chapter draft files",
+      "date": "2026-06-03T17:17:08-04:00",
       "status": "pending",
       "notes": null
     },
     {
-      "id": "site-commit-877b7a0",
+      "id": "site-commit-1fd1592",
       "type": "commit",
-      "title": "Mini: auto git-pull off by default, opt-in via INSTALL_GITPULL=1",
-      "date": "2026-05-09T15:34:29-04:00",
+      "title": "feat(dashboard): add Today panel with daily writing plan",
+      "date": "2026-06-03T15:51:40-04:00",
       "status": "pending",
       "notes": null
     },
     {
-      "id": "site-commit-ce58c2e",
+      "id": "site-commit-067b9ae",
       "type": "commit",
-      "title": "claude-exports: zip-aware ingestion, PostLiterate title filter",
-      "date": "2026-05-09T14:32:30-04:00",
+      "title": "deploy/mini: raise OLLAMA_TIMEOUT_MS to 60s for queue tolerance",
+      "date": "2026-05-29T09:43:05-04:00",
       "status": "pending",
       "notes": null
     },
     {
-      "id": "site-commit-24be748",
+      "id": "site-commit-bd0fc73",
       "type": "commit",
-      "title": "Concurrent-refresh guard + tighter Ollama timeout",
-      "date": "2026-05-09T13:49:06-04:00",
+      "title": "dashboard: LLM-generated titles for chats + cowork; arc-aware summaries",
+      "date": "2026-05-29T09:40:27-04:00",
       "status": "pending",
       "notes": null
     },
     {
-      "id": "site-commit-6220d29",
+      "id": "site-commit-f87b937",
       "type": "commit",
-      "title": "Phase 6 (Slice 2): cowork sessions, claude.ai exports, vault digests",
-      "date": "2026-05-09T13:40:42-04:00",
+      "title": "ollama: disable reasoning mode; switch Mini to qwen3.5:4b (MLX-backed)",
+      "date": "2026-05-28T10:12:02-04:00",
       "status": "pending",
       "notes": null
     },
     {
-      "id": "site-commit-29d876e",
+      "id": "site-commit-162caa3",
       "type": "commit",
-      "title": "Vault Watch: blog-card previews; remove redundant Activity Log",
-      "date": "2026-05-09T10:49:40-04:00",
+      "title": "dashboard: retry 'unknown/ollama_unavailable' verdicts when LLM is back",
+      "date": "2026-05-28T09:45:09-04:00",
       "status": "pending",
       "notes": null
     },
     {
-      "id": "site-commit-e410e58",
+      "id": "site-commit-5e31bc9",
       "type": "commit",
-      "title": "Switch dashboard Ollama model to gemma4:e4b",
-      "date": "2026-05-09T10:38:26-04:00",
+      "title": "dashboard: filter non-book-relevant conversations from Working feed",
+      "date": "2026-05-28T09:33:51-04:00",
       "status": "pending",
       "notes": null
     },
     {
-      "id": "site-commit-0f25dd0",
+      "id": "site-commit-4eb532d",
       "type": "commit",
-      "title": "Recent Work: 2-col layout, real markdown bullets, local-date parsing",
-      "date": "2026-05-09T10:36:31-04:00",
+      "title": "publish: Normalizing AI",
+      "date": "2026-05-28T09:10:55-04:00",
       "status": "pending",
       "notes": null
     },
     {
-      "id": "site-commit-906aa30",
+      "id": "site-commit-f64d9bb",
       "type": "commit",
-      "title": "Untrack scripts/dashboard/snapshots/latest.json",
-      "date": "2026-05-08T22:14:13-04:00",
+      "title": "media-model-vs-communication: update prototype HTML",
+      "date": "2026-05-23T10:41:35-04:00",
       "status": "pending",
       "notes": null
     },
     {
-      "id": "site-commit-54feab4",
+      "id": "site-commit-176a845",
       "type": "commit",
-      "title": "Phase 6 (Slice 1): Ollama summarization + git activity feed",
-      "date": "2026-05-08T21:29:09-04:00",
+      "title": "dashboard: split Figures into Figures + Apps sections",
+      "date": "2026-05-23T10:10:49-04:00",
       "status": "pending",
       "notes": null
     },
     {
-      "id": "site-commit-62fc3c3",
+      "id": "site-commit-4f9fb01",
       "type": "commit",
-      "title": "Phase 5: Reminders (TASKS.md) + outstanding-sources widening",
-      "date": "2026-05-08T20:48:59-04:00",
+      "title": "figures: register Media Model vs The Meeting prototype",
+      "date": "2026-05-23T10:03:13-04:00",
       "status": "pending",
       "notes": null
     },
     {
-      "id": "site-commit-844fd10",
+      "id": "site-commit-7a6d0a6",
       "type": "commit",
-      "title": "Phase 4: Writing Progress + dashboard polish (dark mode, Obsidian icon, concepts)",
-      "date": "2026-05-08T20:17:14-04:00",
+      "title": "brain-viz: bundle module imports for production (Astro define:vars trap)",
+      "date": "2026-05-22T10:23:33-04:00",
       "status": "pending",
       "notes": null
     },
     {
-      "id": "site-commit-6367177",
+      "id": "site-commit-4e97baf",
       "type": "commit",
-      "title": "Add writing rules: never write as Irwin, inline code for suggested content",
-      "date": "2026-05-08T19:31:47-04:00",
+      "title": "brain-viz: fix dead /brain redirect, clean up Phase D loose ends",
+      "date": "2026-05-22T10:06:59-04:00",
       "status": "pending",
       "notes": null
     }
@@ -417,6 +425,7 @@
       "severity": "low",
       "related_items": [
         "blog-published-how-im-using-ai",
+        "blog-published-normalizing-ai",
         "blog-published-notes-from-self",
         "blog-published-vibe-coding-vs-vibe-writing",
         "blog-published-why-are-you-talking-to-it-like-its-a-person",
