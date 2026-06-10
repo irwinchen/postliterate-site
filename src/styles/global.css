@@ -21,7 +21,7 @@
     /* Layout */
     --page-width: min(100vw, 1200px);
     --min-side-margin: max(20px, 2vw);
-    --content-width: 85ch;
+    --content-width: 75ch;
 
     /* Colors — light-dark() eliminates duplicate dark mode declarations */
     --background: light-dark(#F3EFE1, #1a1a1a);
