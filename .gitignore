@@ -29,8 +29,11 @@ pnpm-debug.log*
 # editor
 .vscode/
 
-# claude worktrees
+# Claude Code local state (worktrees, machine-specific permission overrides,
+# scheduled-task lock file). .claude/launch.json IS tracked intentionally.
 .claude/worktrees/
+.claude/settings.local.json
+.claude/scheduled_tasks.lock
 
 # dashboard live snapshot (regenerated on every refresh — was causing
 # git-pull conflicts on the Mini, since the running admin re-writes it)
