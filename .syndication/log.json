@@ -1,1 +1,14 @@
-{}
+{
+  "the-lofty-and-the-mundane": {
+    "mastodon": {
+      "id": "116726215003475996",
+      "url": "https://saturation.social/@irwin/116726215003475996",
+      "at": "2026-06-10T14:11:32.678Z"
+    },
+    "bluesky": {
+      "uri": "at://did:plc:6q5x4immdxz4s6w7mh3le5wh/app.bsky.feed.post/3mnwvd45tor27",
+      "cid": "bafyreiffrxkzyyrj26ydbhoutoid2n7xl57zktasjbcpmy6pgfoicytix4",
+      "at": "2026-06-10T14:11:33.095Z"
+    }
+  }
+}
