@@ -96,7 +96,7 @@ function listMarkdown(dir) {
 // daily baselines (snapshots/draft-words.json) so `this_week` / `today` = words
 // added since each window began. Also returns one progress entry per sample
 // chapter for the activity rings.
-function getDraftWords(activeWeek, phase, opts = {}) {
+export function getDraftWords(activeWeek, phase, opts = {}) {
   const { weeks = [], iso = null, dailyGoal = 600, seedDay = null } = opts;
   let files; // [{ rel, words, target }] — rel is the path within 03_Chapters
   try {
@@ -168,7 +168,17 @@ function getDraftWords(activeWeek, phase, opts = {}) {
     }
     if (iso) {
       if (state.history[iso] === undefined) {
-        state.history[iso] = { start: total, end: total };
+        // Chain a new day's baseline to the most recent prior day's running
+        // total (its `end`), NOT the current live total. Re-sampling `total`
+        // here drops anything written between the last refresh of one day and
+        // the first refresh of the next into a gap counted toward neither day.
+        // Chaining makes the per-day series continuous: every word lands in the
+        // day it is first observed. (No prior day → anchor at the live total.)
+        const priorDays = Object.keys(state.history).filter((d) => d < iso).sort();
+        const prevEnd = priorDays.length
+          ? state.history[priorDays[priorDays.length - 1]].end
+          : total;
+        state.history[iso] = { start: prevEnd, end: total };
         dirty = true;
       } else if (state.history[iso].end !== total) {
         state.history[iso].end = total;
