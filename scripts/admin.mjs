@@ -71,6 +71,37 @@ const __dirname = fileURLToPath(new URL('.', import.meta.url));
 const PORT = 4322;
 const DEV_PORT = 4321;
 
+// ── Load .env ─────────────────────────────────────────────────────────
+// Bring repo-local secrets (e.g. ANTHROPIC_API_KEY, which the brain-paper
+// extractor needs) into the process env so they don't have to be exported in
+// every shell. Existing environment variables win over the file — the Mini's
+// launchd plist sets its own env and must not be clobbered. No dependency;
+// same minimal parser as syndicate.mjs.
+function loadEnv() {
+  const envPath = join(ROOT, '.env');
+  if (!existsSync(envPath)) return;
+  try {
+    for (const rawLine of readFileSync(envPath, 'utf8').split('\n')) {
+      const line = rawLine.trim();
+      if (!line || line.startsWith('#')) continue;
+      const eq = line.indexOf('=');
+      if (eq === -1) continue;
+      const key = line.slice(0, eq).trim();
+      let val = line.slice(eq + 1).trim();
+      if (
+        (val.startsWith('"') && val.endsWith('"')) ||
+        (val.startsWith("'") && val.endsWith("'"))
+      ) {
+        val = val.slice(1, -1);
+      }
+      if (!(key in process.env)) process.env[key] = val;
+    }
+  } catch {
+    /* a malformed .env shouldn't take the server down */
+  }
+}
+loadEnv();
+
 // ── Environment flags ─────────────────────────────────────────────────
 // READ_ONLY=1  disables publish / unpublish / delete routes (set on Mini).
 // HOST         bind address — set to 127.0.0.1 on MacBook to avoid LAN exposure.
