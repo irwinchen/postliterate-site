@@ -36,6 +36,31 @@ const hasPaperContent = Boolean(
   <BrainHeader title={headerTitle} />
 
   <aside class="brain-3d__glossary" aria-label="Region glossary">
+    <div class="brain-3d__search" data-bind="search">
+      <input
+        type="text"
+        class="brain-3d__search-input"
+        data-bind="search-input"
+        placeholder="Search areas…"
+        autocomplete="off"
+        autocapitalize="off"
+        autocorrect="off"
+        spellcheck="false"
+        role="combobox"
+        aria-expanded="false"
+        aria-autocomplete="list"
+        aria-controls="brain-3d-search-list"
+        aria-label="Search brain areas"
+      />
+      <ul
+        class="brain-3d__search-list"
+        data-bind="search-list"
+        id="brain-3d-search-list"
+        role="listbox"
+        aria-label="Matching areas"
+        hidden
+      ></ul>
+    </div>
     <div class="brain-3d__glossary-list" data-bind="glossary"></div>
   </aside>
 
@@ -196,6 +221,7 @@ const hasPaperContent = Boolean(
   import { loadView } from '../../lib/brain-viz/view-loader.js';
   import { createViewState } from '../../lib/brain-viz/view-state.js';
   import { createGlossaryState } from '../../lib/brain-viz/glossary-state.js';
+  import { searchParcels } from '../../lib/brain-viz/parcel-search.js';
   import { createViewContent } from '../../lib/brain-viz/content.js';
   import { computeVisibleLabels } from '../../lib/brain-viz/label-visibility.js';
   import { pickContrastText } from '../../lib/brain-viz/emissive.js';
@@ -580,6 +606,137 @@ const hasPaperContent = Boolean(
     glossaryState.subscribe(syncPaperHighlights);
     syncPaperHighlights();
   }
+
+  // === Lookahead area search ===
+  // Type the first few characters of an area name; pick a match to graph it.
+  // Only parcels in this view get a mesh (and thus a leader line / pulse), so
+  // the search corpus is exactly view.parcels regardless of glossaryMode.
+  const searchableParcels = Object.values(view.parcels);
+  const searchInput = root.querySelector('[data-bind="search-input"]');
+  const searchList = root.querySelector('[data-bind="search-list"]');
+  let searchResults = [];
+  let searchActiveIndex = -1;
+
+  function searchPulseColor(parcelId) {
+    const parcel = view.parcels[parcelId];
+    const netId = parcel?.networks?.[0];
+    return view.networks[netId]?.color ?? '#d89233';
+  }
+
+  function closeSearchList() {
+    searchList.hidden = true;
+    searchList.replaceChildren();
+    searchInput.setAttribute('aria-expanded', 'false');
+    searchInput.removeAttribute('aria-activedescendant');
+    searchResults = [];
+    searchActiveIndex = -1;
+  }
+
+  function renderSearchList() {
+    searchList.replaceChildren();
+    if (searchResults.length === 0) {
+      closeSearchList();
+      return;
+    }
+    searchResults.forEach((parcel, i) => {
+      const li = document.createElement('li');
+      li.className = 'brain-3d__search-option';
+      li.id = `brain-3d-search-opt-${i}`;
+      li.setAttribute('role', 'option');
+      li.setAttribute('aria-selected', String(i === searchActiveIndex));
+      li.classList.toggle('is-active', i === searchActiveIndex);
+      li.textContent = parcel.label;
+      // mousedown (not click) so the selection fires before the input's blur
+      // tears the list down.
+      li.addEventListener('mousedown', (e) => {
+        e.preventDefault();
+        selectSearchResult(i);
+      });
+      searchList.appendChild(li);
+    });
+    searchList.hidden = false;
+    searchInput.setAttribute('aria-expanded', 'true');
+    if (searchActiveIndex >= 0) {
+      searchInput.setAttribute('aria-activedescendant', `brain-3d-search-opt-${searchActiveIndex}`);
+    } else {
+      searchInput.removeAttribute('aria-activedescendant');
+    }
+  }
+
+  function moveActive(delta) {
+    if (searchResults.length === 0) return;
+    const n = searchResults.length;
+    searchActiveIndex = (searchActiveIndex + delta + n) % n;
+    renderSearchList();
+    const el = searchList.children[searchActiveIndex];
+    if (el) el.scrollIntoView({ block: 'nearest' });
+  }
+
+  function selectSearchResult(i) {
+    const parcel = searchResults[i] ?? searchResults[searchActiveIndex] ?? searchResults[0];
+    if (!parcel) return;
+    searchInput.value = parcel.label;
+    closeSearchList();
+    graphParcel(parcel.id);
+  }
+
+  // Graph a parcel: ensure its leader line is on, pulse the mesh, and reveal +
+  // flash its glossary entry so the user can see where it landed in the list.
+  function graphParcel(parcelId) {
+    if (!glossaryState.isInspected(parcelId)) glossaryState.inspect(parcelId);
+    if (renderer && typeof renderer.pulseParcel === 'function') {
+      renderer.pulseParcel(parcelId, { color: searchPulseColor(parcelId), durationMs: 1400 });
+    }
+
+    const entry = glossaryEntryEls.get(parcelId);
+    if (entry) {
+      const group = entry.closest('details');
+      if (group) group.open = true;
+      entry.scrollIntoView({ block: 'nearest' });
+      entry.classList.remove('is-flash');
+      // Force reflow so re-adding the class restarts the animation.
+      void entry.offsetWidth;
+      entry.classList.add('is-flash');
+    }
+  }
+
+  searchInput.addEventListener('input', () => {
+    searchResults = searchParcels(searchableParcels, searchInput.value, { limit: 8 });
+    searchActiveIndex = searchResults.length ? 0 : -1;
+    renderSearchList();
+  });
+
+  searchInput.addEventListener('keydown', (e) => {
+    switch (e.key) {
+      case 'ArrowDown':
+        e.preventDefault();
+        moveActive(1);
+        break;
+      case 'ArrowUp':
+        e.preventDefault();
+        moveActive(-1);
+        break;
+      case 'Enter':
+        if (searchResults.length) {
+          e.preventDefault();
+          selectSearchResult(searchActiveIndex);
+        }
+        break;
+      case 'Escape':
+        if (!searchList.hidden) {
+          e.preventDefault();
+          closeSearchList();
+        } else if (searchInput.value) {
+          searchInput.value = '';
+        }
+        break;
+    }
+  });
+
+  searchInput.addEventListener('blur', () => {
+    // Defer so a mousedown on an option still registers before teardown.
+    setTimeout(closeSearchList, 0);
+  });
 
   function isEntryVisible(el) {
     // Element is rendered (not inside a collapsed <details>) iff offsetParent is non-null

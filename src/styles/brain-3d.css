@@ -38,6 +38,71 @@
   gap: 0.5rem;
 }
 
+/* Lookahead area search — sits at the top of the glossary column. */
+.brain-3d__search {
+  position: relative;
+  margin-block-end: 0.85rem;
+}
+.brain-3d__search-input {
+  inline-size: 100%;
+  appearance: none;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border);
+  color: var(--fg);
+  font: inherit;
+  font-size: 0.75rem;
+  padding: 0.45rem 0.55rem;
+  border-radius: 3px;
+}
+.brain-3d__search-input::placeholder {
+  color: var(--faint);
+}
+.brain-3d__search-input:focus-visible {
+  outline: none;
+  border-color: rgba(216, 146, 51, 0.85);
+}
+.brain-3d__search-list {
+  position: absolute;
+  inset-inline: 0;
+  inset-block-start: calc(100% + 0.3rem);
+  z-index: 30;
+  margin: 0;
+  padding: 0.25rem;
+  list-style: none;
+  background: var(--bg);
+  border: 1px solid rgba(255, 255, 255, 0.20);
+  border-radius: 3px;
+  max-block-size: 50dvh;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.brain-3d__search-option {
+  padding: 0.4rem 0.5rem;
+  font-size: 0.72rem;
+  color: var(--faint);
+  cursor: pointer;
+  border-radius: 2px;
+  text-wrap: pretty;
+}
+.brain-3d__search-option:hover,
+.brain-3d__search-option.is-active {
+  color: var(--fg);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+/* Transient flash when an entry is graphed via the search box, so the eye
+   can find where it landed in the (possibly scrolled) glossary list. */
+@keyframes brain-3d-entry-flash {
+  from { background: rgba(216, 146, 51, 0.55); color: var(--fg); }
+  to   { background: rgba(216, 146, 51, 0); }
+}
+.brain-3d__gloss-entry.is-flash {
+  animation: brain-3d-entry-flash 1.1s ease-out;
+}
+@media (prefers-reduced-motion: reduce) {
+  .brain-3d__gloss-entry.is-flash { animation: none; }
+}
+
 .brain-3d__gloss-group {
   border-block-end: 1px solid var(--border);
   padding-block-end: 0.5rem;

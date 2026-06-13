@@ -5,6 +5,20 @@ neuro-anatomical figures for the *After the Book* project. Written so a fresh
 Claude session can resume the work without re-deriving architecture decisions
 from scratch. Mirrors the convention used by `scripts/dashboard/DESIGN.md`.
 
+## Update (2026-06-13) — area lookahead search
+
+Both shells (`BrainCompare3D`, `BrainViz3D`) now have a search box at the top of
+the left glossary column. Typing the first characters of an area name shows a
+ranked autocomplete; picking a match **graphs** it — inspects the parcel (leader
+line), pulses the mesh, expands its glossary group, and scrolls + flashes its
+glossary entry. The corpus is exactly the graphable parcels (those with a mesh:
+`compare.parcels` / `view.parcels`), never an area the renderer can't draw.
+Ranking logic is a new pure module `src/lib/brain-viz/parcel-search.js`
+(`searchParcels`, 10 tests); DOM/keyboard wiring (combobox a11y, arrow/Enter/Esc)
+lives in each shell; styles are shared in `brain-3d.css` (`.brain-3d__search*`,
+`brain-3d-entry-flash`). Compare pulses amber; per-paper pulses the parcel's
+network color to match the existing inline-ref pulse.
+
 ## Update (2026-05-14) — per-paper views
 
 Commit `30fcd11` adds an author-only PDF upload flow (admin Papers tab → Claude
@@ -68,6 +82,7 @@ src/lib/brain-viz/             # pure JS, no DOM, fully unit-tested
   view-state.js                # single-view chip state (sequential / compare)
   cross-paper-state.js         # multi-view chip state (compare-only)
   glossary-state.js            # inspected-parcel set, drives leader lines
+  parcel-search.js             # ranked lookahead matching for the area search box
   content.js                   # view text content loader
   emissive.js                  # color helpers (hex→rgb, contrast text, blending)
   label-visibility.js          # visible-label computation
