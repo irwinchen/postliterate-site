@@ -5,6 +5,24 @@ neuro-anatomical figures for the *After the Book* project. Written so a fresh
 Claude session can resume the work without re-deriving architecture decisions
 from scratch. Mirrors the convention used by `scripts/dashboard/DESIGN.md`.
 
+## Update (2026-06-14) — glossary groups collapse by default
+
+The left glossary column listed all 26 parcels with every anatomical group
+expanded, which overflowed the fixed-height column and threw a scrollbar.
+Filtering couldn't help — all 26 registry parcels are in-view across the three
+compare views, so there are no faded entries to drop. Fix is layout-only: the
+group `<details>` now render **collapsed** in both shells (`details.open = false`),
+so the column shows ~8 group headers + the search box and fits without scrolling.
+The search box is the fast path to any term; clicking a header browses.
+
+One dependency: leader lines only draw for *visible* glossary entries
+(`drawLeaderLines` skips `offsetParent === null`). So `syncGlossary()` in both
+shells now auto-opens a group whenever one of its parcels is inspected — this
+keeps leader lines working for every inspect path (glossary click, search-graph,
+per-paper inline refs, section "Highlight all"). The render loop redraws each
+frame, so no manual redraw is needed. No CSS change (the group caret already
+rotates for the closed state).
+
 ## Update (2026-06-13) — area lookahead search
 
 Both shells (`BrainCompare3D`, `BrainViz3D`) now have a search box at the top of

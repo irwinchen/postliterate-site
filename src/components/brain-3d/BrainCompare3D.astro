@@ -240,7 +240,7 @@ if (!Array.isArray(viewConfigs) || viewConfigs.length === 0) {
 
     const details = document.createElement('details');
     details.className = 'brain-3d__gloss-group';
-    details.open = true;
+    details.open = false;
 
     const summary = document.createElement('summary');
     summary.className = 'brain-3d__gloss-group-name';
@@ -272,7 +272,15 @@ if (!Array.isArray(viewConfigs) || viewConfigs.length === 0) {
   function syncGlossary() {
     const inspected = glossaryState.inspectedParcels();
     for (const [id, btn] of glossaryEntryEls) {
-      btn.classList.toggle('is-inspected', inspected.has(id));
+      const on = inspected.has(id);
+      btn.classList.toggle('is-inspected', on);
+      // Groups start collapsed; reveal a group whenever one of its terms is
+      // inspected so its leader line can draw (drawLeaderLines skips entries
+      // hidden inside a closed <details>).
+      if (on) {
+        const grp = btn.closest('details');
+        if (grp && !grp.open) grp.open = true;
+      }
     }
   }
 
@@ -439,6 +447,22 @@ if (!Array.isArray(viewConfigs) || viewConfigs.length === 0) {
     return el.offsetParent !== null;
   }
 
+  // Where a parcel's leader line originates: its own glossary entry when that
+  // entry is visible; when its group is collapsed (entry hidden) it falls back
+  // to the group header, so closing a group with inspected terms retargets the
+  // lines to the parent group row instead of dropping them. Null if the group
+  // header is itself hidden (e.g. mobile-collapsed glossary).
+  function leaderAnchorEl(btn) {
+    // A closed <details> still reports offsetParent !== null for its children in
+    // current Chromium, so test the [open] attribute directly rather than
+    // trusting isEntryVisible here. When the term's group is collapsed, anchor
+    // at its header so the line retargets the parent row instead of staying on
+    // the hidden entry.
+    const closedGroup = btn.closest('details:not([open])');
+    const anchor = closedGroup ? closedGroup.querySelector('summary') : btn;
+    return anchor && isEntryVisible(anchor) ? anchor : null;
+  }
+
   const SVG_NS = 'http://www.w3.org/2000/svg';
 
   function drawLeaderLines() {
@@ -473,11 +497,13 @@ if (!Array.isArray(viewConfigs) || viewConfigs.length === 0) {
     for (const id of inspected) {
       if (!compare.parcels[id]) continue;
       const btn = glossaryEntryEls.get(id);
-      if (!btn || !isEntryVisible(btn)) continue;
+      if (!btn) continue;
+      const anchorEl = leaderAnchorEl(btn);
+      if (!anchorEl) continue;
       const screen = renderer.getParcelScreenPosition(id);
       if (!screen || !screen.onScreen) continue;
 
-      const entryRect = btn.getBoundingClientRect();
+      const entryRect = anchorEl.getBoundingClientRect();
       const sourceX = entryRect.right - rootRect.left;
       const sourceY = entryRect.top + entryRect.height / 2 - rootRect.top;
       const targetX = canvasRect.left + screen.x - rootRect.left;
