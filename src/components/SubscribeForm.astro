@@ -1,0 +1,239 @@
+---
+/**
+ * Newsletter signup. Posts to Buttondown's embed endpoint with our own markup
+ * and styling. The only hard requirements from Buttondown are the form `action`,
+ * `method="post"`, and an `<input name="email">` — everything else is ours.
+ *
+ * Progressive enhancement: works as a plain form POST with no JS (opens the
+ * Buttondown confirmation page in a new tab); with JS it submits in the
+ * background and shows an inline confirmation so the reader stays on the site.
+ *
+ * All reader-facing copy is overridable via props so it's easy to edit.
+ */
+interface Props {
+  variant?: 'inline' | 'page';
+  heading?: string;
+  description?: string;
+  buttonLabel?: string;
+}
+
+const {
+  variant = 'inline',
+  heading = 'Subscribe',
+  description = 'Writing about orality, literacy, and AI.',
+  buttonLabel = 'Subscribe',
+} = Astro.props;
+
+const ACTION = 'https://buttondown.com/api/emails/embed-subscribe/irwinchen';
+const headingId = `subscribe-heading-${variant}`;
+---
+
+<section class={`subscribe subscribe--${variant}`} aria-labelledby={headingId}>
+  <div class="subscribe__intro">
+    <h2 id={headingId} class="subscribe__heading">{heading}</h2>
+    {description && <p class="subscribe__desc">{description}</p>}
+  </div>
+
+  <form class="subscribe__form" action={ACTION} method="post" target="_blank" data-subscribe-form>
+    <label class="subscribe__label" for={`bd-email-${variant}`}>Email address</label>
+    <div class="subscribe__row">
+      <input
+        class="subscribe__input"
+        type="email"
+        name="email"
+        id={`bd-email-${variant}`}
+        placeholder="you@example.com"
+        autocomplete="email"
+        required
+      />
+      <button class="subscribe__button" type="submit">{buttonLabel}</button>
+    </div>
+    <p class="subscribe__status" data-subscribe-status role="status" aria-live="polite" hidden></p>
+    <p class="subscribe__powered">
+      <a href="https://buttondown.com/refer/irwinchen" target="_blank" rel="noopener">Powered by Buttondown</a>
+    </p>
+  </form>
+</section>
+
+<style>
+  .subscribe {
+    font-family: 'Outfit', system-ui, sans-serif;
+    color: var(--text);
+  }
+
+  .subscribe--inline {
+    max-width: var(--content-width, 75ch);
+    margin: 0 auto;
+    padding: 2.5rem var(--min-side-margin, 20px);
+    border-top: 1px solid var(--border-subtle);
+  }
+
+  .subscribe--page {
+    max-width: 40rem;
+    margin: 0 auto;
+    padding: 4rem var(--min-side-margin, 20px);
+  }
+
+  .subscribe__heading {
+    font-family: 'Outfit', system-ui, sans-serif;
+    font-weight: 600;
+    font-size: 1.2rem;
+    line-height: 1.2;
+    margin: 0 0 0.3rem;
+    color: var(--text);
+  }
+
+  .subscribe--page .subscribe__heading {
+    font-size: 2rem;
+  }
+
+  .subscribe__desc {
+    margin: 0 0 1.1rem;
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+    line-height: 1.5;
+  }
+
+  .subscribe--page .subscribe__desc {
+    font-size: 1.05rem;
+  }
+
+  /* Visually hidden but available to screen readers */
+  .subscribe__label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  .subscribe__row {
+    display: flex;
+    gap: 0.5rem;
+    align-items: stretch;
+    max-width: 30rem;
+  }
+
+  .subscribe--page .subscribe__row {
+    max-width: 32rem;
+  }
+
+  .subscribe__input {
+    flex: 1 1 auto;
+    min-width: 0;
+    box-sizing: border-box;
+    border: 1px solid var(--text);
+    border-radius: 0;
+    background: var(--background);
+    color: var(--text);
+    font: inherit;
+    font-size: 1rem;
+    line-height: 1.4;
+    padding: 0.7rem 0.85rem;
+  }
+
+  .subscribe__input::placeholder {
+    color: var(--text-tertiary);
+  }
+
+  .subscribe__input:focus {
+    outline: 2px solid var(--accent);
+    outline-offset: -2px;
+  }
+
+  .subscribe__button {
+    flex: 0 0 auto;
+    box-sizing: border-box;
+    border: 1px solid var(--accent);
+    border-radius: 0;
+    background: var(--accent);
+    color: #fff;
+    font: inherit;
+    font-weight: 600;
+    font-size: 1rem;
+    line-height: 1.4;
+    white-space: nowrap;
+    padding: 0.7rem 1.2rem;
+    cursor: pointer;
+    transition: filter 0.15s ease;
+  }
+
+  .subscribe__button:hover {
+    filter: brightness(0.93);
+  }
+
+  .subscribe__button:disabled {
+    opacity: 0.6;
+    cursor: default;
+  }
+
+  .subscribe__status {
+    margin: 0.7rem 0 0;
+    font-size: 0.9rem;
+    color: var(--accent-green, #549E44);
+  }
+
+  .subscribe__powered {
+    margin: 0.7rem 0 0;
+  }
+
+  .subscribe__powered a {
+    font-size: 0.72rem;
+    color: var(--text-tertiary);
+    text-decoration: none;
+  }
+
+  .subscribe__powered a:hover {
+    text-decoration: underline;
+  }
+
+  @media (max-width: 480px) {
+    .subscribe__row {
+      flex-direction: column;
+    }
+
+    .subscribe__button {
+      width: 100%;
+    }
+  }
+</style>
+
+<script>
+  // Submit in the background so the reader stays on the page. Buttondown's embed
+  // endpoint doesn't return CORS headers, so we POST with `no-cors` (opaque
+  // response) and optimistically confirm. If the request errors, fall back to a
+  // native submit, which opens Buttondown's hosted confirmation in a new tab.
+  document.querySelectorAll('[data-subscribe-form]').forEach((form) => {
+    const f = form as HTMLFormElement;
+    const status = f.querySelector('[data-subscribe-status]') as HTMLElement | null;
+    const button = f.querySelector('button[type="submit"]') as HTMLButtonElement | null;
+
+    f.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (button) button.disabled = true;
+
+      try {
+        await fetch(f.action, {
+          method: 'POST',
+          body: new FormData(f),
+          mode: 'no-cors',
+        });
+        f.reset();
+        if (status) {
+          status.textContent = 'Almost there — check your inbox to confirm.';
+          status.hidden = false;
+        }
+      } catch {
+        // Network/other failure: let the browser submit it the normal way.
+        f.submit();
+        return;
+      } finally {
+        if (button) button.disabled = false;
+      }
+    });
+  });
+</script>

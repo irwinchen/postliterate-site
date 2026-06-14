@@ -1,14 +1,16 @@
 ---
 import { Settings, X, Sun, Moon, Compass, BookOpen } from '@lucide/astro';
 import Analytics from '@vercel/analytics/astro';
+import SubscribeForm from '../components/SubscribeForm.astro';
 
 interface Props {
   title: string;
   description?: string;
   hideHeader?: boolean;
+  hideSubscribe?: boolean;
 }
 
-const { title, description = "Post-Literate", hideHeader = false } = Astro.props;
+const { title, description = "Post-Literate", hideHeader = false, hideSubscribe = false } = Astro.props;
 ---
 
 <!doctype html>
@@ -98,6 +100,8 @@ const { title, description = "Post-Literate", hideHeader = false } = Astro.props
     </div>
 
     <slot />
+
+    {!hideSubscribe && <SubscribeForm />}
 
     <footer class="site-footer">
       <span class="site-footer-content">&copy; {new Date().getFullYear()} Irwin Chen</span>

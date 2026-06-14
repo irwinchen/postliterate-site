@@ -1,0 +1,20 @@
+---
+import Base from '../layouts/Base.astro';
+import SubscribeForm from '../components/SubscribeForm.astro';
+---
+
+<Base title="Subscribe" hideSubscribe={true}>
+  <main class="subscribe-page">
+    <SubscribeForm
+      variant="page"
+      heading="Subscribe"
+      description="Writing about orality, literacy, and AI."
+    />
+  </main>
+</Base>
+
+<style>
+  .subscribe-page {
+    min-height: 60vh;
+  }
+</style>
