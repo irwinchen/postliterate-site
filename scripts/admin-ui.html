@@ -2202,9 +2202,9 @@
       transition: stroke-dashoffset 900ms cubic-bezier(0.22, 1, 0.36, 1);
     }
     /* Overage arc: laps on top of a completed ring when the total beats the
-       goal. Rounded leading end + slight drop shadow lift it above the base
-       arc so you can read how far over you went. */
-    .ring-over { filter: drop-shadow(0 1px 1.5px color-mix(in srgb, var(--fg) 40%, transparent)); }
+       goal. A lighter tint of the ring colour + rounded leading end + drop
+       shadow lift it above the base arc so you can read how far over you went. */
+    .ring-over { filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.55)); }
     .ring-center { position: absolute; inset: 0; display: grid; place-items: center; text-align: center; line-height: 1; }
     .ring-val { font-family: 'Outfit', system-ui, sans-serif; font-weight: 700; }
     .ring-sub { font-family: 'Sono', monospace; color: var(--muted); margin-block-start: 0.15rem; }
@@ -3847,7 +3847,7 @@
       // for the overage (capped at one extra loop) with a rounded end + shadow.
       const overFrac = max > 0 && value > max ? Math.min(1, (value - max) / max) : 0;
       const overArc = overFrac > 0
-        ? `<circle class="ring-arc ring-over" cx="50" cy="50" r="${r}" stroke-width="${stroke}" stroke="${color}" stroke-dasharray="${C.toFixed(2)}" stroke-dashoffset="${C.toFixed(2)}" data-offset="${(C * (1 - overFrac)).toFixed(2)}"></circle>`
+        ? `<circle class="ring-arc ring-over" cx="50" cy="50" r="${r}" stroke-width="${stroke}" stroke="color-mix(in srgb, #fff 26%, ${color})" stroke-dasharray="${C.toFixed(2)}" stroke-dashoffset="${C.toFixed(2)}" data-offset="${(C * (1 - overFrac)).toFixed(2)}"></circle>`
         : '';
       return `
         <div class="ring-card ${cls}">
