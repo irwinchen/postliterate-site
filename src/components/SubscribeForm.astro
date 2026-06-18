@@ -19,8 +19,8 @@ interface Props {
 
 const {
   variant = 'inline',
-  heading = 'Subscribe',
-  description = 'Writing about orality, literacy, and AI.',
+  heading = 'Get the Post-Literate Newsletter',
+  description = 'Thoughts about orality, literacy, and AI.',
   buttonLabel = 'Subscribe',
 } = Astro.props;
 
@@ -49,9 +49,6 @@ const headingId = `subscribe-heading-${variant}`;
       <button class="subscribe__button" type="submit">{buttonLabel}</button>
     </div>
     <p class="subscribe__status" data-subscribe-status role="status" aria-live="polite" hidden></p>
-    <p class="subscribe__powered">
-      <a href="https://buttondown.com/refer/irwinchen" target="_blank" rel="noopener">Powered by Buttondown</a>
-    </p>
   </form>
 </section>
 
@@ -64,8 +61,19 @@ const headingId = `subscribe-heading-${variant}`;
   .subscribe--inline {
     max-width: var(--content-width, 75ch);
     margin: 0 auto;
-    padding: 2.5rem var(--min-side-margin, 20px);
+    padding: 2.5rem var(--min-side-margin, 20px) 5rem;
     border-top: 1px solid var(--border-subtle);
+    text-align: center;
+  }
+
+  .subscribe--inline .subscribe__row {
+    margin-inline: auto;
+    justify-content: center;
+  }
+
+  /* Beat the global `p { text-align: start }` rule */
+  .subscribe--inline .subscribe__desc {
+    text-align: center;
   }
 
   .subscribe--page {
@@ -175,20 +183,6 @@ const headingId = `subscribe-heading-${variant}`;
     margin: 0.7rem 0 0;
     font-size: 0.9rem;
     color: var(--accent-green, #549E44);
-  }
-
-  .subscribe__powered {
-    margin: 0.7rem 0 0;
-  }
-
-  .subscribe__powered a {
-    font-size: 0.72rem;
-    color: var(--text-tertiary);
-    text-decoration: none;
-  }
-
-  .subscribe__powered a:hover {
-    text-decoration: underline;
   }
 
   @media (max-width: 480px) {

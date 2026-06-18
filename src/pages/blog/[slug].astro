@@ -43,7 +43,7 @@ const truncatedDiffs: TruncatedSeg[][] = (history?.edits ?? []).map((edit) => {
 ---
 
 <Base title={post.data.title} description={post.data.description}>
-  <div class="page-container">
+  <div class="page-container blog-post">
     <main class="main-column has-margin-notes">
       <article>
         <header class="article-header">
@@ -128,11 +128,11 @@ const truncatedDiffs: TruncatedSeg[][] = (history?.edits ?? []).map((edit) => {
           </section>
         )}
       </article>
-
-      <aside class="margin-column loading" id="margin-column">
-        <!-- Margin notes collected here by MarginNote component -->
-      </aside>
     </main>
+
+    <aside class="margin-column loading" id="margin-column">
+      <!-- Margin notes collected here by MarginNote component -->
+    </aside>
   </div>
 </Base>
 
@@ -365,3 +365,12 @@ const truncatedDiffs: TruncatedSeg[][] = (history?.edits ?? []).map((edit) => {
 
   loadComments();
 </script>
+
+<style is:global>
+  /* Blog post: narrower reading measure than the 75ch default. Set on <body>
+     (via :has) so it reaches both the centered prose column and the Subscribe
+     block, which is a sibling of .page-container. */
+  body:has(.blog-post) {
+    --content-width: 64ch;
+  }
+</style>

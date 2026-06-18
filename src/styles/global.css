@@ -449,26 +449,22 @@ body {
     padding-block: calc(var(--base-unit) * 2);
 }
 
-/* Nested grid for blog posts with margin notes */
+/* Blog posts with margin notes: prose stays in the centered content column;
+   the notes aside lives in the page's right gutter (outer grid column 3). */
 .main-column.has-margin-notes {
-    display: grid;
-    grid-template-columns: minmax(min-content, var(--content-width)) minmax(150px, 200px);
-    gap: clamp(20px, 3vw, 40px);
-    max-width: calc(var(--content-width) + 240px);
-
-    .article-header {
-        grid-column: 1 / -1;
-    }
+    max-width: var(--content-width);
 
     article {
-        grid-column: 1;
         min-width: 0;
     }
 }
 
 .margin-column {
-    grid-column: 2;
+    grid-column: 3;
+    grid-row: 2;
     position: relative;
+    max-width: 240px;
+    padding-inline-start: clamp(20px, 2vw, 40px);
     padding-block-start: calc(var(--line-height) * 3);
 }
 
@@ -593,7 +589,6 @@ body {
 }
 
 .fr-active .main-column.has-margin-notes {
-    grid-template-columns: 1fr;
     max-width: var(--content-width);
 }
 
@@ -1478,11 +1473,7 @@ hr {
         hyphens: none;
     }
 
-    /* Margin notes: collapse to single column on mobile */
-    .main-column.has-margin-notes {
-        display: block;
-    }
-
+    /* Margin notes: hide the gutter aside, notes collapse to inline popovers */
     .margin-column {
         display: none;
     }
