@@ -163,4 +163,11 @@ const years = Object.keys(postsByYear).map(Number).sort((a, b) => b - a);
     padding-inline-start: 1.25em;
     border-inline-start: 1px solid var(--border-subtle);
   }
+
+  /* Mobile: bump post link vertical padding so tap targets reach ~44px */
+  @media (max-width: 640px) {
+    .home-page .home-post-link {
+      padding-block: calc(var(--line-height) * 0.4);
+    }
+  }
 </style>

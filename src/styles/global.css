@@ -324,6 +324,7 @@ body {
     display: inline-flex;
     align-items: center;
     gap: 5px;
+    white-space: nowrap;
 
     svg {
         width: 16px;
@@ -1432,10 +1433,25 @@ hr {
         --min-side-margin: 20px;
     }
 
+    /* Header: collapse the secondary nav links on phones so they don't wrap
+       and collide with the fixed gear button. Scoped to .site-header so the
+       homepage masthead nav (.home-nav, same link class) stays visible — it's
+       the homepage's only navigation. The logo still links home. */
+    .site-header .site-nav-link {
+        display: none;
+    }
+
+    /* Keep the logo link but give it enough vertical hit area */
+    .site-header-content {
+        min-height: 44px;
+        display: inline-flex;
+        align-items: center;
+    }
+
     .settings-toggle {
         inset-inline-end: 10px;
-        width: 40px;
-        height: 40px;
+        width: 44px;
+        height: 44px;
     }
 
     .page-container {
