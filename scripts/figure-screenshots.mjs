@@ -97,6 +97,8 @@ const FIGURE_SOURCES = {
     'src/lib/corpus-tokens',
   ],
   'virgil-reader-extension': ['public/images/figures/virgil-reader-extension.png'],
+  'deep-reading-minority': ['src/pages/literacy.html'],
+  'pisa-ladder': ['src/pages/pisa.html'],
   // `virgil` has no source mapping — it falls back to its registry images,
   // which are currently missing, so it is reported as such.
 };

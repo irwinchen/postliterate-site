@@ -104,5 +104,21 @@
     "images": [
       { "file": "media-v-intersubjective.png" }
     ]
+  },
+  {
+    "id": "deep-reading-minority",
+    "title": "The Deep-Reading Minority — Literacy vs Population",
+    "page": "/literacy",
+    "images": [
+      { "file": "deep-reading-minority.png" }
+    ]
+  },
+  {
+    "id": "pisa-ladder",
+    "title": "PISA Reading Proficiency — The Ladder",
+    "page": "/pisa",
+    "images": [
+      { "file": "pisa-ladder.png" }
+    ]
   }
 ]

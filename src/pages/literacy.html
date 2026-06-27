@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Deep-Reading Minority</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Literata:ital,opsz,wght@0,7..72,400;0,7..72,600;1,7..72,400&family=Sono:wght@400;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
+<style>
+  :root{ --bg:#F3EFE1; --ink:#1a1a1a; --muted:#6f6a5c; --red:#E53E33; --blue:#3B6DB4; --green:#549E44; --line:#cdc6b4; }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:'Outfit',system-ui,sans-serif;-webkit-font-smoothing:antialiased;padding:32px 24px 56px}
+  .wrap{max-width:1040px;margin:0 auto;position:relative}
+  h1{font-family:'Literata',serif;font-weight:600;font-size:26px;line-height:1.15;margin:0 0 4px}
+  .sub{font-size:14px;color:var(--muted);margin:0 0 14px;max-width:790px}
+  .toolbar{display:flex;align-items:center;gap:8px;margin:0 0 8px;font-size:12px;color:var(--muted)}
+  .toolbar button{font-family:'Outfit',sans-serif;font-size:13px;border:1px solid var(--line);background:#faf7ee;color:var(--ink);padding:3px 10px;cursor:pointer}
+  .toolbar button:hover{background:#fff}
+  svg.chart{width:100%;height:auto;display:block;background:transparent;touch-action:none}
+  text{font-family:'Outfit',sans-serif}
+  .axis{font-size:11px;fill:#6f6a5c}
+  .axis-title{font-size:12px;fill:#1a1a1a;font-weight:500}
+  .ms-label{font-size:10px;fill:#4a463c}
+  .ms-line{stroke:#bdb6a3;stroke-width:1;stroke-dasharray:3 3}
+  .grid{stroke:#cdc6b4;stroke-width:1}
+  .callout{font-size:11px;font-family:'Sono',monospace;fill:#4a463c}
+  .calloutm{font-size:10.5px;font-family:'Sono',monospace;fill:#8a8472}
+  .poptitle{font-size:10.5px;fill:#6f6a5c;font-weight:500}
+  .legend-row{display:flex;gap:22px;flex-wrap:wrap;margin:14px 0 6px;font-size:13px}
+  .legend-row .item{display:flex;align-items:center;gap:8px}
+  .sw{width:24px;height:15px;display:inline-block}
+  .sw.basic{background:rgba(59,109,180,.15);border-top:2.5px solid #3B6DB4}
+  .sw.deep{background:rgba(229,62,51,.22);border-top:2px solid #E53E33}
+  .sw.popdot{width:15px;height:15px;border-radius:50%;background:rgba(84,158,68,.38)}
+  .conf{display:flex;gap:20px;flex-wrap:wrap;font-size:12px;color:var(--muted);margin:0 0 4px}
+  .conf .item{display:flex;align-items:center;gap:7px}
+  .tooltip{position:absolute;pointer-events:none;background:#1a1a1a;color:#F3EFE1;font-size:12px;line-height:1.45;padding:9px 11px;max-width:300px;display:none;z-index:5}
+  .tooltip b{color:#fff;font-weight:600;font-family:'Literata',serif}
+  .tooltip div{font-family:'Sono',monospace;font-size:11px;margin-top:3px}
+  .tooltip .evd{font-family:'Outfit',sans-serif;font-size:11.5px;color:#e8e2d2;margin-top:5px;line-height:1.45}
+  .tooltip .k{color:#a8a08c}
+  .tooltip .pop{color:#9fd08f}.tooltip .basic{color:#9bbbe6}.tooltip .deep{color:#f2a39c}
+  .tooltip .tier{color:#cfc7b3;margin-top:5px;font-size:10px;text-transform:uppercase;letter-spacing:.04em}
+  .src-title{font-size:12px;font-weight:600;color:var(--ink);margin:22px 0 8px}
+  ul.sources{margin:0;padding-left:18px;font-size:11.5px;color:var(--muted);line-height:1.55;max-width:880px}
+  ul.sources li{margin-bottom:3px} ul.sources i{font-style:italic}
+  noscript{color:var(--red);font-size:13px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>The Deep-Reading Minority</h1>
+  <p class="sub">Basic literacy and deep-reading capacity, each as a share of total world population, from the invention of writing to today. Scroll or pinch to zoom, drag to pan. More historical events appear as you zoom in. The deep-reading line's stroke shows data confidence.</p>
+  <div class="toolbar">
+    <button id="zin">+</button><button id="zout">−</button><button id="zreset">Reset</button>
+    <span class="hint">scroll = zoom &nbsp;·&nbsp; drag = pan</span>
+  </div>
+  <noscript>This chart is interactive and needs JavaScript. Open the file in a web browser.</noscript>
+  <svg class="chart" id="chart" viewBox="0 0 1040 552" xmlns="http://www.w3.org/2000/svg" aria-label="Literacy vs world population chart"></svg>
+  <div class="tooltip" id="tip"></div>
+
+  <div class="legend-row">
+    <span class="item"><span class="sw basic"></span> Basic literacy, % of world</span>
+    <span class="item"><span class="sw deep"></span> Deep-reading capacity, % of world — band = low/high</span>
+    <span class="item"><span class="sw popdot" style="border-radius:0;background:rgba(84,158,68,.30);border-top:2px solid #549E44"></span> World population (area chart, billions)</span>
+  </div>
+  <div class="conf">
+    <span class="item"><svg width="34" height="6"><line x1="0" y1="3" x2="34" y2="3" stroke="#E53E33" stroke-width="2.2" stroke-dasharray="2 4"/></svg> modeled (pre-1820)</span>
+    <span class="item"><svg width="34" height="6"><line x1="0" y1="3" x2="34" y2="3" stroke="#E53E33" stroke-width="2.2" stroke-dasharray="7 5"/></svg> reconstructed (1820–1990)</span>
+    <span class="item"><svg width="34" height="6"><line x1="0" y1="3" x2="34" y2="3" stroke="#E53E33" stroke-width="2.2"/></svg> measured (PIAAC/PISA)</span>
+  </div>
+
+  <p class="src-title">Sources</p>
+  <ul class="sources">
+    <li>William V. Harris, <i>Ancient Literacy</i> (Harvard University Press, 1989).</li>
+    <li>Eltjo Buringh &amp; Jan Luiten van Zanden, "Charting the 'Rise of the West'," <i>Journal of Economic History</i> 69(2), 2009.</li>
+    <li>Jan Luiten van Zanden et al., <i>How Was Life?</i> (OECD, 2014); Our World in Data, "Literacy."</li>
+    <li>UNESCO, <i>World Illiteracy at Mid-Century</i> (1957) &amp; UNESCO Institute for Statistics; World Bank SE.ADT.LITR.ZS.</li>
+    <li>Jong-Wha Lee &amp; Hanol Lee, "Human Capital in the Long Run," <i>Journal of Development Economics</i> 122, 2016.</li>
+    <li>Lawrence Stone, <i>Past &amp; Present</i> 28, 1964; J. C. Russell, <i>Traditio</i> 2, 1944.</li>
+    <li>OECD, Survey of Adult Skills (PIAAC) Cycles 1 &amp; 2; OECD, PISA 2018 &amp; 2022 Results.</li>
+    <li>HYDE 3.x; McEvedy &amp; Jones, <i>Atlas of World Population History</i> (1978); UN World Population Prospects 2024.</li>
+  </ul>
+</div>
+<script>
+const CHART = [{"y":-3200,"lbl":"3200 BCE","basic":0,"pop":20000000,"dmid":0.0008,"dlo":0.0003,"dhi":0.0017,"tier":"modeled"},{"y":-1050,"lbl":"1050 BCE","basic":0.3,"pop":50000000,"dmid":0.0022,"dlo":0.0009,"dhi":0.005,"tier":"modeled"},{"y":-450,"lbl":"450 BCE","basic":0.75,"pop":115000000,"dmid":0.0125,"dlo":0.005,"dhi":0.0275,"tier":"modeled"},{"y":100,"lbl":"100 CE","basic":3,"pop":195000000,"dmid":0.02,"dlo":0.008,"dhi":0.044,"tier":"modeled"},{"y":1000,"lbl":"1000","basic":3,"pop":295000000,"dmid":0.03,"dlo":0.012,"dhi":0.066,"tier":"modeled"},{"y":1440,"lbl":"1440","basic":5.5,"pop":410000000,"dmid":0.04,"dlo":0.016,"dhi":0.088,"tier":"modeled"},{"y":1500,"lbl":"1500","basic":7,"pop":461000000,"dmid":0.0475,"dlo":0.019,"dhi":0.1045,"tier":"modeled"},{"y":1600,"lbl":"1600","basic":8,"pop":554000000,"dmid":0.0575,"dlo":0.023,"dhi":0.1265,"tier":"modeled"},{"y":1700,"lbl":"1700","basic":10,"pop":603000000,"dmid":0.0675,"dlo":0.027,"dhi":0.1485,"tier":"modeled"},{"y":1800,"lbl":"1800","basic":12,"pop":990000000,"dmid":0.0775,"dlo":0.031,"dhi":0.1705,"tier":"modeled"},{"y":1850,"lbl":"1850","basic":15.5,"pop":1263000000,"dmid":0.08,"dlo":0.032,"dhi":0.176,"tier":"modeled"},{"y":1900,"lbl":"1900","basic":21.4,"pop":1654000000,"dmid":0.0683,"dlo":0.0376,"dhi":0.1161,"tier":"reconstructed"},{"y":1920,"lbl":"1920","basic":31.6,"pop":1912000000,"dmid":0.1252,"dlo":0.0688,"dhi":0.2128,"tier":"reconstructed"},{"y":1950,"lbl":"1950","basic":38,"pop":2493000000,"dmid":0.4666,"dlo":0.2566,"dhi":0.7932,"tier":"reconstructed"},{"y":1970,"lbl":"1970","basic":63,"pop":3695000000,"dmid":0.8262,"dlo":0.4544,"dhi":1.4045,"tier":"reconstructed"},{"y":1990,"lbl":"1990","basic":74.6,"pop":5328000000,"dmid":2.0734,"dlo":1.1404,"dhi":3.5248,"tier":"reconstructed"},{"y":2000,"lbl":"2000","basic":81,"pop":6172000000,"dmid":2.8791,"dlo":1.5835,"dhi":4.8945,"tier":"reconstructed"},{"y":2011,"lbl":"2011","basic":85,"pop":7111000000,"dmid":3.3,"dlo":2.574,"dhi":4.62,"tier":"measured"},{"y":2018,"lbl":"2018","basic":86,"pop":7730000000,"dmid":3.6,"dlo":2.808,"dhi":5.04,"tier":"measured"},{"y":2025,"lbl":"2025","basic":87.5,"pop":8232000000,"dmid":4,"dlo":3.12,"dhi":5.6,"tier":"measured"}];
+const EVENTS = [{"year":-3200,"label":"Writing invented","priority":1,"desc":"Sumerian cuneiform and Egyptian hieroglyphs appear almost simultaneously, turning proto-writing into full record-keeping systems. Reading and writing are confined to a tiny class of trained scribes."},{"year":-1050,"label":"Phoenician alphabet","priority":2,"desc":"A 22-letter consonantal script — the first phonetic alphabet. Literacy stays under 1% of the population, but the time needed to learn to write drops sharply."},{"year":-740,"label":"Greek alphabet (vowels)","priority":3,"desc":"Greeks add vowels to the Phoenician script, producing the first true alphabet. Male literacy in Classical Athens later approaches roughly 10%."},{"year":-399,"label":"Socrates","priority":2,"desc":"Socrates, who wrote nothing himself, is tried and executed in Athens. His thought survives only because students such as Plato wrote it down."},{"year":-370,"label":"Phaedrus","priority":2,"desc":"In Plato's Phaedrus, Socrates argues that writing weakens memory and gives only the appearance of wisdom — an early case against the new technology of literacy."},{"year":-300,"label":"Library of Alexandria","priority":3,"desc":"The Alexandrian library systematises manuscript copying. Scroll prices near a month's wages help cap Mediterranean literacy at roughly 5–15%."},{"year":105,"label":"Cai Lun's paper","priority":2,"desc":"Cai Lun's rag paper in China undercuts the cost of silk and bamboo. Cheaper writing material slowly widens access to text across East Asia."},{"year":868,"label":"Diamond Sutra (woodblock)","priority":3,"desc":"The Diamond Sutra, the earliest dated woodblock-printed book, marks East Asia's shift toward print culture centuries before Europe."},{"year":1040,"label":"Bi Sheng movable type","priority":3,"desc":"Bi Sheng invents movable clay type in Song China. Civil-service examination texts help push male literacy toward 20–30% by 1500."},{"year":1150,"label":"Paper reaches Europe","priority":3,"desc":"Papermaking, carried west through the Islamic world, reaches Europe, lowering the cost of manuscripts in the centuries before print."},{"year":1440,"label":"Gutenberg","priority":1,"desc":"Gutenberg's metal movable type cuts book costs by around 90%. Within fifty years some 20 million volumes circulate in Europe."},{"year":1446,"label":"Hangul","priority":2,"desc":"Korea's King Sejong promulgates Hangul, a deliberately simple alphabet designed so that basic literacy could reach commoners, not just scholars."},{"year":1517,"label":"Reformation","priority":2,"desc":"Luther's Reformation makes reading scripture a religious duty. Protestant regions open schools and male literacy climbs toward 30–40%."},{"year":1530,"label":"Vernacular Bibles","priority":3,"desc":"Bibles printed in everyday languages spread reading beyond the Latin-literate clergy and into ordinary households."},{"year":1751,"label":"Encyclopédie","priority":3,"desc":"Diderot and d'Alembert's Encyclopédie embodies Enlightenment reading culture and the ideal of organised, accessible knowledge."},{"year":1850,"label":"Compulsory public schooling","priority":1,"desc":"Industrial states make schooling mandatory, creating for the first time a universal baseline of basic literacy across whole populations."},{"year":1852,"label":"Public Libraries Act","priority":3,"desc":"Britain's Public Libraries Act funds free public libraries, extending access to books beyond those who could afford to buy them."},{"year":1920,"label":"Bolshevik likbez","priority":2,"desc":"The Soviet 'likbez' campaigns mobilise mass adult-literacy instruction across the USSR through the 1920s and 1930s."},{"year":1950,"label":"PRC script reform","priority":2,"desc":"The People's Republic simplifies Chinese characters and launches literacy campaigns to raise a largely illiterate population."},{"year":1991,"label":"World Wide Web","priority":3,"desc":"The Web goes public. Global internet penetration rises from about 3% in 1995 to roughly 65% by 2023, shifting much reading onto screens."},{"year":1994,"label":"IALS adult-literacy survey","priority":3,"desc":"The International Adult Literacy Survey is the first cross-national attempt to measure adult reading proficiency, not merely basic literacy."},{"year":2000,"label":"PISA launched","priority":3,"desc":"The OECD's PISA begins testing 15-year-olds' reading, making proficiency — not just literacy — internationally comparable."},{"year":2007,"label":"Smartphone","priority":3,"desc":"The smartphone converges text, video and messaging in one always-on device, reshaping how — and how much — people read."},{"year":2018,"label":"PISA / PIAAC","priority":1,"desc":"Mature international assessment pegs top reading proficiency at roughly 7–12% of adults in wealthy countries."},{"year":2022,"label":"ChatGPT","priority":3,"desc":"ChatGPT reaches 100 million users in two months, raising the question of what reading and writing mean when machines generate the text."},{"year":2023,"label":"PIAAC Cycle 2","priority":3,"desc":"The second PIAAC cycle reaffirms that only about 12% of rich-country adults reach the highest adult-literacy levels."}];
+// Browser app. CHART and EVENTS are injected before this.
+// Layout: events timeline (top) · literacy chart (middle) · world-population area chart (bottom).
+(function(){
+  if (typeof d3 === 'undefined') return;
+  const W=1040, ML=64, MR=28, pw=W-ML-MR, n=CHART.length;
+  const EVY=24, ELY=[EVY+16, EVY+33];          // event timeline + 2 label rows
+  const MT=86, PH=292, MB=MT+PH;               // literacy plot
+  const PT=420, PPH=90, PB=PT+PPH;             // population panel
+  const YRY=PB+16;                             // year labels
+  const RANK={modeled:0,reconstructed:1,measured:2};
+  const DASH={0:"2,4",1:"7,5",2:null};
+  const popMax=d3.max(CHART,d=>d.pop);
+
+  const fp=v=>v>=1e9?(v/1e9).toFixed(2)+' billion':Math.round(v/1e6)+' million';
+  const svg=d3.select('#chart');
+  const x=d3.scaleLinear().domain([0,n-1]).range([0,pw]);
+  const yPct=d3.scaleLinear().domain([0,100]).range([MB,MT]);
+  const popY=d3.scaleLinear().domain([0,popMax*1.06]).range([PB,PT]);
+
+  function yearToIndex(Y){
+    if(Y<=CHART[0].y) return 0;
+    if(Y>=CHART[n-1].y) return n-1;
+    for(let k=0;k<n-1;k++){ if(CHART[k].y<=Y && Y<CHART[k+1].y) return k+(Y-CHART[k].y)/(CHART[k+1].y-CHART[k].y); }
+    return n-1;
+  }
+
+  const defs=svg.append('defs');
+  defs.append('clipPath').attr('id','plotclip').append('rect').attr('x',-2).attr('y',MT-1).attr('width',pw+4).attr('height',PH+2);
+  defs.append('clipPath').attr('id','popclip').append('rect').attr('x',-2).attr('y',PT-1).attr('width',pw+4).attr('height',PPH+2);
+  defs.append('clipPath').attr('id','evclip').append('rect').attr('x',-2).attr('y',0).attr('width',pw+4).attr('height',EVY+48);
+
+  const root=svg.append('g').attr('transform',`translate(${ML},0)`);
+  const gMainGrid=root.append('g').attr('clip-path','url(#plotclip)');
+  const gMain=root.append('g').attr('clip-path','url(#plotclip)');
+  const gPopGrid=root.append('g').attr('clip-path','url(#popclip)');
+  const gPop=root.append('g').attr('clip-path','url(#popclip)');
+  const gEv=root.append('g').attr('clip-path','url(#evclip)');
+  const gYMain=root.append('g');
+  const gYPop=root.append('g');
+  const gXAxis=root.append('g');
+
+  // static frames / titles
+  root.append('rect').attr('x',0).attr('y',MT).attr('width',pw).attr('height',PH).attr('fill','none').attr('stroke','#cdc6b4').attr('stroke-width',1);
+  root.append('line').attr('x1',0).attr('x2',pw).attr('y1',PT).attr('y2',PT).attr('stroke','#cdc6b4').attr('stroke-width',1);
+  root.append('line').attr('x1',0).attr('x2',pw).attr('y1',PB).attr('y2',PB).attr('stroke','#cdc6b4').attr('stroke-width',1);
+  gEv.append('line').attr('x1',0).attr('x2',pw).attr('y1',EVY).attr('y2',EVY).attr('stroke','#bdb6a3').attr('stroke-width',1);
+  root.append('text').attr('class','axis-title').attr('transform','rotate(-90)').attr('x',-(MT+PH/2)).attr('y',-44).attr('text-anchor','middle').text('% of total world population');
+  root.append('text').attr('class','axis-title').attr('transform','rotate(-90)').attr('x',-(PT+PPH/2)).attr('y',-44).attr('text-anchor','middle').text('world population');
+  root.append('text').attr('class','poptitle').attr('x',0).attr('y',12).text('Historical events — hover for detail');
+
+  const tip=document.getElementById('tip'), wrap=document.querySelector('.wrap');
+  function lodLevel(k){ return k<1.7?1 : k<3.2?2 : 3; }
+  function moveTip(e){ const r=wrap.getBoundingClientRect(); let tx=e.clientX-r.left+14, ty=e.clientY-r.top+14;
+    if(tx+tip.offsetWidth>r.width) tx=e.clientX-r.left-tip.offsetWidth-14; tip.style.left=tx+'px'; tip.style.top=ty+'px'; }
+  function showTip(html,e){ tip.innerHTML=html; tip.style.display='block'; moveTip(e); }
+  function hideTip(){ tip.style.display='none'; }
+
+  function upsertPath(g,cls,d,color,sw,op,mode){
+    let p=g.selectAll('path.'+cls).data([d]);
+    const pe=p.enter().append('path').attr('class',cls);
+    p=pe.merge(p).attr('d',v=>v);
+    if(mode==='fill'){ p.attr('fill',color).attr('fill-opacity',op).attr('stroke','none'); }
+    else { p.attr('fill','none').attr('stroke',color).attr('stroke-width',sw).attr('stroke-opacity',op); }
+  }
+
+  function render(t){
+    const zx=t.rescaleX(x), zy=t.rescaleY(yPct);
+    const xi=i=>zx(i), yv=v=>zy(v);
+    const inX=px=>px>=-1&&px<=pw+1;
+
+    // ---- LITERACY plot: y grid + labels
+    const yt=zy.ticks(6).filter(v=>v>=0&&v<=100);
+    const gl=gMainGrid.selectAll('line.grid').data(yt,d=>d);
+    gl.enter().append('line').attr('class','grid').merge(gl).attr('x1',0).attr('x2',pw).attr('y1',d=>yv(d)).attr('y2',d=>yv(d));
+    gl.exit().remove();
+    const yl=gYMain.selectAll('text.ya').data(yt,d=>d);
+    yl.enter().append('text').attr('class','ya axis').attr('text-anchor','end').merge(yl)
+      .attr('x',-9).attr('y',d=>yv(d)+4).attr('opacity',d=>{const py=yv(d);return py>=MT-2&&py<=MB+2?1:0;}).text(d=>d+'%');
+    yl.exit().remove();
+
+    // basic literacy
+    const area=d3.area().x((d,i)=>xi(i)).y0(yv(0)).y1(d=>yv(d.basic));
+    const line=d3.line().x((d,i)=>xi(i)).y(d=>yv(d.basic));
+    upsertPath(gMain,'basicArea',area(CHART),'#3B6DB4',null,0.15,'fill');
+    upsertPath(gMain,'basicLine',line(CHART),'#3B6DB4',2.5,1,'stroke');
+
+    // deep reading: area to clamped mid + band + tiered line
+    const floor=yv(0)-1;
+    const midPx=d=>Math.min(yv(d.dmid),floor);
+    upsertPath(gMain,'deepArea',d3.area().x((d,i)=>xi(i)).y0(yv(0)).y1(d=>midPx(d))(CHART),'#E53E33',null,0.22,'fill');
+    let bt='',bb='';
+    CHART.forEach((d,i)=>{ let hi=yv(d.dhi); if(yv(d.dlo)-hi<1.5){hi=midPx(d)-0.75;} bt+=(i?'L':'M')+xi(i)+' '+hi+' '; });
+    for(let i=n-1;i>=0;i--){ let lo=yv(CHART[i].dlo); if(lo-yv(CHART[i].dhi)<1.5){lo=midPx(CHART[i])+0.75;} bb+='L'+xi(i)+' '+lo+' '; }
+    upsertPath(gMain,'deepBand',bt+bb+'Z','#E53E33',null,0.13,'fill');
+    const segs=[];
+    for(let i=0;i<n-1;i++){ const r=Math.min(RANK[CHART[i].tier],RANK[CHART[i+1].tier]);
+      segs.push({d:`M ${xi(i)} ${midPx(CHART[i])} L ${xi(i+1)} ${midPx(CHART[i+1])}`,dash:DASH[r]}); }
+    const sg=gMain.selectAll('path.dseg').data(segs);
+    sg.enter().append('path').attr('class','dseg').attr('fill','none').attr('stroke','#E53E33').attr('stroke-width',2.2).merge(sg)
+      .attr('d',s=>s.d).attr('stroke-dasharray',s=>s.dash);
+    sg.exit().remove();
+
+    // modern callout
+    const cx=xi(n-1)-6;
+    const co=gMain.selectAll('g.callout-g').data(inX(cx)?[1]:[]);
+    co.exit().remove();
+    const coE=co.enter().append('g').attr('class','callout-g');
+    coE.append('line').attr('class','co-l').attr('stroke','#7a7468').attr('stroke-width',1).attr('stroke-dasharray','3 2');
+    coE.append('circle').attr('class','co-c').attr('r',3.4).attr('fill','#F3EFE1').attr('stroke','#1a1a1a').attr('stroke-width',1.5);
+    coE.append('text').attr('class','co-t1 callout').attr('text-anchor','end');
+    coE.append('text').attr('class','co-t2 calloutm').attr('text-anchor','end');
+    const coM=gMain.selectAll('g.callout-g');
+    coM.select('.co-l').attr('x1',cx).attr('y1',yv(12)).attr('x2',cx).attr('y2',yv(5));
+    coM.select('.co-c').attr('cx',cx).attr('cy',yv(12));
+    coM.select('.co-t1').attr('x',cx-9).attr('y',yv(12)+3).text('PIAAC L4/5 · rich-country adults ≈ 12% (measured)');
+    coM.select('.co-t2').attr('x',cx-9).attr('y',yv(12)+18).text('world deep-reading ≈ 3–5% (estimate)');
+
+    // ---- POPULATION area panel (own fixed y-scale, billions)
+    const pt=[0,2e9,4e9,6e9,8e9];
+    const pgl=gPopGrid.selectAll('line.pgrid').data(pt,d=>d);
+    pgl.enter().append('line').attr('class','pgrid grid').merge(pgl).attr('x1',0).attr('x2',pw).attr('y1',d=>popY(d)).attr('y2',d=>popY(d));
+    pgl.exit().remove();
+    const pll=gYPop.selectAll('text.pa').data(pt,d=>d);
+    pll.enter().append('text').attr('class','pa axis').attr('text-anchor','end').merge(pll)
+      .attr('x',-9).attr('y',d=>popY(d)+4).text(d=>d===0?'0':(d/1e9)+'B');
+    pll.exit().remove();
+    upsertPath(gPop,'popArea',d3.area().x((d,i)=>xi(i)).y0(popY(0)).y1(d=>popY(d.pop))(CHART),'#549E44',null,0.20,'fill');
+    upsertPath(gPop,'popLine',d3.line().x((d,i)=>xi(i)).y(d=>popY(d.pop))(CHART),'#549E44',2,1,'stroke');
+    const pdot=gPop.selectAll('circle.pdot').data(CHART);
+    pdot.enter().append('circle').attr('class','pdot').attr('r',2.4).attr('fill','#549E44').merge(pdot)
+      .attr('cx',(d,i)=>xi(i)).attr('cy',d=>popY(d.pop)).attr('display',(d,i)=>inX(xi(i))?null:'none');
+    pdot.exit().remove();
+
+    // ---- year labels (shared x), collision
+    const years=CHART.map((d,i)=>({lbl:d.lbl,px:xi(i)})).filter(o=>inX(o.px));
+    const xs=[]; let lastx=-1e9; years.forEach(o=>{ if(o.px-lastx>=58){ xs.push(o); lastx=o.px; } });
+    const xl=gXAxis.selectAll('text.xa').data(xs,o=>o.lbl);
+    xl.enter().append('text').attr('class','xa axis').attr('text-anchor','middle').merge(xl).attr('x',o=>o.px).attr('y',YRY).text(o=>o.lbl);
+    xl.exit().remove();
+
+    // ---- EVENTS timeline (top): diamonds + horizontal labels (2 rows) + rollover
+    const lvl=lodLevel(t.k);
+    let cand=EVENTS.filter(e=>e.priority<=lvl).map(e=>({year:e.year,label:e.label,desc:e.desc,px:xi(yearToIndex(e.year))}))
+                   .filter(e=>inX(e.px)).sort((a,b)=>a.px-b.px);
+    const lastR=[-1e9,-1e9], shown=[], pad=8;
+    cand.forEach(e=>{ e.w=e.label.length*5.6+8;
+      for(let lane=0;lane<2;lane++){ if(e.px-e.w/2>lastR[lane]+pad){ e.lane=lane; lastR[lane]=e.px+e.w/2; shown.push(e); break; } } });
+    const el=gEv.selectAll('g.ev').data(shown,e=>e.year);
+    const elE=el.enter().append('g').attr('class','ev').style('cursor','default')
+      .on('mouseover',function(ev,e){ showTip('<b>'+e.label+' · '+(e.year<0?(-e.year+' BCE'):e.year+(e.year<1000?' CE':''))+'</b><div class="evd">'+e.desc+'</div>',ev); })
+      .on('mousemove',moveTip).on('mouseout',hideTip);
+    elE.append('rect').attr('class','ev-hit').attr('fill','transparent');
+    elE.append('path').attr('class','ev-dia').attr('fill','#4a463c');
+    elE.append('line').attr('class','ev-lead').attr('stroke','#cdc6b4').attr('stroke-width',1);
+    elE.append('text').attr('class','ms-label').attr('text-anchor','middle');
+    const elM=elE.merge(el);
+    elM.select('.ev-hit').attr('x',e=>e.px-e.w/2-4).attr('y',EVY-7).attr('width',e=>e.w+8).attr('height',e=>(ELY[e.lane]+6)-(EVY-7));
+    elM.select('.ev-dia').attr('d',e=>`M ${e.px} ${EVY-4.5} L ${e.px+4.5} ${EVY} L ${e.px} ${EVY+4.5} L ${e.px-4.5} ${EVY} Z`);
+    elM.select('.ev-lead').attr('x1',e=>e.px).attr('x2',e=>e.px).attr('y1',EVY+5).attr('y2',e=>ELY[e.lane]-9);
+    elM.select('text').attr('x',e=>e.px).attr('y',e=>ELY[e.lane]).text(e=>e.label);
+    el.exit().remove();
+  }
+
+  // zoom over the chart body (literacy + population); population rollover via mousemove
+  // bound pan to the data: x = full time span, y = 0%..100% (cannot pan past the axes)
+  const zoom=d3.zoom().scaleExtent([1,60]).translateExtent([[0,MT],[pw,MB]]).extent([[0,MT],[pw,MB]])
+    .on('zoom',e=>{ current=e.transform; render(current); });
+  let current=d3.zoomIdentity;
+  const overlay=root.append('rect').attr('x',0).attr('y',MT).attr('width',pw).attr('height',PB-MT)
+    .attr('fill','transparent').style('cursor','grab');
+  overlay.call(zoom);
+  overlay.on('mousemove',function(e){
+    const [mx,my]=d3.pointer(e,this);
+    if(my>=PT && my<=PB){
+      const zx=current.rescaleX(x); let i=Math.round(zx.invert(mx)); i=Math.max(0,Math.min(n-1,i));
+      const d=CHART[i];
+      showTip('<b>'+d.lbl+'</b><div class="pop"><span class="k">world population</span>  '+fp(d.pop)+'</div>',e);
+    } else hideTip();
+  });
+  overlay.on('mouseleave',hideTip);
+
+  document.getElementById('zin').onclick =()=>overlay.transition().call(zoom.scaleBy,1.6);
+  document.getElementById('zout').onclick=()=>overlay.transition().call(zoom.scaleBy,1/1.6);
+  document.getElementById('zreset').onclick=()=>overlay.transition().call(zoom.transform,d3.zoomIdentity);
+
+  render(current);
+})();
+
+</script>
+</body>
+</html>

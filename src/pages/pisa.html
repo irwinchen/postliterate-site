@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PISA Reading Proficiency — The Ladder</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Literata:ital,wght@0,400;0,500;0,600;1,400&family=Sono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #F3EFE1;
+    --ink: #1a1a1a;
+    --ink-soft: #4a4a4a;
+    --ink-faint: #6b6b6b;
+    --rule: #cfcabb;
+    --panel: #FFFFFF;
+    --panel-alt: #F8F4E5;
+    --red: #E53E33;
+    --blue: #3B6DB4;
+    --green: #549E44;
+    --grey: #9E9E9E;
+    --sans: 'Outfit', sans-serif;
+    --serif: 'Literata', serif;
+    --mono: 'Sono', monospace;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--serif);
+    line-height: 1.5;
+  }
+  .wrap { max-width: 1280px; margin: 0 auto; padding: 40px 32px 80px; }
+
+  /* ---------- Header ---------- */
+  header h1 { font-family: var(--sans); font-weight: 700; font-size: 30px; }
+  header .sub { font-family: var(--serif); font-style: italic; color: var(--ink-soft); font-size: 15px; margin-top: 6px; max-width: 70ch; }
+
+  /* ---------- Controls ---------- */
+  .controls {
+    display: flex; flex-wrap: wrap; align-items: center; gap: 16px;
+    margin: 28px 0 24px; padding: 12px 0; border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule);
+  }
+  .mode-btn {
+    font-family: var(--sans); font-weight: 600; font-size: 14px;
+    background: var(--panel); color: var(--ink); border: 1px solid var(--ink);
+    padding: 8px 18px; cursor: pointer;
+  }
+  .mode-btn.active { background: var(--ink); color: var(--bg); }
+  .toggle-label {
+    font-family: var(--sans); font-size: 14px; font-weight: 500;
+    display: flex; align-items: center; gap: 8px; cursor: pointer; user-select: none;
+  }
+  .toggle-label input { width: 16px; height: 16px; accent-color: var(--red); cursor: pointer; }
+  .controls .spacer { flex: 1; }
+  .keyhint { font-family: var(--mono); font-size: 11px; color: var(--ink-faint); }
+
+  /* ---------- Layout grid ---------- */
+  .layout { display: grid; grid-template-columns: 380px 1fr; gap: 36px; align-items: start; }
+
+  /* ---------- Ladder ---------- */
+  .ladder { position: sticky; top: 16px; }
+  .ladder-head {
+    font-family: var(--sans); font-weight: 600; font-size: 12px;
+    letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-faint);
+    margin-bottom: 10px;
+  }
+  .rung {
+    display: grid; grid-template-columns: 78px 1fr 56px; gap: 10px; align-items: center;
+    width: 100%; text-align: left;
+    background: var(--panel); border: 1px solid var(--rule); border-left: 6px solid var(--grey);
+    padding: 9px 12px; margin-bottom: 4px; cursor: pointer;
+    font-family: var(--sans);
+  }
+  .rung:nth-child(even) { background: var(--panel-alt); }
+  .rung:hover { border-color: var(--ink); }
+  .rung.selected { outline: 2px solid var(--ink); outline-offset: -2px; }
+  .rung .lvl { font-weight: 600; font-size: 15px; }
+  .rung .pts { display: block; font-family: var(--mono); font-size: 10px; color: var(--ink-faint); font-weight: 400; }
+  .rung .bar-track { display: block; height: 14px; background: transparent; position: relative; }
+  .rung .bar { display: block; height: 14px; background: var(--grey); }
+  .rung .pct { font-family: var(--mono); font-size: 13px; font-weight: 600; text-align: right; }
+  .rung .item-dot { font-family: var(--mono); font-size: 9px; color: var(--ink-faint); display: block; }
+
+  /* Morais tints */
+  body.morais .rung[data-morais="creative"]      { border-left-color: var(--blue);  }
+  body.morais .rung[data-morais="argumentative"] { border-left-color: var(--red);   }
+  body.morais .rung[data-morais="productive"]    { border-left-color: var(--green); }
+  body.morais .rung[data-morais="creative"] .bar      { background: var(--blue); }
+  body.morais .rung[data-morais="argumentative"] .bar { background: var(--red); }
+  body.morais .rung[data-morais="productive"] .bar    { background: var(--green); }
+  .morais-note {
+    display: none; margin-top: 14px; padding: 12px 14px;
+    border: 2px solid var(--red); background: var(--panel);
+    font-family: var(--serif); font-size: 13px;
+  }
+  body.morais .morais-note { display: block; }
+  .morais-legend { display: none; margin-top: 10px; font-family: var(--sans); font-size: 11px; color: var(--ink-soft); }
+  body.morais .morais-legend { display: flex; gap: 14px; flex-wrap: wrap; }
+  .morais-legend span::before { content: ""; display: inline-block; width: 10px; height: 10px; margin-right: 5px; }
+  .morais-legend .lg-creative::before { background: var(--blue); }
+  .morais-legend .lg-arg::before { background: var(--red); }
+  .morais-legend .lg-prod::before { background: var(--green); }
+  .morais-legend .lg-below::before { background: var(--grey); }
+
+  /* ---------- Detail panel ---------- */
+  .detail { min-width: 0; }
+  .detail h2 { font-family: var(--sans); font-weight: 700; font-size: 24px; }
+  .detail .meta-line { font-family: var(--mono); font-size: 13px; color: var(--ink-soft); margin: 4px 0 14px; }
+  .descriptor {
+    background: var(--panel); border: 1px solid var(--rule);
+    padding: 14px 18px; font-size: 15px; margin-bottom: 22px;
+  }
+  .descriptor .dlabel {
+    font-family: var(--sans); font-weight: 600; font-size: 11px; letter-spacing: 0.08em;
+    text-transform: uppercase; color: var(--ink-faint); display: block; margin-bottom: 6px;
+  }
+
+  .no-item {
+    border: 1px dashed var(--grey); padding: 16px 18px; background: var(--panel-alt);
+    font-size: 14px; color: var(--ink-soft);
+  }
+  .no-item strong { font-family: var(--sans); }
+
+  /* ---------- Item block ---------- */
+  .item-block { border: 1px solid var(--rule); background: var(--panel); }
+  .item-head {
+    display: flex; flex-wrap: wrap; gap: 6px 18px; align-items: baseline;
+    padding: 10px 18px; border-bottom: 1px solid var(--rule); background: var(--panel-alt);
+  }
+  .item-head .tag { font-family: var(--mono); font-size: 11px; color: var(--ink-soft); }
+  .item-head .tag b { color: var(--ink); font-weight: 600; }
+
+  .stim-tabs { display: flex; gap: 0; border-bottom: 1px solid var(--rule); }
+  .stim-tab {
+    font-family: var(--sans); font-size: 13px; font-weight: 500;
+    padding: 8px 16px; border: none; border-right: 1px solid var(--rule);
+    background: var(--panel-alt); cursor: pointer; color: var(--ink-soft);
+  }
+  .stim-tab.active { background: var(--panel); color: var(--ink); font-weight: 600; }
+
+  .stimulus {
+    max-height: 340px; overflow-y: auto; padding: 18px 22px;
+    border-bottom: 1px solid var(--rule); font-size: 14px;
+  }
+  .stimulus h3 { font-family: var(--sans); font-size: 15px; font-weight: 600; margin-bottom: 4px; }
+  .stimulus .stim-src { font-family: var(--mono); font-size: 10px; color: var(--ink-faint); margin-bottom: 12px; }
+  .stimulus p { margin-bottom: 12px; }
+  .stimulus .post { border-top: 1px solid var(--rule); padding-top: 10px; margin-top: 10px; }
+  .stimulus .post .who { font-family: var(--sans); font-weight: 600; font-size: 13px; }
+  .stimulus .post .when { font-family: var(--mono); font-size: 10px; color: var(--ink-faint); margin-left: 8px; }
+  .stim-note { font-family: var(--sans); font-size: 11px; color: var(--ink-faint); padding: 8px 22px; border-bottom: 1px solid var(--rule); }
+
+  .question { padding: 18px 22px; }
+  .question .qlabel {
+    font-family: var(--sans); font-weight: 600; font-size: 11px; letter-spacing: 0.08em;
+    text-transform: uppercase; color: var(--ink-faint); display: block; margin-bottom: 8px;
+  }
+  .question .qtext { font-size: 15px; font-weight: 500; margin-bottom: 14px; }
+
+  .opt { display: block; margin-bottom: 8px; cursor: pointer; font-size: 14px; }
+  .opt input { accent-color: var(--ink); margin-right: 8px; }
+
+  table.resp { border-collapse: collapse; width: 100%; margin-bottom: 14px; font-size: 13px; }
+  table.resp th, table.resp td { border: 1px solid var(--rule); padding: 7px 10px; text-align: left; }
+  table.resp th { font-family: var(--sans); font-size: 12px; background: var(--panel-alt); }
+  table.resp td.choice { text-align: center; width: 70px; }
+  table.resp td.choice input { accent-color: var(--ink); }
+
+  textarea.open-resp {
+    width: 100%; min-height: 70px; border: 1px solid var(--rule); background: var(--panel-alt);
+    font-family: var(--serif); font-size: 14px; padding: 10px; margin-bottom: 14px; resize: vertical;
+  }
+
+  .check-btn {
+    font-family: var(--sans); font-weight: 600; font-size: 14px;
+    background: var(--ink); color: var(--bg); border: none; padding: 9px 20px; cursor: pointer;
+  }
+  .check-btn:disabled { background: var(--grey); cursor: default; }
+
+  .result { margin-top: 16px; padding: 14px 16px; border: 2px solid var(--ink); font-size: 14px; display: none; }
+  .result.show { display: block; }
+  .result .verdict { font-family: var(--sans); font-weight: 700; font-size: 15px; }
+  .result .verdict.ok { color: var(--green); }
+  .result .verdict.no { color: var(--red); }
+  .result .verdict.partial { color: var(--blue); }
+  .result .why { margin-top: 8px; color: var(--ink-soft); }
+  .result .reveal-stats { margin-top: 10px; font-family: var(--sans); font-size: 14px; }
+  .result .reveal-stats b { color: var(--red); }
+  .coding-guide { margin-top: 10px; font-size: 13px; }
+  .coding-guide ul { margin: 6px 0 0 20px; }
+
+  .item-cite { padding: 10px 22px 14px; font-family: var(--mono); font-size: 10px; color: var(--ink-faint); border-top: 1px solid var(--rule); }
+
+  /* ---------- Blind mode ---------- */
+  .blind-bar {
+    display: none; font-family: var(--sans); font-size: 14px; margin-bottom: 16px;
+    padding: 10px 14px; background: var(--ink); color: var(--bg);
+  }
+  body.blind .blind-bar { display: flex; justify-content: space-between; align-items: center; }
+  body.blind .ladder { display: none; }
+  body.blind .layout { grid-template-columns: 1fr; }
+  .blind-next {
+    font-family: var(--sans); font-weight: 600; font-size: 13px;
+    background: var(--bg); color: var(--ink); border: none; padding: 6px 14px; cursor: pointer;
+  }
+  body.blind .item-head .tag.hide-blind { visibility: hidden; }
+
+  /* ---------- Footer ---------- */
+  footer { margin-top: 48px; border-top: 1px solid var(--rule); padding-top: 18px; font-size: 12px; color: var(--ink-faint); }
+  footer .pivot { font-family: var(--sans); font-weight: 600; color: var(--ink); font-size: 13px; margin-bottom: 6px; }
+  footer p { margin-bottom: 8px; max-width: 100ch; }
+
+  /* ---------- Mobile ---------- */
+  @media (max-width: 900px) {
+    .layout { grid-template-columns: 1fr; }
+    .ladder { position: static; }
+    .ladder-rungs { display: flex; overflow-x: auto; gap: 4px; padding-bottom: 6px; }
+    .rung { grid-template-columns: 1fr; min-width: 104px; gap: 4px; }
+    .rung .bar-track { display: none; }
+    .rung .pct { text-align: left; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <h1>Reading literacy: what each PISA level actually asks</h1>
+    <p class="sub">Eight measured proficiency tiers, the share of OECD 15-year-olds at each in 2022 — and, where the OECD has released them, the real test items that define the rungs. Select a level, read the task, try it.</p>
+  </header>
+
+  <div class="controls">
+    <button class="mode-btn active" id="btnExplore">Explore by level</button>
+    <button class="mode-btn" id="btnBlind">Blind test</button>
+    <label class="toggle-label"><input type="checkbox" id="moraisToggle"> Morais (2018) overlay</label>
+    <div class="spacer"></div>
+    <span class="keyhint">Blind test: answer first, see the level after.</span>
+  </div>
+
+  <div class="blind-bar">
+    <span id="blindProgress">Item 1 of 6</span>
+    <span>Answer the question, then the level is revealed.</span>
+    <button class="blind-next" id="blindNext" disabled>Next item</button>
+  </div>
+
+  <div class="layout">
+    <aside class="ladder" id="ladder">
+      <div class="ladder-head">PISA 2022 reading scale — % of OECD 15-year-olds at each level</div>
+      <div class="ladder-rungs" id="ladderRungs"></div>
+      <div class="morais-legend">
+        <span class="lg-creative">Creative (components)</span>
+        <span class="lg-arg">Argumentative</span>
+        <span class="lg-prod">Productive</span>
+        <span class="lg-below">Below productive</span>
+      </div>
+      <div class="morais-note">
+        Morais's <strong>argumentative literacy</strong> aligns with <strong>PISA Level 4</strong>: 24% of OECD 15-year-olds reached it in 2022, down from 29% in 2015. PISA's own "baseline" (Level 2) sits two rungs below that threshold.
+      </div>
+    </aside>
+
+    <section class="detail" id="detail"></section>
+  </div>
+
+  <footer>
+    <p class="pivot">The empirical pivot: argumentative literacy (Morais's Level 2) maps to PISA Level 4. 24% of OECD 15-year-olds reached Level 4 or above in 2022.</p>
+    <p>Percentages and score thresholds: OECD (2023), <em>PISA 2022 Results (Volume I)</em>, Tables I.3.3 and I.B1.3.2, OECD average. Level descriptors paraphrased from the same volume.</p>
+    <p>Test items, difficulty calibrations, and item commentary: OECD/ETS (2019), <em>PISA 2018 Released Field Trial and Main Survey New Reading Items</em> (CY7_TST_PISA2018_Released_New_REA_Items_V2), oecd.org. Stimulus texts and questions are reproduced from that document; the original computer-based presentation (scrolling, tabbed sources, fixed item pane) differs from this page, and calibrated difficulty applies to the original presentation. Rapa Nui was administered in the 2018 main survey; Chicken Forum items come from the field trial.</p>
+    <p>Level mapping: Morais, J. (2018), "Literacy and democracy," <em>Language, Cognition and Neuroscience</em>.</p>
+  </footer>
+</div>
+
+<script>
+// ============================================================
+// DATA — all items from OECD/ETS (2019) PISA 2018 released items.
+// Difficulty scores and levels as printed in that document.
+// Percentages: OECD (2023) PISA 2022 Vol. I, OECD average.
+// ============================================================
+
+const STIMULI = {
+  forum: {
+    tabs: [{
+      id: "forum", label: "Chicken Health Forum",
+      html: `
+        <h3>Chicken Health — Forum: "Giving Aspirin to Chickens"</h3>
+        <div class="stim-src">www.chickenhealth.com/forum/aspirin-chickens (fictional site created for PISA)</div>
+        <div class="post"><span class="who">Ivana_88 — THREAD STARTER</span><span class="when">Posted 28 October 18:12</span>
+          <p>Hello everyone!<br>Is it okay to give aspirin to my hen? She is 2 years old and I think she hurt her leg. I can't get to the veterinarian until Monday, and the vet isn't answering the phone. My hen seems to be in a lot of pain. I'd like to give her something to make her feel better until I can go to the vet. Thank you for your help.</p></div>
+        <div class="post"><span class="who">NellieB79</span><span class="when">Posted 28 October 18:36</span>
+          <p>I don't know if aspirin is safe for hens or not. I always check with my vet before giving my birds medicine. I know that some drugs that are safe for humans can be very dangerous for birds.</p></div>
+        <div class="post"><span class="who">Monie</span><span class="when">Posted 28 October 18:52</span>
+          <p>I gave an aspirin to one of my hens when she was hurt. There was no problem. The next day I went to the vet but she was already better. I think it might be dangerous if you give too much, so don't exceed the dose limits! I hope she feels better!</p></div>
+        <div class="post"><span class="who">Avian_Deals</span><span class="when">Posted 28 October 19:07</span>
+          <p>Hi! Don't forget to check out my super low deals on all bird supplies. I'm having a great sale right now!</p></div>
+        <div class="post"><span class="who">Bob</span><span class="when">Posted 28 October 19:15</span>
+          <p>Can someone please tell me how to know if a chicken is sick? Thanks.</p></div>
+        <div class="post"><span class="who">Frank</span><span class="when">Posted 28 October 19:21</span>
+          <p>Hello Ivana,<br>I am a veterinarian, specializing in birds. It is okay to give injured chickens aspirin if they are showing signs that they are in pain. When prescribing aspirin to birds, I follow the guidelines published in Clinical Avian Medicine. Chickens should receive 5mg of aspirin per kg of body weight. You can give this 3–4 times per day until you can see your veterinarian. It is very important to follow up with your vet. Good luck!</p></div>`
+    }]
+  },
+  rapanui_blog: {
+    tabs: [{
+      id: "blog", label: "The Professor's Blog",
+      html: `
+        <h3>The Professor's Blog</h3>
+        <div class="stim-src">www.theprofessorblog.com/fieldwork/RapaNui (fictional site created for PISA) — Posted May 23, 11:22 a.m.</div>
+        <p>As I look out of my window this morning, I see the landscape I have learned to love here on Rapa Nui, which is known in some places by the name Easter Island. The grasses and shrubs are green, the sky is blue, and the old, now extinct volcanoes rise up in the background.</p>
+        <p>I am a bit sad knowing that this is my last week on the island. I have finished my field work and will be returning home. Later today, I will take a walk through the hills and say good-bye to the moai that I have been studying for the past nine months. Here is a picture of some of these massive statues. <em>[photo of moai]</em></p>
+        <p>If you have been following my blog this year, then you know that the people of Rapa Nui carved these moai hundreds of years ago. These impressive moai had been carved in a single quarry on the eastern part of the island. Some of them weighed thousands of kilos, yet the people of Rapa Nui were able to move them to locations far away from the quarry without cranes or any heavy equipment.</p>
+        <p>For years, archeologists did not know how these massive statues were moved. It remained a mystery until the 1990s, when a team of archeologists and residents of Rapa Nui demonstrated that the moai could have been transported and raised using ropes made from plants and wooden rollers and tracks made from large trees that had once thrived on the island. The mystery of the moai was solved.</p>
+        <p>Another mystery remained, however. What happened to these plants and large trees that had been used to move the moai? As I said, when I look out of my window, I see grasses and shrubs and a small tree or two, but nothing that could have been used to move these huge statues. It is a fascinating puzzle, one that I will explore in future posts and lectures. Until then, you may wish to investigate the mystery yourself. I suggest you begin with a book called <em>Collapse</em> by Jared Diamond. <u>This review of Collapse is a good place to start.</u></p>
+        <div class="post"><span class="who">Traveler_14</span><span class="when">May 24, 4:31 p.m.</span>
+          <p>Hi Professor! I love following your work on Easter Island. I can't wait to check out <em>Collapse</em>!</p></div>
+        <div class="post"><span class="who">KB_Island</span><span class="when">May 25, 9:07 a.m.</span>
+          <p>I also love reading about your experiences on Easter Island, however, I think there is another theory that should be considered. Check out this article: <u>www.sciencenews.com/Polynesian_rats_Rapa_Nui</u></p></div>`
+    }]
+  },
+  rapanui_blog_review: {
+    tabs: [
+      { id: "blog", label: "Blog", html: null /* filled from rapanui_blog at runtime */ },
+      { id: "review", label: "Book Review",
+        html: `
+        <h3>Review of <em>Collapse</em></h3>
+        <div class="stim-src">www.academicbookreview.com/Collapse (fictional site created for PISA)</div>
+        <p>Jared Diamond's new book, <em>Collapse</em>, is a clear warning about the consequences of damaging our environment. In the book, the author describes several civilizations that collapsed because of the choices they made and their impact on the environment. One of the most disturbing examples in the book is Rapa Nui.</p>
+        <p>According to the author, Rapa Nui was settled by Polynesians sometime after 700 CE. They developed a thriving society of, perhaps, 15,000 people. They carved the moai, the famous statues, and used the natural resources available to them to move these huge moai to different locations around the island. When the first Europeans landed on Rapa Nui in 1722, the moai were still there, but the trees were gone. The population was down to a few thousand people who were struggling to survive. Mr. Diamond writes that the people of Rapa Nui cleared the land for farming and other purposes and that they over-hunted the numerous species of sea and land birds that had lived on the island. He speculates that the dwindling natural resources led to civil wars and the collapse of Rapa Nui's society.</p>
+        <p>The lesson of this wonderful but frightening book is that in the past, humans made the choice to destroy their environment by cutting down all the trees and hunting animal species to extinction. Optimistically, the author points out, we can choose <strong>not</strong> to make the same mistakes today. The book is written well and deserves to be read by anyone who is concerned about the environment.</p>` }
+    ]
+  }
+};
+
+const ITEMS = {
+  "1b": {
+    unit: "Chicken Forum (CR548)", itemId: "CR548Q02", process: "Represent literal meaning",
+    format: "Simple multiple choice", difficulty: 328, stimulus: "forum",
+    qtext: "What does Ivana_88 want to know?",
+    type: "mc",
+    options: [
+      "If she can give aspirin to an injured hen.",
+      "How often she can give aspirin to an injured hen.",
+      "How to contact a veterinarian about an injured hen.",
+      "If she can determine the pain level of an injured hen."
+    ],
+    correct: 0,
+    why: "A near-literal match: the answer paraphrases the opening question of the first post. ETS classifies the small step from “Is it okay to give aspirin…” to “If she can give aspirin…” as what pushes this above pure retrieval."
+  },
+  "1a": {
+    unit: "Chicken Forum (CR548)", itemId: "CR548Q03", process: "Integrate and generate inferences",
+    format: "Simple multiple choice", difficulty: 357, stimulus: "forum",
+    qtext: "Why does Ivana_88 decide to post her question on an Internet forum?",
+    type: "mc",
+    options: [
+      "Because she doesn't know how to find a veterinarian.",
+      "Because she thinks the hen's problem isn't serious.",
+      "Because she wants to help her hen as soon as possible.",
+      "Because she cannot afford to go to the veterinarian."
+    ],
+    correct: 2,
+    why: "The post never states the reason. The reader must combine “I can't get to the veterinarian until Monday,” “the vet isn't answering,” and “my hen seems to be in a lot of pain” into a single inference."
+  },
+  "2": {
+    unit: "Chicken Forum (CR548)", itemId: "CR548Q01", process: "Reflect on content and form",
+    format: "Complex multiple choice (all 5 rows required)", difficulty: 458, stimulus: "forum",
+    qtext: "Some posts on a forum can be relevant to the topic while some posts are not. Is each post in the table below relevant to Ivana_88's problem?",
+    type: "table",
+    cols: ["Yes", "No"],
+    rows: ["NellieB79's post", "Monie's post", "Avian_Deals' post", "Bob's post", "Frank's post"],
+    correct: [0, 0, 1, 1, 0],
+    credit: { full: 5 },
+    why: "Each post must be read, understood, and then judged against the thread topic. Holding the topic in mind while evaluating five separate authors is what lifts this to PISA's “baseline” level."
+  },
+  "3": {
+    unit: "Rapa Nui (CR551)", itemId: "CR551Q05", process: "Represent literal meaning",
+    format: "Open response — human coded", difficulty: 513, stimulus: "rapanui_blog",
+    qtext: "In the last paragraph of the blog, the professor writes: “Another mystery remained…” To what mystery does she refer?",
+    type: "open",
+    coding: {
+      label: "Full credit (Main Survey coding guide)",
+      rule: "Responses refer to the disappearance of the materials used to move the statues (moai).",
+      examples: [
+        "“What happened to these plants and large trees that had been used to move the moai?” (direct quotation)",
+        "There are no large trees left that could have moved the moai.",
+        "Where are the large trees?",
+        "What happened to the resources that were needed to transport the statues?"
+      ]
+    },
+    why: "The answer is stated in the text, but the blog contains a competing, already-solved mystery (how the moai were moved). The reader has to track which mystery is which across paragraphs."
+  },
+  "4": {
+    unit: "Rapa Nui (CR551)", itemId: "CR551Q01", process: "Access and retrieve information within a text",
+    format: "Simple multiple choice", difficulty: 559, stimulus: "rapanui_blog",
+    qtext: "According to the blog, when did the professor start her field work?",
+    type: "mc",
+    options: [
+      "During the 1990s.",
+      "Nine months ago.",
+      "One year ago.",
+      "At the beginning of May."
+    ],
+    correct: 1,
+    why: "A retrieval question that lands at Level 4. The blog contains several competing time references — the posting date (May 23), the 1990s (when the first mystery was solved), and “this year.” Only “the past nine months” answers the question asked. Distinguishing the relevant time expression from plausible distractors is the difficulty driver."
+  },
+  "5": {
+    unit: "Rapa Nui (CR551)", itemId: "CR551Q06", process: "Reflect on content and form",
+    format: "Complex multiple choice (5/5 full credit, 4/5 partial)", difficulty: 654, stimulus: "rapanui_blog_review",
+    qtext: "Listed below are statements from the Review of Collapse. Are these statements facts or opinions?",
+    type: "table",
+    cols: ["Fact", "Opinion"],
+    rows: [
+      "In the book, the author describes several civilizations that collapsed because of the choices they made and their impact on the environment.",
+      "One of the most disturbing examples in the book is Rapa Nui.",
+      "They carved the moai, the famous statues, and used the natural resources available to them to move these huge moai to different locations around the island.",
+      "When the first Europeans landed on Easter Island in 1722, the moai were still there, but the trees were gone.",
+      "The book is written well and deserves to be read by anyone who is concerned about the environment."
+    ],
+    correct: [0, 1, 0, 0, 1],
+    credit: { full: 5, partial: 4 },
+    why: "Each statement must be judged on how it is presented, separate from what it says — “most disturbing” and “deserves to be read” signal the reviewer's perspective; the rest report the book's content. Fewer than 7% of OECD 15-year-olds work reliably at this level."
+  }
+};
+
+const LEVELS = [
+  { id: "6", name: "Level 6", pts: "≥698 pts", pct: 1.2, cum: "1.2%", morais: "creative",
+    desc: "Comprehend lengthy, abstract texts; resolve conflicts between texts; assess the validity of sources using criteria external to the text.",
+    item: null,
+    noItem: "The OECD released no calibrated Level 6 reading item from the 2018 cycle. The hardest released item (CR551Q10, integrating cause-and-effect claims across three sources, difficulty 665) sits high in Level 5 — Level 6 begins at 698." },
+  { id: "5", name: "Level 5", pts: "≥626 pts", pct: 6.0, cum: "7.2%", morais: "creative",
+    desc: "Distinguish fact from opinion; assess neutrality and bias; draw conclusions about the reliability of claims.",
+    item: "5" },
+  { id: "4", name: "Level 4", pts: "≥553 pts", pct: 17, cum: "24%", morais: "argumentative",
+    desc: "Interpret nuance; evaluate text using formal or public knowledge; handle long, unfamiliar, multi-source texts.",
+    item: "4" },
+  { id: "3", name: "Level 3", pts: "≥480 pts", pct: 25, cum: "49%", morais: "productive",
+    desc: "Integrate parts of a text; identify the main idea; understand a text in relation to familiar, everyday knowledge.",
+    item: "3" },
+  { id: "2", name: "Level 2", pts: "≥407 pts", pct: 24, cum: "73%", morais: "below",
+    desc: "PISA's “baseline.” Identify the main idea in a text of moderate length; make basic inferences; reflect on a text when explicitly cued.",
+    item: "2" },
+  { id: "1a", name: "Level 1a", pts: "≥335 pts", pct: 17, cum: "90%", morais: "below",
+    desc: "Understand the literal meaning of short passages on familiar topics; make simple connections.",
+    item: "1a" },
+  { id: "1b", name: "Level 1b", pts: "≥262 pts", pct: 8, cum: "98%", morais: "below",
+    desc: "Locate explicitly stated information in short texts; recognize the main theme of very simple material.",
+    item: "1b" },
+  { id: "1c", name: "Level 1c", pts: "≥189 pts", pct: 2, cum: "99.8%", morais: "below",
+    desc: "Minimal reading literacy: locate a single piece of explicitly stated information in a short, simple text. Added to the scale in 2018.",
+    item: null,
+    noItem: "No calibrated stand-alone item was released at this level. PISA 2018 measured the lowest proficiencies partly through a reading-fluency task: three minutes to judge whether sentences make sense (“The red car had a flat tire.” — Yes/No). Those sentence items fell at Levels 1c and 1b." },
+  { id: "below", name: "Below 1c", pts: "<189 pts", pct: 0.2, cum: "100%", morais: "below",
+    desc: "Below all measured proficiencies in PISA reading.",
+    item: null,
+    noItem: "By definition, no items sit below the measured scale." }
+];
+
+// Blind test: real items, shuffled so difficulty order carries no signal.
+const BLIND_ORDER = ["4", "1b", "5", "1a", "3", "2"];
+
+// ============================================================
+// RENDERING
+// ============================================================
+const $ = (sel, el=document) => el.querySelector(sel);
+let selectedLevel = "4";
+let mode = "explore";
+let blindIdx = 0;
+
+function rungHTML(lv) {
+  const barW = Math.min(100, (lv.pct / 25) * 100);
+  const hasItem = lv.item ? `<span class="item-dot">item&nbsp;■</span>` : `<span class="item-dot">&nbsp;</span>`;
+  return `
+    <button class="rung ${lv.id === selectedLevel ? "selected" : ""}" data-level="${lv.id}" data-morais="${lv.morais}">
+      <span class="lvl">${lv.name}<span class="pts">${lv.pts}</span></span>
+      <span class="bar-track"><span class="bar" style="width:${barW}%"></span></span>
+      <span class="pct">${lv.pct}%${hasItem}</span>
+    </button>`;
+}
+
+function renderLadder() {
+  $("#ladderRungs").innerHTML = LEVELS.map(rungHTML).join("");
+  document.querySelectorAll(".rung").forEach(btn => {
+    btn.addEventListener("click", () => {
+      selectedLevel = btn.dataset.level;
+      renderLadder();
+      renderDetail();
+    });
+  });
+}
+
+function stimulusHTML(key, blockId) {
+  const stim = STIMULI[key];
+  const tabs = stim.tabs.map(t => ({ ...t, html: t.html ?? STIMULI.rapanui_blog.tabs[0].html }));
+  const tabBtns = tabs.length > 1
+    ? `<div class="stim-tabs">${tabs.map((t, i) =>
+        `<button class="stim-tab ${i === tabs.length - 1 ? "active" : ""}" data-block="${blockId}" data-tab="${i}">${t.label}</button>`).join("")}</div>`
+    : "";
+  const startTab = tabs.length - 1; // for multi-text units, open on the tab the question targets
+  return `${tabBtns}
+    <div class="stimulus" id="stim-${blockId}">${tabs[startTab].html}</div>
+    <div class="stim-note">Stimulus reproduced from the OECD released-items document. The original computer-based unit used scrolling panes and tabbed sources; difficulty was calibrated in that presentation.</div>
+    <script type="application/json" id="stimdata-${blockId}">${JSON.stringify(tabs.map(t => t.id))}<\/script>`;
+}
+
+function answerUI(item, blockId) {
+  if (item.type === "mc") {
+    return item.options.map((o, i) =>
+      `<label class="opt"><input type="radio" name="q-${blockId}" value="${i}">${o}</label>`).join("");
+  }
+  if (item.type === "table") {
+    return `<table class="resp">
+      <tr><th></th>${item.cols.map(c => `<th style="text-align:center">${c}</th>`).join("")}</tr>
+      ${item.rows.map((r, ri) => `<tr><td>${r}</td>${item.cols.map((c, ci) =>
+        `<td class="choice"><input type="radio" name="q-${blockId}-r${ri}" value="${ci}"></td>`).join("")}</tr>`).join("")}
+    </table>`;
+  }
+  return `<textarea class="open-resp" id="q-${blockId}" placeholder="Type an answer, then compare it with the official coding guide."></textarea>`;
+}
+
+function itemBlockHTML(levelId, blind) {
+  const item = ITEMS[LEVELS.find(l => l.id === levelId).item];
+  const blockId = (blind ? "b-" : "e-") + levelId;
+  const hideClass = blind ? "hide-blind" : "";
+  return `
+  <div class="item-block" data-block="${blockId}" data-level="${levelId}">
+    <div class="item-head">
+      <span class="tag">Unit <b>${item.unit}</b></span>
+      <span class="tag">Item <b>${item.itemId}</b></span>
+      <span class="tag">Process <b>${item.process}</b></span>
+      <span class="tag ${hideClass}">Difficulty <b>${item.difficulty} — ${levelName(levelId)}</b></span>
+    </div>
+    ${stimulusHTML(item.stimulus, blockId)}
+    <div class="question">
+      <span class="qlabel">${item.format}</span>
+      <p class="qtext">${item.qtext}</p>
+      ${answerUI(item, blockId)}
+      <button class="check-btn" data-check="${blockId}">${item.type === "open" ? "Compare with coding guide" : "Check answer"}</button>
+      <div class="result" id="result-${blockId}"></div>
+    </div>
+    <div class="item-cite">OECD/ETS (2019), PISA 2018 Released FT and MS New Reading Items, item ${item.itemId}. Difficulty ${item.difficulty} on the PISA reading scale.</div>
+  </div>`;
+}
+
+function levelName(id) { return LEVELS.find(l => l.id === id).name; }
+
+function renderDetail() {
+  const lv = LEVELS.find(l => l.id === selectedLevel);
+  let body;
+  if (lv.item) {
+    body = itemBlockHTML(lv.id, false);
+  } else {
+    body = `<div class="no-item"><strong>No released item at this level.</strong> ${lv.noItem}</div>`;
+  }
+  $("#detail").innerHTML = `
+    <h2>${lv.name}</h2>
+    <div class="meta-line">${lv.pts} &nbsp;·&nbsp; ${lv.pct}% of OECD 15-year-olds at this level (2022) &nbsp;·&nbsp; ${lv.cum} at this level or above</div>
+    <div class="descriptor"><span class="dlabel">What a reader at this level can do</span>${lv.desc}</div>
+    ${body}`;
+  wireBlocks();
+}
+
+function renderBlind() {
+  const levelId = BLIND_ORDER[blindIdx];
+  $("#blindProgress").textContent = `Item ${blindIdx + 1} of ${BLIND_ORDER.length}`;
+  $("#blindNext").disabled = true;
+  $("#detail").innerHTML = `
+    <h2>Where does this task sit on the scale?</h2>
+    <div class="meta-line">Read the source, answer the question. The level — and how many 15-year-olds reach it — appears after you answer.</div>
+    ${itemBlockHTML(levelId, true)}`;
+  wireBlocks();
+}
+
+// ============================================================
+// INTERACTION
+// ============================================================
+function wireBlocks() {
+  // stimulus tabs
+  document.querySelectorAll(".stim-tab").forEach(tab => {
+    tab.addEventListener("click", () => {
+      const blockId = tab.dataset.block;
+      const block = document.querySelector(`[data-block="${blockId}"]`);
+      block.querySelectorAll(".stim-tab").forEach(t => t.classList.remove("active"));
+      tab.classList.add("active");
+      const item = ITEMS[LEVELS.find(l => l.id === block.dataset.level).item];
+      const tabs = STIMULI[item.stimulus].tabs.map(t => ({ ...t, html: t.html ?? STIMULI.rapanui_blog.tabs[0].html }));
+      $(`#stim-${blockId}`).innerHTML = tabs[+tab.dataset.tab].html;
+    });
+  });
+  // check buttons
+  document.querySelectorAll(".check-btn").forEach(btn => {
+    btn.addEventListener("click", () => checkAnswer(btn.dataset.check));
+  });
+}
+
+function checkAnswer(blockId) {
+  const block = document.querySelector(`[data-block="${blockId}"]`);
+  const levelId = block.dataset.level;
+  const lv = LEVELS.find(l => l.id === levelId);
+  const item = ITEMS[lv.item];
+  const resultEl = $(`#result-${blockId}`);
+  let verdict = "", vclass = "";
+
+  if (item.type === "mc") {
+    const sel = block.querySelector(`input[name="q-${blockId}"]:checked`);
+    if (!sel) { return; }
+    const ok = +sel.value === item.correct;
+    verdict = ok ? "Correct." : `Incorrect — the credited answer is: “${item.options[item.correct]}”`;
+    vclass = ok ? "ok" : "no";
+  } else if (item.type === "table") {
+    let answered = 0, right = 0;
+    item.rows.forEach((r, ri) => {
+      const sel = block.querySelector(`input[name="q-${blockId}-r${ri}"]:checked`);
+      if (sel) { answered++; if (+sel.value === item.correct[ri]) right++; }
+    });
+    if (answered < item.rows.length) { return; }
+    if (right >= item.credit.full) { verdict = `Full credit — ${right}/${item.rows.length} rows correct.`; vclass = "ok"; }
+    else if (item.credit.partial && right >= item.credit.partial) { verdict = `Partial credit — ${right}/${item.rows.length} rows correct. Full credit requires ${item.credit.full}.`; vclass = "partial"; }
+    else { verdict = `No credit — ${right}/${item.rows.length} rows correct. Credited pattern: ${item.rows.map((r, i) => item.cols[item.correct[i]]).join(", ")}.`; vclass = "no"; }
+  } else { // open
+    verdict = "Self-scored — compare your answer with the coding guide below.";
+    vclass = "partial";
+  }
+
+  const codingHTML = item.coding ? `
+    <div class="coding-guide"><strong>${item.coding.label}:</strong> ${item.coding.rule}
+      <ul>${item.coding.examples.map(e => `<li>${e}</li>`).join("")}</ul></div>` : "";
+
+  const blindReveal = (mode === "blind") ? `
+    <div class="reveal-stats">This item sits at difficulty <b>${item.difficulty}</b> — <b>${lv.name}</b>.
+    ${lv.cum} of OECD 15-year-olds score at this level or above (PISA 2022).</div>` : "";
+
+  resultEl.innerHTML = `<span class="verdict ${vclass}">${verdict}</span>
+    <div class="why">${item.why}</div>${codingHTML}${blindReveal}`;
+  resultEl.classList.add("show");
+
+  if (mode === "blind") {
+    // also reveal the hidden difficulty tag
+    block.querySelectorAll(".tag.hide-blind").forEach(t => t.classList.remove("hide-blind"));
+    $("#blindNext").disabled = blindIdx >= BLIND_ORDER.length - 1;
+    if (blindIdx >= BLIND_ORDER.length - 1) { $("#blindNext").textContent = "Done — last item"; }
+  }
+}
+
+// ============================================================
+// MODES
+// ============================================================
+$("#btnExplore").addEventListener("click", () => {
+  mode = "explore";
+  document.body.classList.remove("blind");
+  $("#btnExplore").classList.add("active");
+  $("#btnBlind").classList.remove("active");
+  renderDetail();
+});
+$("#btnBlind").addEventListener("click", () => {
+  mode = "blind";
+  blindIdx = 0;
+  $("#blindNext").textContent = "Next item";
+  document.body.classList.add("blind");
+  $("#btnBlind").classList.add("active");
+  $("#btnExplore").classList.remove("active");
+  renderBlind();
+});
+$("#blindNext").addEventListener("click", () => {
+  if (blindIdx < BLIND_ORDER.length - 1) { blindIdx++; renderBlind(); }
+});
+$("#moraisToggle").addEventListener("change", e => {
+  document.body.classList.toggle("morais", e.target.checked);
+});
+
+renderLadder();
+renderDetail();
+</script>
+</body>
+</html>
