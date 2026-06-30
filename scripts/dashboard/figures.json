@@ -120,5 +120,37 @@
     "images": [
       { "file": "pisa-ladder.png" }
     ]
+  },
+  {
+    "id": "literacy-metric",
+    "title": "The Deep-Reading Minority — Building the Metric",
+    "page": "/literacy-metric",
+    "images": [
+      { "file": "literacy-metric.png" }
+    ]
+  },
+  {
+    "id": "what-is-post-literacy",
+    "title": "What is Post-Literacy?",
+    "page": "/what-is-post-literacy",
+    "images": [
+      { "file": "what-is-post-literacy.png" }
+    ]
+  },
+  {
+    "id": "explaining-post-literacy",
+    "title": "Explaining Post-Literacy",
+    "page": "/explaining-post-literacy",
+    "images": [
+      { "file": "explaining-post-literacy.png" }
+    ]
+  },
+  {
+    "id": "annotator",
+    "title": "Be the Annotator — RLHF Simulator",
+    "page": "/annotator",
+    "images": [
+      { "file": "annotator.png" }
+    ]
   }
 ]

@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Deep-Reading Minority — building the metric</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Literata:ital,opsz,wght@0,7..72,400;0,7..72,600;1,7..72,400&family=Sono:wght@400;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
+<style>
+  :root{ --bg:#F3EFE1; --ink:#1a1a1a; --muted:#6f6a5c; --red:#E53E33; --blue:#3B6DB4; --green:#549E44; --line:#cdc6b4; }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:'Outfit',system-ui,sans-serif;-webkit-font-smoothing:antialiased;padding:32px 24px 56px}
+  .wrap{max-width:1040px;margin:0 auto;position:relative}
+  h1{font-family:'Literata',serif;font-weight:600;font-size:26px;line-height:1.15;margin:0 0 4px}
+  .sub{font-size:14px;color:var(--muted);margin:0 0 16px;max-width:760px}
+  .controls{display:flex;align-items:center;gap:10px;margin:0 0 12px}
+  .controls button{font-family:'Outfit',sans-serif;font-size:14px;border:1px solid var(--line);background:#faf7ee;color:var(--ink);padding:5px 16px;cursor:pointer}
+  .controls button:hover:not(:disabled){background:#fff}
+  .controls button:disabled{opacity:.4;cursor:default}
+  .controls .ind{font-family:'Sono',monospace;font-size:12px;color:var(--muted)}
+  #narr{font-size:14.5px;line-height:1.55;color:#332f27;max-width:880px;min-height:84px;margin:0 0 8px;transition:opacity .18s ease}
+  #narr strong{font-family:'Literata',serif;font-weight:600;color:var(--ink)}
+  svg.story{width:100%;height:auto;display:block}
+  text{font-family:'Outfit',sans-serif}
+  .axis{font-size:11px;fill:#6f6a5c}
+  .axis-title{font-size:12px;fill:#1a1a1a;font-weight:500}
+  .grid{stroke:#cdc6b4;stroke-width:1}
+  .endlbl{font-size:11.5px;font-weight:600;font-family:'Outfit',sans-serif}
+  .endpct{font-size:12px;font-weight:600;font-family:'Sono',monospace}
+  .legend-row{display:flex;gap:22px;flex-wrap:wrap;margin:12px 0 6px;font-size:13px}
+  .legend-row .item{display:none;align-items:center;gap:8px}
+  .sw{width:24px;height:15px;display:inline-block}
+  .sw.basic{background:rgba(59,109,180,.16);border-top:2.5px solid #3B6DB4}
+  .sw.medium{background:rgba(84,158,68,.18);border-top:2.5px solid #549E44}
+  .sw.deep{background:rgba(229,62,51,.16);border-top:2.5px solid #E53E33}
+  .src-title{font-size:12px;font-weight:600;color:var(--ink);margin:20px 0 8px}
+  ul.sources{margin:0;padding-left:18px;font-size:11.5px;color:var(--muted);line-height:1.55;max-width:880px}
+  ul.sources li{margin-bottom:3px} ul.sources i{font-style:italic}
+  noscript{color:var(--red);font-size:13px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>The Deep-Reading Minority</h1>
+  <p class="sub">Building the metric, one tier at a time — basic literacy, then the deep-reading elite, then the engaged-reading middle. Step through to see how and why the picture evolved.</p>
+  <div class="controls">
+    <button id="back">◂ Back</button>
+    <button id="next">Next ▸</button>
+    <span class="ind" id="stageind">1 / 3</span>
+  </div>
+  <p id="narr"></p>
+  <noscript>This figure is interactive and needs JavaScript. Open the file in a web browser.</noscript>
+  <svg class="story" id="story" viewBox="0 0 1040 520" xmlns="http://www.w3.org/2000/svg" aria-label="Reading tiers as a share of world population"></svg>
+
+  <div class="legend-row">
+    <span class="item" id="leg-basic"><span class="sw basic"></span> Basic literacy (read/write simple text)</span>
+    <span class="item" id="leg-medium"><span class="sw medium"></span> Engaged reading public (PIAAC Level 3+)</span>
+    <span class="item" id="leg-deep"><span class="sw deep"></span> Deep-reading elite (PIAAC Level 4/5)</span>
+  </div>
+
+  <p class="src-title">Sources</p>
+  <ul class="sources">
+    <li>Jessica K. Bone et al., "The decline in reading for pleasure over 20 years of the American Time Use Survey," <i>iScience</i> 28, 2025.</li>
+    <li>OECD, Survey of Adult Skills (PIAAC) Cycles 1 &amp; 2 (Level 3+ and Level 4/5 proficiency); OECD, PISA 2018 &amp; 2022 Results.</li>
+    <li>National Endowment for the Arts, Survey of Public Participation in the Arts (2022); Pew Research Center (2022).</li>
+    <li>William V. Harris, <i>Ancient Literacy</i> (1989); Buringh &amp; van Zanden (2009); van Zanden et al., <i>How Was Life?</i> (OECD 2014) / Our World in Data.</li>
+    <li>Jong-Wha Lee &amp; Hanol Lee, "Human Capital in the Long Run," <i>J. Development Economics</i> 122, 2016; UNESCO UIS; World Bank; UN World Population Prospects 2024.</li>
+  </ul>
+</div>
+<script>
+const CHART = [{"y":-3200,"lbl":"3200 BCE","basic":0,"pop":20000000,"dmid":0.0008,"dlo":0.0003,"dhi":0.0017,"tier":"modeled","mmid":0,"mlo":0,"mhi":0,"mtier":"modeled"},{"y":-1050,"lbl":"1050 BCE","basic":0.3,"pop":50000000,"dmid":0.0022,"dlo":0.0009,"dhi":0.005,"tier":"modeled","mmid":0.04,"mlo":0.02,"mhi":0.072,"mtier":"modeled"},{"y":-450,"lbl":"450 BCE","basic":0.75,"pop":115000000,"dmid":0.0125,"dlo":0.005,"dhi":0.0275,"tier":"modeled","mmid":0.25,"mlo":0.125,"mhi":0.45,"mtier":"modeled"},{"y":100,"lbl":"100 CE","basic":3,"pop":195000000,"dmid":0.02,"dlo":0.008,"dhi":0.044,"tier":"modeled","mmid":0.4,"mlo":0.2,"mhi":0.72,"mtier":"modeled"},{"y":1000,"lbl":"1000","basic":3,"pop":295000000,"dmid":0.03,"dlo":0.012,"dhi":0.066,"tier":"modeled","mmid":0.5,"mlo":0.25,"mhi":0.9,"mtier":"modeled"},{"y":1440,"lbl":"1440","basic":5.5,"pop":410000000,"dmid":0.04,"dlo":0.016,"dhi":0.088,"tier":"modeled","mmid":0.7,"mlo":0.35,"mhi":1.26,"mtier":"modeled"},{"y":1500,"lbl":"1500","basic":7,"pop":461000000,"dmid":0.0475,"dlo":0.019,"dhi":0.1045,"tier":"modeled","mmid":0.9,"mlo":0.45,"mhi":1.62,"mtier":"modeled"},{"y":1600,"lbl":"1600","basic":8,"pop":554000000,"dmid":0.0575,"dlo":0.023,"dhi":0.1265,"tier":"modeled","mmid":1.2,"mlo":0.6,"mhi":2.16,"mtier":"modeled"},{"y":1700,"lbl":"1700","basic":10,"pop":603000000,"dmid":0.0675,"dlo":0.027,"dhi":0.1485,"tier":"modeled","mmid":1.6,"mlo":0.8,"mhi":2.88,"mtier":"modeled"},{"y":1800,"lbl":"1800","basic":12,"pop":990000000,"dmid":0.0775,"dlo":0.031,"dhi":0.1705,"tier":"modeled","mmid":1.9,"mlo":0.95,"mhi":3.42,"mtier":"modeled"},{"y":1850,"lbl":"1850","basic":15.5,"pop":1263000000,"dmid":0.08,"dlo":0.032,"dhi":0.176,"tier":"modeled","mmid":2.4,"mlo":1.2,"mhi":4.32,"mtier":"modeled"},{"y":1900,"lbl":"1900","basic":21.4,"pop":1654000000,"dmid":0.0683,"dlo":0.0376,"dhi":0.1161,"tier":"reconstructed","mmid":3.2,"mlo":2.24,"mhi":4.32,"mtier":"reconstructed"},{"y":1920,"lbl":"1920","basic":31.6,"pop":1912000000,"dmid":0.1252,"dlo":0.0688,"dhi":0.2128,"tier":"reconstructed","mmid":5,"mlo":3.5,"mhi":6.75,"mtier":"reconstructed"},{"y":1950,"lbl":"1950","basic":38,"pop":2493000000,"dmid":0.4666,"dlo":0.2566,"dhi":0.7932,"tier":"reconstructed","mmid":9,"mlo":6.3,"mhi":12.15,"mtier":"reconstructed"},{"y":1970,"lbl":"1970","basic":63,"pop":3695000000,"dmid":0.8262,"dlo":0.4544,"dhi":1.4045,"tier":"reconstructed","mmid":15,"mlo":10.5,"mhi":20.25,"mtier":"reconstructed"},{"y":1990,"lbl":"1990","basic":74.6,"pop":5328000000,"dmid":2.0734,"dlo":1.1404,"dhi":3.5248,"tier":"reconstructed","mmid":22,"mlo":15.4,"mhi":29.7,"mtier":"reconstructed"},{"y":2000,"lbl":"2000","basic":81,"pop":6172000000,"dmid":2.8791,"dlo":1.5835,"dhi":4.8945,"tier":"reconstructed","mmid":26,"mlo":18.2,"mhi":35.1,"mtier":"reconstructed"},{"y":2011,"lbl":"2011","basic":85,"pop":7111000000,"dmid":3.3,"dlo":2.574,"dhi":4.62,"tier":"measured","mmid":24,"mlo":19.68,"mhi":29.28,"mtier":"measured"},{"y":2018,"lbl":"2018","basic":86,"pop":7730000000,"dmid":3.6,"dlo":2.808,"dhi":5.04,"tier":"measured","mmid":23,"mlo":18.86,"mhi":28.06,"mtier":"measured"},{"y":2025,"lbl":"2025","basic":87.5,"pop":8232000000,"dmid":4,"dlo":3.12,"dhi":5.6,"tier":"measured","mmid":22,"mlo":18.04,"mhi":26.84,"mtier":"measured"}];
+// Staged, animated narrative version. CHART injected before this.
+// Stage 0: basic literacy · Stage 1: + deep-reading elite · Stage 2: + engaged-reading middle.
+(function(){
+  if (typeof d3 === 'undefined') return;
+  const W=1040,H=520,M={t:34,r:152,b:84,l:64};
+  const pw=W-M.l-M.r, ph=H-M.t-M.b, n=CHART.length;
+  const YRLBL=[-3200,-450,100,1000,1440,1600,1800,1900,1950,1990,2025];
+  const last=CHART[n-1];
+
+  const CAP=[
+    {t:"Basic literacy",h:"Start with the simplest measure: the share of people who can read and write a simple sentence. Near-zero for most of history, it climbs to ~88% of the world after mass public schooling. By this line alone, reading looks like a solved problem."},
+    {t:"Add deep reading",h:"But basic literacy hides a far higher bar. Deep reading — sustaining and critically synthesising complex texts (PIAAC Level 4/5) — stays a thin, stable minority: ~12% of adults even in rich countries, and roughly 3–5% of the world. This elite barely moves across all of history."},
+    {t:"The missing middle",h:"Two lines are too stark. Between 'can read' and the critical-synthesis elite sits the engaged reading public — people who actually read books and follow a sustained argument (PIAAC Level 3+). Mass schooling grew it through the 20th century; recent data (Bone 2025; PIAAC 2023) shows it now eroding. The post-literate shift is the contraction of this middle."}
+  ];
+
+  const svg=d3.select('#story');
+  const x=d3.scaleLinear().domain([0,n-1]).range([0,pw]);
+  const y=d3.scaleLinear().domain([0,100]).range([ph,0]);
+  const baseY=y(0);
+  const root=svg.append('g').attr('transform',`translate(${M.l},${M.t})`);
+
+  // static axes
+  [0,20,40,60,80,100].forEach(v=>{
+    root.append('line').attr('class','grid').attr('x1',0).attr('x2',pw).attr('y1',y(v)).attr('y2',y(v));
+    root.append('text').attr('class','axis').attr('text-anchor','end').attr('x',-9).attr('y',y(v)+4).text(v+'%');
+  });
+  CHART.forEach((d,i)=>{ if(!YRLBL.includes(d.y)) return;
+    root.append('text').attr('class','axis').attr('text-anchor','middle').attr('x',x(i)).attr('y',ph+16).text(d.lbl); });
+  root.append('text').attr('class','axis-title').attr('transform','rotate(-90)').attr('x',-(ph/2)).attr('y',-44).attr('text-anchor','middle').text('% of total world population');
+  root.append('line').attr('x1',0).attr('x2',pw).attr('y1',ph).attr('y2',ph).attr('stroke','#9c9683').attr('stroke-width',1.5);
+
+  // path builders interpolating from baseline (p=0) to real (p=1)
+  const lineD=(yAcc,p)=>d3.line().x((d,i)=>x(i)).y(d=>baseY+p*(yAcc(d)-baseY))(CHART);
+  const areaD=(yAcc,p)=>d3.area().x((d,i)=>x(i)).y0(baseY).y1(d=>baseY+p*(yAcc(d)-baseY))(CHART);
+  function bandD(hiAcc,loAcc,p){ let t='',b='';
+    CHART.forEach((d,i)=>{ t+=(i?'L':'M')+x(i)+' '+(baseY+p*(hiAcc(d)-baseY))+' '; });
+    for(let i=n-1;i>=0;i--){ b+='L'+x(i)+' '+(baseY+p*(loAcc(CHART[i])-baseY))+' '; }
+    return t+b+'Z'; }
+  const basicY=d=>y(d.basic);
+  const deepMidY=d=>Math.min(y(d.dmid),y(0)-1);
+  const deepHiY=d=>y(d.dhi), deepLoY=d=>Math.min(y(d.dlo),y(0)-1);
+  const medMidY=d=>y(d.mmid), medHiY=d=>y(d.mhi), medLoY=d=>y(d.mlo);
+
+  // groups (draw order: areas/bands behind, lines front)
+  const gBasic=root.append('g').style('display','none').attr('opacity',0);
+  const gMedium=root.append('g').style('display','none').attr('opacity',0);
+  const gDeep=root.append('g').style('display','none').attr('opacity',0);
+
+  const basicArea=gBasic.append('path').attr('fill','#3B6DB4').attr('fill-opacity',0.14).attr('stroke','none');
+  const basicLine=gBasic.append('path').attr('fill','none').attr('stroke','#3B6DB4').attr('stroke-width',2.5);
+  const basicLbl=gBasic.append('text').attr('class','endlbl').attr('x',pw+10).attr('fill','#3B6DB4').text('Basic literacy');
+  const basicPct=gBasic.append('text').attr('class','endpct').attr('x',pw+10).attr('fill','#3B6DB4').text('~88%');
+
+  const medBand=gMedium.append('path').attr('fill','#549E44').attr('fill-opacity',0.16).attr('stroke','none');
+  const medLine=gMedium.append('path').attr('fill','none').attr('stroke','#549E44').attr('stroke-width',2.4);
+  const medLbl=gMedium.append('text').attr('class','endlbl').attr('x',pw+10).attr('fill','#3f7a32').text('Engaged readers');
+  const medPct=gMedium.append('text').attr('class','endpct').attr('x',pw+10).attr('fill','#3f7a32').text('~22%');
+
+  const deepBand=gDeep.append('path').attr('fill','#E53E33').attr('fill-opacity',0.16).attr('stroke','none');
+  const deepLine=gDeep.append('path').attr('fill','none').attr('stroke','#E53E33').attr('stroke-width',2.4);
+  const deepLbl=gDeep.append('text').attr('class','endlbl').attr('x',pw+10).attr('fill','#E53E33').text('Deep-reading elite');
+  const deepPct=gDeep.append('text').attr('class','endpct').attr('x',pw+10).attr('fill','#E53E33').text('~4%');
+
+  function lblPos(name,pct,ly){ name.attr('y',ly-3); pct.attr('y',ly+12); }
+  function drawBasic(p){ basicArea.attr('d',areaD(basicY,p)); basicLine.attr('d',lineD(basicY,p)); lblPos(basicLbl,basicPct,baseY+p*(basicY(last)-baseY)); }
+  function drawMedium(p){ medBand.attr('d',bandD(medHiY,medLoY,p)); medLine.attr('d',lineD(medMidY,p)); lblPos(medLbl,medPct,baseY+p*(medMidY(last)-baseY)); }
+  function drawDeep(p){ deepBand.attr('d',bandD(deepHiY,deepLoY,p)); deepLine.attr('d',lineD(deepMidY,p)); lblPos(deepLbl,deepPct,baseY+p*(deepMidY(last)-baseY)); }
+  const DRAW={basic:drawBasic,medium:drawMedium,deep:drawDeep};
+  const GRP ={basic:gBasic, medium:gMedium, deep:gDeep};
+
+  function show(name,animate){
+    GRP[name].style('display',null);
+    if(animate){ GRP[name].interrupt(); DRAW[name](0); GRP[name].attr('opacity',0)
+      .transition().duration(900).ease(d3.easeCubicOut).attr('opacity',1).tween('grow',()=>t=>DRAW[name](t)); }
+    else { DRAW[name](1); GRP[name].attr('opacity',1); }
+  }
+  function hide(name){ GRP[name].interrupt().transition().duration(380).attr('opacity',0)
+      .on('end',function(){ d3.select(this).style('display','none'); }); }
+
+  const shown={basic:false,medium:false,deep:false};
+  let stage=0;
+  const narr=document.getElementById('narr');
+  const back=document.getElementById('back'), next=document.getElementById('next'), ind=document.getElementById('stageind');
+
+  function setStage(s,animate){
+    stage=Math.max(0,Math.min(CAP.length-1,s));
+    const want={basic:true, deep:stage>=1, medium:stage>=2};
+    ['basic','deep','medium'].forEach(name=>{
+      if(want[name]&&!shown[name]) show(name,animate);
+      else if(!want[name]&&shown[name]) hide(name);
+      shown[name]=want[name];
+    });
+    narr.style.opacity=0;
+    setTimeout(()=>{ narr.innerHTML='<strong>'+CAP[stage].t+'</strong> '+CAP[stage].h; narr.style.opacity=1; },180);
+    ['leg-basic','leg-deep','leg-medium'].forEach((id,k)=>{ const e=document.getElementById(id); if(e) e.style.display=(k===0||(k===1&&stage>=1)||(k===2&&stage>=2))?'flex':'none'; });
+    ind.textContent=(stage+1)+' / '+CAP.length;
+    back.disabled=stage===0; next.disabled=stage===CAP.length-1;
+  }
+
+  back.onclick=()=>setStage(stage-1,true);
+  next.onclick=()=>setStage(stage+1,true);
+  setStage(0,true);
+})();
+
+</script>
+</body>
+</html>

@@ -99,6 +99,10 @@ const FIGURE_SOURCES = {
   'virgil-reader-extension': ['public/images/figures/virgil-reader-extension.png'],
   'deep-reading-minority': ['src/pages/literacy.html'],
   'pisa-ladder': ['src/pages/pisa.html'],
+  'literacy-metric': ['src/pages/literacy-metric.html'],
+  'what-is-post-literacy': ['src/pages/what-is-post-literacy.html'],
+  'explaining-post-literacy': ['src/pages/explaining-post-literacy.html'],
+  annotator: ['src/pages/annotator.astro', 'src/components/annotator'],
   // `virgil` has no source mapping — it falls back to its registry images,
   // which are currently missing, so it is reported as such.
 };

@@ -1,0 +1,221 @@
+---
+import Annotator from '../components/annotator/Annotator.astro';
+---
+
+<!doctype html>
+<html lang="en" data-theme="light">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="An interactive RLHF simulator: become the human annotator, make pairwise preference judgments, then watch how those picks aggregate into a reward signal that drives a model toward sycophancy."
+    />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <title>Be the annotator | Post-Literate</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Alegreya:ital,wght@0,400;0,500;1,400&family=Outfit:wght@400;500;600&family=Sono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+
+    <style>
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      :root {
+        color-scheme: light;
+        --background: #f3efe1;
+        --text: #2c2c2c;
+        --text-secondary: #666;
+        --text-tertiary: #999;
+        --accent: #e53e33;
+        --border-subtle: rgba(0, 0, 0, 0.1);
+        --bg-subtle: rgba(0, 0, 0, 0.02);
+        --bg-highlight: rgba(229, 62, 51, 0.05);
+        --panel-bg: rgba(243, 239, 225, 0.88);
+        --container-fill: rgba(0, 0, 0, 0.06);
+        --container-stroke: rgba(0, 0, 0, 0.22);
+        /* Secondary (blue) — only used by the figure's "true reward" meter. */
+        --an-true: #3b6db4;
+      }
+      [data-theme='dark'] {
+        color-scheme: dark;
+        --background: #1a1a1a;
+        --text: #c8c8c8;
+        --text-secondary: #a0a0a0;
+        --text-tertiary: #707070;
+        --accent: #ff6b5e;
+        --border-subtle: rgba(255, 255, 255, 0.1);
+        --bg-subtle: rgba(255, 255, 255, 0.03);
+        --bg-highlight: rgba(255, 107, 94, 0.08);
+        --panel-bg: rgba(26, 26, 26, 0.88);
+        --container-fill: rgba(255, 255, 255, 0.07);
+        --container-stroke: rgba(255, 255, 255, 0.28);
+        --an-true: #6a9bd8;
+      }
+
+      html,
+      body {
+        block-size: 100%;
+        overflow: hidden;
+        background: var(--background);
+        color: var(--text);
+        font-family: 'Outfit', system-ui, sans-serif;
+      }
+
+      .page-shell {
+        display: flex;
+        flex-direction: column;
+        block-size: 100dvh;
+      }
+
+      .page-nav {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        padding-inline: 20px;
+        block-size: 40px;
+        border-block-end: 1px solid var(--border-subtle);
+        flex-shrink: 0;
+        font-size: 13px;
+      }
+      .page-nav a {
+        color: var(--text-secondary);
+        text-decoration: none;
+      }
+      .page-nav a:hover {
+        color: var(--accent);
+      }
+      .page-nav-sep {
+        color: var(--text-tertiary);
+      }
+
+      /* Theme toggle — right-aligned in the nav. Sun shows in dark mode
+         (click → light), moon shows in light mode (click → dark). */
+      .theme-toggle {
+        margin-inline-start: auto;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        inline-size: 28px;
+        block-size: 28px;
+        padding: 0;
+        background: transparent;
+        border: 1px solid var(--border-subtle);
+        color: var(--text-secondary);
+        cursor: pointer;
+        transition: color 150ms ease-out, border-color 150ms ease-out;
+      }
+      .theme-toggle:hover,
+      .theme-toggle:focus-visible {
+        color: var(--accent);
+        border-color: var(--accent);
+        outline: none;
+      }
+      .theme-toggle-icon {
+        display: block;
+        inline-size: 16px;
+        block-size: 16px;
+      }
+      [data-theme='light'] .theme-toggle-sun,
+      [data-theme='dark'] .theme-toggle-moon {
+        display: none;
+      }
+
+      .figure-wrap {
+        flex: 1;
+        min-block-size: 0;
+        overflow: hidden;
+      }
+      .figure-wrap > * {
+        block-size: 100%;
+      }
+    </style>
+
+    <script is:inline>
+      (function () {
+        var saved = localStorage.getItem('theme') || 'light';
+        document.documentElement.setAttribute('data-theme', saved);
+      })();
+    </script>
+
+    <script is:inline>
+      // Theme toggle wiring — runs after DOM is ready so the button exists.
+      document.addEventListener('DOMContentLoaded', function () {
+        var btn = document.querySelector('.theme-toggle');
+        if (!btn) return;
+        function syncLabel() {
+          var current =
+            document.documentElement.getAttribute('data-theme') || 'light';
+          btn.setAttribute(
+            'aria-label',
+            current === 'dark' ? 'Switch to light mode' : 'Switch to dark mode',
+          );
+        }
+        syncLabel();
+        btn.addEventListener('click', function () {
+          var current =
+            document.documentElement.getAttribute('data-theme') || 'light';
+          var next = current === 'light' ? 'dark' : 'light';
+          document.documentElement.setAttribute('data-theme', next);
+          localStorage.setItem('theme', next);
+          syncLabel();
+        });
+      });
+    </script>
+  </head>
+  <body>
+    <div class="page-shell">
+      <nav class="page-nav">
+        <a href="/">Post-Literate</a>
+        <span class="page-nav-sep">›</span>
+        <span>Be the annotator</span>
+        <button class="theme-toggle" type="button" aria-label="Toggle dark mode">
+          <svg
+            class="theme-toggle-icon theme-toggle-moon"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.75"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+          </svg>
+          <svg
+            class="theme-toggle-icon theme-toggle-sun"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.75"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <circle cx="12" cy="12" r="4" />
+            <path d="M12 2v2" />
+            <path d="M12 20v2" />
+            <path d="m4.93 4.93 1.41 1.41" />
+            <path d="m17.66 17.66 1.41 1.41" />
+            <path d="M2 12h2" />
+            <path d="M20 12h2" />
+            <path d="m6.34 17.66-1.41 1.41" />
+            <path d="m19.07 4.93-1.41 1.41" />
+          </svg>
+        </button>
+      </nav>
+      <div class="figure-wrap">
+        <Annotator />
+      </div>
+    </div>
+  </body>
+</html>

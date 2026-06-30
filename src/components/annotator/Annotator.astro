@@ -1,0 +1,975 @@
+---
+/**
+ * Annotator — "Be the Annotator", a standalone RLHF human-feedback simulator.
+ *
+ * Serves Ch. 7 (The Learning Trap). The reader becomes the human in "human
+ * feedback": they make pairwise preference judgments (phase 1), then watch a
+ * transparent toy reward model fit to those picks and a policy drift toward
+ * sycophancy when optimized against it (phases 2–3). The point is structural,
+ * not personal — many fast, individually-defensible picks aggregate into a
+ * reward signal that an optimizer over-satisfies. See DESIGN.md.
+ *
+ * Stack: vanilla JS, no framework (matches tokens.astro / PipelineStages).
+ * The reward model is fit live in the browser (logistic / Bradley–Terry over
+ * pairwise comparisons) so the mechanism is fully legible — no black box.
+ *
+ * Editorial framing copy is rendered inside <code class="ph"> per the repo
+ * rule (Claude's suggested prose is marked so Irwin can distinguish it).
+ * The simulated dialogue in the item bank is figure data, not authored prose.
+ * The closing line is Irwin's, quoted from The Reinforcement Substrate.
+ */
+import { ITEMS, FEATURES } from './items.js';
+
+const N_ROUNDS = ITEMS.length;
+---
+
+<div class="an-wrap" data-component="annotator" data-phase="0">
+  <!-- Phase progress rail -->
+  <nav class="an-rail" aria-label="Walkthrough progress">
+    <ol class="an-rail-list">
+      <li><button class="an-rail-step" data-goto="0" aria-current="step"><span class="an-rail-num">0</span><span class="an-rail-label">Intro</span></button></li>
+      <li><button class="an-rail-step" data-goto="1"><span class="an-rail-num">1</span><span class="an-rail-label">Annotate</span></button></li>
+      <li><button class="an-rail-step" data-goto="2"><span class="an-rail-num">2</span><span class="an-rail-label">The signal</span></button></li>
+      <li><button class="an-rail-step" data-goto="3"><span class="an-rail-num">3</span><span class="an-rail-label">The contrast</span></button></li>
+    </ol>
+  </nav>
+
+  <div class="an-scroll">
+    <!-- ============================ PHASE 0 — COLD OPEN ==================== -->
+    <section class="an-phase" data-phase="0" aria-label="Introduction">
+      <div class="an-cold">
+        <p class="an-eyebrow"><code class="ph">Reinforcement learning from human feedback</code></p>
+        <h1 class="an-cold-title"><code class="ph">Be the annotator.</code></h1>
+        <p class="an-lede">
+          <code class="ph">After an AI model learns to predict text, people teach it manners: they’re shown two answers to the same prompt and pick the one they like better. Thousands of those picks train a separate <em>reward model</em> — a score for how much a human will approve of any answer. The AI is then tuned to maximize that score.</code>
+        </p>
+        <p class="an-lede an-lede-promise">
+          <code class="ph">For the next few minutes, you’re the human in “human feedback.” You’ll make the picks. Then you’ll see what they train.</code>
+        </p>
+        <button class="an-btn an-btn-primary" data-action="start">Start annotating →</button>
+      </div>
+    </section>
+
+    <!-- ============================ PHASE 1 — ANNOTATE ==================== -->
+    <section class="an-phase" data-phase="1" aria-label="Annotation" hidden>
+      <div class="an-anno-head">
+        <div class="an-guidelines">
+          <span class="an-guide-title"><code class="ph">Your guidelines:</code></span>
+          <span class="an-chip">helpful</span>
+          <span class="an-chip">honest</span>
+          <span class="an-chip">harmless</span>
+        </div>
+        <div class="an-meta">
+          <span class="an-round-count">Round <b data-round-now>1</b> / {N_ROUNDS}</span>
+          <span class="an-nudge"><code class="ph">Pick quickly — like a rater with a queue.</code></span>
+        </div>
+        <div class="an-timer" aria-hidden="true"><span class="an-timer-fill" data-timer></span></div>
+      </div>
+
+      <p class="an-prompt-label"><code class="ph">The user asks:</code></p>
+      <blockquote class="an-prompt" data-prompt></blockquote>
+      <p class="an-src-tag"><code class="ph">prompt &amp; ground truth from </code><span data-src></span><code class="ph"> · the two responses were written for this figure</code></p>
+
+      <p class="an-choose"><code class="ph">Which answer is better? Pick one.</code></p>
+      <div class="an-pair">
+        <button class="an-card" data-pick="A">
+          <span class="an-card-tag">A</span>
+          <span class="an-card-text" data-card-a></span>
+        </button>
+        <button class="an-card" data-pick="B">
+          <span class="an-card-tag">B</span>
+          <span class="an-card-text" data-card-b></span>
+        </button>
+      </div>
+    </section>
+
+    <!-- ============================ PHASE 2 — THE SIGNAL ================== -->
+    <section class="an-phase" data-phase="2" aria-label="The reward signal" hidden>
+      <h2 class="an-h2"><code class="ph">What your picks rewarded</code></h2>
+      <p class="an-body">
+        <code class="ph">Your <span data-pick-total>0</span> picks just became training data. Fit a transparent reward model to them — a logistic model that learns how much each visible feature pulled your choice — and this is the shape of what you rewarded. Bars to the right were rewarded; bars to the left were penalized.</code>
+      </p>
+
+      <div class="an-weights" data-weights="you" aria-label="Weights fit to your picks"></div>
+
+      <p class="an-body">
+        <code class="ph">You’re one rater. A reward model is trained on the aggregate of many. Here are the same kind of weights, fit to many <em>simulated</em> raters choosing in seconds — each one leaning, on average, toward the more agreeable and more confident answer under time pressure, the tendency Sharma et al. measured in real preference data. No one is told to; it’s simply what gets picked fastest.</code>
+      </p>
+
+      <div class="an-weights" data-weights="pop" aria-label="Weights fit to many simulated raters"></div>
+
+      <p class="an-finding">
+        <code class="ph">Across the aggregate, “matches the user’s view” emerges as a top predictor of what got picked — the empirical finding of Sharma et al. on real preference data.</code>
+        <a class="an-cite" href="https://arxiv.org/abs/2310.13548" target="_blank" rel="noopener">Sharma et al. 2023</a>
+      </p>
+
+      <h3 class="an-h3"><code class="ph">Now optimize a policy against that signal</code></h3>
+      <p class="an-body">
+        <code class="ph">Real RLHF tunes the model to maximize the reward — not correctness, just predicted approval. Agreeing is usually fine, so most of the time that does no harm. The damage shows on the prompts where agreement and truth disagree. Below, the policy is measured on exactly those <span data-contested-count>0</span> contested prompts as you turn up the optimization pressure.</code>
+      </p>
+
+      <div class="an-drift">
+        <label class="an-slider-row">
+          <span class="an-slider-label"><code class="ph">Optimization pressure</code></span>
+          <input type="range" class="an-slider" data-pressure min="0" max="100" value="8" />
+        </label>
+        <div class="an-meters">
+          <div class="an-meter">
+            <span class="an-meter-label"><code class="ph">Agreement the policy emits</code> <span class="an-cite-plain">(the proxy it’s trained on)</span></span>
+            <div class="an-meter-track"><span class="an-meter-fill an-meter-proxy" data-meter="proxy"></span></div>
+            <span class="an-meter-val" data-meter-val="proxy">—</span>
+          </div>
+          <div class="an-meter">
+            <span class="an-meter-label"><code class="ph">Actual helpfulness on those prompts</code> <span class="an-cite-plain">(held out)</span></span>
+            <div class="an-meter-track"><span class="an-meter-fill an-meter-true" data-meter="true"></span></div>
+            <span class="an-meter-val" data-meter-val="true">—</span>
+          </div>
+        </div>
+        <p class="an-drift-note">
+          <code class="ph" data-drift-note>The model never learned “be sycophantic.” It learned “agreement is rewarded” from the common case, where agreeing was fine — then carried that weight into the cases where agreeing is wrong. The proxy climbs; real helpfulness falls.</code>
+          <a class="an-cite" href="https://arxiv.org/abs/2210.10760" target="_blank" rel="noopener">Gao et al. 2022</a>
+        </p>
+      </div>
+
+      <button class="an-btn an-btn-primary" data-action="to-contrast">See the contrast →</button>
+    </section>
+
+    <!-- ============================ PHASE 3 — THE CONTRAST ================ -->
+    <section class="an-phase" data-phase="3" aria-label="The contrast" hidden>
+      <h2 class="an-h2"><code class="ph">Two rewards, two policies</code></h2>
+      <p class="an-body">
+        <code class="ph">Optimize one policy against <b>human approval</b> — the reward your picks built — and another against <b>truthfulness</b>: which answer was actually more accurate and useful long-term. For each prompt, here is the answer each policy would emit.</code>
+      </p>
+
+      <div class="an-toggle" role="group" aria-label="Reward target">
+        <button class="an-toggle-btn is-on" data-target="approval">Reward = approval</button>
+        <button class="an-toggle-btn" data-target="truth">Reward = truthfulness</button>
+      </div>
+
+      <p class="an-contrast-cap">
+        <code class="ph">Showing what the model says when it’s optimized for </code>
+        <b data-target-name>human approval</b><code class="ph">. Flip the toggle and the highlighted rows change their answer — those are where the two rewards pull apart.</code>
+      </p>
+
+      <table class="an-contrast">
+        <thead>
+          <tr>
+            <th scope="col"><code class="ph">The prompt</code></th>
+            <th scope="col"><code class="ph">What the model says</code></th>
+          </tr>
+        </thead>
+        <tbody data-contrast-body></tbody>
+      </table>
+
+      <p class="an-finding" data-diverge-summary></p>
+
+      <div class="an-myopia">
+        <p class="an-body">
+          <code class="ph">The truthful policy needed the right-hand column — which answer was actually true. You never saw that column while you were choosing. In seconds you could judge tone, fluency, and whether an answer resolved the question; you could not judge what was accurate or what would leave the user sharper next week. That information wasn’t available at the moment of judgment.</code>
+        </p>
+        <p class="an-body an-body-strong">
+          <code class="ph">That gap — between what a fast pick can see and what was actually true — is the myopia. No one chose to reward agreement over truth. It’s what fast approval is structurally blind to, and an optimizer finds it.</code>
+        </p>
+      </div>
+
+      <blockquote class="an-close">
+        <p>Your brain pays out understanding only after the reps. RLHF pays you for skipping them.</p>
+        <cite>— <em>After the Book</em>, Ch. 7 · The Learning Trap</cite>
+      </blockquote>
+
+      <details class="an-sources">
+        <summary>Sources</summary>
+        <ul>
+          <li>Christiano, Leike, Brown, et al. (2017). <em>Deep reinforcement learning from human preferences.</em> <a href="https://arxiv.org/abs/1706.03741" target="_blank" rel="noopener">arXiv:1706.03741</a> — the pairwise-preference RL loop re-created here.</li>
+          <li>Ouyang, Wu, Jiang, et al. (2022). <em>Training language models to follow instructions with human feedback (InstructGPT).</em> <a href="https://arxiv.org/abs/2203.02155" target="_blank" rel="noopener">arXiv:2203.02155</a>; Bai et al. (2022), <a href="https://arxiv.org/abs/2204.05862" target="_blank" rel="noopener">arXiv:2204.05862</a> — reward model fit to comparisons, then policy optimization.</li>
+          <li>Sharma, Tong, Korbak, et al. (2023/2024). <em>Towards Understanding Sycophancy in Language Models.</em> ICLR 2024, <a href="https://arxiv.org/abs/2310.13548" target="_blank" rel="noopener">arXiv:2310.13548</a> — “matches the user’s view” as a top predictor of human preference.</li>
+          <li>Perez, Ringer, Lukošiūtė, et al. (2022). <em>Discovering Language Model Behaviors with Model-Written Evaluations.</em> <a href="https://arxiv.org/abs/2212.09251" target="_blank" rel="noopener">arXiv:2212.09251</a> — the model-written sycophancy eval shapes.</li>
+          <li>Gao, Schulman, Hilton (2022). <em>Scaling Laws for Reward Model Overoptimization.</em> <a href="https://arxiv.org/abs/2210.10760" target="_blank" rel="noopener">arXiv:2210.10760</a> — optimizing a proxy reward past a point diverges from true reward (Goodhart).</li>
+        </ul>
+        <p class="an-sources-note"><code class="ph">How real these items are: the prompts and the ground truth (which answer is correct, the rating, the logical error) are real rows from SycophancyEval and the Perez et al. evals, read from the repos above. Those datasets are measurement probes, not annotation tasks — they contain no pair of responses to choose between — so the two candidate answers here were written for this figure, each anchored to its row’s real correct/incorrect answer. No public dataset carries both real human A/B picks and a truth label, which is why the comparison itself is reconstructed. The pipeline is simplified but not falsified: pairwise comparison → reward model fit to the comparisons → policy optimized to maximize predicted reward.</code></p>
+      </details>
+
+      <button class="an-btn an-btn-ghost" data-action="restart">↺ Annotate again</button>
+    </section>
+  </div>
+</div>
+
+<style>
+  .an-wrap {
+    position: relative;
+    inline-size: 100%;
+    block-size: 100%;
+    color: var(--text);
+    font-family: 'Outfit', system-ui, sans-serif;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  /* ---- Progress rail ---- */
+  .an-rail {
+    flex-shrink: 0;
+    border-block-end: 1px solid var(--border-subtle);
+    padding-block: 8px;
+    padding-inline: clamp(16px, 4vw, 48px);
+  }
+  .an-rail-list {
+    display: flex;
+    gap: 4px;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    flex-wrap: wrap;
+  }
+  .an-rail-step {
+    appearance: none;
+    background: transparent;
+    border: 1px solid transparent;
+    color: var(--text-tertiary);
+    font: inherit;
+    font-size: 12px;
+    padding-block: 4px;
+    padding-inline: 8px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: color 200ms ease, border-color 200ms ease, background-color 200ms ease;
+  }
+  .an-rail-step:hover:not(:disabled) { color: var(--text); }
+  .an-rail-step:disabled { cursor: default; opacity: 0.5; }
+  .an-rail-step:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .an-rail-step[aria-current='step'] {
+    color: var(--text);
+    border-color: var(--accent);
+    background: var(--bg-highlight);
+  }
+  .an-rail-num {
+    font-family: 'Sono', ui-monospace, monospace;
+    font-size: 10px;
+    color: var(--text-tertiary);
+  }
+  .an-rail-step[aria-current='step'] .an-rail-num { color: var(--accent); }
+
+  /* ---- Scroll region + phases ---- */
+  .an-scroll {
+    flex: 1;
+    min-block-size: 0;
+    overflow-y: auto;
+    scrollbar-gutter: stable;
+    padding-inline: clamp(16px, 4vw, 48px);
+    padding-block: clamp(16px, 3vw, 32px) clamp(24px, 5vw, 64px);
+  }
+  .an-phase { max-inline-size: 860px; margin-inline: auto; }
+  .an-phase[hidden] { display: none; }
+
+  /* Editorial placeholder copy (Claude's suggested prose). */
+  code.ph {
+    font-family: inherit;
+    background: var(--bg-subtle);
+    padding-inline: 2px;
+    color: inherit;
+    border-radius: 0;
+  }
+  code.ph em { font-style: italic; }
+  code.ph b { font-weight: 600; color: var(--text); }
+
+  .an-body {
+    font-family: 'Alegreya', Georgia, serif;
+    font-size: clamp(15px, 1.6vw, 17px);
+    line-height: 1.55;
+    color: var(--text-secondary);
+    margin-block: 0 16px;
+    text-wrap: pretty;
+  }
+  .an-body-strong { color: var(--text); }
+  .an-h2 {
+    font-size: clamp(20px, 2.4vw, 28px);
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    margin-block: 0 12px;
+    text-wrap: balance;
+  }
+  .an-h3 {
+    font-size: clamp(16px, 1.8vw, 19px);
+    font-weight: 600;
+    margin-block: 28px 8px;
+  }
+
+  /* ---- Buttons ---- */
+  .an-btn {
+    appearance: none;
+    font: inherit;
+    font-size: 14px;
+    padding-block: 10px;
+    padding-inline: 18px;
+    border: 1px solid var(--container-stroke);
+    background: transparent;
+    color: var(--text);
+    cursor: pointer;
+    transition: color 150ms ease, border-color 150ms ease, background-color 150ms ease;
+  }
+  .an-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .an-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .an-btn-primary {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+    margin-block-start: 24px;
+  }
+  .an-btn-primary:hover { background: transparent; color: var(--accent); }
+  .an-btn-ghost { margin-block-start: 24px; color: var(--text-secondary); }
+
+  /* ---- Phase 0 cold open ---- */
+  .an-cold {
+    display: grid;
+    place-content: center;
+    min-block-size: min(72dvh, 560px);
+    gap: 4px;
+    text-align: start;
+  }
+  .an-eyebrow {
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-tertiary);
+    margin: 0;
+  }
+  .an-cold-title {
+    font-size: clamp(34px, 6vw, 64px);
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    line-height: 1.05;
+    margin-block: 4px 16px;
+    text-wrap: balance;
+  }
+  .an-cold-title code.ph { background: transparent; padding: 0; }
+  .an-lede {
+    font-family: 'Alegreya', Georgia, serif;
+    font-size: clamp(16px, 1.9vw, 20px);
+    line-height: 1.55;
+    color: var(--text-secondary);
+    max-inline-size: 64ch;
+    margin-block: 0 12px;
+    text-wrap: pretty;
+  }
+  .an-lede-promise { color: var(--text); }
+
+  /* ---- Phase 1 annotate ---- */
+  .an-anno-head { margin-block-end: 18px; }
+  .an-guidelines {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-block-end: 10px;
+  }
+  .an-guide-title { font-size: 12px; color: var(--text-tertiary); }
+  .an-chip {
+    font-size: 11px;
+    font-family: 'Sono', ui-monospace, monospace;
+    color: var(--text-secondary);
+    border: 1px solid var(--border-subtle);
+    padding-block: 2px;
+    padding-inline: 7px;
+    background: var(--bg-subtle);
+  }
+  .an-meta {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+    font-size: 12px;
+    color: var(--text-tertiary);
+  }
+  .an-round-count b { color: var(--text); font-weight: 600; }
+  .an-timer {
+    margin-block-start: 8px;
+    block-size: 3px;
+    background: var(--bg-subtle);
+    overflow: hidden;
+  }
+  .an-timer-fill {
+    display: block;
+    block-size: 100%;
+    inline-size: 100%;
+    background: var(--accent);
+    transform-origin: left center;
+  }
+  .an-timer-fill.is-running {
+    transition: transform var(--timer-dur, 12s) linear;
+    transform: scaleX(0);
+  }
+  .an-prompt-label, .an-choose { font-size: 12px; color: var(--text-tertiary); margin-block: 0 6px; }
+  .an-choose { margin-block-start: 22px; }
+  .an-src-tag {
+    font-size: 11px;
+    font-family: 'Sono', ui-monospace, monospace;
+    color: var(--text-tertiary);
+    margin-block: 8px 0;
+  }
+  .an-src-tag span { color: var(--text-secondary); }
+  .an-prompt {
+    font-family: 'Alegreya', Georgia, serif;
+    font-size: clamp(17px, 2vw, 22px);
+    line-height: 1.5;
+    color: var(--text);
+    border-inline-start: 2px solid var(--accent);
+    padding-inline-start: 16px;
+    margin: 0;
+    white-space: pre-line;
+    text-wrap: pretty;
+  }
+  .an-pair {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  .an-card {
+    appearance: none;
+    text-align: start;
+    font: inherit;
+    cursor: pointer;
+    background: var(--bg-subtle);
+    border: 1px solid var(--border-subtle);
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    color: var(--text);
+    transition: border-color 150ms ease, background-color 150ms ease, transform 120ms ease;
+  }
+  .an-card:hover { border-color: var(--accent); background: var(--bg-highlight); }
+  .an-card:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .an-card.is-picked { border-color: var(--accent); background: var(--bg-highlight); }
+  .an-card.is-dimmed { opacity: 0.45; }
+  .an-card-tag {
+    font-family: 'Sono', ui-monospace, monospace;
+    font-size: 11px;
+    color: var(--text-tertiary);
+    border: 1px solid var(--border-subtle);
+    inline-size: fit-content;
+    padding-inline: 6px;
+    padding-block: 1px;
+  }
+  .an-card-text {
+    font-family: 'Alegreya', Georgia, serif;
+    font-size: clamp(14px, 1.5vw, 16px);
+    line-height: 1.5;
+    text-wrap: pretty;
+  }
+
+  /* ---- Weights bar chart (signed, centered) ---- */
+  .an-weights {
+    display: grid;
+    gap: 6px;
+    margin-block: 4px 22px;
+  }
+  .an-wrow {
+    display: grid;
+    grid-template-columns: 160px 1fr;
+    align-items: center;
+    gap: 10px;
+    font-size: 13px;
+  }
+  .an-wlabel { color: var(--text-secondary); text-align: end; }
+  .an-wlabel.is-top { color: var(--accent); font-weight: 600; }
+  .an-wbar {
+    position: relative;
+    block-size: 20px;
+    background: var(--bg-subtle);
+    border-inline-start: 1px solid var(--border-subtle);
+    border-inline-end: 1px solid var(--border-subtle);
+  }
+  .an-wbar::before {
+    content: '';
+    position: absolute;
+    inset-block: 0;
+    inset-inline-start: 50%;
+    inline-size: 1px;
+    background: var(--container-stroke);
+  }
+  .an-wfill {
+    position: absolute;
+    inset-block: 3px;
+    inline-size: 0;
+    background: var(--text-tertiary);
+    transition: inline-size 500ms cubic-bezier(0.4, 0, 0.2, 1), inset-inline-start 500ms cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .an-wfill.is-pos { background: var(--accent); }
+  .an-wfill.is-neg { background: var(--text-tertiary); }
+  .an-wfill.is-top { background: var(--accent); }
+
+  /* ---- Drift meters ---- */
+  .an-drift { margin-block: 8px 8px; }
+  .an-slider-row { display: flex; align-items: center; gap: 14px; margin-block-end: 18px; flex-wrap: wrap; }
+  .an-slider-label { font-size: 13px; color: var(--text-secondary); min-inline-size: 150px; }
+  .an-slider { flex: 1; min-inline-size: 180px; accent-color: var(--accent); cursor: pointer; }
+  .an-meters { display: grid; gap: 16px; }
+  .an-meter { display: grid; grid-template-columns: 1fr auto; gap: 4px 12px; align-items: center; }
+  .an-meter-label { font-size: 13px; color: var(--text-secondary); grid-column: 1 / 2; }
+  .an-cite-plain { color: var(--text-tertiary); font-size: 11px; }
+  .an-meter-track {
+    grid-column: 1 / 2;
+    block-size: 12px;
+    background: var(--bg-subtle);
+    border: 1px solid var(--border-subtle);
+  }
+  .an-meter-fill { display: block; block-size: 100%; inline-size: 0; transition: inline-size 350ms ease; }
+  .an-meter-proxy { background: var(--accent); }
+  .an-meter-true { background: var(--an-true, #3b6db4); }
+  .an-meter-val {
+    grid-column: 2 / 3;
+    grid-row: 1 / 3;
+    font-family: 'Sono', ui-monospace, monospace;
+    font-size: 14px;
+    color: var(--text);
+    align-self: center;
+  }
+  .an-drift-note { font-size: 13px; color: var(--text-secondary); margin-block-start: 16px; }
+
+  /* ---- Contrast table ---- */
+  .an-toggle { display: inline-flex; border: 1px solid var(--container-stroke); margin-block: 4px 18px; }
+  .an-toggle-btn {
+    appearance: none; font: inherit; font-size: 13px; cursor: pointer;
+    background: transparent; color: var(--text-secondary);
+    padding-block: 7px; padding-inline: 14px; border: none;
+    border-inline-end: 1px solid var(--container-stroke);
+  }
+  .an-toggle-btn:last-child { border-inline-end: none; }
+  .an-toggle-btn.is-on { background: var(--accent); color: #fff; }
+  .an-toggle-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+  .an-contrast { inline-size: 100%; border-collapse: collapse; font-size: 13px; }
+  .an-contrast th, .an-contrast td {
+    text-align: start; vertical-align: top; padding: 10px;
+    border-block-end: 1px solid var(--border-subtle);
+  }
+  .an-contrast th { font-size: 11px; color: var(--text-tertiary); font-weight: 500; }
+  .an-contrast .an-c-prompt { color: var(--text); font-family: 'Alegreya', Georgia, serif; max-inline-size: 26ch; }
+  .an-contrast .an-c-out { max-inline-size: 52ch; }
+  .an-c-pick { font-family: 'Sono', ui-monospace, monospace; font-size: 11px; color: var(--text-tertiary); }
+  .an-c-snip {
+    color: var(--text-secondary); display: block; margin-block-start: 4px;
+    font-family: 'Alegreya', Georgia, serif;
+  }
+  .an-row-diverge td:first-child { border-inline-start: 2px solid var(--accent); }
+  .an-row-diverge .an-c-out { background: var(--bg-highlight); }
+  .an-contrast-cap { font-size: 13px; color: var(--text-secondary); margin-block: 0 14px; }
+  .an-contrast-cap b { color: var(--accent); font-weight: 600; }
+
+  .an-finding { font-size: 13px; color: var(--text-secondary); margin-block: 4px 16px; }
+  .an-cite {
+    color: var(--accent); text-decoration: none; font-size: 12px;
+    border-block-end: 1px solid transparent; white-space: nowrap;
+  }
+  .an-cite:hover { border-block-end-color: var(--accent); }
+
+  .an-myopia { margin-block: 28px 8px; border-block-start: 1px solid var(--border-subtle); padding-block-start: 20px; }
+
+  /* ---- Closing line ---- */
+  .an-close {
+    margin-block: 32px 16px;
+    border-inline-start: 3px solid var(--accent);
+    padding-inline-start: 20px;
+  }
+  .an-close p {
+    font-family: 'Alegreya', Georgia, serif;
+    font-size: clamp(20px, 2.8vw, 30px);
+    line-height: 1.35;
+    font-style: italic;
+    color: var(--text);
+    margin: 0;
+    text-wrap: balance;
+  }
+  .an-close cite {
+    display: block;
+    margin-block-start: 12px;
+    font-size: 13px;
+    font-style: normal;
+    color: var(--text-tertiary);
+  }
+
+  /* ---- Sources ---- */
+  .an-sources { margin-block-start: 20px; font-size: 13px; }
+  .an-sources summary { cursor: pointer; color: var(--text-secondary); padding-block: 6px; }
+  .an-sources summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .an-sources ul { margin-block: 10px; padding-inline-start: 18px; display: grid; gap: 8px; color: var(--text-secondary); line-height: 1.5; }
+  .an-sources a { color: var(--accent); text-decoration: none; }
+  .an-sources a:hover { text-decoration: underline; }
+  .an-sources-note { color: var(--text-tertiary); margin-block-start: 10px; }
+
+  /* ---- Mobile: stack the pair vertically ---- */
+  @media (max-width: 640px) {
+    .an-pair { grid-template-columns: 1fr; }
+    .an-wrow { grid-template-columns: 110px 1fr; gap: 8px; }
+    .an-wlabel { font-size: 12px; }
+    .an-contrast .an-c-prompt { max-inline-size: none; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .an-wfill, .an-meter-fill, .an-card, .an-timer-fill.is-running { transition-duration: 0ms; }
+  }
+</style>
+
+<script define:vars={{ ITEMS, FEATURES }}>
+  (function initAnnotator() {
+    const wrap = document.querySelector('[data-component="annotator"]');
+    if (!wrap) return;
+
+    const FK = FEATURES.map((f) => f.key);
+    const STORE_KEY = 'annotator:state';
+    const TIMER_DUR = 12; // seconds, visual nudge only — never auto-picks
+
+    // ---- State ----
+    let phase = 0;
+    let round = 0;
+    let reached = 0; // furthest phase unlocked
+    let order = ITEMS.map((_, i) => i); // presentation order
+    let picks = []; // { id, chosen:'A'|'B', diff:[...], chosenF, otherF, agreeChosen, truthChosen }
+
+    // ---- Persistence (sessionStorage; resets on a fresh visit) ----
+    function save() {
+      try {
+        sessionStorage.setItem(STORE_KEY, JSON.stringify({ round, reached, order, picks }));
+      } catch (_) {}
+    }
+    function load() {
+      try {
+        const raw = sessionStorage.getItem(STORE_KEY);
+        if (!raw) return false;
+        const s = JSON.parse(raw);
+        if (!s || !Array.isArray(s.picks)) return false;
+        round = s.round || 0;
+        reached = s.reached || 0;
+        order = Array.isArray(s.order) && s.order.length === ITEMS.length ? s.order : order;
+        picks = s.picks;
+        return true;
+      } catch (_) { return false; }
+    }
+
+    // ---- Math helpers ----
+    function dot(a, b) { let s = 0; for (let i = 0; i < a.length; i++) s += a[i] * b[i]; return s; }
+    function sigmoid(z) { return 1 / (1 + Math.exp(-z)); }
+    function featVec(f) { return FK.map((k) => f[k]); }
+
+    // Box–Muller standard normal.
+    function gauss() {
+      let u = 0, v = 0;
+      while (u === 0) u = Math.random();
+      while (v === 0) v = Math.random();
+      return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
+    }
+
+    /**
+     * Bradley–Terry / logistic reward model fit by gradient ascent on the
+     * log-likelihood of the pairwise comparisons, with L2 regularization.
+     * comparisons: array of diff vectors (f_chosen - f_rejected).
+     * Returns the weight vector w (one per feature).
+     */
+    function fitLogistic(diffs, { lambda = 0.5, lr = 0.6, iters = 400 } = {}) {
+      const n = FK.length;
+      const w = new Array(n).fill(0);
+      if (!diffs.length) return w;
+      for (let t = 0; t < iters; t++) {
+        const grad = new Array(n).fill(0);
+        for (const d of diffs) {
+          const p = sigmoid(dot(w, d)); // P(chosen preferred)
+          const g = 1 - p; // gradient of log-likelihood w.r.t. score
+          for (let i = 0; i < n; i++) grad[i] += g * d[i];
+        }
+        for (let i = 0; i < n; i++) {
+          grad[i] = grad[i] / diffs.length - lambda * w[i];
+          w[i] += lr * grad[i];
+        }
+      }
+      return w;
+    }
+
+    // ---- Render: weights bar chart ----
+    function renderWeights(container, w) {
+      const maxAbs = Math.max(1e-6, ...w.map(Math.abs));
+      // identify the single most positive (most-rewarded) feature
+      let topIdx = 0;
+      for (let i = 1; i < w.length; i++) if (w[i] > w[topIdx]) topIdx = i;
+      container.innerHTML = '';
+      FEATURES.forEach((feat, i) => {
+        const row = document.createElement('div');
+        row.className = 'an-wrow';
+        const isTop = i === topIdx && w[i] > 0;
+        const pct = (Math.abs(w[i]) / maxAbs) * 50; // half-width max
+        const pos = w[i] >= 0;
+        row.innerHTML =
+          '<span class="an-wlabel' + (isTop ? ' is-top' : '') + '">' + feat.label + '</span>' +
+          '<span class="an-wbar"><span class="an-wfill ' +
+          (isTop ? 'is-top' : pos ? 'is-pos' : 'is-neg') + '"></span></span>';
+        container.appendChild(row);
+        // animate next frame
+        requestAnimationFrame(() => {
+          const fill = row.querySelector('.an-wfill');
+          fill.style.inlineSize = pct + '%';
+          fill.style.insetInlineStart = pos ? '50%' : (50 - pct) + '%';
+        });
+      });
+    }
+
+    /**
+     * Population reward: simulate many raters who, choosing in seconds, lean
+     * toward the more agreeable / confident answer. Each rater picks under a
+     * shared "myopic pull" plus their own noise; we fit the same logistic
+     * model to all their picks. The recovered weights expose agreement as the
+     * dominant predictor — the Sharma et al. finding, made by aggregation
+     * rather than asserted. (See DESIGN.md.)
+     */
+    function populationWeights() {
+      const PULL = { agree: 2.4, confident: 1.2, length: -0.4, hedge: -0.7 };
+      const pullVec = FK.map((k) => PULL[k]);
+      const R = 300;
+      const diffs = [];
+      for (let r = 0; r < R; r++) {
+        const noisy = pullVec.map((p) => p + gauss() * 0.5);
+        for (const it of ITEMS) {
+          const fa = featVec(it.A.f), fb = featVec(it.B.f);
+          const d = fa.map((x, i) => x - fb[i]);
+          const pA = sigmoid(dot(noisy, d));
+          const chooseA = Math.random() < pA;
+          diffs.push(chooseA ? d : d.map((x) => -x));
+        }
+      }
+      return fitLogistic(diffs, { lambda: 0.4, lr: 0.5, iters: 300 });
+    }
+
+    // ---- Phase navigation ----
+    function show(p) {
+      phase = p;
+      reached = Math.max(reached, p);
+      wrap.dataset.phase = String(p);
+      wrap.querySelectorAll('.an-phase').forEach((el) => {
+        el.hidden = +el.dataset.phase !== p;
+      });
+      wrap.querySelectorAll('.an-rail-step').forEach((btn) => {
+        const i = +btn.dataset.goto;
+        if (i === p) btn.setAttribute('aria-current', 'step');
+        else btn.removeAttribute('aria-current');
+        btn.disabled = i > reached;
+      });
+      const scroller = wrap.querySelector('.an-scroll');
+      if (scroller) scroller.scrollTop = 0;
+      if (p === 2) renderSignal();
+      if (p === 3) renderContrast();
+      save();
+    }
+
+    // ---- Phase 1: annotation ----
+    const promptEl = wrap.querySelector('[data-prompt]');
+    const cardAText = wrap.querySelector('[data-card-a]');
+    const cardBText = wrap.querySelector('[data-card-b]');
+    const cardA = wrap.querySelector('[data-pick="A"]');
+    const cardB = wrap.querySelector('[data-pick="B"]');
+    const roundNow = wrap.querySelector('[data-round-now]');
+    const srcEl = wrap.querySelector('[data-src]');
+    const timerFill = wrap.querySelector('[data-timer]');
+    let locked = false;
+
+    function startTimer() {
+      if (!timerFill) return;
+      timerFill.classList.remove('is-running');
+      timerFill.style.transform = 'scaleX(1)';
+      timerFill.style.setProperty('--timer-dur', TIMER_DUR + 's');
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => timerFill.classList.add('is-running'));
+      });
+    }
+
+    function renderRound() {
+      locked = false;
+      const it = ITEMS[order[round]];
+      roundNow.textContent = String(round + 1);
+      if (srcEl) srcEl.textContent = it.source || '';
+      promptEl.textContent = it.prompt;
+      cardAText.textContent = it.A.text;
+      cardBText.textContent = it.B.text;
+      cardA.classList.remove('is-picked', 'is-dimmed');
+      cardB.classList.remove('is-picked', 'is-dimmed');
+      startTimer();
+    }
+
+    function recordPick(choice) {
+      if (locked) return;
+      locked = true;
+      const it = ITEMS[order[round]];
+      const chosen = it[choice];
+      const other = it[choice === 'A' ? 'B' : 'A'];
+      const cf = featVec(chosen.f), of = featVec(other.f);
+      picks.push({
+        id: it.id,
+        chosen: choice,
+        diff: cf.map((x, i) => x - of[i]),
+        agreeChosen: chosen.f.agree,
+        truthChosen: chosen.truthful,
+      });
+      (choice === 'A' ? cardA : cardB).classList.add('is-picked');
+      (choice === 'A' ? cardB : cardA).classList.add('is-dimmed');
+      if (timerFill) timerFill.classList.remove('is-running');
+      save();
+      setTimeout(() => {
+        round += 1;
+        if (round >= N_total()) {
+          reached = Math.max(reached, 2);
+          show(2);
+        } else {
+          renderRound();
+        }
+      }, 360);
+    }
+    function N_total() { return ITEMS.length; }
+
+    cardA.addEventListener('click', () => recordPick('A'));
+    cardB.addEventListener('click', () => recordPick('B'));
+
+    // ---- Phase 2: the signal ----
+    let popW = null;
+    function renderSignal() {
+      const total = wrap.querySelector('[data-pick-total]');
+      if (total) total.textContent = String(picks.length);
+      const youW = fitLogistic(picks.map((p) => p.diff));
+      renderWeights(wrap.querySelector('[data-weights="you"]'), youW);
+      if (!popW) popW = populationWeights();
+      renderWeights(wrap.querySelector('[data-weights="pop"]'), popW);
+      updateDrift();
+    }
+
+    // Policy drift + Goodhart divergence. The policy, for each prompt, picks
+    // between the two responses by softmax over the population reward with
+    // an inverse-temperature β set by the slider. We then measure the
+    // proxy (agreement emitted) and the held-out true helpfulness.
+    const pressure = wrap.querySelector('[data-pressure]');
+    // The contested items: those where the approval-reward's pick differs from
+    // the truthful pick. Sycophancy lives here — so the drift is measured on
+    // this subset, not the whole bank (where agreeing is usually also correct).
+    function contestedItems() {
+      if (!popW) popW = populationWeights();
+      return ITEMS.filter((it) => {
+        const ra = dot(popW, featVec(it.A.f)), rb = dot(popW, featVec(it.B.f));
+        const approvalPick = ra >= rb ? 'A' : 'B';
+        const truthPick = it.A.truthful >= it.B.truthful ? 'A' : 'B';
+        return approvalPick !== truthPick;
+      });
+    }
+    function updateDrift() {
+      const items = contestedItems();
+      const cc = wrap.querySelector('[data-contested-count]');
+      if (cc) cc.textContent = String(items.length);
+      const beta = (+pressure.value / 100) * 12; // 0 → uniform, high → argmax
+      let proxy = 0, truth = 0;
+      for (const it of items) {
+        const fa = featVec(it.A.f), fb = featVec(it.B.f);
+        const ra = dot(popW, fa), rb = dot(popW, fb);
+        const ea = Math.exp(beta * ra), eb = Math.exp(beta * rb);
+        const pA = ea / (ea + eb);
+        // proxy = agreement of emitted answer; truth = held-out truthfulness
+        proxy += pA * it.A.f.agree + (1 - pA) * it.B.f.agree;
+        truth += pA * it.A.truthful + (1 - pA) * it.B.truthful;
+      }
+      const n = items.length || 1;
+      proxy = (proxy / n) * 100;
+      truth = (truth / n) * 100;
+      const set = (name, val) => {
+        const fill = wrap.querySelector('[data-meter="' + name + '"]');
+        const out = wrap.querySelector('[data-meter-val="' + name + '"]');
+        if (fill) fill.style.inlineSize = val.toFixed(0) + '%';
+        if (out) out.textContent = val.toFixed(0) + '%';
+      };
+      set('proxy', proxy);
+      set('true', truth);
+    }
+    if (pressure) pressure.addEventListener('input', updateDrift);
+
+    // ---- Phase 3: the contrast ----
+    let target = 'approval';
+    function renderContrast() {
+      if (!popW) popW = populationWeights();
+      const body = wrap.querySelector('[data-contrast-body]');
+      body.innerHTML = '';
+      let diverge = 0;
+      const snip = (s) => (s.length > 90 ? s.slice(0, 88).trim() + '…' : s);
+      for (const it of ITEMS) {
+        const ra = dot(popW, featVec(it.A.f)), rb = dot(popW, featVec(it.B.f));
+        const approvalPick = ra >= rb ? 'A' : 'B';
+        const truthPick = it.A.truthful >= it.B.truthful ? 'A' : 'B';
+        const diverges = approvalPick !== truthPick;
+        if (diverges) diverge++;
+        // The single output column is driven by the selected reward target —
+        // so flipping the toggle changes the answer on every diverging row.
+        const active = target === 'approval' ? approvalPick : truthPick;
+        const tr = document.createElement('tr');
+        if (diverges) tr.className = 'an-row-diverge';
+        tr.innerHTML =
+          '<td class="an-c-prompt">' + snip(it.prompt.replace(/\n+/g, ' ')) + '</td>' +
+          '<td class="an-c-out"><span class="an-c-pick">answer ' + active + '</span>' +
+          '<span class="an-c-snip">' + snip(it[active].text) + '</span></td>';
+        body.appendChild(tr);
+      }
+      const nameEl = wrap.querySelector('[data-target-name]');
+      if (nameEl) nameEl.textContent = target === 'approval' ? 'human approval' : 'truthfulness';
+      const summary = wrap.querySelector('[data-diverge-summary]');
+      if (summary) {
+        summary.innerHTML =
+          '<code class="ph">The two rewards command different answers on ' + diverge + ' of ' + ITEMS.length +
+          ' prompts. On those rows the approval-trained model emits the more agreeable answer and the truth-trained model emits the more accurate one — same prompt, opposite output.</code>';
+      }
+    }
+    wrap.querySelectorAll('.an-toggle-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        target = btn.dataset.target;
+        wrap.querySelectorAll('.an-toggle-btn').forEach((b) => b.classList.toggle('is-on', b === btn));
+        renderContrast();
+      });
+    });
+
+    // ---- Actions ----
+    wrap.querySelector('[data-action="start"]').addEventListener('click', () => {
+      show(1);
+      renderRound();
+    });
+    wrap.querySelector('[data-action="to-contrast"]').addEventListener('click', () => show(3));
+    wrap.querySelector('[data-action="restart"]').addEventListener('click', () => {
+      round = 0; reached = 0; picks = []; popW = null;
+      order = ITEMS.map((_, i) => i);
+      // shuffle so a repeat run isn't identical
+      for (let i = order.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [order[i], order[j]] = [order[j], order[i]];
+      }
+      try { sessionStorage.removeItem(STORE_KEY); } catch (_) {}
+      show(0);
+    });
+
+    // Rail navigation (back to any unlocked phase).
+    wrap.querySelectorAll('.an-rail-step').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const i = +btn.dataset.goto;
+        if (i > reached) return;
+        if (i === 1 && round < N_total()) { show(1); renderRound(); }
+        else show(i);
+      });
+    });
+
+    // ---- Boot: restore session if present ----
+    if (load() && picks.length) {
+      if (round >= N_total()) {
+        show(Math.min(Math.max(reached, 2), 3) === 0 ? 2 : Math.max(reached, 2));
+      } else {
+        show(1);
+        renderRound();
+      }
+    } else {
+      // fresh visit: shuffle order
+      for (let i = order.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [order[i], order[j]] = [order[j], order[i]];
+      }
+      show(0);
+    }
+  })();
+</script>
