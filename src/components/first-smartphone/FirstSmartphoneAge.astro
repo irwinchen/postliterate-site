@@ -1,0 +1,385 @@
+---
+/**
+ * FirstSmartphoneAge — smartphone ownership among children, by age band, for
+ * six OECD countries.
+ *
+ * Each country is one line. Line style encodes data confidence:
+ *   solid  = single-year / true-band data from a primary source
+ *   dashed = includes interpolated, grade-converted, or older figures
+ *
+ * The dataset lives in ./data.ts (shared with FirstSmartphoneIsotype.astro).
+ * Geometry is computed at build time; the client script only wires hover
+ * interactivity.
+ *
+ * Per project CLAUDE.md, any interpretive prose is scaffolding only and is
+ * rendered inside <code> so Irwin can tell Claude's placeholder text from his
+ * own writing. Axis labels, country names, values, and source attributions are
+ * factual structure, not prose.
+ */
+import { BANDS, COUNTRIES, FOOTNOTE } from './data';
+
+// ---- geometry (build-time) --------------------------------------------------
+const W = 900;
+const H = 540;
+const M = { top: 48, right: 232, bottom: 68, left: 56 };
+const plotW = W - M.left - M.right;
+const plotH = H - M.top - M.bottom;
+
+const xAt = (i: number) => M.left + (i / (BANDS.length - 1)) * plotW;
+const yAt = (v: number) => M.top + (1 - v / 100) * plotH;
+
+const yTicks = [0, 25, 50, 75, 100];
+
+// Build a polyline path over the non-null points for each country.
+type Pt = { i: number; v: number; x: number; y: number };
+const series = COUNTRIES.map((c) => {
+  const pts: Pt[] = [];
+  c.values.forEach((v, i) => {
+    if (v == null) return;
+    pts.push({ i, v, x: xAt(i), y: yAt(v) });
+  });
+  const d = pts.map((p, k) => `${k === 0 ? 'M' : 'L'}${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ');
+  const last = pts[pts.length - 1];
+  return { ...c, pts, d, last };
+});
+
+// Legend rows, sorted by the 12–13 value (top line first).
+const legend = [...series].sort((a, b) => (b.last.v - a.last.v));
+---
+
+<div class="fsa" data-fsa>
+  <header class="fsa-head">
+    <h1 class="fsa-title">When children get their first smartphone</h1>
+    <p class="fsa-sub">
+      Share of children who own their own smartphone, by age — six OECD countries
+    </p>
+  </header>
+
+  <div class="fsa-plot-wrap">
+    <svg
+      class="fsa-svg"
+      viewBox={`0 0 ${W} ${H}`}
+      role="img"
+      aria-label="Line chart of smartphone ownership by age band across six OECD countries"
+      preserveAspectRatio="xMidYMid meet"
+    >
+      <!-- y gridlines + labels -->
+      {yTicks.map((t) => (
+        <g class="fsa-grid">
+          <line x1={M.left} x2={M.left + plotW} y1={yAt(t)} y2={yAt(t)} />
+          <text class="fsa-axis-label" x={M.left - 12} y={yAt(t)} dy="0.32em" text-anchor="end">{t}%</text>
+        </g>
+      ))}
+
+      <!-- x band labels -->
+      {BANDS.map((b, i) => (
+        <text class="fsa-axis-label fsa-xlabel" x={xAt(i)} y={M.top + plotH + 28} text-anchor="middle">
+          {b}
+        </text>
+      ))}
+      <text class="fsa-axis-title" x={M.left + plotW / 2} y={H - 14} text-anchor="middle">age</text>
+
+      <!-- country lines -->
+      {series.map((c) => (
+        <path
+          class="fsa-line"
+          d={c.d}
+          fill="none"
+          stroke={c.color}
+          stroke-width="2.5"
+          stroke-linejoin="round"
+          stroke-linecap="round"
+          stroke-dasharray={c.confidence === 'soft' ? '7 5' : undefined}
+          data-country={c.id}
+        />
+      ))}
+
+      <!-- data points + hover targets -->
+      {series.map((c) =>
+        c.pts.map((p) => (
+          <g class="fsa-pt" data-country={c.id} data-band={BANDS[p.i]} data-value={p.v} data-name={c.name} data-flag={c.flag} data-source={c.source} data-conf={c.confidence}>
+            <circle class="fsa-pt-dot" cx={p.x} cy={p.y} r="3.5" fill={c.color} />
+            <circle class="fsa-pt-hit" cx={p.x} cy={p.y} r="14" fill="transparent" />
+          </g>
+        ))
+      )}
+
+      <!-- endpoint flags -->
+      {series.map((c) => (
+        <text class="fsa-endflag" x={c.last.x + 12} y={c.last.y} dy="0.34em" data-country={c.id}>{c.flag}</text>
+      ))}
+
+      <!-- legend -->
+      <g class="fsa-legend" transform={`translate(${M.left + plotW + 40}, ${M.top + 2})`}>
+        {legend.map((c, k) => (
+          <g class="fsa-legend-row" data-country={c.id} transform={`translate(0, ${k * 30})`} tabindex="0">
+            <line class="fsa-legend-swatch" x1="0" x2="26" y1="0" y2="0" stroke={c.color} stroke-width="2.5" stroke-dasharray={c.confidence === 'soft' ? '7 5' : undefined} stroke-linecap="round" />
+            <text class="fsa-legend-flag" x="34" y="0" dy="0.34em">{c.flag}</text>
+            <text class="fsa-legend-name" x="52" y="0" dy="0.34em">{c.name}</text>
+            <text class="fsa-legend-val" x="176" y="0" dy="0.34em" text-anchor="end" fill={c.color}>{c.last.v}%</text>
+          </g>
+        ))}
+        <g transform={`translate(0, ${legend.length * 30 + 8})`}>
+          <line x1="0" x2="26" y1="0" y2="0" class="fsa-key-line" stroke-width="2.5" stroke-linecap="round" />
+          <text class="fsa-key-text" x="34" y="0" dy="0.34em">solid = primary data</text>
+          <line x1="0" x2="26" y1="20" y2="20" class="fsa-key-line" stroke-width="2.5" stroke-dasharray="7 5" stroke-linecap="round" />
+          <text class="fsa-key-text" x="34" y="20" dy="0.34em">dashed = estimated / older</text>
+        </g>
+      </g>
+    </svg>
+
+    <!-- hover tooltip -->
+    <div class="fsa-tip" data-fsa-tip hidden></div>
+  </div>
+
+  <footer class="fsa-foot">
+    <p class="fsa-sources">
+      Sources: Common Sense Media (US, 2021); KIM-Studie / mpfs (Germany, 2022);
+      NTT Docomo Mobile Society Institute (Japan, 2024); Ofcom (UK, 2024);
+      Korea Press Foundation (South Korea, ~2019); ACMA (Australia, 2020).
+    </p>
+    <p class="fsa-note"><code>{FOOTNOTE}</code></p>
+  </footer>
+</div>
+
+<style>
+  .fsa {
+    display: flex;
+    flex-direction: column;
+    block-size: 100%;
+    inline-size: 100%;
+    padding: 20px clamp(16px, 4vw, 40px);
+    font-family: 'Outfit', system-ui, sans-serif;
+    color: var(--text);
+    background: var(--background);
+    overflow: auto;
+  }
+  .fsa-head {
+    flex-shrink: 0;
+    margin-block-end: 8px;
+  }
+  .fsa-title {
+    font-family: 'Alegreya', Georgia, serif;
+    font-weight: 500;
+    font-size: clamp(20px, 3vw, 28px);
+    line-height: 1.15;
+    color: var(--text);
+  }
+  .fsa-sub {
+    margin-block-start: 4px;
+    font-size: clamp(13px, 1.6vw, 15px);
+    color: var(--text-secondary);
+  }
+  .fsa-plot-wrap {
+    position: relative;
+    flex: 1;
+    min-block-size: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .fsa-svg {
+    inline-size: 100%;
+    max-inline-size: 980px;
+    block-size: auto;
+  }
+
+  .fsa-grid line {
+    stroke: var(--border-subtle);
+    stroke-width: 1;
+  }
+  .fsa-axis-label {
+    fill: var(--text-tertiary);
+    font-size: 13px;
+    font-family: 'Sono', ui-monospace, monospace;
+  }
+  .fsa-xlabel {
+    fill: var(--text-secondary);
+    font-family: 'Outfit', sans-serif;
+    font-size: 13px;
+  }
+  .fsa-axis-title {
+    fill: var(--text-tertiary);
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    font-family: 'Outfit', sans-serif;
+  }
+
+  .fsa-line {
+    transition: opacity 0.15s ease;
+  }
+  .fsa-endflag {
+    font-size: 17px;
+    transition: opacity 0.15s ease;
+  }
+  .fsa-pt-dot {
+    transition: r 0.12s ease;
+  }
+  .fsa-pt-hit {
+    cursor: pointer;
+  }
+
+  .fsa-legend-name {
+    fill: var(--text);
+    font-size: 14px;
+    font-family: 'Outfit', sans-serif;
+  }
+  .fsa-legend-flag {
+    font-size: 15px;
+  }
+  .fsa-legend-val {
+    font-size: 13px;
+    font-family: 'Sono', monospace;
+  }
+  .fsa-legend-row {
+    cursor: pointer;
+    outline: none;
+  }
+  .fsa-key-line {
+    stroke: var(--text-tertiary);
+  }
+  .fsa-key-text {
+    fill: var(--text-tertiary);
+    font-size: 12px;
+    font-family: 'Outfit', sans-serif;
+  }
+
+  /* dim state when a country is focused */
+  .fsa[data-focus] .fsa-line,
+  .fsa[data-focus] .fsa-endflag,
+  .fsa[data-focus] .fsa-pt {
+    opacity: 0.16;
+  }
+  .fsa[data-focus] .fsa-line[data-country-active],
+  .fsa[data-focus] .fsa-endflag[data-country-active],
+  .fsa[data-focus] .fsa-pt[data-country-active] {
+    opacity: 1;
+  }
+  .fsa[data-focus] .fsa-legend-row:not([data-country-active]) {
+    opacity: 0.4;
+  }
+
+  .fsa-foot {
+    flex-shrink: 0;
+    margin-block-start: 10px;
+    font-size: 12px;
+    line-height: 1.5;
+    color: var(--text-tertiary);
+    max-inline-size: 980px;
+  }
+  .fsa-sources {
+    color: var(--text-secondary);
+  }
+  .fsa-note {
+    margin-block-start: 4px;
+  }
+  .fsa-note code {
+    font-family: 'Sono', monospace;
+    font-size: 11.5px;
+    color: var(--text-tertiary);
+    background: var(--bg-subtle);
+    padding: 2px 5px;
+    display: inline-block;
+  }
+
+  .fsa-tip {
+    position: absolute;
+    z-index: 5;
+    pointer-events: none;
+    background: var(--panel-bg);
+    border: 1px solid var(--container-stroke);
+    padding: 8px 10px;
+    font-size: 12.5px;
+    line-height: 1.35;
+    color: var(--text);
+    max-inline-size: 220px;
+    backdrop-filter: blur(3px);
+    transform: translate(-50%, calc(-100% - 12px));
+  }
+  /* Tooltip inner markup is injected at runtime via innerHTML, so those nodes
+     never receive Astro's scoped `data-astro-cid` attribute. Mark the child
+     selectors :global() so the scoped styles still reach them. */
+  .fsa-tip :global(strong) {
+    font-weight: 600;
+  }
+  .fsa-tip :global(.fsa-tip-val) {
+    font-family: 'Sono', monospace;
+    color: var(--accent);
+  }
+  .fsa-tip :global(.fsa-tip-src) {
+    display: block;
+    margin-block-start: 3px;
+    color: var(--text-tertiary);
+    font-size: 11px;
+  }
+</style>
+
+<script>
+  const root = document.querySelector<HTMLElement>('[data-fsa]');
+  if (root) {
+    const tip = root.querySelector<HTMLElement>('[data-fsa-tip]')!;
+    const wrap = root.querySelector<HTMLElement>('.fsa-plot-wrap')!;
+
+    function setFocus(id: string | null) {
+      if (!id) {
+        root!.removeAttribute('data-focus');
+        root!.querySelectorAll('[data-country-active]').forEach((el) =>
+          el.removeAttribute('data-country-active')
+        );
+        return;
+      }
+      root!.setAttribute('data-focus', '');
+      root!.querySelectorAll('[data-country]').forEach((el) => {
+        if (el.getAttribute('data-country') === id) el.setAttribute('data-country-active', '');
+        else el.removeAttribute('data-country-active');
+      });
+    }
+
+    // point tooltips
+    root.querySelectorAll<SVGGElement>('.fsa-pt').forEach((g) => {
+      const show = () => {
+        const name = g.dataset.name;
+        const flag = g.dataset.flag;
+        const band = g.dataset.band;
+        const value = g.dataset.value;
+        const source = g.dataset.source;
+        const conf = g.dataset.conf === 'soft' ? ' · estimated' : '';
+        tip.innerHTML =
+          `${flag} <strong>${name}</strong><br>` +
+          `age ${band}: <span class="fsa-tip-val">${value}%</span> own a smartphone` +
+          `<span class="fsa-tip-src">${source}${conf}</span>`;
+        const dot = g.querySelector<SVGCircleElement>('.fsa-pt-dot')!;
+        const svg = dot.ownerSVGElement!;
+        const rect = svg.getBoundingClientRect();
+        const wrapRect = wrap.getBoundingClientRect();
+        const vb = svg.viewBox.baseVal;
+        const sx = rect.width / vb.width;
+        const sy = rect.height / vb.height;
+        const px = rect.left - wrapRect.left + Number(dot.getAttribute('cx')) * sx;
+        const py = rect.top - wrapRect.top + Number(dot.getAttribute('cy')) * sy;
+        tip.style.left = px + 'px';
+        tip.style.top = py + 'px';
+        tip.hidden = false;
+        setFocus(g.dataset.country || null);
+        (g.querySelector('.fsa-pt-dot') as SVGCircleElement).setAttribute('r', '5');
+      };
+      const hide = () => {
+        tip.hidden = true;
+        setFocus(null);
+        (g.querySelector('.fsa-pt-dot') as SVGCircleElement).setAttribute('r', '3.5');
+      };
+      g.addEventListener('mouseenter', show);
+      g.addEventListener('mouseleave', hide);
+    });
+
+    // legend hover → highlight line
+    root.querySelectorAll<SVGGElement>('.fsa-legend-row').forEach((r) => {
+      const id = r.getAttribute('data-country');
+      r.addEventListener('mouseenter', () => setFocus(id));
+      r.addEventListener('mouseleave', () => setFocus(null));
+      r.addEventListener('focus', () => setFocus(id));
+      r.addEventListener('blur', () => setFocus(null));
+    });
+  }
+</script>

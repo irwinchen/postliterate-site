@@ -1,0 +1,127 @@
+---
+import FirstSmartphoneIsotype from '../components/first-smartphone/FirstSmartphoneIsotype.astro';
+---
+
+<!doctype html>
+<html lang="en" data-theme="light">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="At what age do children get their first smartphone? A pictogram of ownership by age band across six OECD countries, from national regulators and research bodies."
+    />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <title>When children get their first smartphone | Post-Literate</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Alegreya:ital,wght@0,400;0,500;1,400&family=Outfit:wght@400;500;600&family=Sono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+
+    <style>
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      :root {
+        color-scheme: light;
+        --background: #f3efe1;
+        --text: #2c2c2c;
+        --text-secondary: #666;
+        --text-tertiary: #999;
+        --accent: #e53e33;
+        --border-subtle: rgba(0, 0, 0, 0.1);
+        --bg-subtle: rgba(0, 0, 0, 0.02);
+        --bg-highlight: rgba(229, 62, 51, 0.05);
+        --panel-bg: rgba(243, 239, 225, 0.88);
+        --container-fill: rgba(0, 0, 0, 0.06);
+        --container-stroke: rgba(0, 0, 0, 0.22);
+      }
+      [data-theme='dark'] {
+        color-scheme: dark;
+        --background: #1a1a1a;
+        --text: #c8c8c8;
+        --text-secondary: #a0a0a0;
+        --text-tertiary: #707070;
+        --accent: #ff6b5e;
+        --border-subtle: rgba(255, 255, 255, 0.1);
+        --bg-subtle: rgba(255, 255, 255, 0.03);
+        --bg-highlight: rgba(255, 107, 94, 0.08);
+        --panel-bg: rgba(26, 26, 26, 0.88);
+        --container-fill: rgba(255, 255, 255, 0.07);
+        --container-stroke: rgba(255, 255, 255, 0.28);
+      }
+
+      html,
+      body {
+        block-size: 100%;
+        overflow: hidden;
+        background: var(--background);
+        color: var(--text);
+        font-family: 'Outfit', system-ui, sans-serif;
+      }
+
+      .page-shell {
+        display: flex;
+        flex-direction: column;
+        block-size: 100dvh;
+      }
+
+      .page-nav {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        padding-inline: 20px;
+        block-size: 40px;
+        border-block-end: 1px solid var(--border-subtle);
+        flex-shrink: 0;
+        font-size: 13px;
+      }
+      .page-nav a {
+        color: var(--text-secondary);
+        text-decoration: none;
+      }
+      .page-nav a:hover {
+        color: var(--accent);
+      }
+      .page-nav-sep {
+        color: var(--text-tertiary);
+      }
+
+      .figure-wrap {
+        flex: 1;
+        min-block-size: 0;
+        overflow: hidden;
+      }
+      .figure-wrap > * {
+        block-size: 100%;
+      }
+    </style>
+
+    <script is:inline>
+      (function () {
+        var saved = localStorage.getItem('theme') || 'light';
+        document.documentElement.setAttribute('data-theme', saved);
+      })();
+    </script>
+  </head>
+  <body>
+    <div class="page-shell">
+      <nav class="page-nav">
+        <a href="/">Post-Literate</a>
+        <span class="page-nav-sep">›</span>
+        <span>First smartphone by age — pictogram</span>
+      </nav>
+      <div class="figure-wrap">
+        <FirstSmartphoneIsotype />
+      </div>
+    </div>
+  </body>
+</html>

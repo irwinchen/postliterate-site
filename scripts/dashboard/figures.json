@@ -152,5 +152,13 @@
     "images": [
       { "file": "annotator.png" }
     ]
+  },
+  {
+    "id": "first-smartphone-isotype",
+    "title": "When Children Get Their First Smartphone — Isotype",
+    "page": "/first-smartphone-isotype",
+    "images": [
+      { "file": "first-smartphone-isotype.png" }
+    ]
   }
 ]

@@ -1,0 +1,484 @@
+---
+/**
+ * FirstSmartphoneIsotype — a Neurath-style pictogram (Isotype) of smartphone
+ * ownership among children, by age band.
+ *
+ * Four rows, one per age band (6–7 … 12–13); ten child figures per row, so one
+ * figure = one-in-ten children. The children who own a smartphone hold an
+ * accent-red phone and are tinted darker; the count of phones per row is the
+ * ownership share rounded to the nearest 10% (the exact % is labelled on each
+ * row so the rounding hides nothing). Figures grow taller and less top-heavy
+ * down the rows — a visual echo of the children getting older.
+ *
+ * Because an Isotype shows a single series across the four ages, a country
+ * selector switches which country's data fills the grid (default: Germany, the
+ * one country with true single-source age-band data across all four bands).
+ *
+ * The dataset lives in ./data.ts (shared with FirstSmartphoneAge.astro).
+ * Figure geometry is computed at build time; the client script only re-fills
+ * the grid when the country changes.
+ *
+ * Per project CLAUDE.md, interpretive prose is scaffolding only and is rendered
+ * inside <code>. Age bands, country names, percentages and sources are factual
+ * structure, not prose.
+ */
+import { BANDS, COUNTRIES, FOOTNOTE } from './data';
+
+const DEFAULT_ID = 'de';
+const COLS = 10;
+
+// ---- per-age figure variants ------------------------------------------------
+// H grows and headR/H shrinks with age → older children read as taller and
+// less top-heavy. armAngle splays the arms out for the youngest (toddler-ish).
+type Variant = {
+  H: number;
+  headR: number;
+  torsoW: number;
+  limbW: number;
+  legFrac: number;
+  armAngle: number;
+  armFrac: number; // arm length as a fraction of torso height — grows with age
+};
+const VARIANTS: Variant[] = [
+  { H: 72, headR: 13, torsoW: 23, limbW: 7.5, legFrac: 0.42, armAngle: 18, armFrac: 0.7 },
+  { H: 92, headR: 13.75, torsoW: 23, limbW: 7.5, legFrac: 0.48, armAngle: 13, armFrac: 0.95 },
+  { H: 110, headR: 14.5, torsoW: 23.5, limbW: 7.5, legFrac: 0.52, armAngle: 10, armFrac: 1.02 },
+  { H: 128, headR: 15.25, torsoW: 24, limbW: 8, legFrac: 0.5, armAngle: 8, armFrac: 1.05 },
+];
+
+// A figure in local coords: feet on baseline y=0, centred on x=0, growing up
+// (negative y). Returns the primitives needed to draw body + arms + held phone.
+function figure(v: Variant) {
+  const headCy = -(v.H - v.headR);
+  const torsoTop = headCy + v.headR + 2; // top of shoulders, below the head
+  const bodyH = -torsoTop;
+  const legsH = bodyH * v.legFrac;
+  const torsoH = bodyH - legsH;
+  const torsoBottom = torsoTop + torsoH;
+  const legOff = v.torsoW * 0.19;
+
+  // Arms: distinct capsules just OUTSIDE the torso (a small gap keeps them
+  // legible), hanging from the shoulders with a slight outward splay. armFrac
+  // grows with age, so the hands reach further down for older children.
+  const armH = torsoH * v.armFrac;
+  const shoulderY = torsoTop + torsoH * 0.1;
+  const shoulderX = v.torsoW / 2 + v.limbW / 2 + 0.3; // arm centre, hugging the torso
+  const rad = (v.armAngle * Math.PI) / 180;
+  // Right hand = bottom-centre of the right arm after splaying it outward.
+  const handX = shoulderX + Math.sin(rad) * armH;
+  const handY = shoulderY + Math.cos(rad) * armH;
+
+  const phoneW = v.headR * 1.02;
+  const phoneH = phoneW * 1.8;
+  const phoneCx = handX + phoneW * 0.05;
+  const phoneCy = handY - phoneH * 0.32; // grip near the hand, phone above it
+
+  return {
+    headCy,
+    headR: v.headR,
+    torsoTop,
+    torsoH,
+    torsoW: v.torsoW,
+    legsTop: torsoBottom,
+    legsH,
+    legOff,
+    limbW: v.limbW,
+    armH,
+    shoulderX,
+    shoulderY,
+    armAngle: v.armAngle,
+    phoneW,
+    phoneH,
+    phoneCx,
+    phoneCy,
+  };
+}
+
+// ---- grid layout ------------------------------------------------------------
+const GUTTER = 104; // left label column
+const PAD_R = 16;
+const PAD_T = 14;
+// Feet-aligned rows with variable spacing: because taller (older) figures sit
+// in the lower rows and grow upward from their baseline, each row only needs to
+// clear the row above by its OWN height. Cumulative baselines pack the shorter
+// upper rows tightly instead of reserving maxH for every row.
+const ROW_GAP = 14;
+const baselines: number[] = [];
+{
+  let b = PAD_T + VARIANTS[0].H;
+  baselines.push(b);
+  for (let i = 1; i < VARIANTS.length; i++) {
+    b += VARIANTS[i].H + ROW_GAP;
+    baselines.push(b);
+  }
+}
+const cellW = 78;
+const W = GUTTER + COLS * cellW + PAD_R;
+const H = baselines[baselines.length - 1] + PAD_T;
+
+const colCx = (col: number) => GUTTER + cellW / 2 + col * cellW;
+
+const rows = BANDS.map((band, i) => ({
+  band,
+  index: i,
+  fig: figure(VARIANTS[i]),
+  baseline: baselines[i],
+  labelY: baselines[i] - VARIANTS[i].H / 2,
+}));
+
+const def = COUNTRIES.find((c) => c.id === DEFAULT_ID)!;
+const ownedFor = (rowIndex: number, c = def) => {
+  const v = c.values[rowIndex];
+  return v == null ? -1 : Math.round(v / 10); // -1 = no data
+};
+---
+
+<div class="fsi" data-fsi data-country={DEFAULT_ID}>
+  <header class="fsi-head">
+    <h1 class="fsi-title">When children get their first smartphone</h1>
+    <p class="fsi-sub">
+      Each figure is one in ten children. Phones mark those who own their own
+      smartphone, by age.
+    </p>
+  </header>
+
+  <div class="fsi-controls" role="group" aria-label="Choose a country">
+    {
+      COUNTRIES.map((c) => (
+        <button
+          type="button"
+          class="fsi-chip"
+          data-pick={c.id}
+          aria-pressed={c.id === DEFAULT_ID ? 'true' : 'false'}
+        >
+          <span class="fsi-chip-flag">{c.flag}</span>
+          <span class="fsi-chip-name">{c.name}</span>
+        </button>
+      ))
+    }
+  </div>
+
+  <div class="fsi-plot-wrap">
+    <svg
+      class="fsi-svg"
+      viewBox={`0 0 ${W} ${H}`}
+      role="img"
+      aria-label="Pictogram of smartphone ownership by age band; ten child figures per row, phones marking owners"
+      preserveAspectRatio="xMidYMid meet"
+    >
+      {
+        rows.map((r) => {
+          const f = r.fig;
+          const owned0 = ownedFor(r.index);
+          return (
+            <g class="fsi-row" data-row={r.index}>
+              <text class="fsi-band" x={GUTTER - 26} y={r.labelY - 7} text-anchor="end">
+                {r.band}
+              </text>
+              <text
+                class="fsi-pct"
+                x={GUTTER - 26}
+                y={r.labelY + 16}
+                text-anchor="end"
+                data-pct-for={r.index}
+              >
+                {owned0 < 0 ? 'no data' : `${def.values[r.index]}%`}
+              </text>
+
+              {Array.from({ length: COLS }).map((_, col) => (
+                <g
+                  class="fsi-child"
+                  data-row={r.index}
+                  data-col={col}
+                  data-owns={col < owned0 ? 'true' : 'false'}
+                  transform={`translate(${colCx(col)}, ${r.baseline})`}
+                >
+                  {/* legs */}
+                  <rect
+                    class="fsi-fig"
+                    x={-f.legOff - f.limbW / 2}
+                    y={f.legsTop}
+                    width={f.limbW}
+                    height={f.legsH}
+                    rx={f.limbW / 2}
+                  />
+                  <rect
+                    class="fsi-fig"
+                    x={f.legOff - f.limbW / 2}
+                    y={f.legsTop}
+                    width={f.limbW}
+                    height={f.legsH}
+                    rx={f.limbW / 2}
+                  />
+                  {/* torso */}
+                  <rect
+                    class="fsi-fig"
+                    x={-f.torsoW / 2}
+                    y={f.torsoTop}
+                    width={f.torsoW}
+                    height={f.torsoH}
+                    rx={f.torsoW / 2}
+                  />
+                  {/* arms (outside the torso, drawn on top so their length reads;
+                      splayed slightly out from the shoulders) */}
+                  <rect
+                    class="fsi-fig"
+                    x={-f.shoulderX - f.limbW / 2}
+                    y={f.shoulderY}
+                    width={f.limbW}
+                    height={f.armH}
+                    rx={f.limbW / 2}
+                    transform={`rotate(${f.armAngle}, ${-f.shoulderX}, ${f.shoulderY})`}
+                  />
+                  <rect
+                    class="fsi-fig"
+                    x={f.shoulderX - f.limbW / 2}
+                    y={f.shoulderY}
+                    width={f.limbW}
+                    height={f.armH}
+                    rx={f.limbW / 2}
+                    transform={`rotate(${-f.armAngle}, ${f.shoulderX}, ${f.shoulderY})`}
+                  />
+                  {/* head */}
+                  <circle class="fsi-fig" cx={0} cy={f.headCy} r={f.headR} />
+                  {/* held phone (revealed for owners) */}
+                  <g class="fsi-phone">
+                    <rect
+                      class="fsi-phone-body"
+                      x={f.phoneCx - f.phoneW / 2}
+                      y={f.phoneCy - f.phoneH / 2}
+                      width={f.phoneW}
+                      height={f.phoneH}
+                      rx={2}
+                    />
+                    <rect
+                      class="fsi-phone-screen"
+                      x={f.phoneCx - f.phoneW / 2 + 1.8}
+                      y={f.phoneCy - f.phoneH / 2 + 2.4}
+                      width={f.phoneW - 3.6}
+                      height={f.phoneH * 0.6}
+                      rx={0.8}
+                    />
+                  </g>
+                </g>
+              ))}
+            </g>
+          );
+        })
+      }
+    </svg>
+  </div>
+
+  <footer class="fsi-foot">
+    <p class="fsi-source" data-source>
+      {def.flag} {def.name} — {def.source}. {def.note}
+    </p>
+    <p class="fsi-caption">
+      <code
+        >Each figure = one in ten children; phones mark the share who own their
+        own smartphone, rounded to the nearest 10%. The exact share is printed on
+        each row.</code
+      >
+    </p>
+    <p class="fsi-note"><code>{FOOTNOTE}</code></p>
+  </footer>
+</div>
+
+<script define:vars={{ data: { bands: BANDS, countries: COUNTRIES } }}>
+  const root = document.querySelector('[data-fsi]');
+  if (root) {
+    const COLS = 10;
+    const owned = (v) => (v == null ? -1 : Math.round(v / 10));
+
+    function apply(id) {
+      const c = data.countries.find((x) => x.id === id);
+      if (!c) return;
+      root.setAttribute('data-country', id);
+
+      // fill each row
+      data.bands.forEach((_, rowIndex) => {
+        const n = owned(c.values[rowIndex]);
+        root
+          .querySelectorAll(`.fsi-child[data-row="${rowIndex}"]`)
+          .forEach((child) => {
+            const col = Number(child.getAttribute('data-col'));
+            child.setAttribute('data-owns', col < n ? 'true' : 'false');
+          });
+        const pct = root.querySelector(`[data-pct-for="${rowIndex}"]`);
+        if (pct)
+          pct.textContent =
+            n < 0 ? 'no data' : `${c.values[rowIndex]}%`;
+      });
+
+      // source line + active chip
+      const src = root.querySelector('[data-source]');
+      if (src) src.textContent = `${c.flag} ${c.name} — ${c.source}. ${c.note}`;
+      root.querySelectorAll('.fsi-chip').forEach((b) =>
+        b.setAttribute(
+          'aria-pressed',
+          b.getAttribute('data-pick') === id ? 'true' : 'false'
+        )
+      );
+    }
+
+    root.querySelectorAll('.fsi-chip').forEach((b) => {
+      b.addEventListener('click', () => apply(b.getAttribute('data-pick')));
+    });
+
+    // re-assert the default so no-JS server render and JS agree
+    apply(root.getAttribute('data-country'));
+  }
+</script>
+
+<style>
+  .fsi {
+    display: flex;
+    flex-direction: column;
+    block-size: 100%;
+    inline-size: 100%;
+    padding: 20px clamp(16px, 4vw, 40px);
+    font-family: 'Outfit', system-ui, sans-serif;
+    color: var(--text);
+    background: var(--background);
+    overflow: auto;
+  }
+  .fsi-head {
+    flex-shrink: 0;
+  }
+  .fsi-title {
+    font-family: 'Alegreya', Georgia, serif;
+    font-weight: 500;
+    font-size: clamp(20px, 3vw, 28px);
+    line-height: 1.15;
+    color: var(--text);
+    text-wrap: balance;
+  }
+  .fsi-sub {
+    margin-block-start: 4px;
+    font-size: clamp(13px, 1.6vw, 15px);
+    color: var(--text-secondary);
+    max-inline-size: 60ch;
+    text-wrap: pretty;
+  }
+
+  .fsi-controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-block: 14px 6px;
+    flex-shrink: 0;
+  }
+  .fsi-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 11px;
+    font-family: 'Outfit', sans-serif;
+    font-size: 13px;
+    color: var(--text-secondary);
+    background: var(--bg-subtle);
+    border: 1px solid var(--border-subtle);
+    cursor: pointer;
+    transition: color 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+  }
+  .fsi-chip:hover {
+    color: var(--text);
+    border-color: var(--container-stroke);
+  }
+  .fsi-chip:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+  .fsi-chip[aria-pressed='true'] {
+    color: var(--accent);
+    border-color: var(--accent);
+    background: var(--bg-highlight);
+  }
+  .fsi-chip-flag {
+    font-size: 14px;
+  }
+
+  .fsi-plot-wrap {
+    flex: 1;
+    min-block-size: 0;
+    display: grid;
+    place-items: start center;
+    padding-block-start: 6px;
+  }
+  .fsi-svg {
+    inline-size: 100%;
+    max-inline-size: 1000px;
+    block-size: auto;
+  }
+
+  .fsi-band {
+    fill: var(--text);
+    font-family: 'Outfit', sans-serif;
+    font-size: 20px;
+    font-weight: 500;
+  }
+  .fsi-pct {
+    fill: var(--accent);
+    font-family: 'Sono', ui-monospace, monospace;
+    font-size: 15px;
+  }
+
+  /* Figures: muted by default, tinted when the child owns a phone. The phone
+     nodes are static markup (not injected), so plain scoped selectors reach
+     them. */
+  .fsi-fig {
+    fill: var(--fig-muted);
+    transition: fill 0.25s ease;
+  }
+  .fsi-child[data-owns='true'] .fsi-fig {
+    fill: var(--fig-strong);
+  }
+  .fsi-phone {
+    opacity: 0;
+    transition: opacity 0.25s ease;
+  }
+  .fsi-child[data-owns='true'] .fsi-phone {
+    opacity: 1;
+  }
+  .fsi-phone-body {
+    fill: var(--accent);
+  }
+  .fsi-phone-screen {
+    fill: rgba(255, 255, 255, 0.32);
+  }
+
+  .fsi-foot {
+    flex-shrink: 0;
+    margin-block-start: 12px;
+    font-size: 12px;
+    line-height: 1.5;
+    color: var(--text-tertiary);
+    max-inline-size: 1000px;
+  }
+  .fsi-source {
+    color: var(--text-secondary);
+    font-size: 12.5px;
+  }
+  .fsi-caption {
+    margin-block-start: 5px;
+  }
+  .fsi-caption code,
+  .fsi-note code {
+    font-family: 'Sono', monospace;
+    font-size: 11.5px;
+    color: var(--text-tertiary);
+    background: var(--bg-subtle);
+    padding: 2px 5px;
+    display: inline-block;
+    text-wrap: pretty;
+  }
+  .fsi-note {
+    margin-block-start: 4px;
+  }
+
+  /* Figure tone tokens (fall back gracefully if the host page omits them). */
+  .fsi {
+    --fig-muted: light-dark(#d0caba, #3a3a3a);
+    --fig-strong: light-dark(#7d7768, #7a7a7a);
+  }
+</style>

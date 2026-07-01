@@ -103,6 +103,10 @@ const FIGURE_SOURCES = {
   'what-is-post-literacy': ['src/pages/what-is-post-literacy.html'],
   'explaining-post-literacy': ['src/pages/explaining-post-literacy.html'],
   annotator: ['src/pages/annotator.astro', 'src/components/annotator'],
+  'first-smartphone-isotype': [
+    'src/pages/first-smartphone-isotype.astro',
+    'src/components/first-smartphone',
+  ],
   // `virgil` has no source mapping — it falls back to its registry images,
   // which are currently missing, so it is reported as such.
 };
