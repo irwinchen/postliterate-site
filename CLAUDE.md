@@ -18,6 +18,10 @@ When in doubt, ask rather than write.
 
 Never use the "It's not X, it's Y" formulation (and its close variants: "not just X but Y," "X isn't about A — it's about B," and other negation-then-correction antitheses). It is a hollow rhetorical tic that signals AI-generated prose. Make the positive claim directly. This applies to all prose and commentary — blog drafts, on-site copy, dashboard content, summaries, critiques, chat responses, and any suggested text.
 
+## Banned words
+
+Do not use "steelman" / "steel-man" or "load-bearing" — Irwin flags them as overused AI tells. Make the point directly: for "steelman," give the strongest version of the argument; for "load-bearing," say the idea is central or does the real work. Also avoid AI-giveaway fillers ("dive into," "delve," "it's worth noting," "in today's fast-paced world") and hype/marketing language. The vault `CLAUDE.md` "Banned words and phrases" list is authoritative; this mirrors it.
+
 ---
 
 # postliterate-site
