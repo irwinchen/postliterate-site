@@ -1,0 +1,1457 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Literacy Without Schooling — The Vai Project, 1973–1978</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Literata:ital,opsz,wght@0,7..72,400;0,7..72,600;1,7..72,400&family=Sono:wght@400;600&family=Noto+Sans+Vai&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   TOKENS
+   ============================================================ */
+:root{
+  --bg:#F3EFE1;
+  --paper:#FBF9F3;
+  --ink:#1A1917;
+  --ink-2:#4A4740;
+  --ink-3:#7C776C;
+  --rule:#CFC8B4;
+  --rule-strong:#1A1917;
+
+  --vai:#E53E33;        /* Vai script */
+  --arabic:#549E44;     /* Arabic / Qur'anic */
+  --english:#3B6DB4;    /* English / school */
+  --none:#9A9488;       /* nonliterate baseline */
+
+  --vai-tint:#FBE3E1;
+  --arabic-tint:#E4F0E1;
+  --english-tint:#E0E9F4;
+  --none-tint:#E9E5DA;
+
+  --gutter:24px;
+  --maxw:1240px;
+}
+
+*{box-sizing:border-box;}
+html{-webkit-text-size-adjust:100%;}
+body{
+  margin:0;
+  background:var(--bg);
+  color:var(--ink);
+  font-family:"Outfit",system-ui,sans-serif;
+  font-size:16px;
+  line-height:1.5;
+  font-weight:400;
+}
+
+/* ============================================================
+   GRID SYSTEM — 12 columns
+   ============================================================ */
+.wrap{max-width:var(--maxw);margin:0 auto;padding:0 var(--gutter);}
+.grid{display:grid;grid-template-columns:repeat(12,1fr);gap:var(--gutter);}
+.c1{grid-column:span 1}.c2{grid-column:span 2}.c3{grid-column:span 3}
+.c4{grid-column:span 4}.c5{grid-column:span 5}.c6{grid-column:span 6}
+.c7{grid-column:span 7}.c8{grid-column:span 8}.c9{grid-column:span 9}
+.c10{grid-column:span 10}.c11{grid-column:span 11}.c12{grid-column:span 12}
+
+/* ============================================================
+   TYPE
+   ============================================================ */
+h1,h2,h3,h4{margin:0;font-weight:600;letter-spacing:-0.01em;line-height:1.12;}
+h1{font-size:clamp(38px,6vw,76px);font-weight:700;letter-spacing:-0.03em;}
+h2{font-size:clamp(24px,3vw,36px);letter-spacing:-0.02em;}
+h3{font-size:19px;}
+h4{font-size:14px;text-transform:uppercase;letter-spacing:0.1em;font-weight:600;}
+p{margin:0 0 1em 0;}
+.serif{font-family:"Literata",Georgia,serif;}
+.mono{font-family:"Sono",ui-monospace,monospace;font-variant-numeric:tabular-nums;}
+
+.lede{font-family:"Literata",Georgia,serif;font-size:clamp(17px,1.5vw,21px);line-height:1.55;color:var(--ink-2);}
+.body{font-family:"Literata",Georgia,serif;font-size:16px;line-height:1.65;color:var(--ink-2);}
+.small{font-size:13px;line-height:1.55;color:var(--ink-3);}
+.tiny{font-size:11.5px;line-height:1.5;color:var(--ink-3);}
+
+.eyebrow{
+  font-size:11.5px;text-transform:uppercase;letter-spacing:0.18em;
+  font-weight:600;color:var(--vai);margin:0 0 14px 0;
+}
+.eyebrow.n{color:var(--ink-3);}
+
+.rule{height:1px;background:var(--rule);border:0;margin:0;}
+.rule-hard{height:3px;background:var(--rule-strong);border:0;margin:0;}
+
+/* ============================================================
+   SECTIONS
+   ============================================================ */
+section{padding:72px 0;border-top:1px solid var(--rule);}
+section:first-of-type{border-top:0;}
+.sec-head{margin-bottom:40px;}
+
+/* ============================================================
+   MASTHEAD
+   ============================================================ */
+.masthead{background:var(--ink);color:var(--bg);padding:0;border-top:0;}
+.masthead .wrap{padding-top:56px;padding-bottom:56px;}
+.masthead h1{color:var(--bg);}
+.masthead .eyebrow{color:var(--vai);}
+.masthead .lede{color:#CFC8B4;}
+.masthead .meta{
+  border-top:1px solid #3A3833;margin-top:36px;padding-top:20px;
+  display:grid;grid-template-columns:repeat(4,1fr);gap:var(--gutter);
+}
+.masthead .meta div span{display:block;font-size:11px;text-transform:uppercase;letter-spacing:0.14em;color:#8B857A;margin-bottom:6px;}
+.masthead .meta div strong{font-weight:500;font-size:15px;color:var(--bg);}
+
+/* swatch bar */
+.swatchbar{display:flex;height:8px;}
+.swatchbar i{flex:1;}
+
+/* ============================================================
+   CARDS / PANELS
+   ============================================================ */
+.panel{background:var(--paper);border:1px solid var(--rule);padding:24px;}
+.panel-dark{background:var(--ink);color:var(--bg);padding:28px;}
+.panel-dark p{color:#CFC8B4;}
+
+.scriptcard{background:var(--paper);border:1px solid var(--rule);border-top:6px solid var(--none);display:flex;flex-direction:column;}
+.scriptcard .hd{padding:22px 22px 18px 22px;}
+.scriptcard .icon{width:52px;height:52px;margin-bottom:16px;display:block;}
+.scriptcard .name{font-size:22px;font-weight:600;letter-spacing:-0.02em;margin-bottom:4px;}
+.scriptcard .tag{font-size:12px;text-transform:uppercase;letter-spacing:0.12em;font-weight:600;}
+.scriptcard .stat{padding:16px 22px;border-top:1px solid var(--rule);border-bottom:1px solid var(--rule);}
+.scriptcard .stat .big{font-size:38px;font-weight:600;letter-spacing:-0.03em;line-height:1;font-family:"Sono",monospace;}
+.scriptcard dl{margin:0;padding:18px 22px;flex:1;}
+.scriptcard dt{font-size:10.5px;text-transform:uppercase;letter-spacing:0.12em;color:var(--ink-3);font-weight:600;margin-top:14px;}
+.scriptcard dt:first-child{margin-top:0;}
+.scriptcard dd{margin:3px 0 0 0;font-size:14px;line-height:1.45;color:var(--ink);}
+
+.sc-vai{border-top-color:var(--vai);} .sc-vai .tag{color:var(--vai);} .sc-vai .stat{background:var(--vai-tint);}
+.sc-ar{border-top-color:var(--arabic);} .sc-ar .tag{color:var(--arabic);} .sc-ar .stat{background:var(--arabic-tint);}
+.sc-en{border-top-color:var(--english);} .sc-en .tag{color:var(--english);} .sc-en .stat{background:var(--english-tint);}
+
+/* ============================================================
+   GROUP STRIP
+   ============================================================ */
+.groups{display:grid;grid-template-columns:repeat(5,1fr);gap:2px;background:var(--rule);border:1px solid var(--rule);}
+.groups .g{background:var(--paper);padding:18px 16px;}
+.groups .g .swatch{width:100%;height:6px;margin-bottom:14px;}
+.groups .g .nm{font-size:14px;font-weight:600;line-height:1.25;min-height:34px;}
+.groups .g .n{font-family:"Sono",monospace;font-size:30px;font-weight:600;letter-spacing:-0.02em;margin-top:10px;line-height:1;}
+.groups .g .n small{font-size:12px;font-weight:400;color:var(--ink-3);letter-spacing:0;}
+.groups .g .d{font-size:12px;color:var(--ink-3);margin-top:8px;line-height:1.4;}
+
+/* ============================================================
+   PHASE BLOCKS
+   ============================================================ */
+.phase{border:1px solid var(--rule);background:var(--paper);}
+.phase .ph-hd{padding:20px 24px;border-bottom:1px solid var(--rule);display:flex;align-items:baseline;gap:14px;}
+.phase .ph-num{font-family:"Sono",monospace;font-size:13px;font-weight:600;padding:3px 8px;color:#fff;}
+.phase .ph-bd{padding:24px;}
+.p1 .ph-num{background:var(--ink-3);}
+.p2 .ph-num{background:var(--vai);}
+
+.tasklist{list-style:none;margin:0;padding:0;}
+.tasklist li{padding:12px 0;border-top:1px solid var(--rule);}
+.tasklist li:first-child{border-top:0;padding-top:0;}
+.tasklist .t{font-weight:600;font-size:14.5px;}
+.tasklist .x{font-size:13.5px;color:var(--ink-3);line-height:1.5;margin-top:3px;}
+
+.verdict{padding:16px 18px;margin-top:20px;font-size:14.5px;line-height:1.5;border-top:5px solid;}
+.verdict.null{background:var(--none-tint);border-top-color:var(--ink-3);}
+.verdict.hit{background:var(--vai-tint);border-top-color:var(--vai);}
+
+/* ============================================================
+   MATRIX
+   ============================================================ */
+.matrix-scroll{overflow-x:auto;}
+table.matrix{border-collapse:collapse;width:100%;min-width:720px;background:var(--paper);}
+table.matrix th,table.matrix td{border:1px solid var(--rule);padding:0;}
+table.matrix thead th{
+  padding:12px 10px;font-size:12px;font-weight:600;text-align:center;
+  vertical-align:bottom;line-height:1.25;
+}
+table.matrix thead th.cat,table.matrix thead th.task{text-align:left;}
+table.matrix .colhd{border-bottom:4px solid;}
+.hd-en{border-bottom-color:var(--english);color:var(--english);}
+.hd-vai{border-bottom-color:var(--vai);color:var(--vai);}
+.hd-qur{border-bottom-color:var(--arabic);color:var(--arabic);}
+.hd-arl{border-bottom-color:var(--arabic);color:var(--arabic);}
+
+table.matrix td.cat{
+  padding:10px 12px;font-size:11px;text-transform:uppercase;letter-spacing:0.09em;
+  font-weight:600;color:var(--ink-3);vertical-align:top;background:#F0ECDE;
+}
+table.matrix td.task{padding:10px 12px;font-size:14px;font-weight:500;}
+table.matrix td.cell{width:96px;height:44px;text-align:center;position:relative;}
+.fill{display:block;width:100%;height:100%;}
+.fill-en{background:var(--english);}
+.fill-vai{background:var(--vai);}
+.fill-ar{background:var(--arabic);}
+.fill-q{position:relative;}
+.fill-q::after{
+  content:"";position:absolute;inset:0;
+  background:repeating-linear-gradient(45deg,transparent 0 5px,rgba(255,255,255,.85) 5px 10px);
+}
+.fill span.qmark{
+  position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  color:#fff;font-size:11px;font-weight:600;font-family:"Sono",monospace;z-index:2;
+}
+.empty{display:block;width:100%;height:100%;background:transparent;}
+.empty::after{
+  content:"";position:absolute;left:50%;top:50%;width:7px;height:1px;
+  background:var(--rule);transform:translate(-50%,-50%);
+}
+
+.legend{display:flex;flex-wrap:wrap;gap:22px;margin-top:18px;}
+.legend div{display:flex;align-items:center;gap:9px;font-size:12.5px;color:var(--ink-2);}
+.legend i{width:22px;height:14px;display:block;position:relative;}
+
+/* ============================================================
+   BAR CHARTS
+   ============================================================ */
+.chartblock{background:var(--paper);border:1px solid var(--rule);padding:24px;height:100%;}
+.chartblock h3{margin-bottom:4px;}
+.chartblock .cap{font-size:12.5px;color:var(--ink-3);line-height:1.45;margin-bottom:22px;}
+.bars{display:flex;flex-direction:column;gap:11px;}
+.bar-row{display:grid;grid-template-columns:118px 1fr 46px;align-items:center;gap:10px;}
+.bar-row .lbl{font-size:12px;line-height:1.25;color:var(--ink-2);}
+.bar-track{height:16px;background:#E9E5DA;position:relative;}
+.bar-fill{height:100%;display:block;}
+.bar-row .val{font-family:"Sono",monospace;font-size:12.5px;text-align:right;font-weight:600;}
+.bar-key{display:flex;gap:18px;margin-bottom:16px;font-size:12px;color:var(--ink-2);}
+.bar-key span{display:flex;align-items:center;gap:7px;}
+.bar-key i{width:14px;height:12px;display:block;}
+
+.pairbars .bar-row{grid-template-columns:118px 1fr 1fr;}
+.pair{display:grid;grid-template-columns:1fr 46px;gap:8px;align-items:center;}
+
+/* ============================================================
+   DATA TABLE
+   ============================================================ */
+table.data{border-collapse:collapse;width:100%;background:var(--paper);font-size:13.5px;}
+table.data th,table.data td{border:1px solid var(--rule);padding:9px 11px;text-align:left;}
+table.data thead th{background:#F0ECDE;font-size:11px;text-transform:uppercase;letter-spacing:0.09em;font-weight:600;color:var(--ink-2);}
+table.data td.num{font-family:"Sono",monospace;text-align:right;font-variant-numeric:tabular-nums;}
+table.data tr.hi td{background:var(--vai-tint);font-weight:600;}
+table.data tr.hi2 td{background:var(--english-tint);font-weight:600;}
+
+/* ============================================================
+   PULLS + NOTES
+   ============================================================ */
+.pull{
+  font-family:"Literata",Georgia,serif;font-size:clamp(20px,2.3vw,29px);
+  line-height:1.35;letter-spacing:-0.01em;color:var(--ink);
+  border-top:5px solid var(--vai);padding-top:22px;
+}
+.pull cite{display:block;font-family:"Outfit",sans-serif;font-size:12px;font-style:normal;
+  text-transform:uppercase;letter-spacing:0.12em;color:var(--ink-3);margin-top:16px;}
+
+.notebox{border:1px solid var(--rule);border-top:5px solid var(--english);background:var(--paper);padding:20px 22px;}
+.cautionbox{border:1px solid var(--rule);border-top:5px solid var(--ink-3);background:var(--paper);padding:20px 22px;}
+
+.tagline{display:inline-block;font-family:"Sono",monospace;font-size:10.5px;letter-spacing:0.04em;
+  padding:3px 7px;background:var(--ink);color:var(--bg);margin-right:6px;}
+.tagline.warn{background:var(--vai);}
+
+footer{background:var(--ink);color:#CFC8B4;padding:52px 0 60px 0;font-size:13px;line-height:1.6;}
+footer h4{color:var(--bg);margin-bottom:14px;}
+footer a{color:var(--bg);}
+footer ul{margin:0;padding-left:18px;}
+footer li{margin-bottom:7px;}
+
+/* ============================================================
+   FIGURES
+   ============================================================ */
+figure.fig{margin:0;background:var(--paper);border:1px solid var(--rule);}
+figure.fig img,figure.fig svg{display:block;width:100%;height:auto;border-bottom:1px solid var(--rule);}
+figure.fig img{filter:none;}
+figure.fig figcaption{
+  padding:16px 18px;font-family:"Literata",Georgia,serif;
+  font-size:13.5px;line-height:1.5;color:var(--ink-2);
+}
+figure.fig figcaption strong{font-family:"Outfit",sans-serif;font-weight:600;color:var(--ink);}
+figure.fig figcaption .credit{
+  display:block;margin-top:10px;padding-top:10px;border-top:1px solid var(--rule);
+  font-family:"Outfit",sans-serif;font-size:11px;line-height:1.45;color:var(--ink-3);
+}
+
+/* ============================================================
+   TIMELINE
+   ============================================================ */
+.timeline{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;background:var(--rule);border:1px solid var(--rule);}
+.timeline .tl{background:var(--paper);padding:16px 14px;}
+.timeline .tl-year{
+  display:block;font-family:"Sono",monospace;font-size:12.5px;font-weight:600;
+  color:var(--ink);border-bottom:3px solid var(--rule);padding-bottom:8px;margin-bottom:10px;
+}
+.timeline .tl p{font-size:12.5px;line-height:1.45;color:var(--ink-2);margin:0;}
+.timeline .tl-hi{background:var(--vai-tint);}
+.timeline .tl-hi .tl-year{color:var(--vai);border-bottom-color:var(--vai);}
+
+/* ============================================================
+   SYLLABARY GRID
+   ============================================================ */
+.syl-scroll{overflow-x:auto;}
+table.syl{border-collapse:collapse;width:100%;min-width:760px;background:var(--paper);}
+table.syl th,table.syl td{border:1px solid var(--rule);text-align:center;}
+table.syl thead th{
+  padding:10px 6px;background:#F0ECDE;font-weight:600;
+  font-size:11px;letter-spacing:.06em;color:var(--ink-2);
+}
+table.syl th.corner{
+  text-align:left;padding-left:12px;font-size:10.5px;text-transform:uppercase;
+  letter-spacing:.1em;color:var(--ink-3);
+}
+table.syl th.cons{
+  background:#F0ECDE;font-family:"Sono",monospace;font-size:14px;font-weight:600;
+  width:74px;color:var(--vai);
+}
+table.syl td{padding:10px 4px;vertical-align:middle;}
+table.syl td .glyph{
+  display:block;font-family:"Noto Sans Vai","Outfit",sans-serif;
+  font-size:30px;line-height:1.15;color:var(--ink);
+}
+table.syl td .rom{
+  display:block;font-family:"Sono",monospace;font-size:11px;color:var(--ink-2);margin-top:4px;
+}
+table.syl thead .rom{display:block;font-family:"Sono",monospace;font-size:12px;color:var(--ink-2);}
+table.syl td .cp{display:block;font-family:"Sono",monospace;font-size:9px;color:var(--ink-3);margin-top:2px;}
+
+/* inline quotation */
+.q{font-family:"Literata",Georgia,serif;background:var(--vai-tint);padding:1px 5px;}
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media (max-width:1000px){
+  .timeline{grid-template-columns:repeat(2,1fr);}
+  table.syl td .glyph{font-size:26px;}
+  .c3,.c4,.c5,.c6,.c7,.c8,.c9{grid-column:span 12;}
+  .c2{grid-column:span 6;}
+  .groups{grid-template-columns:repeat(2,1fr);}
+  .masthead .meta{grid-template-columns:repeat(2,1fr);}
+  section{padding:52px 0;}
+}
+@media (max-width:560px){
+  .groups{grid-template-columns:1fr;}
+  .masthead .meta{grid-template-columns:1fr;}
+  .bar-row{grid-template-columns:92px 1fr 42px;}
+  .pairbars .bar-row{grid-template-columns:92px 1fr;row-gap:6px;}
+}
+</style>
+</head>
+<body>
+
+<!-- ============================================================
+     MASTHEAD
+     ============================================================ -->
+<div class="swatchbar">
+  <i style="background:var(--vai)"></i>
+  <i style="background:var(--arabic)"></i>
+  <i style="background:var(--english)"></i>
+  <i style="background:var(--none)"></i>
+</div>
+
+<header class="masthead">
+  <div class="wrap">
+    <div class="grid">
+      <div class="c8">
+        <p class="eyebrow">Scribner &amp; Cole · The Vai Project · Liberia, 1973–1978</p>
+        <h1>Literacy<br>Without<br>Schooling</h1>
+      </div>
+      <div class="c4" style="display:flex;align-items:flex-end;">
+        <p class="lede" style="margin:0;">The Vai of northwestern Liberia invented their own syllabary and taught it to each other at home. That fact let two psychologists separate literacy from schooling for the first time — and test whether reading and writing, on their own, change how a mind works.</p>
+      </div>
+    </div>
+
+    <div class="meta">
+      <div><span>Field site</span><strong>Cape Mount County, Liberia</strong></div>
+      <div><span>Survey population</span><strong>700+ adults interviewed and tested</strong></div>
+      <div><span>Core analysis sample</span><strong>290 men, five literacy groups</strong></div>
+      <div><span>Published</span><strong>Harvard University Press, 1981</strong></div>
+    </div>
+  </div>
+</header>
+
+<!-- ============================================================
+     1. THE PROBLEM
+     ============================================================ -->
+<section>
+  <div class="wrap">
+    <div class="grid sec-head">
+      <div class="c5">
+        <p class="eyebrow">1 — The problem</p>
+        <h2>Every earlier study confounded literacy with school.</h2>
+      </div>
+      <div class="c7">
+        <p class="body">By the 1970s a strong claim was in circulation: writing restructures thought. Havelock argued that grouping events into categories depends on having a written language to name the categories. Greenfield and Bruner held that written language pushes cognitive growth earlier and further. Olson argued that a specific logical competence — treating meaning as residing in the text — is the endpoint of development in literate cultures, and is not universal.</p>
+        <p class="body">The evidence for all three came from comparisons between schooled and unschooled people. Nobody had tested literacy by itself, because almost nowhere on earth do people learn to read outside a classroom. Scribner and Cole put the objection plainly: none of these studies tested literacy as such.</p>
+      </div>
+    </div>
+
+    <div class="grid">
+      <div class="c8">
+        <div class="pull">Scholars offering these claims presented no direct evidence that individuals in literate societies actually process information differently from those in societies without literacy.
+        <cite>Scribner &amp; Cole, 1981 — paraphrase of the book's opening objection</cite></div>
+      </div>
+      <div class="c4">
+        <div class="panel-dark">
+          <h4 style="color:var(--vai);margin-bottom:12px;">Why the Vai broke the deadlock</h4>
+          <p style="font-size:14.5px;line-height:1.55;margin:0;">Vai script is learned from a friend or relative, in adulthood, outside any institution, and it carries no body of knowledge you could not get by asking someone. Schooling and literacy come apart. Almost everything else about Vai life — ecology, farming, social organization, material culture — matches their unschooled, nonliterate neighbours.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     1.5 THE PLACE
+     ============================================================ -->
+<section id="place">
+  <div class="wrap">
+    <div class="grid sec-head">
+      <div class="c5">
+        <p class="eyebrow">1b — The place</p>
+        <h2>A coastal strip on the Sierra Leone border, fifty miles northwest of Monrovia.</h2>
+      </div>
+      <div class="c7">
+        <p class="body">Vai country runs along the Atlantic shore of Cape Mount County, from the Mano River south-east toward the Liberian capital. Scribner and Cole worked in nine towns selected to represent all the chiefdoms of the county, with Robertsport as the administrative centre of the region. The 1974 Liberian Census, which fell at the end of their interview study, let them check the survey population against the county as a whole — on age, marital status and school achievement, the two matched closely.</p>
+        <p class="body" style="margin:0;">The Vai are Muslim and their neighbours mostly are not, but on ecology, farming, social organisation and material culture the ethnographies of Liberia treat them as barely distinguishable from the peoples around them. That similarity is what makes the script, rather than everything else about Vai life, the variable worth testing.</p>
+      </div>
+    </div>
+
+    <div class="grid">
+      <div class="c7">
+        <figure class="fig">
+          <svg viewBox="0 0 560 500" role="img" aria-label="Map of Liberia showing Cape Mount County and Vai country on the northwest coast" style="display:block;width:100%;height:auto;background:#E4E7E4;">
+            <defs>
+              <pattern id="sea" width="8" height="8" patternUnits="userSpaceOnUse">
+                <rect width="8" height="8" fill="#E4E7E4"/>
+                <path d="M0 4 H8" stroke="#CFD6D2" stroke-width="1"/>
+              </pattern>
+            </defs>
+
+            <!-- ocean -->
+            <rect x="0" y="0" width="560" height="500" fill="url(#sea)"/>
+
+            <!-- neighbouring land mass -->
+            <path d="M-30,150 L78,218 L144.5,276 L215.8,317 L312.7,399.6 L437.1,460.4 L505,438 L600,415 L600,-30 L-30,-30 Z"
+                  fill="#E9E5DA" stroke="#CFC8B4" stroke-width="1"/>
+
+            <!-- Liberia -->
+            <path d="M78,218.1 L144.5,276 L215.8,317 L312.7,399.6 L437.1,460.4 L453.3,400.5 L448.5,305.5 L391.5,248.5 L363,191.5 L353.5,153.5 L287,172.5 L239.5,63.5 L192,72.75 L149.25,106 L106.5,158.25 Z"
+                  fill="#FBF9F3" stroke="#1A1917" stroke-width="1.6"/>
+
+            <!-- Cape Mount County -->
+            <path d="M78,218.1 L90.35,234.25 L125.5,253.25 L139.75,262.75 L149.25,234.25 L139.75,205.75 L111.25,177.25 L87.5,191.5 Z"
+                  fill="#E53E33" stroke="#1A1917" stroke-width="1.4"/>
+
+            <!-- Vai coastal strip emphasis -->
+            <path d="M78,218.1 L90.35,234.25 L125.5,253.25 L139.75,262.75"
+                  fill="none" stroke="#1A1917" stroke-width="4"/>
+
+            <!-- borders label lines -->
+            <g font-family="Outfit, sans-serif" font-size="11" letter-spacing="1.6" fill="#7C776C">
+              <text x="34" y="120">SIERRA LEONE</text>
+              <text x="300" y="86">GUINEA</text>
+              <text x="470" y="330">CÔTE</text>
+              <text x="470" y="345">D'IVOIRE</text>
+            </g>
+            <text x="150" y="440" font-family="Outfit, sans-serif" font-size="11" letter-spacing="2.4" fill="#98A29C">ATLANTIC OCEAN</text>
+            <text x="300" y="345" font-family="Outfit, sans-serif" font-size="15" font-weight="600" letter-spacing="3" fill="#1A1917">LIBERIA</text>
+
+            <!-- Mano River -->
+            <path d="M78,218.1 L96,196 L104,170" fill="none" stroke="#3B6DB4" stroke-width="1.6"/>
+            <text x="46" y="176" font-family="Outfit, sans-serif" font-size="10" fill="#3B6DB4">Mano R.</text>
+
+            <!-- markers -->
+            <g>
+              <circle cx="90.35" cy="234.25" r="4.5" fill="#1A1917"/>
+              <line x1="90.35" y1="234.25" x2="40" y2="290" stroke="#1A1917" stroke-width="1"/>
+              <text x="8" y="304" font-family="Outfit, sans-serif" font-size="12" font-weight="600" fill="#1A1917">Robertsport</text>
+              <text x="8" y="318" font-family="Outfit, sans-serif" font-size="10.5" fill="#4A4740">Cape Mount County seat</text>
+            </g>
+            <g>
+              <rect x="140.5" y="272" width="8" height="8" fill="#1A1917"/>
+              <line x1="148.5" y1="276" x2="196" y2="300" stroke="#1A1917" stroke-width="1"/>
+              <text x="200" y="298" font-family="Outfit, sans-serif" font-size="12" font-weight="600" fill="#1A1917">Monrovia</text>
+              <text x="200" y="312" font-family="Outfit, sans-serif" font-size="10.5" fill="#4A4740">capital · English-language government</text>
+            </g>
+
+            <!-- Cape Mount callout -->
+            <g>
+              <line x1="114" y1="215" x2="228" y2="150" stroke="#E53E33" stroke-width="1.4"/>
+              <circle cx="114" cy="215" r="3" fill="#E53E33"/>
+              <text x="234" y="142" font-family="Outfit, sans-serif" font-size="13" font-weight="600" fill="#E53E33">CAPE MOUNT COUNTY</text>
+              <text x="234" y="158" font-family="Outfit, sans-serif" font-size="11" fill="#4A4740">Vai country. Nine survey towns,</text>
+              <text x="234" y="172" font-family="Outfit, sans-serif" font-size="11" fill="#4A4740">selected across all chiefdoms.</text>
+            </g>
+
+            <!-- scale bar -->
+            <g transform="translate(400,470)">
+              <rect x="0" y="0" width="43" height="5" fill="#1A1917"/>
+              <rect x="43" y="0" width="43" height="5" fill="none" stroke="#1A1917" stroke-width="1"/>
+              <text x="0" y="20" font-family="Sono, monospace" font-size="10" fill="#4A4740">0</text>
+              <text x="76" y="20" font-family="Sono, monospace" font-size="10" fill="#4A4740">100 km</text>
+            </g>
+
+            <!-- north -->
+            <g transform="translate(524,44)">
+              <path d="M0,18 L0,-8 M-5,-2 L0,-9 L5,-2" fill="none" stroke="#1A1917" stroke-width="1.4"/>
+              <text x="-4" y="32" font-family="Outfit, sans-serif" font-size="10" font-weight="600" fill="#1A1917">N</text>
+            </g>
+          </svg>
+          <figcaption>
+            <strong>The study area.</strong> Cape Mount County, north-western Liberia. Boundaries drawn to approximate scale from the geography described in the study; not a survey map. Vai script functions in the towns along the heavy coastal line, where letters arrive by taxi and funeral ledgers are kept by hand. Monrovia, fifty miles down the coast, is where English literacy and the cash economy pull young men who go to school.
+          </figcaption>
+        </figure>
+      </div>
+
+      <div class="c5">
+        <figure class="fig">
+          <img src="/images/vai/vai-town-near-monrovia-1893.jpg" alt="A Vai waterside town of thatch-roofed buildings near Monrovia, photographed in 1893.">
+          <figcaption>
+            <strong>A Vai town near Monrovia, 1893.</strong> A waterside village of thatch-roofed buildings, eighty years before the study and roughly sixty years after the script was devised. Letters in Vai script were already moving between towns like this one.
+            <span class="credit">Liberian Art Publishing Co., souvenir photograph produced for the 1893 World's Columbian Exposition, Chicago. American Colonization Society Collection, Library of Congress, LC item 2001701757. Public domain.</span>
+          </figcaption>
+        </figure>
+
+        <figure class="fig" style="margin-top:var(--gutter);">
+          <img src="/images/vai/vai-people-c1895.jpg" alt="Studio portrait of three Vai people, captioned by the photographer as a Vai princess, her mother, and a Vai prince named Sabro, around 1895.">
+          <figcaption>
+            <strong>Vai people, about 1895.</strong> Captioned by the photographer as "Vey princess, mamma / Vey prince, Sabro." The titles are the American publisher's framing, not a Vai one — a reminder that almost every nineteenth-century image of the Vai was made for an audience in the United States.
+            <span class="credit">American Colonization Society Collection, Library of Congress, LC item 95505108. Public domain.</span>
+          </figcaption>
+        </figure>
+      </div>
+    </div>
+
+    <div class="grid" style="margin-top:var(--gutter);">
+      <div class="c12">
+        <div class="cautionbox">
+          <p class="small" style="margin:0;"><strong>On these photographs.</strong> Both were made by American publishers roughly eighty years before Scribner and Cole arrived, and both were produced for exhibition audiences in the United States. They show the setting, not the study, and they carry the framing of the people who commissioned them. No photograph from the Vai Project itself appears here; the plates in the 1981 book are under copyright.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     2. THREE LITERACIES
+     ============================================================ -->
+<section>
+  <div class="wrap">
+    <div class="grid sec-head">
+      <div class="c5">
+        <p class="eyebrow">2 — Three literacies, one people</p>
+        <h2>Not one literacy. Three, each with its own script, language, teacher and purpose.</h2>
+      </div>
+      <div class="c7">
+        <p class="body">A Vai man could be literate in a syllabary for his own language, an alphabet for a sacred foreign language, an alphabet for the government's foreign language, or any combination. Roughly a third of male literates knew two scripts. Five men in the survey knew all three.</p>
+        <p class="small" style="margin-top:18px;">Percentages below are shares of the <strong>adult male population</strong> of the surveyed Cape Mount towns, estimated from the survey and the 1974 Liberian Census. They sum to more than the 28.4% total because script knowledge overlaps. Across the total population including children, the three literacies together reach 19.1% — against the Census figure of 11.6%, which counts only reading English.</p>
+      </div>
+    </div>
+
+    <div class="grid">
+
+      <!-- VAI -->
+      <div class="c4">
+        <div class="scriptcard sc-vai">
+          <div class="hd">
+            <svg class="icon" viewBox="0 0 52 52" fill="none" aria-hidden="true">
+              <rect x="1" y="1" width="50" height="50" stroke="#E53E33" stroke-width="2"/>
+              <rect x="8" y="8" width="10" height="10" fill="#E53E33"/>
+              <rect x="21" y="8" width="10" height="10" fill="#E53E33" opacity=".45"/>
+              <rect x="34" y="8" width="10" height="10" fill="#E53E33"/>
+              <rect x="8" y="21" width="10" height="10" fill="#E53E33" opacity=".45"/>
+              <rect x="21" y="21" width="10" height="10" fill="#E53E33"/>
+              <rect x="34" y="21" width="10" height="10" fill="#E53E33" opacity=".45"/>
+              <rect x="8" y="34" width="10" height="10" fill="#E53E33"/>
+              <rect x="21" y="34" width="10" height="10" fill="#E53E33" opacity=".45"/>
+              <rect x="34" y="34" width="10" height="10" fill="#E53E33"/>
+            </svg>
+            <p class="tag">Indigenous · unschooled</p>
+            <div class="name">Vai script</div>
+            <p class="small" style="margin:0;">A syllabary invented in Vai country in the early 1800s, spread person to person ever since.</p>
+          </div>
+          <div class="stat">
+            <div class="big">20.3<span style="font-size:20px">%</span></div>
+            <p class="tiny" style="margin:4px 0 0 0;">of adult Vai men</p>
+          </div>
+          <dl>
+            <dt>Writing system</dt><dd>Syllabary — characters map consonant-vowel syllables</dd>
+            <dt>Language</dt><dd>Vai — the reader's own</dd>
+            <dt>Teacher</dt><dd>A friend or relative the learner picks himself, one to one</dd>
+            <dt>Method</dt><dd>Decoding and encoding, worked out on real letters</dd>
+            <dt>Setting</dt><dd>Home, farm, sawmill — wherever the two of them are</dd>
+            <dt>Time to competence</dt><dd>Two to three months on average; lessons three to five times a week, about 45 minutes each</dd>
+            <dt>Knowledge transmitted</dt><dd>None systematically. Learning the script teaches you the script.</dd>
+            <dt>Everyday use</dt><dd>Letters, funeral-gift ledgers, political contribution lists, business records, farm plans, clan histories, diaries</dd>
+          </dl>
+        </div>
+      </div>
+
+      <!-- ARABIC -->
+      <div class="c4">
+        <div class="scriptcard sc-ar">
+          <div class="hd">
+            <svg class="icon" viewBox="0 0 52 52" fill="none" aria-hidden="true">
+              <rect x="1" y="1" width="50" height="50" stroke="#549E44" stroke-width="2"/>
+              <rect x="9" y="11" width="34" height="3" fill="#549E44"/>
+              <rect x="9" y="18" width="34" height="3" fill="#549E44"/>
+              <rect x="9" y="25" width="34" height="3" fill="#549E44"/>
+              <rect x="9" y="32" width="34" height="3" fill="#549E44"/>
+              <path d="M13 41 h22 M31 37 l5 4 l-5 4" stroke="#549E44" stroke-width="3" fill="none"/>
+            </svg>
+            <p class="tag">Sacred · unschooled by Western standards</p>
+            <div class="name">Arabic / Qur'anic</div>
+            <p class="small" style="margin:0;">Learned by memorising and reciting the Qur'an in a group under a teacher chosen by the family.</p>
+          </div>
+          <div class="stat">
+            <div class="big">15.7<span style="font-size:20px">%</span></div>
+            <p class="tiny" style="margin:4px 0 0 0;">of adult Vai men</p>
+          </div>
+          <dl>
+            <dt>Writing system</dt><dd>Alphabet</dd>
+            <dt>Language</dt><dd>Arabic — foreign, and for most students not understood</dd>
+            <dt>Teacher</dt><dd>Selected by the family; taught in a group</dd>
+            <dt>Method</dt><dd>Memorisation. Text is added one unit at a time and recited back in order.</dd>
+            <dt>Setting</dt><dd>A "class" setting, but outside any state school</dd>
+            <dt>Time to competence</dt><dd>Years of daily study, beginning in childhood</dd>
+            <dt>Knowledge transmitted</dt><dd>Religious — Islam</dd>
+            <dt>Two tiers</dt><dd>Most students recite without comprehension. A minority go on to read Arabic as a language, and to write and teach it.</dd>
+          </dl>
+        </div>
+      </div>
+
+      <!-- ENGLISH -->
+      <div class="c4">
+        <div class="scriptcard sc-en">
+          <div class="hd">
+            <svg class="icon" viewBox="0 0 52 52" fill="none" aria-hidden="true">
+              <rect x="1" y="1" width="50" height="50" stroke="#3B6DB4" stroke-width="2"/>
+              <path d="M8 22 L26 11 L44 22 Z" fill="#3B6DB4"/>
+              <rect x="11" y="26" width="5" height="15" fill="#3B6DB4"/>
+              <rect x="20" y="26" width="5" height="15" fill="#3B6DB4" opacity=".45"/>
+              <rect x="29" y="26" width="5" height="15" fill="#3B6DB4"/>
+              <rect x="38" y="26" width="5" height="15" fill="#3B6DB4" opacity=".45"/>
+            </svg>
+            <p class="tag">Institutional · schooled</p>
+            <div class="name">English</div>
+            <p class="small" style="margin:0;">The official literacy of the Liberian state, and the only one of the three that arrives with a classroom attached.</p>
+          </div>
+          <div class="stat">
+            <div class="big">6.2<span style="font-size:20px">%</span></div>
+            <p class="tiny" style="margin:4px 0 0 0;">of adult Vai men</p>
+          </div>
+          <dl>
+            <dt>Writing system</dt><dd>Alphabet</dd>
+            <dt>Language</dt><dd>English — foreign</dd>
+            <dt>Teacher</dt><dd>Assigned by school location</dd>
+            <dt>Method</dt><dd>Decoding and encoding, inside a graded curriculum</dd>
+            <dt>Setting</dt><dd>Organised school</dd>
+            <dt>Attainment in sample</dt><dd>7.2 grades completed on average</dd>
+            <dt>Knowledge transmitted</dt><dd>Systematic secular subject matter</dd>
+            <dt>Exclusivity</dt><dd>Going to English school pulls a young man away from both traditional scripts. Overlap with Vai or Arabic is rare.</dd>
+          </dl>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid" style="margin-top:var(--gutter);">
+      <div class="c12">
+        <div class="panel">
+          <h4 style="margin-bottom:14px;">Overlap among the 191 male literates in the survey</h4>
+          <div class="matrix-scroll">
+          <table class="data">
+            <thead><tr><th>Scripts known</th><th style="text-align:right">Men</th><th style="text-align:right">% of male literates</th><th>Read this as</th></tr></thead>
+            <tbody>
+              <tr><td>Vai script only</td><td class="num">53</td><td class="num">27.7</td><td>Literate, never schooled</td></tr>
+              <tr><td>Arabic only</td><td class="num">38</td><td class="num">19.9</td><td>Literate, never schooled</td></tr>
+              <tr><td>English only</td><td class="num">32</td><td class="num">16.8</td><td>Literate through school</td></tr>
+              <tr><td>Vai + Arabic</td><td class="num">47</td><td class="num">24.6</td><td>Biliterate, never schooled</td></tr>
+              <tr><td>Vai + Arabic + English</td><td class="num">5</td><td class="num">2.6</td><td>Triliterate</td></tr>
+              <tr><td>Vai + English</td><td class="num">6</td><td class="num">3.1</td><td>Rare combination</td></tr>
+              <tr><td>English + Arabic</td><td class="num">6</td><td class="num">3.1</td><td>Rare combination</td></tr>
+              <tr><td>English + other (e.g. French)</td><td class="num">4</td><td class="num">2.1</td><td>—</td></tr>
+            </tbody>
+          </table>
+          </div>
+          <p class="tiny" style="margin:12px 0 0 0;">Denominator: 191 literate men out of 290 male respondents in the major survey. Considering all Vai script literates, better than 40% also read Arabic; considering all Arabic literates, 49% also read Vai script.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     2b. THE SCRIPT
+     ============================================================ -->
+<section id="script">
+  <div class="wrap">
+    <div class="grid sec-head">
+      <div class="c5">
+        <p class="eyebrow">2b — The script</p>
+        <h2>A syllabary invented in the 1830s, still passed hand to hand in the 1970s.</h2>
+      </div>
+      <div class="c7">
+        <p class="body">Vai script is one of the few writing systems in Africa invented from scratch rather than adapted. It ranks among advanced writing systems because it represents the sound structure of the language systematically and because its graphic symbols are original. It also did something rarer: it took root across broad sections of an agrarian population, without a state, a school system, or a body of literature to sustain it.</p>
+        <p class="body" style="margin:0;">Understanding the script matters for the study's central finding. The specific skill that Vai literacy built — holding syllables in mind until they resolve into words — is a direct consequence of how this script is built and how badly it under-specifies the spoken language.</p>
+      </div>
+    </div>
+
+    <!-- ORIGIN -->
+    <h4 style="margin-bottom:18px;">Where it came from</h4>
+    <div class="timeline">
+      <div class="tl">
+        <span class="tl-year">15th–16th c.</span>
+        <p>The Vai migrate from Mande country along the upper and middle Niger to the Atlantic coast. Portuguese traders reach Cape Mount by the mid-1400s and establish lasting trade.</p>
+      </div>
+      <div class="tl">
+        <span class="tl-year">by the 1820s</span>
+        <p>Islam is established through Vai country, with mosques and lodging for itinerant Manding teachers in practically every sizable town. The Arabic alphabet arrives with it.</p>
+      </div>
+      <div class="tl">
+        <span class="tl-year">1822</span>
+        <p>The Colony of Liberia is founded at Cape Mesurado, fifty miles down the coast. English-speaking colonists and Christian missionaries make contact with Vai leaders and open the first schools.</p>
+      </div>
+      <div class="tl tl-hi">
+        <span class="tl-year">c. 1833</span>
+        <p>A small group of Vai men elaborate a graphic system with consistent phonetic rules. Two alphabets are already in use around them. What they produce is a syllabary — which is why it cannot be dismissed as a borrowed innovation.</p>
+      </div>
+      <div class="tl">
+        <span class="tl-year">1854</span>
+        <p>Sigismund Koelle publishes the first Vai grammar, with a printed syllabarium and a specimen of the writing. He names Dualu Bukele as the inventor, assisted by five friends.</p>
+      </div>
+      <div class="tl">
+        <span class="tl-year">to 1945</span>
+        <p>Court records are kept in Vai script. After the Second World War this becomes legally unacceptable; English is made mandatory for administrative and judicial matters.</p>
+      </div>
+      <div class="tl">
+        <span class="tl-year">1970s</span>
+        <p>20.3% of adult Vai men read and write the script, transmitted for six generations without schools or professional teachers. Its public functions are contracting as English takes over official life.</p>
+      </div>
+    </div>
+
+    <div class="grid" style="margin-top:var(--gutter);">
+      <div class="c7">
+        <div class="panel">
+          <h4 style="margin-bottom:12px;">The origin story, and what to do with it</h4>
+          <p class="body">Koelle recorded Bukele's own account. Bukele told him that about fifteen years earlier a tall, venerable-looking white man in a long coat had appeared to him in a dream, saying <span class="q">&ldquo;I am sent to you by other white men&hellip; I bring you a book.&rdquo;</span> The messenger showed him a number of signs. On waking he could not remember them all, so he gathered a group of young friends and together they made new ones.</p>
+          <p class="body" style="margin:0;">Scribner and Cole treat this as one set of events among several. Elders in the towns tell different stories, and the evidence suggests the script may have gone through partly independent developments in different places. Massaquoi and others argue the inventors were building on a system of graphic signs already long in use among the Vai and their neighbours. English-educated Vai scholars today largely accept Koelle's version. What is not in dispute is that Vai men, working in the early nineteenth century, produced a system with consistent phonetic rules.</p>
+        </div>
+      </div>
+      <div class="c5">
+        <div class="panel-dark">
+          <h4 style="color:var(--vai);margin-bottom:14px;">Why the invention is the point</h4>
+          <p style="font-size:14.5px;line-height:1.55;">Two alphabets were already circulating in Vai country when the script was devised — Roman for the colonists and traders, Arabic for the Muslim scholars. A syllabary is a different analysis of speech from an alphabet. Whatever pressure the foreign scripts created, the form of the answer was the inventors' own.</p>
+          <p style="font-size:14.5px;line-height:1.55;margin-bottom:0;">That independence is what let Scribner and Cole use it as a test case. The script was never attached to a curriculum, a canon, or a state, so it carries none of the freight that makes schooling and literacy impossible to tell apart everywhere else.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- WHAT IT LOOKS LIKE -->
+    <h4 style="margin:56px 0 8px 0;">What it looks like</h4>
+    <p class="small" style="max-width:760px;margin-bottom:22px;">Every character stands for a whole syllable — a consonant plus a vowel. There is no way to write a bare consonant, and no way to build a syllable out of parts. Below, nine consonant series across the seven vowels, rendered from the modern Unicode block, which encodes 274 Vai syllable characters plus punctuation, digits, and a set of logograms. A reader learning the script is learning several hundred distinct signs, not two dozen.</p>
+
+    <div class="syl-scroll"><table class="syl">
+<thead><tr><th class="corner">consonant</th>
+<th><span class="rom">-ee</span></th>
+<th><span class="rom">-i</span></th>
+<th><span class="rom">-a</span></th>
+<th><span class="rom">-oo</span></th>
+<th><span class="rom">-u</span></th>
+<th><span class="rom">-o</span></th>
+<th><span class="rom">-e</span></th>
+</tr></thead><tbody>
+<tr><th class="cons">b-</th>
+<td><span class="glyph">ꔇ</span><span class="rom">bee</span><span class="cp">U+A507</span></td>
+<td><span class="glyph">ꔬ</span><span class="rom">bi</span><span class="cp">U+A52C</span></td>
+<td><span class="glyph">ꕒ</span><span class="rom">ba</span><span class="cp">U+A552</span></td>
+<td><span class="glyph">ꕸ</span><span class="rom">boo</span><span class="cp">U+A578</span></td>
+<td><span class="glyph">ꖝ</span><span class="rom">bu</span><span class="cp">U+A59D</span></td>
+<td><span class="glyph">ꗃ</span><span class="rom">bo</span><span class="cp">U+A5C3</span></td>
+<td><span class="glyph">ꗪ</span><span class="rom">be</span><span class="cp">U+A5EA</span></td>
+</tr>
+<tr><th class="cons">k-</th>
+<td><span class="glyph">ꔞ</span><span class="rom">kee</span><span class="cp">U+A51E</span></td>
+<td><span class="glyph">ꕃ</span><span class="rom">ki</span><span class="cp">U+A543</span></td>
+<td><span class="glyph">ꕪ</span><span class="rom">ka</span><span class="cp">U+A56A</span></td>
+<td><span class="glyph">ꖏ</span><span class="rom">koo</span><span class="cp">U+A58F</span></td>
+<td><span class="glyph">ꖴ</span><span class="rom">ku</span><span class="cp">U+A5B4</span></td>
+<td><span class="glyph">ꗛ</span><span class="rom">ko</span><span class="cp">U+A5DB</span></td>
+<td><span class="glyph">ꘃ</span><span class="rom">ke</span><span class="cp">U+A603</span></td>
+</tr>
+<tr><th class="cons">f-</th>
+<td><span class="glyph">ꔌ</span><span class="rom">fee</span><span class="cp">U+A50C</span></td>
+<td><span class="glyph">ꔱ</span><span class="rom">fi</span><span class="cp">U+A531</span></td>
+<td><span class="glyph">ꕘ</span><span class="rom">fa</span><span class="cp">U+A558</span></td>
+<td><span class="glyph">ꕽ</span><span class="rom">foo</span><span class="cp">U+A57D</span></td>
+<td><span class="glyph">ꖢ</span><span class="rom">fu</span><span class="cp">U+A5A2</span></td>
+<td><span class="glyph">ꗉ</span><span class="rom">fo</span><span class="cp">U+A5C9</span></td>
+<td><span class="glyph">ꗱ</span><span class="rom">fe</span><span class="cp">U+A5F1</span></td>
+</tr>
+<tr><th class="cons">s-</th>
+<td><span class="glyph">ꔖ</span><span class="rom">see</span><span class="cp">U+A516</span></td>
+<td><span class="glyph">ꔻ</span><span class="rom">si</span><span class="cp">U+A53B</span></td>
+<td><span class="glyph">ꕢ</span><span class="rom">sa</span><span class="cp">U+A562</span></td>
+<td><span class="glyph">ꖇ</span><span class="rom">soo</span><span class="cp">U+A587</span></td>
+<td><span class="glyph">ꖬ</span><span class="rom">su</span><span class="cp">U+A5AC</span></td>
+<td><span class="glyph">ꗓ</span><span class="rom">so</span><span class="cp">U+A5D3</span></td>
+<td><span class="glyph">ꗻ</span><span class="rom">se</span><span class="cp">U+A5FB</span></td>
+</tr>
+<tr><th class="cons">t-</th>
+<td><span class="glyph">ꔎ</span><span class="rom">tee</span><span class="cp">U+A50E</span></td>
+<td><span class="glyph">ꔳ</span><span class="rom">ti</span><span class="cp">U+A533</span></td>
+<td><span class="glyph">ꕚ</span><span class="rom">ta</span><span class="cp">U+A55A</span></td>
+<td><span class="glyph">ꕿ</span><span class="rom">too</span><span class="cp">U+A57F</span></td>
+<td><span class="glyph">ꖤ</span><span class="rom">tu</span><span class="cp">U+A5A4</span></td>
+<td><span class="glyph">ꗋ</span><span class="rom">to</span><span class="cp">U+A5CB</span></td>
+<td><span class="glyph">ꗳ</span><span class="rom">te</span><span class="cp">U+A5F3</span></td>
+</tr>
+<tr><th class="cons">m-</th>
+<td><span class="glyph">ꔡ</span><span class="rom">mee</span><span class="cp">U+A521</span></td>
+<td><span class="glyph">ꕆ</span><span class="rom">mi</span><span class="cp">U+A546</span></td>
+<td><span class="glyph">ꕮ</span><span class="rom">ma</span><span class="cp">U+A56E</span></td>
+<td><span class="glyph">ꖒ</span><span class="rom">moo</span><span class="cp">U+A592</span></td>
+<td><span class="glyph">ꖷ</span><span class="rom">mu</span><span class="cp">U+A5B7</span></td>
+<td><span class="glyph">ꗞ</span><span class="rom">mo</span><span class="cp">U+A5DE</span></td>
+<td><span class="glyph">ꘈ</span><span class="rom">me</span><span class="cp">U+A608</span></td>
+</tr>
+<tr><th class="cons">l-</th>
+<td><span class="glyph">ꔒ</span><span class="rom">lee</span><span class="cp">U+A512</span></td>
+<td><span class="glyph">ꔷ</span><span class="rom">li</span><span class="cp">U+A537</span></td>
+<td><span class="glyph">ꕞ</span><span class="rom">la</span><span class="cp">U+A55E</span></td>
+<td><span class="glyph">ꖃ</span><span class="rom">loo</span><span class="cp">U+A583</span></td>
+<td><span class="glyph">ꖨ</span><span class="rom">lu</span><span class="cp">U+A5A8</span></td>
+<td><span class="glyph">ꗏ</span><span class="rom">lo</span><span class="cp">U+A5CF</span></td>
+<td><span class="glyph">ꗷ</span><span class="rom">le</span><span class="cp">U+A5F7</span></td>
+</tr>
+<tr><th class="cons">n-</th>
+<td><span class="glyph">ꔢ</span><span class="rom">nee</span><span class="cp">U+A522</span></td>
+<td><span class="glyph">ꕇ</span><span class="rom">ni</span><span class="cp">U+A547</span></td>
+<td><span class="glyph">ꕯ</span><span class="rom">na</span><span class="cp">U+A56F</span></td>
+<td><span class="glyph">ꖓ</span><span class="rom">noo</span><span class="cp">U+A593</span></td>
+<td><span class="glyph">ꖸ</span><span class="rom">nu</span><span class="cp">U+A5B8</span></td>
+<td><span class="glyph">ꗟ</span><span class="rom">no</span><span class="cp">U+A5DF</span></td>
+<td><span class="glyph">ꘉ</span><span class="rom">ne</span><span class="cp">U+A609</span></td>
+</tr>
+<tr><th class="cons">y-</th>
+<td><span class="glyph">ꔝ</span><span class="rom">yee</span><span class="cp">U+A51D</span></td>
+<td><span class="glyph">ꕂ</span><span class="rom">yi</span><span class="cp">U+A542</span></td>
+<td><span class="glyph">ꕩ</span><span class="rom">ya</span><span class="cp">U+A569</span></td>
+<td><span class="glyph">ꖎ</span><span class="rom">yoo</span><span class="cp">U+A58E</span></td>
+<td><span class="glyph">ꖳ</span><span class="rom">yu</span><span class="cp">U+A5B3</span></td>
+<td><span class="glyph">ꗚ</span><span class="rom">yo</span><span class="cp">U+A5DA</span></td>
+<td><span class="glyph">ꘂ</span><span class="rom">ye</span><span class="cp">U+A602</span></td>
+</tr>
+</tbody></table></div>
+
+    <p class="tiny" style="margin-top:12px;">Glyphs rendered in Noto Sans Vai from Unicode block U+A500–U+A62B. Romanisations are the official Unicode character names. These are the standardised modern letterforms; the shapes Koelle printed in 1854, and the hands Scribner and Cole collected in the 1970s, vary from them and from each other.</p>
+
+    <div class="grid" style="margin-top:var(--gutter);">
+      <div class="c6">
+        <figure class="fig">
+          <img src="/images/vai/koelle-1854-writing-specimen.jpg" alt="A page from Koelle's 1854 grammar headed &quot;A Specimen of the Vei Writing&quot;, showing continuous lines of Vai syllabic characters.">
+          <figcaption>
+            <strong>A specimen of the writing, 1854.</strong> Continuous lines of syllabic characters. Look at what is missing: no spaces, no word boundaries, no marks for tone. A reader confronts an unbroken string and has to find the words inside it.
+            <span class="credit">S. W. Koelle, <em>Outlines of a Grammar of the Vei Language</em> (London: Church Missionary House, 1854). Internet Archive, scan of the University of Toronto copy. Public domain.</span>
+          </figcaption>
+        </figure>
+      </div>
+      <div class="c6">
+        <figure class="fig">
+          <img src="/images/vai/koelle-1854-syllabarium.jpg" alt="A page from Koelle's 1854 grammar headed &quot;The Vei Syllabarium&quot;, listing romanised syllables beside their Vai characters in two columns.">
+          <figcaption>
+            <strong>The syllabarium, 1854.</strong> Koelle's inventory, pairing each romanised syllable with its character. Several syllables carry more than one accepted form — the script was never standardised, and variation between writers was normal rather than error.
+            <span class="credit">S. W. Koelle, <em>Outlines of a Grammar of the Vei Language</em> (London: Church Missionary House, 1854). Internet Archive, scan of the University of Toronto copy. Public domain.</span>
+          </figcaption>
+        </figure>
+      </div>
+    </div>
+
+    <!-- HARD TO READ -->
+    <h4 style="margin:56px 0 18px 0;">Three reasons it is hard to read</h4>
+    <div class="grid">
+      <div class="c3"><div class="cautionbox" style="border-top-color:var(--vai);height:100%;">
+        <p class="mono" style="color:var(--vai);font-size:12px;margin-bottom:8px;">1</p>
+        <h3 style="font-size:16px;margin-bottom:8px;">Tone is not written</h3>
+        <p class="small" style="margin:0;">Vowel tone changes meaning in spoken Vai. The script does not mark it. A single character can stand for several different words.</p>
+      </div></div>
+      <div class="c3"><div class="cautionbox" style="border-top-color:var(--vai);height:100%;">
+        <p class="mono" style="color:var(--vai);font-size:12px;margin-bottom:8px;">2</p>
+        <h3 style="font-size:16px;margin-bottom:8px;">Vowel length varies by hand</h3>
+        <p class="small" style="margin:0;">Length is also semantically distinctive in speech. Because the script was never standardised, how it gets represented shifts from one writer to the next.</p>
+      </div></div>
+      <div class="c3"><div class="cautionbox" style="border-top-color:var(--vai);height:100%;">
+        <p class="mono" style="color:var(--vai);font-size:12px;margin-bottom:8px;">3</p>
+        <h3 style="font-size:16px;margin-bottom:8px;">Nothing is segmented</h3>
+        <p class="small" style="margin:0;">Characters run across the page without spaces or divisions. A character may be a one-syllable word, one of several such words distinguished by tone, or a fragment of a longer word.</p>
+      </div></div>
+      <div class="c3"><div class="panel-dark" style="height:100%;">
+        <p class="mono" style="color:var(--vai);font-size:12px;margin-bottom:8px;">SO</p>
+        <h3 style="font-size:16px;margin-bottom:8px;color:var(--bg);">Reading is done out loud</h3>
+        <p style="font-size:13.5px;line-height:1.5;margin:0;">Scribner and Cole watched men decipher letters by saying strings of syllables aloud over and over, varying tone and length until they clicked into meaning. Syllables have to be held in mind until they resolve. That is the skill the auditory integration task caught.</p>
+      </div></div>
+    </div>
+
+    <!-- USE -->
+    <h4 style="margin:56px 0 18px 0;">What people do with it</h4>
+    <div class="grid">
+      <div class="c7">
+        <div class="panel">
+          <p class="small" style="margin-bottom:18px;">Reported by the 107 Vai script literates who completed the literacy interview. Percentages are of that group.</p>
+          <div class="bars">
+            <div class="bar-row"><span class="lbl">Reads letters</span><span class="bar-track"><span class="bar-fill" style="width:97%;background:var(--vai)"></span></span><span class="val">97%</span></div>
+            <div class="bar-row"><span class="lbl">Writes letters</span><span class="bar-track"><span class="bar-fill" style="width:93%;background:var(--vai)"></span></span><span class="val">93%</span></div>
+            <div class="bar-row"><span class="lbl">Keeps personal records</span><span class="bar-track"><span class="bar-fill" style="width:78%;background:var(--vai)"></span></span><span class="val">78%</span></div>
+            <div class="bar-row"><span class="lbl">Wrote something<br>in the past week</span><span class="bar-track"><span class="bar-fill" style="width:64%;background:var(--vai)"></span></span><span class="val">64%</span></div>
+            <div class="bar-row"><span class="lbl">Keeps town or<br>business records</span><span class="bar-track"><span class="bar-fill" style="width:63%;background:var(--vai)"></span></span><span class="val">63%</span></div>
+            <div class="bar-row"><span class="lbl">Has written a letter<br>for someone else</span><span class="bar-track"><span class="bar-fill" style="width:61%;background:var(--vai)"></span></span><span class="val">61%</span></div>
+            <div class="bar-row"><span class="lbl">Religious uses</span><span class="bar-track"><span class="bar-fill" style="width:55%;background:var(--vai)"></span></span><span class="val">55%</span></div>
+            <div class="bar-row"><span class="lbl">Writes another language<br>in the script</span><span class="bar-track"><span class="bar-fill" style="width:54%;background:var(--vai)"></span></span><span class="val">54%</span></div>
+            <div class="bar-row"><span class="lbl">Literary and<br>historical material</span><span class="bar-track"><span class="bar-fill" style="width:53%;background:var(--vai)"></span></span><span class="val">53%</span></div>
+            <div class="bar-row"><span class="lbl">Has taught the script</span><span class="bar-track"><span class="bar-fill" style="width:44%;background:var(--vai)"></span></span><span class="val">44%</span></div>
+            <div class="bar-row"><span class="lbl">Technical plans,<br>diagrams</span><span class="bar-track"><span class="bar-fill" style="width:38%;background:var(--vai)"></span></span><span class="val">38%</span></div>
+          </div>
+          <p class="tiny" style="margin-top:18px;">Half of Vai script literates also write English in the script, and 47% write Arabic in it — the syllabary gets pressed into service for languages it was not built for.</p>
+        </div>
+      </div>
+
+      <div class="c5">
+        <div class="panel" style="margin-bottom:var(--gutter);">
+          <h4 style="margin-bottom:14px;">Fifty letters, analysed</h4>
+          <table class="data">
+            <thead><tr><th>Content of the letter</th><th style="text-align:right">of 50</th></tr></thead>
+            <tbody>
+              <tr><td>Information only</td><td class="num">20</td></tr>
+              <tr><td>A request only</td><td class="num">18</td></tr>
+              <tr><td>Both request and information</td><td class="num">12</td></tr>
+              <tr><td colspan="2" style="background:#F0ECDE;font-size:11px;text-transform:uppercase;letter-spacing:.09em;color:var(--ink-3);font-weight:600;">Most common topics · duplicated count</td></tr>
+              <tr><td>Plans for a visit</td><td class="num">15</td></tr>
+              <tr><td>Asking for money</td><td class="num">10</td></tr>
+              <tr><td>Illness, deaths, births</td><td class="num">7</td></tr>
+              <tr><td>Asking for materials or medicine</td><td class="num">6</td></tr>
+              <tr><td>Asking for people to help</td><td class="num">5</td></tr>
+              <tr><td>Why a debt has not been repaid</td><td class="num">4</td></tr>
+            </tbody>
+          </table>
+          <p class="tiny" style="margin:12px 0 0 0;">From a corpus of more than a thousand letters spanning several decades. Almost every letter moves money, goods or people between family and friends. Nothing is addressed to whom it may concern — 79% of writers correspond only with people they know. As one man put it, you cannot have business with someone you do not know.</p>
+        </div>
+
+        <div class="panel" style="border-top:5px solid var(--vai);">
+          <h4 style="margin-bottom:12px;">Why men said they learned it</h4>
+          <p class="body" style="margin-bottom:14px;">Asked whether knowing the script had helped them, <strong>89% of Vai literates gave the same answer: keeping track of their own affairs.</strong> Privacy, in other words. Money came second at 16%, helping others at 14%, and a job at 6%.</p>
+          <p class="body" style="margin:0;">The life stories bear it out. One man learned the script so he and his friends could arrange dances and send word ahead about a girl without anyone else knowing. Another learned because his father was losing his eyesight and had to hand his letters to a neighbour to read aloud, which meant family business left the family. The script is a way of having correspondence nobody else can open.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid" style="margin-top:var(--gutter);">
+      <div class="c12">
+        <div class="notebox">
+          <h4 style="margin-bottom:10px;">The form of a Vai letter</h4>
+          <p class="body" style="margin-bottom:12px;">Letters have evolved a stable shape. A letter opens by naming who it belongs to, greets the recipient and often his household, and then — before delivering anything — announces what kind of message is coming. The formula Scribner and Cole single out is <span class="q">&ldquo;This is your information.&rdquo;</span> Only after that does the request or the news arrive. The letter closes by saying the writer has stopped, then names him.</p>
+          <p class="body" style="margin:0;">The authors call this move <strong>contextualisation</strong>, and it is the thing Vai literates carried into the board-game task. Asked to explain a game to someone who had never seen it, they almost always opened with a general characterisation of what the game was before describing any of it. One farmer, asked what makes a good letter, said the first job is to make the person understand he is being informed through words, so that he will put his attention there — and added that this is the correct way of writing the script. The skill was not incidental to letter writing. It was the thing being taught.</p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ============================================================
+     3. COMPARISON GROUPS
+     ============================================================ -->
+<section>
+  <div class="wrap">
+    <div class="grid sec-head">
+      <div class="c5">
+        <p class="eyebrow">3 — Study design</p>
+        <h2>Five groups, sorted by what they could read.</h2>
+      </div>
+      <div class="c7">
+        <p class="body">Assignment was made on measured reading scores, not on self-report. Because literacy functions in Vai society are carried out almost entirely by men, hypothesis testing runs on the male sample. Nonliterate women were tested as an additional comparison group.</p>
+        <p class="body">Note the age column. Vai script monoliterates and Vai–Arabic biliterates average around 48 years old; English-schooled men average 29. Age and urban residence had to be held constant in every regression, or they would have been mistaken for literacy effects.</p>
+      </div>
+    </div>
+
+    <div class="groups">
+      <div class="g"><div class="swatch" style="background:var(--none)"></div><div class="nm">Nonliterate men</div><div class="n">104</div><div class="d">Mean age 33.7. The baseline.</div></div>
+      <div class="g"><div class="swatch" style="background:var(--vai)"></div><div class="nm">Vai script monoliterates</div><div class="n">53</div><div class="d">Mean age 49.2. Vai reading score 2.87 of 4.</div></div>
+      <div class="g"><div class="swatch" style="background:var(--arabic)"></div><div class="nm">Arabic monoliterates</div><div class="n">36</div><div class="d">Mean age 31.1. Arabic reading score 2.31 of 4.</div></div>
+      <div class="g"><div class="swatch" style="background:linear-gradient(90deg,var(--vai) 50%,var(--arabic) 50%)"></div><div class="nm">Vai–Arabic biliterates</div><div class="n">44</div><div class="d">Mean age 47.7. Vai 3.25, Arabic 2.57.</div></div>
+      <div class="g"><div class="swatch" style="background:var(--english)"></div><div class="nm">English schooled</div><div class="n">53</div><div class="d">Mean age 29.2. 7.2 grades completed.</div></div>
+    </div>
+    <p class="tiny" style="margin-top:12px;">A sixth group of 349 nonliterate women was also tested. Eleven literate women were excluded from the group analyses.</p>
+  </div>
+</section>
+
+<!-- ============================================================
+     4. TWO PHASES
+     ============================================================ -->
+<section>
+  <div class="wrap">
+    <div class="grid sec-head">
+      <div class="c5">
+        <p class="eyebrow">4 — Method</p>
+        <h2>They ran the standard tests first. Then they threw out the strategy.</h2>
+      </div>
+      <div class="c7">
+        <p class="body">Phase one imported the task battery that cross-cultural psychology had built to demonstrate the effects of schooling — sorting, classification, free recall, syllogisms, metalinguistic probes. If literacy did what the theorists said, Vai script literates should look like schooled men. Phase one produced almost nothing.</p>
+        <p class="body">So Scribner and Cole inverted the procedure. Instead of working down from a developmental theory, they worked up from an ethnography: watch what Vai literates actually do with the script, break those activities into component skills, then build tasks that demand the same skills on unrelated content.</p>
+      </div>
+    </div>
+
+    <div class="grid">
+      <!-- PHASE 1 -->
+      <div class="c6">
+        <div class="phase p1">
+          <div class="ph-hd">
+            <span class="ph-num">PHASE 1</span>
+            <div>
+              <h3>Developmental paradigm</h3>
+              <p class="tiny" style="margin:2px 0 0 0;">Tasks borrowed from the literature · Chapters 8–9</p>
+            </div>
+          </div>
+          <div class="ph-bd">
+            <ul class="tasklist">
+              <li><div class="t">Abstraction — sorting geometric figures</div><div class="x">Group cards by form, colour or number; then regroup on a different dimension; then explain why. Scored for dimensions used and quality of verbal explanation.</div></li>
+              <li><div class="t">Taxonomic categorisation</div><div class="x">Constrained classification and free sorting of objects, scored for categorical choices and cluster structure.</div></li>
+              <li><div class="t">Free recall memory</div><div class="x">Twenty-four items from four categories, recalled in any order. Scored for amount recalled and for clustering by category.</div></li>
+              <li><div class="t">Verbal logic — syllogisms</div><div class="x">Six problems. Scored for correct answers and for whether the reasoning stayed inside the premises or appealed to personal experience.</div></li>
+              <li><div class="t">Language objectivity — the sun-and-moon question</div><div class="x">If everyone agreed to swap the names of the sun and the moon, could we? What would you call the thing in the night sky? What would the sky look like?</div></li>
+              <li><div class="t">Metalinguistic probes</div><div class="x">Naming the longest word, defining words, stating what makes a spoken Vai sentence ungrammatical.</div></li>
+            </ul>
+            <div class="verdict null">
+              <strong>Result: literacy does not substitute for schooling.</strong> Vai script literates were not significantly different from nonliterates on any of these measures, including the sorting and reasoning tasks singled out as most sensitive to written language. School showed effects. Unschooled literacy did not. And performances on the different metalinguistic probes barely correlated with each other, which undercut the idea that they were tapping one underlying ability.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PHASE 2 -->
+      <div class="c6">
+        <div class="phase p2">
+          <div class="ph-hd">
+            <span class="ph-num">PHASE 2</span>
+            <div>
+              <h3>Functional paradigm</h3>
+              <p class="tiny" style="margin:2px 0 0 0;">Tasks built from observed practice · Chapters 10–13</p>
+            </div>
+          </div>
+          <div class="ph-bd">
+            <ul class="tasklist">
+              <li><div class="t">Communication game <span style="color:var(--vai)">← from letter writing</span></div><div class="x">Learn a board game with almost no verbal explanation, then explain it — materials removed — to someone who has never seen it. Then dictate a letter explaining it to someone far away. Scored for information transmitted and for framing the message before delivering it.</div></li>
+              <li><div class="t">Auditory integration <span style="color:var(--vai)">← from decoding unsegmented script</span></div><div class="x">Listen to a Vai sentence read aloud in fragments, then repeat it and answer a comprehension question. Two conditions: fragments are whole words, or fragments are bare syllables.</div></li>
+              <li><div class="t">Rebus reading and writing <span style="color:var(--vai)">← from sound-symbol mapping</span></div><div class="x">Read a sentence built from pictures whose names must be heard as syllables, not as objects. Then compose one.</div></li>
+              <li><div class="t">Incremental recall <span style="color:var(--arabic)">← from Qur'anic memorisation</span></div><div class="x">One word, then those two, then those three, and so on for sixteen trials — the "1 + 1" method Qur'anic students described. Scored three ways: most words recalled in any order, most recalled in correct order, and longest perfectly recalled run.</div></li>
+              <li><div class="t">Grammatical rules <span style="color:var(--vai)">← from talk about writing quality</span></div><div class="x">Correct a spoken Vai error, then say what the rule is. Vai literates routinely argue about the quality of each other's writing.</div></li>
+            </ul>
+            <div class="verdict hit">
+              <strong>Result: skills transfer, and they transfer narrowly.</strong> Every strong nonschooled effect landed on a task that mirrored a real practice. Vai script literacy showed up wherever the job resembled reading letters or writing them. Qur'anic study showed up on the memory task built from Qur'anic teaching. Neither spread beyond that.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     5. MATRIX
+     ============================================================ -->
+<section>
+  <div class="wrap">
+    <div class="grid sec-head">
+      <div class="c5">
+        <p class="eyebrow">5 — Findings</p>
+        <h2>What each literacy actually did.</h2>
+      </div>
+      <div class="c7">
+        <p class="body">This matrix follows Figure 14.1 of the book, which summarises every multiple regression the authors ran. A filled cell means practice in that script predicted better performance on that task with background factors — age, urban residence, occupation — held constant.</p>
+        <p class="body">Two columns for Arabic, because the two tiers behave differently. Men who only recite the Qur'an register on one task. Men who read Arabic as a language and write or teach it register on three more.</p>
+        <p class="small">The authors were deliberately liberal in assigning school effects, since other research had already demonstrated them, and deliberately conservative with Vai and Arabic effects, since their own study was the only evidence for those.</p>
+      </div>
+    </div>
+
+    <div class="matrix-scroll">
+      <table class="matrix">
+        <thead>
+          <tr>
+            <th class="cat" style="width:150px;">Category of effect</th>
+            <th class="task">Task</th>
+            <th class="colhd hd-en">English<br>school</th>
+            <th class="colhd hd-vai">Vai<br>script</th>
+            <th class="colhd hd-qur">Qur'anic<br>recitation</th>
+            <th class="colhd hd-arl">Arabic as a<br>language</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="cat" rowspan="1">Categorising</td>
+            <td class="task">Form / number sort</td>
+            <td class="cell"><span class="fill fill-en"></span></td>
+            <td class="cell"><span class="fill fill-vai fill-q"><span class="qmark">?</span></span></td>
+            <td class="cell"><span class="empty"></span></td>
+            <td class="cell"><span class="fill fill-ar fill-q"><span class="qmark">?</span></span></td>
+          </tr>
+          <tr>
+            <td class="cat" rowspan="2">Memory</td>
+            <td class="task">Incremental recall</td>
+            <td class="cell"><span class="empty"></span></td>
+            <td class="cell"><span class="empty"></span></td>
+            <td class="cell"><span class="fill fill-ar"></span></td>
+            <td class="cell"><span class="empty"></span></td>
+          </tr>
+          <tr>
+            <td class="task">Free recall</td>
+            <td class="cell"><span class="fill fill-en"></span></td>
+            <td class="cell"><span class="empty"></span></td>
+            <td class="cell"><span class="empty"></span></td>
+            <td class="cell"><span class="empty"></span></td>
+          </tr>
+          <tr>
+            <td class="cat">Logical reasoning</td>
+            <td class="task">Syllogisms — correct answers</td>
+            <td class="cell"><span class="fill fill-en"></span></td>
+            <td class="cell"><span class="empty"></span></td>
+            <td class="cell"><span class="empty"></span></td>
+            <td class="cell"><span class="empty"></span></td>
+          </tr>
+          <tr>
+            <td class="cat" rowspan="2">Encoding and decoding</td>
+            <td class="task">Rebus reading</td>
+            <td class="cell"><span class="fill fill-en"></span></td>
+            <td class="cell"><span class="fill fill-vai"></span></td>
+            <td class="cell"><span class="empty"></span></td>
+            <td class="cell"><span class="empty"></span></td>
+          </tr>
+          <tr>
+            <td class="task">Rebus writing</td>
+            <td class="cell"><span class="fill fill-en"></span></td>
+            <td class="cell"><span class="fill fill-vai"></span></td>
+            <td class="cell"><span class="empty"></span></td>
+            <td class="cell"><span class="fill fill-ar"></span></td>
+          </tr>
+          <tr>
+            <td class="cat" rowspan="2">Semantic integration</td>
+            <td class="task">Integrating <em>words</em> into a sentence</td>
+            <td class="cell"><span class="fill fill-en"></span></td>
+            <td class="cell"><span class="fill fill-vai"></span></td>
+            <td class="cell"><span class="empty"></span></td>
+            <td class="cell"><span class="fill fill-ar"></span></td>
+          </tr>
+          <tr>
+            <td class="task">Integrating <em>syllables</em> into a sentence</td>
+            <td class="cell"><span class="empty"></span></td>
+            <td class="cell"><span class="fill fill-vai fill-q"><span class="qmark">A</span></span></td>
+            <td class="cell"><span class="empty"></span></td>
+            <td class="cell"><span class="empty"></span></td>
+          </tr>
+          <tr>
+            <td class="cat" rowspan="5">Verbal explanation</td>
+            <td class="task">Communication game — instructing a stranger</td>
+            <td class="cell"><span class="fill fill-en"></span></td>
+            <td class="cell"><span class="fill fill-vai"></span></td>
+            <td class="cell"><span class="empty"></span></td>
+            <td class="cell"><span class="empty"></span></td>
+          </tr>
+          <tr>
+            <td class="task">Stating grammatical rules</td>
+            <td class="cell"><span class="fill fill-en"></span></td>
+            <td class="cell"><span class="fill fill-vai"></span></td>
+            <td class="cell"><span class="empty"></span></td>
+            <td class="cell"><span class="empty"></span></td>
+          </tr>
+          <tr>
+            <td class="task">Explaining a sort of geometric figures</td>
+            <td class="cell"><span class="fill fill-en"></span></td>
+            <td class="cell"><span class="empty"></span></td>
+            <td class="cell"><span class="empty"></span></td>
+            <td class="cell"><span class="empty"></span></td>
+          </tr>
+          <tr>
+            <td class="task">Explaining a syllogism</td>
+            <td class="cell"><span class="fill fill-en"></span></td>
+            <td class="cell"><span class="empty"></span></td>
+            <td class="cell"><span class="empty"></span></td>
+            <td class="cell"><span class="empty"></span></td>
+          </tr>
+          <tr>
+            <td class="task">Sun–moon name switching</td>
+            <td class="cell"><span class="fill fill-en"></span></td>
+            <td class="cell"><span class="empty"></span></td>
+            <td class="cell"><span class="empty"></span></td>
+            <td class="cell"><span class="empty"></span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="legend">
+      <div><i style="background:var(--english)"></i> English schooling predicts performance</div>
+      <div><i style="background:var(--vai)"></i> Vai script practice predicts performance</div>
+      <div><i style="background:var(--arabic)"></i> Arabic practice predicts performance</div>
+      <div><i class="fill-q" style="background:var(--vai)"></i> Effect holds only for a subset — see notes</div>
+      <div><i style="border:1px solid var(--rule);position:relative"><em style="position:absolute;left:50%;top:50%;width:7px;height:1px;background:var(--rule);transform:translate(-50%,-50%);display:block"></em></i> No effect</div>
+    </div>
+
+    <div class="grid" style="margin-top:32px;">
+      <div class="c4">
+        <div class="cautionbox">
+          <h4 style="margin-bottom:10px;">Qualified cells</h4>
+          <p class="small" style="margin:0 0 10px 0;"><strong>Form / number sort, Vai column.</strong> The effect appeared among experts who taught the script, not among Vai literates generally.</p>
+          <p class="small" style="margin:0 0 10px 0;"><strong>Form / number sort, Arabic column.</strong> The effect appeared among Vai–Arabic biliterates.</p>
+          <p class="small" style="margin:0;"><strong>Syllable integration, Vai column (A).</strong> Only advanced Vai readers. Beginning Vai literates fell to the nonliterate level.</p>
+        </div>
+      </div>
+      <div class="c8">
+        <div class="panel">
+          <h4 style="margin-bottom:12px;">Read the matrix in two directions</h4>
+          <p class="body" style="margin-bottom:14px;"><strong>Down the school column:</strong> English schooling reaches almost everything, including the tasks built to model Vai script practice. But it is not across the board. Schooling did not improve taxonomic clustering in free recall, or flexibility in sorting, or naming the longest word, or defining words — and it did nothing for incremental recall or syllable integration. The one description that fits all its primary effects is narrower than "general cognitive growth": school trains expository talk in contrived situations.</p>
+          <p class="body" style="margin:0;"><strong>Across the script rows:</strong> nothing spreads. Vai script literacy never reaches the general-ability tasks that schooling reaches. Qur'anic recitation reaches exactly one task, the one modelled on Qur'anic teaching. The trade is uneven — schooling captures more script-related skills than script knowledge captures school-related skills — but there are places school cannot go. On syllable integration and on incremental recall, schooling confers no advantage at all.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     6. THREE RESULTS UP CLOSE
+     ============================================================ -->
+<section>
+  <div class="wrap">
+    <div class="grid sec-head">
+      <div class="c5">
+        <p class="eyebrow">6 — Three results up close</p>
+        <h2>Where the lines cross.</h2>
+      </div>
+      <div class="c7">
+        <p class="body">The group means below are the clearest cases. The first shows the null result that ended phase one. The second and third show the two effects the functional tasks caught — each one belonging to a different literacy, and each one invisible to the other's task.</p>
+      </div>
+    </div>
+
+    <div class="grid">
+
+      <!-- CHART A: syllogisms -->
+      <div class="c4">
+        <div class="chartblock">
+          <p class="eyebrow n">A · Phase one</p>
+          <h3>Verbal logic problems</h3>
+          <p class="cap">Mean number of syllogisms answered correctly, out of 6. Schooling moves the number. Neither unschooled literacy does.</p>
+          <div class="bars">
+            <div class="bar-row"><span class="lbl">Nonliterate men</span><span class="bar-track"><span class="bar-fill" style="width:26.7%;background:var(--none)"></span></span><span class="val">1.6</span></div>
+            <div class="bar-row"><span class="lbl">Vai script mono.</span><span class="bar-track"><span class="bar-fill" style="width:21.7%;background:var(--vai)"></span></span><span class="val">1.3</span></div>
+            <div class="bar-row"><span class="lbl">Arabic mono.</span><span class="bar-track"><span class="bar-fill" style="width:28.3%;background:var(--arabic)"></span></span><span class="val">1.7</span></div>
+            <div class="bar-row"><span class="lbl">Vai–Arabic bilit.</span><span class="bar-track"><span class="bar-fill" style="width:25.0%;background:linear-gradient(90deg,var(--vai) 50%,var(--arabic) 50%)"></span></span><span class="val">1.5</span></div>
+            <div class="bar-row"><span class="lbl">English schooled</span><span class="bar-track"><span class="bar-fill" style="width:50.0%;background:var(--english)"></span></span><span class="val">3.0</span></div>
+            <div class="bar-row"><span class="lbl">Grade 10+</span><span class="bar-track"><span class="bar-fill" style="width:65.0%;background:var(--english)"></span></span><span class="val">3.9</span></div>
+            <div class="bar-row"><span class="lbl">Nonliterate women</span><span class="bar-track"><span class="bar-fill" style="width:28.3%;background:var(--none)"></span></span><span class="val">1.7</span></div>
+          </div>
+          <p class="tiny" style="margin-top:18px;">Vai script monoliterates score <em>below</em> nonliterate men here. The same pattern holds for explaining a sort (5.1 for Vai literates against 5.3 for nonliterates, out of 12) — while men with ten or more grades of school reach 9.3.</p>
+        </div>
+      </div>
+
+      <!-- CHART B: auditory integration -->
+      <div class="c4">
+        <div class="chartblock">
+          <p class="eyebrow n">B · Phase two</p>
+          <h3>Auditory integration</h3>
+          <p class="cap">Sentences perfectly recalled, out of 5. Vai script is written with no spaces between words, so reading it means holding syllables in mind until they click into meaning.</p>
+          <div class="bar-key">
+            <span><i style="background:#9A9488"></i> Word fragments</span>
+            <span><i style="background:var(--ink)"></i> Syllable fragments</span>
+          </div>
+          <div class="bars pairbars">
+            <div class="bar-row"><span class="lbl">Nonliterate men</span>
+              <span class="pair"><span class="bar-track"><span class="bar-fill" style="width:29%;background:#9A9488"></span></span><span class="val">1.45</span></span>
+              <span class="pair"><span class="bar-track"><span class="bar-fill" style="width:18%;background:var(--ink)"></span></span><span class="val">0.90</span></span>
+            </div>
+            <div class="bar-row"><span class="lbl">Qur'anic only</span>
+              <span class="pair"><span class="bar-track"><span class="bar-fill" style="width:50%;background:#9A9488"></span></span><span class="val">2.50</span></span>
+              <span class="pair"><span class="bar-track"><span class="bar-fill" style="width:20%;background:var(--ink)"></span></span><span class="val">1.00</span></span>
+            </div>
+            <div class="bar-row"><span class="lbl">Arabic language</span>
+              <span class="pair"><span class="bar-track"><span class="bar-fill" style="width:52%;background:#9A9488"></span></span><span class="val">2.60</span></span>
+              <span class="pair"><span class="bar-track"><span class="bar-fill" style="width:22%;background:var(--ink)"></span></span><span class="val">1.10</span></span>
+            </div>
+            <div class="bar-row"><span class="lbl">Beginning Vai</span>
+              <span class="pair"><span class="bar-track"><span class="bar-fill" style="width:56%;background:#9A9488"></span></span><span class="val">2.80</span></span>
+              <span class="pair"><span class="bar-track"><span class="bar-fill" style="width:22%;background:var(--ink)"></span></span><span class="val">1.10</span></span>
+            </div>
+            <div class="bar-row"><span class="lbl"><strong style="color:var(--vai)">Advanced Vai</strong></span>
+              <span class="pair"><span class="bar-track"><span class="bar-fill" style="width:57%;background:var(--vai)"></span></span><span class="val">2.85</span></span>
+              <span class="pair"><span class="bar-track"><span class="bar-fill" style="width:48%;background:var(--vai)"></span></span><span class="val">2.40</span></span>
+            </div>
+            <div class="bar-row"><span class="lbl">English students</span>
+              <span class="pair"><span class="bar-track"><span class="bar-fill" style="width:69%;background:var(--english)"></span></span><span class="val">3.45</span></span>
+              <span class="pair"><span class="bar-track"><span class="bar-fill" style="width:40%;background:var(--english)"></span></span><span class="val">2.00</span></span>
+            </div>
+          </div>
+          <p class="tiny" style="margin-top:18px;">On word fragments the schoolboys win. Switch the fragments to bare syllables and every group except advanced Vai readers collapses toward the nonliterate floor. Entering each man's word score as a control, only advanced Vai reading score still predicts syllable performance. Schooling contributes nothing.</p>
+        </div>
+      </div>
+
+      <!-- CHART C: incremental recall -->
+      <div class="c4">
+        <div class="chartblock">
+          <p class="eyebrow n">C · Phase two</p>
+          <h3>Incremental recall</h3>
+          <p class="cap">Pilot study, 14 Qur'anic literates against 11 nonliterate men. Words are added one at a time and recited back in order — the method Qur'anic students described.</p>
+          <div class="bar-key">
+            <span><i style="background:var(--arabic)"></i> Qur'anic literates</span>
+            <span><i style="background:#9A9488"></i> Nonliterates</span>
+          </div>
+          <div class="bars pairbars">
+            <div class="bar-row"><span class="lbl">Most recalled,<br>any order</span>
+              <span class="pair"><span class="bar-track"><span class="bar-fill" style="width:86%;background:var(--arabic)"></span></span><span class="val">10.3</span></span>
+              <span class="pair"><span class="bar-track"><span class="bar-fill" style="width:69%;background:#9A9488"></span></span><span class="val">8.3</span></span>
+            </div>
+            <div class="bar-row"><span class="lbl">Most recalled<br>in correct order</span>
+              <span class="pair"><span class="bar-track"><span class="bar-fill" style="width:59%;background:var(--arabic)"></span></span><span class="val">7.1</span></span>
+              <span class="pair"><span class="bar-track"><span class="bar-fill" style="width:45%;background:#9A9488"></span></span><span class="val">5.4</span></span>
+            </div>
+            <div class="bar-row"><span class="lbl">Longest run of<br>perfect recall</span>
+              <span class="pair"><span class="bar-track"><span class="bar-fill" style="width:48%;background:var(--arabic)"></span></span><span class="val">5.8</span></span>
+              <span class="pair"><span class="bar-track"><span class="bar-fill" style="width:39%;background:#9A9488"></span></span><span class="val">4.7</span></span>
+            </div>
+          </div>
+          <p class="tiny" style="margin-top:18px;">Bars scaled against a 12-word ceiling. Group difference on all three measures, t = 2.7, df = 23, p ≤ .02. The study was later run on 100 men across all five groups, and the pattern held. In the full analysis, the predictor was not Arabic literacy as a category but a direct measure of <em>time spent memorising the Qur'an</em>. Schooling conferred no advantage here.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid" style="margin-top:var(--gutter);">
+      <div class="c12">
+        <div class="notebox">
+          <h4 style="margin-bottom:10px;">D · The communication game</h4>
+          <p class="body" style="margin-bottom:12px;">Letter writing is the commonest use of Vai script, so the authors tested whether it built a transferable skill: explaining something to a person who cannot see what you see. Men learned a board game with minimal instruction, then explained it — game removed — first face to face, then as a dictated letter to someone far away. Vai script literates gave more game-related information and described the materials more fully than nonliterates, in both modes.</p>
+          <p class="body" style="margin-bottom:12px;">The regression settles what was doing the work. Across oral and written productions combined:</p>
+          <p class="mono" style="font-size:13.5px;background:#F0ECDE;padding:14px 16px;margin:0 0 12px 0;line-height:1.7;">Total information = 17.2 + 2.2 (Vai reading score) + 3.5 (modernity of occupation) + 6.3 (schooling)&nbsp;&nbsp;<span style="color:var(--ink-3)">R² = .20</span></p>
+          <p class="body" style="margin:0;">Group membership dropped out; Vai reading score replaced it. The better a man reads Vai script, the more information he transmits. Arabic literacy looked like it helped on the group means, but no Arabic variable entered the equation — occupation accounted for the apparent difference.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     7. CONCLUSION
+     ============================================================ -->
+<section>
+  <div class="wrap">
+    <div class="grid sec-head">
+      <div class="c5">
+        <p class="eyebrow">7 — The conclusion</p>
+        <h2>Literacy as practice, not literacy as development.</h2>
+      </div>
+      <div class="c7">
+        <p class="body">A practice, in the authors' definition, is a goal-directed sequence of activities that uses a particular technology and applies a particular body of knowledge — playing the piano, sewing trousers, writing letters. Skills attach to practices. As you write more letters, the component skills get more efficient, less tied to specific content, and more available to new content. But the range of that availability is set by the range of the practice.</p>
+        <p class="body">Vai literacy is restricted. Letters, ledgers, lists. So the skills it built were restricted to match. That is a claim about Vai society in the 1970s, not about writing.</p>
+      </div>
+    </div>
+
+    <div class="grid">
+      <div class="c7">
+        <div class="pull">Our results show that certain literacy practices among the Vai produced intellectual outcomes closely tied to those practices — and no evidence that Vai script literacy was associated with generalised competencies such as abstraction, verbal reasoning, or metalinguistic skill.
+        <cite>Scribner &amp; Cole — the finding, paraphrased</cite></div>
+      </div>
+      <div class="c5">
+        <div class="panel-dark">
+          <h4 style="color:var(--vai);margin-bottom:14px;">What the study does not license</h4>
+          <p style="font-size:14.5px;line-height:1.55;">The authors are explicit that their negative findings are bounded by the practices available to test. Where a society gives literacy many purposes, they expect the skill systems to become varied, complex and widely applicable — and at that point the functional and the general-ability accounts converge. Finding specific skills among the Vai does not rule out finding general ones elsewhere.</p>
+          <p style="font-size:14.5px;line-height:1.55;margin-bottom:0;">They also flag a gap in their own design: they never built tasks to model what advanced Qur'anic scholars do. Disputation and commentary on the Qur'an might well transfer. Their metalinguistic tasks, aimed at abstract features of language, were the wrong instrument for it.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid" style="margin-top:var(--gutter);">
+      <div class="c12">
+        <div class="panel">
+          <h4 style="margin-bottom:14px;">Four claims the Vai data support</h4>
+          <div class="grid" style="gap:var(--gutter);">
+            <div class="c3"><p class="mono" style="color:var(--vai);font-size:13px;margin-bottom:6px;">1</p><p class="body" style="font-size:15px;margin:0;">Reading and writing on their own did not produce the transformations attributed to literacy. Where schooling was absent, so were the effects.</p></div>
+            <div class="c3"><p class="mono" style="color:var(--vai);font-size:13px;margin-bottom:6px;">2</p><p class="body" style="font-size:15px;margin:0;">School effects are not produced by learning to read. Nonschooled literacy yields a different pattern, so the ability to read and write cannot be what school is doing.</p></div>
+            <div class="c3"><p class="mono" style="color:var(--vai);font-size:13px;margin-bottom:6px;">3</p><p class="body" style="font-size:15px;margin:0;">Nonschooled literacy is not inert. It builds real, transferable skills — analysing speech, instructing a stranger — that schooling did not confer.</p></div>
+            <div class="c3"><p class="mono" style="color:var(--vai);font-size:13px;margin-bottom:6px;">4</p><p class="body" style="font-size:15px;margin:0;">The unit of analysis is the practice, not the medium. Different scripts produced different effects, and the differences map onto how each script is learned and used.</p></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     8. CAUTIONS
+     ============================================================ -->
+<section>
+  <div class="wrap">
+    <div class="grid sec-head">
+      <div class="c5">
+        <p class="eyebrow">8 — Handle with care</p>
+        <h2>Objections the authors raised against themselves.</h2>
+      </div>
+      <div class="c7">
+        <p class="body">The book devotes a section to the counterargument that literates were simply the brighter men to begin with — self-selection rather than consequence. Scribner and Cole answer that the selection story cannot account for the shape of the results. A general ability advantage would show up everywhere. What they found instead was each literacy registering on the specific tasks that mirrored its own practice, and nowhere else.</p>
+      </div>
+    </div>
+
+    <div class="grid">
+      <div class="c4"><div class="cautionbox"><h4 style="margin-bottom:10px;">Neither literacy nor schooling was all-or-none</h4><p class="small" style="margin:0;">On every experimental task, including those showing the strongest Vai script effects, some nonliterates scored high and displayed the same skills as literates. No group boundary is a cognitive boundary.</p></div></div>
+      <div class="c4"><div class="cautionbox"><h4 style="margin-bottom:10px;">Age and city life kept competing with literacy</h4><p class="small" style="margin:0;">Vai script literates averaged 49 years old; schooled men averaged 29. Urban residence, not schooling, turned out to be the main determinant of taxonomic classification. Effects reported here survive those controls; the raw group means do not always.</p></div></div>
+      <div class="c4"><div class="cautionbox"><h4 style="margin-bottom:10px;">Effect sizes are modest</h4><p class="small" style="margin:0;">The communication regression accounts for about 20% of the variance. The incremental recall gap in the pilot is roughly two words. These are real, replicated differences, not large ones.</p></div></div>
+    </div>
+
+    <div class="grid" style="margin-top:var(--gutter);">
+      <div class="c12">
+        <div class="panel" style="border-top:5px solid var(--vai);">
+          <h4 style="margin-bottom:10px;">One qualification the book adds and later summaries usually drop</h4>
+          <p class="body" style="margin:0;">Scribner and Cole expected Qur'anic memorisation to show up as preserved <em>serial order</em> in recall. In the first tasks it did not, which surprised them. The effect emerged only once they rebuilt the task to match the actual teaching method — the one-word-at-a-time incremental procedure. The finding is therefore a finding about task design as much as about memory: the transfer was there, but it was invisible to a conventional recall test.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     FOOTER / SOURCES
+     ============================================================ -->
+<footer>
+  <div class="wrap">
+    <div class="grid">
+      <div class="c5">
+        <h4>Source</h4>
+        <p style="margin-bottom:16px;">Sylvia Scribner and Michael Cole, <em>The Psychology of Literacy</em> (Cambridge, MA: Harvard University Press, 1981). doi:10.4159/harvard.9780674433014</p>
+        <p style="margin-bottom:16px;">Supplemented by Sylvia Scribner and Michael Cole, "Literacy without Schooling: Testing for Intellectual Effects," <em>Harvard Educational Review</em> 48, no. 4 (November 1978): 448–461.</p>
+        <p style="margin:0;"><span class="tagline">PRIMARY-FULL</span> Both texts read in full. Every figure, group mean, sample size and regression coefficient on this page is taken directly from them.</p>
+      </div>
+      <div class="c4">
+        <h4>Located in the book</h4>
+        <ul>
+          <li>Literacy rates — Table 6.1</li>
+          <li>Script overlap — Table 6.2</li>
+          <li>Characteristics of the three literacies — Table 6.6</li>
+          <li>Comparison group sizes and ages — Table 8.1</li>
+          <li>Phase one task results — Table 8.2</li>
+          <li>Auditory integration — Table 10.6</li>
+          <li>Communication study — Table 12.2 and Chapter 12 regressions</li>
+          <li>Incremental recall — Table 13.1</li>
+          <li>Summary of all regressions — Table 14.1 and Figure 14.1</li>
+        </ul>
+      </div>
+      <div class="c3">
+        <h4>Images</h4>
+        <p style="margin-bottom:14px;">The two 1854 plates — the specimen of the writing and the syllabarium — come from S. W. Koelle, <em>Outlines of a Grammar of the Vei Language</em> (London: Church Missionary House, 1854), via the <a href="https://archive.org/details/outlinesofgramma00koeluoft">Internet Archive scan of the University of Toronto copy</a>. Public domain. The live syllabary grid is rendered from Unicode block U+A500–U+A62B in Noto Sans Vai. The map is drawn for this page from the geography described in the study. Both photographs come from the American Colonization Society Collection at the Library of Congress and are public domain: <a href="https://www.loc.gov/item/2001701757/">LC 2001701757</a> (Vai town, 1893) and <a href="https://www.loc.gov/item/95505108/">LC 95505108</a> (Vai people, ca. 1895).</p>
+        <h4>Reconstruction note</h4>
+        <p style="margin-bottom:14px;">The findings matrix reproduces Figure 14.1. Because the printed figure encodes its results as shading without labels, each cell here was cross-checked against the prose of Chapter 14, which names the effects script by script. Qualified cells are marked and explained rather than shaded flat.</p>
+        <p style="margin:0;"><span class="tagline warn">CHECK BEFORE PRINT</span> Verify the matrix cell by cell against the printed Figure 14.1 before any of it goes into the manuscript.</p>
+      </div>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

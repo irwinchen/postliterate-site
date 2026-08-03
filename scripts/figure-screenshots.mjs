@@ -107,6 +107,10 @@ const FIGURE_SOURCES = {
     'src/pages/first-smartphone-isotype.astro',
     'src/components/first-smartphone',
   ],
+  'scribner-cole-vai-study': [
+    'src/pages/scribner-cole-vai-study_4.html',
+    'public/images/vai',
+  ],
   // `virgil` has no source mapping — it falls back to its registry images,
   // which are currently missing, so it is reported as such.
 };

@@ -160,5 +160,14 @@
     "images": [
       { "file": "first-smartphone-isotype.png" }
     ]
+  },
+  {
+    "id": "scribner-cole-vai-study",
+    "title": "Literacy Without Schooling — The Vai Project, 1973–1978",
+    "credit": "after Scribner & Cole",
+    "page": "/scribner-cole-vai-study_4",
+    "images": [
+      { "file": "scribner-cole-vai-study.png" }
+    ]
   }
 ]
