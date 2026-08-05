@@ -171,6 +171,15 @@ describe('parcels land where the anatomy says they should', () => {
       ['cn.MD-InfPar-L', 'cn.TPJ-L'],
       // Sammler's premotor node vs primary motor cortex on the same strip.
       ['cn.PMC-R', 'cn.M1-R'],
+      // Music-selective plana sit on the supratemporal plane; the language and
+      // prosody temporal parcels sit on the lateral surface of the same gyrus.
+      // Left planum polare needed the tightest slice to clear cn.AntTemp-L.
+      ['cn.PP-L', 'cn.AntTemp-L'],
+      ['cn.PP-R', 'cn.STG-R'],
+      ['cn.PT-L', 'cn.pSTS-L'],
+      // Right superior temporal cortex now holds five parcels from four networks.
+      ['cn.aSTS-R', 'cn.PP-R'],
+      ['cn.aSTS-R', 'cn.STG-R'],
     ];
     for (const [a, b] of pairs) {
       const gap = dist(a, b);
@@ -214,7 +223,7 @@ describe('parcels land where the anatomy says they should', () => {
 describe('cortical-networks view resolves', () => {
   it('loads all eight networks in declared order', () => {
     expect(resolved.networkOrder).toEqual([
-      'language', 'md', 'tom', 'prosody', 'face',
+      'language', 'md', 'tom', 'prosody', 'music', 'face',
       'motor', 'salience', 'episodic',
     ]);
   });
@@ -222,7 +231,7 @@ describe('cortical-networks view resolves', () => {
   it('resolves every parcel reference and every paper reference', () => {
     // loadView throws on an unknown parcel or paper, so reaching here is most
     // of the assertion; this pins the counts so a silent drop is caught too.
-    expect(Object.keys(resolved.parcels)).toHaveLength(45);
+    expect(Object.keys(resolved.parcels)).toHaveLength(50);
     expect(resolved.papers).toHaveLength(viewConfig.papers.length);
   });
 
@@ -307,6 +316,17 @@ describe('provenance claims stay honest', () => {
     expect([...cited].sort()).toEqual([...viewConfig.papers].sort());
   });
 
+  it('cites nothing that has not been read in full', () => {
+    // Reached 2026-08-05 after every cited paper was obtained and read. This
+    // guards the property rather than assuming it: adding a citation that is
+    // abstract-only or reference-list-only will fail here, which is the moment
+    // to either read it or accept the network dropping to 'partial'.
+    const unread = viewConfig.papers.filter(
+      (id) => papersRaw[id]?.access !== 'PRIMARY-FULL',
+    );
+    expect(unread, `not read in full: ${unread.join(', ')}`).toEqual([]);
+  });
+
   it('keeps the tiers honest about what was actually read', () => {
     const tiers = Object.fromEntries(
       resolved.networkOrder.map((id) => [id, resolved.networks[id].evidence]),
@@ -314,9 +334,7 @@ describe('provenance claims stay honest', () => {
     // Nothing may sit at 'background' — that tier means an unverified source,
     // and the whole point of the verification pass was to clear it.
     expect(Object.entries(tiers).filter(([, t]) => t === 'background')).toEqual([]);
-    expect(tiers.language).toBe('read');
-    expect(tiers.md).toBe('read');
-    expect(tiers.episodic).toBe('read');
+    expect(Object.values(tiers).every((t) => t === 'read'), JSON.stringify(tiers)).toBe(true);
   });
 
   it('gives every network panel copy', () => {

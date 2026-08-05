@@ -71,9 +71,17 @@ const SPECS = {
   'cn.TPJ-R':         { labels: ['rh.inferiorparietal', 'rh.supramarginal'], slices: [{ axis: 'z', from: 0.1, to: 0.5 }] },
   'cn.dMPFC-L':       { labels: ['lh.superiorfrontal'], slices: [{ axis: 'y', from: 0.65, to: 1.0 }, { axis: 'z', from: 0.5, to: 1.0 }] },
   'cn.dMPFC-R':       { labels: ['rh.superiorfrontal'], slices: [{ axis: 'y', from: 0.65, to: 1.0 }, { axis: 'z', from: 0.5, to: 1.0 }] },
+  // Dufour 2013 splits medial prefrontal cortex into three bands by height:
+  // dorsal (z>20mm), middle (0<z<20mm) and ventral (z<0). The middle band was
+  // missing from this figure until 2026-08-05.
+  'cn.mMPFC':         { labels: ['lh.superiorfrontal', 'rh.superiorfrontal'], slices: [{ axis: 'y', from: 0.78, to: 1.0 }, { axis: 'z', from: 0.1, to: 0.45 }] },
   'cn.vMPFC':         { labels: ['lh.medialorbitofrontal', 'rh.medialorbitofrontal'] },
   'cn.PC-L':          { labels: ['lh.precuneus', 'lh.posteriorcingulate'] },
   'cn.PC-R':          { labels: ['rh.precuneus', 'rh.posteriorcingulate'] },
+  // Candidate: right anterior STS, reported as a ToM region by both Saxe 2003
+  // (MNI 54,-18,-15) and Dufour 2013 (55,-10,-16). Testing whether it clears
+  // the four parcels already crowded into right superior temporal cortex.
+  'cn.aSTS-R':        { labels: ['rh.superiortemporal', 'rh.bankssts'], slices: [{ axis: 'y', from: 0.55, to: 0.85 }, { axis: 'z', from: 0.0, to: 0.45 }] },
 
   // === Prosody (right-lateralised suprasegmental / speech-melody) ==========
   'cn.HG-R':          { labels: ['rh.transversetemporal'] },
@@ -83,6 +91,20 @@ const SPECS = {
   // peak MNI (45, 5, 40), BA6. Inhibiting it with rTMS degraded prosody
   // categorisation, so it is causally implicated rather than merely correlated.
   'cn.PMC-R':         { labels: ['rh.caudalmiddlefrontal'] },
+
+  // === Music-selective cortex =============================================
+  // Norman-Haignere 2015 decomposed responses to 165 natural sounds and found a
+  // music-selective component "in the planum polare, anterior to PAC, as well as
+  // in the left planum temporale, posterior to PAC". Both plana sit on the
+  // supratemporal plane, which DK folds into `superiortemporal` — hence the
+  // superior slice, which lifts these off the lateral surface where the prosody
+  // parcels live.
+  // x slice pulls these onto the medial supratemporal plane, off the lateral
+  // surface where the language and prosody temporal parcels sit. For lh, x
+  // fraction 0 is most lateral; for rh it is most medial — hence the mirrored ranges.
+  'cn.PP-L':          { labels: ['lh.superiortemporal'], slices: [{ axis: 'y', from: 0.6, to: 1.0 }, { axis: 'z', from: 0.72, to: 1.0 }, { axis: 'x', from: 0.45, to: 1.0 }] },
+  'cn.PP-R':          { labels: ['rh.superiortemporal'], slices: [{ axis: 'y', from: 0.6, to: 1.0 }, { axis: 'z', from: 0.55, to: 1.0 }, { axis: 'x', from: 0.0, to: 0.55 }] },
+  'cn.PT-L':          { labels: ['lh.superiortemporal'], slices: [{ axis: 'y', from: 0.15, to: 0.5 }, { axis: 'z', from: 0.6, to: 1.0 }, { axis: 'x', from: 0.35, to: 1.0 }] },
 
   // === Face / gesture perception ==========================================
   'cn.FFA-L':         { labels: ['lh.fusiform'], slices: [{ axis: 'y', from: 0.25, to: 0.55 }] },

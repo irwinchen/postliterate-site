@@ -4,8 +4,9 @@
     "language": {
       "tag": "Words, structure, meaning — and not much else",
       "whatItDoes": [
-        "Turns sound or text into meaning, and meaning back into speech. It handles vocabulary and grammar, and it works the same way whether you are reading, listening or signing.",
-        "What's striking is how little else it does. Mental arithmetic, following a chain of logic, holding a number in mind, reading code, working out what someone else believes: none of it wakes this system up. People who lose language to a stroke can still do all of those things."
+        "Turns sound or text into meaning, and meaning back into speech. It handles vocabulary and grammar, and it works the same way whether you are reading, listening or signing. It looks much the same in speakers of any language, including invented ones.",
+        "What's striking is how little else it does. Mental arithmetic, following a chain of logic, holding a number in mind, reading code, working out what someone else believes: none of it wakes this system up. People who lose language to a stroke can still do all of those things.",
+        "This is not Broca's and Wernicke's areas, despite the textbooks. Those two are speech areas, handling the motor planning of articulation and the perception of speech sounds. They sit beside this system rather than inside it, and they respond to the surface of an utterance rather than its meaning."
       ],
       "whatLightsUp": [
         "A band down the left side of the brain: the front, just behind the temple, and a long stretch above and behind the ear. The right side does the same work far more weakly."
@@ -81,10 +82,10 @@
       ]
     },
     "face": {
-      "tag": "Reading a face, a gaze, a gesture",
+      "tag": "Reading a face, a gaze, a moving body",
       "whatItDoes": [
-        "Recognises faces and reads the movements that carry social meaning: where someone is looking, what their expression is doing, the gestures they make while talking.",
-        "One patch on the underside of the brain responds several times more strongly to faces than to any other thing you can show it. Damage there causes prosopagnosia — vision intact, language intact, and no ability to recognise a face, including one's own in a mirror."
+        "Picks up the social signals that arrive through the eyes rather than the ears: who someone is, where they are looking, and what their body is doing.",
+        "This is several neighbouring specialisations rather than one system. A patch on the underside of the brain responds several times more strongly to faces than to anything else you can show it, and damage there causes prosopagnosia, where vision and language survive but faces become unrecognisable. Further back and higher up, a separate stretch tracks bodies in motion. The gestures people make while talking are read there too, and never reach the language network at all."
       ],
       "whatLightsUp": [
         "The underside of the brain behind the eyes, stronger on the right, and the long fold running back above the ear on both sides."
@@ -103,7 +104,7 @@
       "tag": "Producing the movement, not the meaning",
       "whatItDoes": [
         "Plans and carries out movement, including the lips, tongue and larynx that turn a sentence into sound.",
-        "Speech depends on it to get words out of the mouth, and the language network still pays it no attention. Watching someone else act, or copying them, leaves language regions completely quiet."
+        "Speech depends on it to get words out of the mouth, and the language system pays it almost nothing in return. Watching someone else act, or copying them, barely moves the language regions: whatever response there is never rises above what meaningless nonsense words produce, and stays far below what an actual sentence produces."
       ],
       "whatLightsUp": [
         "The ridge running over the top of the head from ear to ear, plus a midline patch just in front of it. The mouth and tongue sit at the low end, near the temple."
@@ -155,20 +156,36 @@
         "Andrews-Hanna 2014",
         "Phelps & LeDoux 2005"
       ]
+    },
+    "music": {
+      "tag": "Tunes, and only tunes",
+      "whatItDoes": [
+        "Responds to music more than to any other sound: more than speech, more than animal calls, more than machinery. It sits on the flat upper shelf of the temporal lobe, just in front of and behind the patch that does basic hearing.",
+        "This selectivity is strong but was hard to find. It barely shows up when you look at brain responses one location at a time, and only became visible when researchers stopped testing hypotheses about particular sounds and instead let the response patterns to 165 everyday noises sort themselves out. The people scanned were not musicians, so it is not a product of training."
+      ],
+      "whatLightsUp": [
+        "The upper surface of the temporal lobe on both sides, in front of the hearing area, and a second patch behind it on the left."
+      ],
+      "sources": [
+        "Norman-Haignere 2015",
+        "Chen 2023"
+      ]
     }
   },
   "overlaps": {
     "language+md": "The contrast this whole figure exists to show. Both sit in the frontal lobe, close enough that averaging across people smears them into one system, which is how reasoning came to be thought of as a form of inner speech. Watch the two frontal clusters: one sits above and ahead of the other, near but separate.",
-    "language+tom": "Neighbours that work in step. Through a story these two stay synchronised without merging. The boundary is blurriest low at the back of the parietal lobe, where a patch that responds to language also clusters with the mind-reading regions.",
+    "language+tom": "Neighbours that work in step. Through a story these two stay synchronised without merging. Along the fold above the ear, roughly a third of the tissue that responds to language also responds to mental-state content, which makes this the blurriest border on the figure.",
     "language+prosody": "They share a patch of right frontal cortex. The division is roughly which words were said against how they were said.",
-    "face+language": "Neighbours along the fold above the ear. Gestures arrive in the same breath as the words and are handled entirely outside the language network.",
-    "language+motor": "Speech needs the mouth-and-tongue strip to get words out. The language network still ignores it — watching or imitating an action leaves it quiet.",
+    "face+language": "Neighbours along the fold above the ear. Gestures arrive in the same breath as the words and are handled entirely outside the language network, which stays as quiet for a speaker's hand movements as it does for someone scratching their arm. That test used the ordinary mix of gestures people make while talking; the more conventionalised ones, closer to signs with fixed meanings, have not been checked separately.",
+    "language+motor": "Speech needs the mouth-and-tongue strip to get words out, and the language network mostly ignores it in return. Watching or copying someone move barely registers there. One patch is a partial exception: the angular gyrus, low at the back of the parietal lobe, did respond while people watched videos of others moving, though not while they imitated — and whether it belongs to the language network at all is disputed.",
     "episodic+language": "They share a patch low at the back of the parietal lobe. Whether that is one piece of tissue doing two jobs, or two strips too close together to tell apart here, is not settled.",
     "episodic+tom": "Shared ground on the midline toward the back. Picturing what is in someone else's head and rebuilding your own past both mean constructing a scene you are not currently in.",
     "md+motor": "A shared strip on the midline just forward of the top of the head. Sequencing an action and holding a goal in mind are hard to separate there.",
     "md+salience": "A shared patch of cortex folded over the middle of the brain. Noticing that something needs attention and deciding how much effort it is worth are nearly the same act.",
-    "face+prosody": "The two wordless social channels meeting along the same fold above the ear: the tune of a voice and the movement of a face. The voice-sensitive patches appear to be built along the same lines as the face ones.",
+    "face+prosody": "The two wordless social channels meeting along the same fold above the ear: the tune of a voice and the movement of a face. Their response zones share more ground with each other than either does with anything else along that sulcus, which is the strongest overlap anyone has found there.",
     "episodic+face": "No shared region, but a real connection. The emotional tagging that helps you remember a face also changes how strongly visual areas respond to it in the first place.",
-    "motor+prosody": "The premotor patch belongs to both. This drawing cannot cleanly separate premotor from primary motor cortex, so read the two as neighbouring stretches of one strip rather than as a border."
+    "motor+prosody": "The premotor patch belongs to both. This drawing cannot cleanly separate premotor from primary motor cortex, so read the two as neighbouring stretches of one strip rather than as a border.",
+    "language+music": "The clearest separation on this figure. Language regions barely stir for music: their response to it is no greater than to animal noises or everyday sound, and for some kinds of music it drops below their resting level. They show no reliable sign of tracking musical structure either. The sharpest evidence is behavioural rather than anatomical. Three people with severe long-standing aphasia, scoring near chance on whether a sentence was grammatical, judged whether a melody was well-formed as accurately as people without brain damage.",
+    "music+prosody": "Both sit along the temporal lobe near the hearing area, on different surfaces of it. Music selectivity is on the flat shelf, in front of and behind the hearing patch. The responses to voices and speech sounds run along the outer face of the same lobe, which is where the prosody parcels sit here. One tells you a melody is a melody, the other tells you a speaker is asking a question."
   }
 }

@@ -1,6 +1,5 @@
 {
   "_comment_": "Citation source-of-truth. Per-paper entries used in disclaimers and source panels.",
-
   "parsons-2001": {
     "authors": "Parsons & Osherson",
     "year": 2001,
@@ -44,7 +43,8 @@
     "title": "People thinking about thinking people: the role of the temporo-parietal junction in 'theory of mind'",
     "venue": "NeuroImage",
     "doi": "10.1016/s1053-8119(03)00230-1",
-    "access": "SECONDARY-ONLY"
+    "access": "PRIMARY-FULL",
+    "note": "Establishes bilateral TPJ robustly and says the left and right did not differ on the belief contrast; its only laterality finding is that left TPJ responded selectively to verbal descriptions while right also picked up photographs. It does NOT establish the wider ToM network — its MPFC and precuneus results are single midline coordinates, one tied to person-detection rather than mentalising, and the precuneus effect was a deactivation the authors called ambiguous and dropped. Cite it for TPJ; the region set comes from Dufour 2013."
   },
   "fox-2005": {
     "authors": "Fox et al.",
@@ -104,9 +104,7 @@
     "venue": "Trends in Cognitive Sciences",
     "doi": "10.1016/j.tics.2005.05.004"
   },
-
   "_comment_access_tags_": "Entries below carry an `access` field per the Source Transparency Protocol (vault CLAUDE.md). PRIMARY-FULL = the PDF was read end to end in the session that added the citation. SECONDARY-ONLY = the citation was harvested from a reference list in a paper that WAS read, and the source itself has not been opened. The cortical-networks view surfaces this distinction per network so the figure never implies more grounding than it has. Entries above this comment predate the convention and are untagged.",
-
   "kean-2026": {
     "authors": "Kean et al.",
     "year": 2026,
@@ -139,14 +137,14 @@
     "doi": "10.1016/j.neuropsychologia.2018.09.011",
     "access": "PRIMARY-FULL"
   },
-
   "dufour-2013": {
     "authors": "Dufour et al.",
     "year": 2013,
     "title": "Similar brain activation during false belief tasks in a large sample of adults with and without autism",
     "venue": "PLoS ONE",
     "doi": "10.1371/journal.pone.0075468",
-    "access": "SECONDARY-ONLY",
+    "access": "PRIMARY-FULL",
+    "note": "Read in full; every ROI and coordinate previously extracted from PubMed Central confirmed exactly. Defines seven ToM ROIs including a middle MPFC band and a right anterior STS, both of which the figure was missing until 2026-08-05. Treats DMPFC and precuneus as single midline ROIs rather than left/right pairs. Individual-subject identification rates vary widely: RTPJ 94%, PC 91%, LTPJ 87%, RSTS 85%, DMPFC 68%, MMPFC 64%, VMPFC 55%.",
     "citedBy": "paunov-2019"
   },
   "deen-2015": {
@@ -155,7 +153,7 @@
     "title": "Functional organization of social perception and cognition in the superior temporal sulcus",
     "venue": "Cerebral Cortex",
     "doi": "10.1093/cercor/bhv111",
-    "access": "SECONDARY-ONLY",
+    "access": "PRIMARY-FULL",
     "citedBy": "kean-2026"
   },
   "pritchett-2018": {
@@ -164,8 +162,9 @@
     "title": "High-level language processing regions are not engaged in action observation or imitation",
     "venue": "Journal of Neurophysiology",
     "doi": "10.1152/jn.00222.2018",
-    "access": "SECONDARY-ONLY",
-    "citedBy": "kean-2026"
+    "access": "PRIMARY-FULL",
+    "note": "Read in full. The angular gyrus exception is narrower than the abstract suggests: it holds in one experiment of four (passive viewing of naturalistic face and body videos) and does NOT appear for imitation anywhere. In that same experiment every language region showed small but reliable above-baseline responses, so 'little or no response' means not exceeding the nonword control and falling far below sentences, rather than silence. The paper also treats the angular gyrus's membership of the language network as contested, and keeps speech-articulation cortex, speech-perception cortex and the high-level language network as three separate systems — do not collapse them.",
+    "volumePages": "120(5), 2555-2570"
   },
   "jouravlev-2019": {
     "authors": "Jouravlev et al.",
@@ -173,7 +172,8 @@
     "title": "Speech-accompanying gestures are not processed by the language-processing mechanisms",
     "venue": "Neuropsychologia",
     "doi": "10.1016/j.neuropsychologia.2019.107132",
-    "access": "SECONDARY-ONLY",
+    "access": "PRIMARY-FULL",
+    "note": "Every stimulus had the speaker's face masked with a beige rectangle, so this paper contains no data on face, gaze or expression perception and must not be cited for them. Its Discussion argues that faces, body postures, voices, prosody and gesture are handled by functionally distinct regions, which is why the `face` network was renamed and its copy reworked.",
     "citedBy": "kean-2026"
   },
   "shain-2023": {
@@ -203,17 +203,34 @@
     "access": "SECONDARY-ONLY",
     "citedBy": "kean-2026"
   },
-
   "zatorre-belin-chapter": {
     "authors": "Zatorre & Belin",
     "year": null,
     "title": "Auditory cortex processing streams: where are they and what do they do?",
-    "venue": "Book chapter, pp. 277-290 — volume and publisher not established",
-    "doi": null,
+    "venue": "In: Plasticity and Signal Representation in the Auditory System (Springer US), pp. 277-290",
+    "doi": "10.1007/0-387-23181-1_26",
     "access": "PRIMARY-FULL",
-    "caution": "Citation INCOMPLETE. Supplied as 'belin 2000 - auditory cortex.pdf' but it is not Belin et al. 2000 Nature — it cites that paper separately in its own reference list. The PDF starts at p.277 with no title page, so volume, publisher and year could not be established; internal citations to J Neurosci vol 24 put it at 2004 or later. Do not cite in writing until the container is identified."
+    "note": "Container identified 2026-08-05 and confirmed against Crossref: the page range 277-290 matches the PDF exactly. ISBN 9780387231549. Crossref carries no publication year for this chapter; internal citations to J Neurosci vol 24 put it at 2004 or later. Supply the year before using this in print."
   },
-
+  "chen-2023": {
+    "authors": "Chen, Affourtit, Ryskin, Regev, Norman-Haignere, Jouravlev, Malik-Moraleda, Kean, Varley & Fedorenko",
+    "year": 2023,
+    "volumePages": "33(12), 7904-7929",
+    "title": "The human language system, including its inferior frontal component in \"Broca's area,\" does not support music perception",
+    "venue": "Cerebral Cortex",
+    "doi": "10.1093/cercor/bhad087",
+    "access": "PRIMARY-FULL",
+    "note": "Read in full. Note three small non-null results the headline conclusion glosses: scrambled melodies drew a slightly LARGER network response than intact ones (p=0.046, reversed direction), sour-note vs well-formed reached significance at network level (p=0.037) though not per-region, and Mandarin speakers showed above-baseline music responses in two language fROIs. The music-vs-animal-sounds comparison is p=0.056, a trend rather than a difference — an earlier version of the figure's copy overstated this. Authors also restrict the claim to the high-level language network, explicitly excluding speech perception and prosody."
+  },
+  "norman-haignere-2015": {
+    "authors": "Norman-Haignere, Kanwisher & McDermott",
+    "year": 2015,
+    "title": "Distinct cortical pathways for music and speech revealed by hypothesis-free voxel decomposition",
+    "venue": "Neuron",
+    "doi": "10.1016/j.neuron.2015.11.035",
+    "access": "PRIMARY-FULL",
+    "note": "Read in full; the planum polare / left planum temporale placement and the p=0.055 laterality trend were confirmed verbatim. Three scope limits worth keeping in view: the paper reports NO coordinates of any kind, only relative anatomy against primary auditory cortex; its maps are smoothed group-averaged continuous weights rather than discrete parcels, so three spheres imply more anatomical consistency than it claims; and its lateral component is SPEECH-selective (phonemes and syllables), not prosody — the word prosody never appears. Subjects were non-musicians by design."
+  },
   "rugg-2013": {
     "authors": "Rugg & Vilberg",
     "year": 2013,
@@ -239,9 +256,7 @@
     "access": "PRIMARY-FULL",
     "caution": "Unreviewed preprint. Splits the anterior insula into two functionally distinct zones and prefers 'action mode network' to 'salience network'. Cited here as a caveat against treating the anterior insula as one node, not as support for the salience grouping."
   },
-
   "_comment_verified_2026_08_05_": "The five entries below were originally added from model background knowledge with recalled citations. On 2026-08-05 every one was checked against the publisher or PubMed record: authors, title, venue, volume, pages and DOI all matched. Belin, Sammler, Kanwisher, Craig and Seeley are PRIMARY-PARTIAL — citation confirmed and abstract read, full text paywalled. Phelps & LeDoux was then supplied as a PDF and read in full. Verifying a citation is not the same as verifying the claim hung on it: the emotion network these partly supported was dropped because no source tested its grouping.",
-
   "belin-2000": {
     "authors": "Belin, Zatorre, Lafaille, Ahad & Pike",
     "year": 2000,

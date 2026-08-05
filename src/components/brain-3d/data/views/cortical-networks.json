@@ -3,7 +3,7 @@
   "_comment_evidence_": "Each network lists `paperIds`; `evidence` is COMPUTED from those papers' access tags in view-loader.js and takes the WEAKEST link, not the best. Do not hand-declare `evidence` here — an earlier version did, and a network could then show a strong tier while quietly citing an unverified paper. PRIMARY-FULL everywhere -> 'read'; any PRIMARY-PARTIAL or SECONDARY-ONLY -> 'partial'; any UNVERIFIED -> 'background'.",
   "slug": "cortical-networks",
   "name": "Cortical Networks",
-  "subtitle": "Close to the language network, and not part of it — eight systems",
+  "subtitle": "Close to the language network, and not part of it — nine systems",
   "papers": [
     "fedorenko-2010",
     "mineroff-2018",
@@ -16,6 +16,8 @@
     "sammler-2015",
     "belin-2000",
     "zatorre-belin-chapter",
+    "norman-haignere-2015",
+    "chen-2023",
     "kanwisher-1997",
     "deen-2015",
     "jouravlev-2019",
@@ -81,8 +83,10 @@
       "parcels": [
         "cn.TPJ-L",
         "cn.TPJ-R",
+        "cn.aSTS-R",
         "cn.dMPFC-L",
         "cn.dMPFC-R",
+        "cn.mMPFC",
         "cn.vMPFC",
         "cn.PC-L",
         "cn.PC-R"
@@ -114,8 +118,8 @@
       ]
     },
     "face": {
-      "displayNum": "FACE",
-      "label": "Face & gesture",
+      "displayNum": "SOC",
+      "label": "Social perception",
       "color": "#2FB9A8",
       "source": "Kanwisher 1997 · Deen 2015 · Jouravlev 2019",
       "parcels": [
@@ -187,6 +191,21 @@
         "andrews-hanna-2014",
         "phelps-2005"
       ]
+    },
+    "music": {
+      "displayNum": "MUS",
+      "label": "Music",
+      "color": "#E2529F",
+      "source": "Norman-Haignere 2015 · Chen 2023",
+      "parcels": [
+        "cn.PP-L",
+        "cn.PP-R",
+        "cn.PT-L"
+      ],
+      "paperIds": [
+        "norman-haignere-2015",
+        "chen-2023"
+      ]
     }
   },
   "networkOrder": [
@@ -194,6 +213,7 @@
     "md",
     "tom",
     "prosody",
+    "music",
     "face",
     "motor",
     "salience",
@@ -201,5 +221,6 @@
   ],
   "uiMode": "chips-with-compare",
   "defaultNetwork": "language",
-  "_comment_dropped_emotion_": "An `emotion` network (amygdala + anterior insula + vmPFC + subgenual ACC) was removed on 2026-08-05. Its citations all verified, but no source tested the four-region grouping as a unit: Chiong 2013 shows those regions co-degenerating in frontotemporal dementia, which is tissue loss in disease rather than a circuit in health, and nothing consulted mentions subgenual ACC at all. The amygdala moved to `episodic`, where Phelps & LeDoux 2005 does support it. cn.sgACC is now unreferenced by any view."
+  "_comment_dropped_emotion_": "An `emotion` network (amygdala + anterior insula + vmPFC + subgenual ACC) was removed on 2026-08-05. Its citations all verified, but no source tested the four-region grouping as a unit: Chiong 2013 shows those regions co-degenerating in frontotemporal dementia, which is tissue loss in disease rather than a circuit in health, and nothing consulted mentions subgenual ACC at all. The amygdala moved to `episodic`, where Phelps & LeDoux 2005 does support it. cn.sgACC is now unreferenced by any view.",
+  "_comment_face_scope_": "The `face` network id is retained for stability but the label is 'Social perception'. Jouravlev 2019 masked out every face in its stimuli and argues in its Discussion that faces, bodies, voices, prosody and gesture are functionally distinct; Deen 2015 finds face and biological-motion zones overlap only about 30% along the STS. So this chip bundles neighbouring specialisations rather than one system, and the copy says so. Do not restore a label implying a single face-and-gesture network."
 }

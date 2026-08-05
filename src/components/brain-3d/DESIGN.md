@@ -5,6 +5,118 @@ neuro-anatomical figures for the *After the Book* project. Written so a fresh
 Claude session can resume the work without re-deriving architecture decisions
 from scratch. Mirrors the convention used by `scripts/dashboard/DESIGN.md`.
 
+## Update (2026-08-05j) — every cited source read in full
+
+Pritchett arrived and the Zatorre & Belin container was identified, closing the
+last two gaps. **All 24 papers the view cites are now `PRIMARY-FULL`, and all
+nine networks sit at `read`.** A new test, `cites nothing that has not been read
+in full`, guards this: adding an abstract-only or reference-list citation fails
+the suite, which is the moment to either read it or accept the tier dropping.
+
+Pritchett corrected the motor copy twice over:
+- The angular gyrus exception is **observation only, in one experiment of four**,
+  and does not appear for imitation anywhere. The copy had claimed "watching or
+  imitating"; the imitation half was wrong.
+- "Leaves nearly every language region quiet" was also wrong. In that same
+  experiment *every* language region showed small but reliable above-baseline
+  responses. The honest framing is that the response never exceeds the nonword
+  control and stays far below sentences — not silence.
+- The paper keeps speech-articulation cortex, speech-perception cortex and the
+  high-level language network as three separate systems, and warns against
+  collapsing them. It also treats the angular gyrus's language-network membership
+  as contested, which the overlap copy now says.
+
+`zatorre-belin-chapter` resolved via Crossref: *Plasticity and Signal
+Representation in the Auditory System*, Springer US, pp. 277-290,
+`10.1007/0-387-23181-1_26`, ISBN 9780387231549. The page range matches the PDF
+exactly. Crossref carries no year for the chapter, so that field stays null with
+a note; supply it before print use. The "do not cite" caution is lifted.
+
+**Still unassessed, and now the obvious next target:** the nine papers behind the
+older `/brain/compare` views (Parsons 2001, Lipkin 2022, Yeo 2011, Cohen 2002,
+Dehaene 2005, Menon 2011, Hasson 2016, and the two Blank paper-view entries).
+None have been read or tagged. Four are already in the vault. `/brain/compare` is
+the canonical published figure, so it currently holds the weaker provenance of
+the two. Three orphaned `SECONDARY-ONLY` entries (Shain 2023, Buckner 2019,
+Hassabis 2007) are cited by no view and could be dropped or read.
+
+## Update (2026-08-05i) — six papers read; eight of nine networks at `read`
+
+Saxe, Dufour, Deen, Jouravlev, Chen and Norman-Haignere all read in full. Every
+one changed something, which is now the pattern rather than the exception.
+
+**Region sets that were wrong:**
+- Theory of Mind grew from six parcels to nine. Dufour defines **three** medial
+  prefrontal bands (dorsal, middle, ventral) and the figure had only two; it also
+  lists a **right anterior STS** that both Dufour and Saxe report and the figure
+  omitted. Added `cn.mMPFC` and `cn.aSTS-R`.
+- Dufour treats dorsal MPFC and precuneus as **single midline ROIs**, not
+  left/right pairs. The figure draws them as pairs because DK splits the midline
+  by hemisphere. Noted on the parcels rather than restructured.
+
+**Claims that were wrong:**
+- Right TPJ was described as "the most belief-selective region in the mentalising
+  network". Saxe makes no such claim, and its actual laterality finding points the
+  other way: left and right did not differ on the belief contrast, and the right
+  is if anything the *broader* of the pair.
+- The language/music copy said language regions "respond to music less than to
+  animal sounds". Chen's abstract says responses "never exceed" those to animal
+  sounds — a different and weaker claim. The actual test is p=0.056. **This one
+  was a misreading of an abstract I had already quoted correctly**, which is the
+  cleanest illustration of why abstract-level verification isn't enough.
+- The music/prosody copy implied Norman-Haignere's lateral component maps onto
+  prosody. It is **speech**-selective (phonemes and syllables); the word prosody
+  never appears in that paper. The spatial contrast is real, the label was mine.
+
+**Scope limits now recorded on the papers themselves:** Norman-Haignere reports
+no coordinates of any kind and its maps are smoothed group averages rather than
+parcels, so three spheres imply more consistency than it claims; Chen carries
+three small non-null results its headline glosses, including a significant
+*reversed*-direction effect; Jouravlev masked out every face in its stimuli.
+
+Only `motor` remains below `read`, held by the paywalled Pritchett 2018.
+
+**Process note:** a regex used to swap `note` fields briefly left `papers.json`
+invalid, which surfaced as 500s in the dev server and a silent drop from 241 to
+215 passing tests (the view's test file failed to import). Prefer `json.load` /
+`json.dump` round-trips over regex on this file.
+
+## Update (2026-08-05h) — Music network added; Broca's conflation fixed
+
+**Ninth network: `music`.** Norman-Haignere 2015 located music-selective cortex
+in planum polare bilaterally plus left planum temporale — both on the
+supratemporal plane, which Desikan-Killiany folds into `superiortemporal` with
+no separate label. Recovered with a superior slice (lifting off the lateral
+surface) plus a **medial** x slice. Note the x fractions are mirrored between
+hemispheres: fraction 0 is most lateral on the left and most medial on the
+right, because the axis runs the other way.
+
+The separation rule bit twice here. Left planum polare first landed 0.135 from
+`cn.AntTemp-L` against a 0.16 radius sum, and right planum polare 0.128 from
+`cn.STG-R` against 0.14. The medial slice cleared the right; the left needed its
+superior slice tightened to z ∈ [0.72, 1] before it cleared at 0.220. Music sits
+in the most crowded neighbourhood on the figure, so **re-run the collision check
+before touching any temporal parcel.**
+
+This is the figure's cleanest dissociation and worth keeping prominent: Chen 2023
+found language regions respond to music *below their own resting baseline* and
+below their response to animal sounds, cannot distinguish intact from scrambled
+music, and that people with aphasia who fail sentence-grammaticality judgements
+still pass melody well-formedness judgements.
+
+**Broca's conflation corrected.** Fedorenko's accessible research statement is
+blunt: Broca's and Wernicke's "are not actually 'language areas', they are
+'speech areas'." `cn.IFG-L` was labelled "IFG / Broca's (L)" with a note calling
+it "Broca's territory" and attributing halting speech to damage there — the exact
+error the figure exists to undo, sitting inside the figure. Label is now plain
+"IFG (L)", and the language panel names the distinction outright. `cn.artic-L`
+already carried the speech-motor reading correctly; the others now defer to it.
+
+Both new papers are `PRIMARY-PARTIAL`: Chen 2023 abstract-only (green OA at
+escholarship if a full read is wanted), Norman-Haignere queried via PMC for the
+anatomy rather than read end to end. It reports **no coordinates at all**, only
+anatomical terms, so there is no `mniPeak` to record.
+
 ## Update (2026-08-05g) — card stripped to prose + citations
 
 Four removals and one addition, all in the `network-info` card:
