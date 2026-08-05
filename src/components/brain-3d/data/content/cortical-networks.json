@@ -1,0 +1,174 @@
+{
+  "_comment_": "Panel copy for the cortical-networks view. Schema matches src/lib/brain-viz/content.js. Written for a general reader: each network answers one question — what does this do? — in at most two short paragraphs, with no paper names in the prose. Citations live in the view config's `source` field and render as a plain list under each card. The `checkable` field is retained in the data but no longer rendered. All prose drafted by Claude and unreviewed.",
+  "networks": {
+    "language": {
+      "tag": "Words, structure, meaning — and not much else",
+      "whatItDoes": [
+        "Turns sound or text into meaning, and meaning back into speech. It handles vocabulary and grammar, and it works the same way whether you are reading, listening or signing.",
+        "What's striking is how little else it does. Mental arithmetic, following a chain of logic, holding a number in mind, reading code, working out what someone else believes: none of it wakes this system up. People who lose language to a stroke can still do all of those things."
+      ],
+      "whatLightsUp": [
+        "A band down the left side of the brain: the front, just behind the temple, and a long stretch above and behind the ear. The right side does the same work far more weakly."
+      ],
+      "checkable": {
+        "symbol": "✓",
+        "text": "Yes — one localizer contrast, replicated across hundreds of participants."
+      },
+      "sources": [
+        "Fedorenko 2010",
+        "Mineroff 2018",
+        "Fedorenko 2024",
+        "Kean 2026"
+      ]
+    },
+    "md": {
+      "tag": "Whatever the hard part is, this does it",
+      "whatItDoes": [
+        "Switches on whenever something is difficult, and doesn't much care what the difficulty is. A puzzle you have never seen, a phone number held in mind, mental arithmetic, unfamiliar code. Damage spread across it costs general problem-solving ability.",
+        "It sits directly beside the language network in the frontal lobe. That closeness is why the two were mistaken for one system for decades, and why reasoning was thought of as a kind of inner speech."
+      ],
+      "whatLightsUp": [
+        "Both sides of the brain: high on the forehead, and up toward the back of the skull. Being strongly two-sided is one of the things that distinguishes it from language."
+      ],
+      "checkable": {
+        "symbol": "✓",
+        "text": "Yes — hard versus easy spatial working memory."
+      },
+      "sources": [
+        "Mineroff 2018",
+        "Fedorenko 2024",
+        "Kean 2026"
+      ]
+    },
+    "tom": {
+      "tag": "Modelling what someone else believes",
+      "whatItDoes": [
+        "Builds a picture of what is going on in someone else's head: what they want, what they know, and what they believe that happens to be false. It runs when you follow a character's motives through a novel, or work out why a friend went quiet.",
+        "It keeps pace with the language network while you listen to a story without being part of it, and it works just as hard on a silent film."
+      ],
+      "whatLightsUp": [
+        "Both sides, where the temporal and parietal lobes meet above and behind the ear, plus the middle of the forehead and a patch deep on the midline toward the back."
+      ],
+      "checkable": {
+        "symbol": "✓",
+        "text": "Yes — false belief versus false photograph."
+      },
+      "sources": [
+        "Saxe 2003",
+        "Dufour 2013",
+        "Paunov 2019",
+        "Paunov 2022"
+      ]
+    },
+    "prosody": {
+      "tag": "The melody carrying the words",
+      "whatItDoes": [
+        "Picks up the tune of speech rather than its content: pitch, rhythm, stress, the quality of a voice. It is how you tell a question from a statement, catch sarcasm, or hear that someone is upset before they say anything.",
+        "It runs mainly down the right side, a mirror of the left-sided language system. Part of it overlaps with the machinery for producing speech, and interfering with that patch makes people worse at hearing tone — so hearing a tune and making one seem to share equipment."
+      ],
+      "whatLightsUp": [
+        "The right side: along the fold above the ear, forward into the frontal lobe, and a small patch high up just in front of the motor strip."
+      ],
+      "checkable": {
+        "symbol": "◐",
+        "text": "Yes for the streams — prosody versus phoneme on identical morphed stimuli, confirmed by TMS. Weaker for laterality, which Belin found inconsistent across experiments."
+      },
+      "sources": [
+        "Sammler 2015",
+        "Belin 2000",
+        "Zatorre & Belin (chapter)",
+        "Fedorenko 2024"
+      ]
+    },
+    "face": {
+      "tag": "Reading a face, a gaze, a gesture",
+      "whatItDoes": [
+        "Recognises faces and reads the movements that carry social meaning: where someone is looking, what their expression is doing, the gestures they make while talking.",
+        "One patch on the underside of the brain responds several times more strongly to faces than to any other thing you can show it. Damage there causes prosopagnosia — vision intact, language intact, and no ability to recognise a face, including one's own in a mirror."
+      ],
+      "whatLightsUp": [
+        "The underside of the brain behind the eyes, stronger on the right, and the long fold running back above the ear on both sides."
+      ],
+      "checkable": {
+        "symbol": "◐",
+        "text": "Yes for the fusiform — highly reliable within a subject across six months of retesting. Weaker for the STS node, which Kanwisher found in 7 of 15 subjects and flagged as needing replication."
+      },
+      "sources": [
+        "Kanwisher 1997",
+        "Deen 2015",
+        "Jouravlev 2019"
+      ]
+    },
+    "motor": {
+      "tag": "Producing the movement, not the meaning",
+      "whatItDoes": [
+        "Plans and carries out movement, including the lips, tongue and larynx that turn a sentence into sound.",
+        "Speech depends on it to get words out of the mouth, and the language network still pays it no attention. Watching someone else act, or copying them, leaves language regions completely quiet."
+      ],
+      "whatLightsUp": [
+        "The ridge running over the top of the head from ear to ear, plus a midline patch just in front of it. The mouth and tongue sit at the low end, near the temple."
+      ],
+      "checkable": {
+        "symbol": "✓",
+        "text": "Yes — the most directly mappable system on this figure."
+      },
+      "sources": [
+        "Pritchett 2018",
+        "Fedorenko 2024"
+      ]
+    },
+    "salience": {
+      "tag": "Deciding what deserves attention",
+      "whatItDoes": [
+        "Works out what matters right now and hands control to whichever system should deal with it, turning attention outward to a task or inward to your own thoughts.",
+        "It does this partly by reading the state of your body — heart rate, breath, the feeling in your gut — and converting that into a sense that something is significant. Most of it lies too deep to appear on a surface like this one; the two visible anchors are what you see here."
+      ],
+      "whatLightsUp": [
+        "Buried deep inside each temple, and a strip of cortex folded over the middle of the brain behind the forehead."
+      ],
+      "checkable": {
+        "symbol": "◐",
+        "text": "Indirect — measured through connectivity and switching rather than a single localiser."
+      },
+      "sources": [
+        "Seeley 2007",
+        "Chiong 2013",
+        "Craig 2009",
+        "Parvizi 2026 (preprint)"
+      ]
+    },
+    "episodic": {
+      "tag": "Reconstructing an experience you are not having",
+      "whatItDoes": [
+        "Assembles the pieces of an event into something you can retrieve later, then rebuilds it when you go looking. The same machinery appears to run when you imagine an event that never happened at all.",
+        "The almond-shaped region included here is why emotion changes what sticks. How strongly it responds while something is happening predicts how well you will remember it afterwards."
+      ],
+      "whatLightsUp": [
+        "Deep in the middle of the brain, level with the ears, along the underside of the temporal lobe, and on the midline toward the back."
+      ],
+      "checkable": {
+        "symbol": "◐",
+        "text": "Partly — the cortical nodes localise cleanly, the subcortical ones are approximate on this mesh, and the function attributed to them is contested."
+      },
+      "sources": [
+        "Rugg & Vilberg 2013",
+        "Andrews-Hanna 2014",
+        "Phelps & LeDoux 2005"
+      ]
+    }
+  },
+  "overlaps": {
+    "language+md": "The contrast this whole figure exists to show. Both sit in the frontal lobe, close enough that averaging across people smears them into one system, which is how reasoning came to be thought of as a form of inner speech. Watch the two frontal clusters: one sits above and ahead of the other, near but separate.",
+    "language+tom": "Neighbours that work in step. Through a story these two stay synchronised without merging. The boundary is blurriest low at the back of the parietal lobe, where a patch that responds to language also clusters with the mind-reading regions.",
+    "language+prosody": "They share a patch of right frontal cortex. The division is roughly which words were said against how they were said.",
+    "face+language": "Neighbours along the fold above the ear. Gestures arrive in the same breath as the words and are handled entirely outside the language network.",
+    "language+motor": "Speech needs the mouth-and-tongue strip to get words out. The language network still ignores it — watching or imitating an action leaves it quiet.",
+    "episodic+language": "They share a patch low at the back of the parietal lobe. Whether that is one piece of tissue doing two jobs, or two strips too close together to tell apart here, is not settled.",
+    "episodic+tom": "Shared ground on the midline toward the back. Picturing what is in someone else's head and rebuilding your own past both mean constructing a scene you are not currently in.",
+    "md+motor": "A shared strip on the midline just forward of the top of the head. Sequencing an action and holding a goal in mind are hard to separate there.",
+    "md+salience": "A shared patch of cortex folded over the middle of the brain. Noticing that something needs attention and deciding how much effort it is worth are nearly the same act.",
+    "face+prosody": "The two wordless social channels meeting along the same fold above the ear: the tune of a voice and the movement of a face. The voice-sensitive patches appear to be built along the same lines as the face ones.",
+    "episodic+face": "No shared region, but a real connection. The emotional tagging that helps you remember a face also changes how strongly visual areas respond to it in the first place.",
+    "motor+prosody": "The premotor patch belongs to both. This drawing cannot cleanly separate premotor from primary motor cortex, so read the two as neighbouring stretches of one strip rather than as a border."
+  }
+}

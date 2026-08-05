@@ -12,6 +12,11 @@ const {
   paperMeta = null,
   glossaryMode = 'full',
   paperContent = null,
+  // 'glossary'     — left column lists every region, right column holds the chips.
+  // 'network-info' — left column IS the chip list, right column explains whichever
+  //                  networks are active, stacking descriptions in compare mode.
+  //                  The region glossary and its search are not rendered.
+  layout = 'glossary',
 } = Astro.props;
 if (!viewConfig) throw new Error('BrainViz3D: viewConfig prop is required');
 if (!contentConfig) throw new Error('BrainViz3D: contentConfig prop is required');
@@ -27,14 +32,22 @@ const headerTitle = title ?? viewConfig.name ?? 'Brain — a reference map';
 // rightcol with a slide-out drawer containing the paper meta, the chip
 // toolbar, and an accordion of body sections with inline parcel refs.
 const isPaperView = paperMeta !== null;
+const isNetworkInfo = !isPaperView && layout === 'network-info';
 const hasPaperContent = Boolean(
   paperContent && Array.isArray(paperContent.sections) && paperContent.sections.length > 0,
 );
 ---
 
-<div class="brain-3d" data-component="brain-viz-3d" data-paper-view={isPaperView ? 'true' : 'false'} data-panel-open="true">
+<div class="brain-3d" data-component="brain-viz-3d" data-paper-view={isPaperView ? 'true' : 'false'} data-layout={isNetworkInfo ? 'network-info' : 'glossary'} data-panel-open="true">
   <BrainHeader title={headerTitle} />
 
+  {isNetworkInfo ? (
+    <aside class="brain-3d__netcol" aria-label="Networks">
+      <p class="brain-3d__netcol-title">Networks</p>
+      <nav class="brain-3d__chips brain-3d__chips--stacked" role="toolbar" aria-label="Network selector" data-bind="chips"></nav>
+      <div class="brain-3d__chip-actions" data-bind="chip-actions"></div>
+    </aside>
+  ) : (
   <aside class="brain-3d__glossary" aria-label="Region glossary">
     <div class="brain-3d__search" data-bind="search">
       <input
@@ -63,6 +76,7 @@ const hasPaperContent = Boolean(
     </div>
     <div class="brain-3d__glossary-list" data-bind="glossary"></div>
   </aside>
+  )}
 
   <div class="brain-3d__center">
     <canvas class="brain-3d__canvas" aria-label="3D brain visualization"></canvas>
@@ -188,8 +202,15 @@ const hasPaperContent = Boolean(
       </div>
     </aside>
   ) : (
-    <aside class="brain-3d__rightcol">
-      <nav class="brain-3d__chips" role="toolbar" aria-label="Network selector" data-bind="chips"></nav>
+    <aside
+      class:list={['brain-3d__rightcol', isNetworkInfo && 'brain-3d__rightcol--info']}
+      aria-label={isNetworkInfo ? 'What each active network does' : undefined}
+    >
+      {isNetworkInfo ? (
+        <div class="brain-3d__netinfo" data-bind="network-info" aria-live="polite"></div>
+      ) : (
+        <nav class="brain-3d__chips" role="toolbar" aria-label="Network selector" data-bind="chips"></nav>
+      )}
     </aside>
   )}
 
@@ -208,6 +229,7 @@ const hasPaperContent = Boolean(
     contentConfig,
     glossaryMode,
     isPaperView,
+    isNetworkInfo,
   })}
 ></script>
 
@@ -227,7 +249,7 @@ const hasPaperContent = Boolean(
   import { pickContrastText } from '../../lib/brain-viz/emissive.js';
   import { createBrainRenderer } from './renderer.js';
 
-  const { rawParcels, rawPapers, viewConfig, contentConfig, glossaryMode, isPaperView } = JSON.parse(
+  const { rawParcels, rawPapers, viewConfig, contentConfig, glossaryMode, isPaperView, isNetworkInfo } = JSON.parse(
     document.querySelector('[data-brain-viz-config]').textContent
   );
 
@@ -241,16 +263,19 @@ const hasPaperContent = Boolean(
     'parietal-medial':      'Parietal-medial',
     'temporal':             'Temporal',
     'temporal-ventral':     'Temporal-ventral',
+    'cingulate-anterior':   'Cingulate-anterior',
     'cingulate-posterior':  'Cingulate-posterior',
     'occipital':            'Occipital',
+    'subcortical':          'Subcortical',
     'insula':               'Insula',
     'other':                'Other',
   };
   const GROUP_ORDER = [
     'frontal', 'frontal-medial', 'sensorimotor',
     'parietal', 'parietal-medial',
-    'temporal', 'temporal-ventral', 'cingulate-posterior',
-    'occipital', 'insula', 'other',
+    'temporal', 'temporal-ventral',
+    'cingulate-anterior', 'cingulate-posterior',
+    'occipital', 'insula', 'subcortical', 'other',
   ];
 
   const root = document.querySelector('[data-component="brain-viz-3d"]');
@@ -282,23 +307,52 @@ const hasPaperContent = Boolean(
   // label — no click target, no Compare/All controls, no vestigial UI.
   const isMulti = view.networkOrder.length > 1;
   const chipsRoot = root.querySelector('[data-bind="chips"]');
+  // Compare / All / Reset go in their own row when the layout supplies one
+  // (the stacked network column), otherwise they trail the chips as before.
+  const actionsRoot = root.querySelector('[data-bind="chip-actions"]') ?? chipsRoot;
+
+  // Evidence tier badge. Views that don't grade their networks get no badge and
+  // no extra title text, so nothing changes for the existing curated views.
+  // Tier is computed from the network's citations and takes the weakest link,
+  // so the label describes the least-verified source, not the best one.
+  const EVIDENCE_TEXT = {
+    read: 'Every source read in full',
+    partial: 'Cited sources verified, not all read in full',
+    background: 'Includes a source that was never verified',
+  };
+  function evidenceBadge(net) {
+    if (!net.evidence) return '';
+    return `<span class="brain-3d__evidence-dot" data-evidence="${net.evidence}" aria-hidden="true"></span>`;
+  }
+  function chipTitle(net) {
+    const parts = [];
+    if (net.source) parts.push(net.source);
+    if (net.evidence) parts.push(EVIDENCE_TEXT[net.evidence] ?? net.evidence);
+    return parts.join(' — ');
+  }
+
   for (const id of view.networkOrder) {
     const net = view.networks[id];
+    const num = isNetworkInfo ? '' : `<span class="brain-3d__chip-num">${net.displayNum ?? ''}</span> `;
+    const inner = `${num}${net.label}${evidenceBadge(net)}`;
+    const title = chipTitle(net);
     if (isMulti) {
       const btn = document.createElement('button');
       btn.className = 'brain-3d__chip';
       btn.dataset.network = id;
-      btn.innerHTML = `<span class="brain-3d__chip-num">${net.displayNum ?? ''}</span> ${net.label}`;
+      btn.innerHTML = inner;
       btn.style.setProperty('--chip-color', net.color);
       btn.style.setProperty('--chip-text-color', pickContrastText(net.color));
+      if (title) btn.title = title;
       chipsRoot.appendChild(btn);
     } else {
       const label = document.createElement('div');
       label.className = 'brain-3d__chip brain-3d__chip--static is-active';
-      label.innerHTML = `<span class="brain-3d__chip-num">${net.displayNum ?? ''}</span> ${net.label}`;
+      label.innerHTML = inner;
       label.style.setProperty('--chip-color', net.color);
       label.style.setProperty('--chip-text-color', pickContrastText(net.color));
       label.setAttribute('aria-label', `Active network: ${net.label}`);
+      if (title) label.title = title;
       chipsRoot.appendChild(label);
     }
   }
@@ -313,20 +367,20 @@ const hasPaperContent = Boolean(
       compareBtn.dataset.action = 'compare';
       compareBtn.setAttribute('aria-pressed', 'false');
       compareBtn.textContent = 'Compare';
-      chipsRoot.appendChild(compareBtn);
+      actionsRoot.appendChild(compareBtn);
     }
 
     const allBtn = document.createElement('button');
     allBtn.className = 'brain-3d__chip brain-3d__chip--aux';
     allBtn.dataset.action = 'all';
     allBtn.textContent = 'All';
-    chipsRoot.appendChild(allBtn);
+    actionsRoot.appendChild(allBtn);
   }
   const resetBtn = document.createElement('button');
   resetBtn.className = 'brain-3d__chip brain-3d__chip--aux';
   resetBtn.dataset.action = 'reset';
   resetBtn.textContent = 'Reset';
-  chipsRoot.appendChild(resetBtn);
+  actionsRoot.appendChild(resetBtn);
 
   // === Glossary tooltip ===
   function showTooltipFor(parcelId, anchorEl) {
@@ -378,7 +432,7 @@ const hasPaperContent = Boolean(
   const glossaryRoot = root.querySelector('[data-bind="glossary"]');
   const glossaryEntryEls = new Map(); // parcelId -> button element
 
-  for (const groupId of GROUP_ORDER) {
+  for (const groupId of glossaryRoot ? GROUP_ORDER : []) {
     const list = grouped[groupId];
     if (!list || list.length === 0) continue;
     const groupName = GROUP_NAMES[groupId] ?? groupId;
@@ -477,11 +531,122 @@ const hasPaperContent = Boolean(
     glossaryState.clear();
   });
 
-  viewState.subscribe(() => syncChips());
+  // === Network info panel (network-info layout only) ===
+  // The right column explains whichever networks are currently lit. In compare
+  // mode the descriptions stack in networkOrder and pick up the overlap copy
+  // for every active pair, so turning on two chips explains both systems and
+  // what their shared territory means.
+  const infoRoot = root.querySelector('[data-bind="network-info"]');
+
+  const EVIDENCE_LABEL = {
+    read: 'Every source read in full',
+    partial: 'Cited sources verified, not all read in full',
+    background: 'Includes a source that was never verified',
+  };
+
+  function el(tag, className, text) {
+    const node = document.createElement(tag);
+    if (className) node.className = className;
+    if (text !== undefined) node.textContent = text;
+    return node;
+  }
+
+  function networkCard(id) {
+    const net = view.networks[id];
+    let copy = null;
+    try {
+      copy = content.forNetwork(id);
+    } catch {
+      copy = null; // a view may light a network the content file doesn't cover
+    }
+
+    const card = el('article', 'brain-3d__netinfo-card');
+    card.style.setProperty('--card-color', net.color);
+
+    const head = el('header', 'brain-3d__netinfo-head');
+    const name = el('h3', 'brain-3d__netinfo-name', net.label);
+    head.appendChild(name);
+    if (copy?.tag) head.appendChild(el('p', 'brain-3d__netinfo-tag', copy.tag));
+    card.appendChild(head);
+
+    for (const para of copy?.whatItDoes ?? []) {
+      card.appendChild(el('p', 'brain-3d__netinfo-para', para));
+    }
+
+    // `whatLightsUp` is deliberately not rendered — the glowing mesh beside the
+    // panel already answers "where", and saying it again in words was the
+    // longest block on the card. Kept in the content file for reference.
+
+    // `checkable` (the "Yes / Partly / Indirect" localiser line) is deliberately
+    // not rendered. It answered "how cleanly is this defined?", which is a
+    // methods question; the panel answers "what does this network do?".
+    // The field is kept in the content file for reference.
+
+    // Full citations, resolved per network from its paperIds. The evidence tier
+    // still rides on the chip (with a tooltip); repeating it here pushed the
+    // reader past a provenance sentence before reaching the citations.
+    const ids = net.paperIds ?? [];
+    if (ids.length) {
+      const foot = el('footer', 'brain-3d__netinfo-foot');
+      foot.appendChild(el('p', 'brain-3d__netinfo-label', ids.length === 1 ? 'Source' : 'Sources'));
+      const list = el('ol', 'brain-3d__netinfo-cites');
+      for (const pid of ids) {
+        const meta = rawPapers[pid];
+        if (!meta) continue;
+        const li = el('li');
+        const who = [meta.authors, meta.year ? `(${meta.year})` : null].filter(Boolean).join(' ');
+        if (who) li.appendChild(el('span', 'brain-3d__netinfo-cite-authors', who + '. '));
+        if (meta.title) li.appendChild(document.createTextNode(meta.title + '. '));
+        if (meta.venue) li.appendChild(el('span', 'brain-3d__netinfo-cite-venue', meta.venue + '.'));
+        if (meta.doi) {
+          const a = document.createElement('a');
+          a.className = 'brain-3d__netinfo-cite-doi';
+          a.href = `https://doi.org/${meta.doi}`;
+          a.target = '_blank';
+          a.rel = 'noopener';
+          a.textContent = 'doi';
+          li.append(' ', a);
+        }
+        list.appendChild(li);
+      }
+      foot.appendChild(list);
+      card.appendChild(foot);
+    }
+
+    return card;
+  }
+
+  function renderNetworkInfo() {
+    if (!infoRoot) return;
+    const active = viewState.activeNetworks();
+    infoRoot.replaceChildren();
+
+    if (active.length === 0) {
+      infoRoot.appendChild(
+        el('p', 'brain-3d__netinfo-empty', 'Pick a network to see what it does.'),
+      );
+      return;
+    }
+
+    for (const id of view.networkOrder) {
+      if (active.includes(id)) infoRoot.appendChild(networkCard(id));
+    }
+
+    const overlap = active.length > 1 ? content.overlap(active) : null;
+    if (overlap) {
+      const box = el('aside', 'brain-3d__netinfo-overlap');
+      box.appendChild(el('p', 'brain-3d__netinfo-label', 'Where they meet'));
+      box.appendChild(el('p', 'brain-3d__netinfo-para', overlap));
+      infoRoot.appendChild(box);
+    }
+  }
+
+  viewState.subscribe(() => { syncChips(); renderNetworkInfo(); });
   glossaryState.subscribe(() => syncGlossary());
 
   syncChips();
   syncGlossary();
+  renderNetworkInfo();
 
   // === Renderer + leader-line overlay ===
   let renderer;
@@ -708,6 +873,7 @@ const hasPaperContent = Boolean(
     }
   }
 
+  if (searchInput && searchList) {
   searchInput.addEventListener('input', () => {
     searchResults = searchParcels(searchableParcels, searchInput.value, { limit: 8 });
     searchActiveIndex = searchResults.length ? 0 : -1;
@@ -745,6 +911,7 @@ const hasPaperContent = Boolean(
     // Defer so a mousedown on an option still registers before teardown.
     setTimeout(closeSearchList, 0);
   });
+  }
 
   function isEntryVisible(el) {
     // Element is rendered (not inside a collapsed <details>) iff offsetParent is non-null

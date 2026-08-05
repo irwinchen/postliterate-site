@@ -5,6 +5,342 @@ neuro-anatomical figures for the *After the Book* project. Written so a fresh
 Claude session can resume the work without re-deriving architecture decisions
 from scratch. Mirrors the convention used by `scripts/dashboard/DESIGN.md`.
 
+## Update (2026-08-05g) — card stripped to prose + citations
+
+Four removals and one addition, all in the `network-info` card:
+
+- **`whatLightsUp` no longer rendered.** The glowing mesh beside the panel
+  already answers "where"; saying it again in words was the longest block on
+  the card. Field kept in the content file.
+- **Evidence line removed from the card.** The tier still rides on the chip,
+  with its wording in the chip `title`. Repeating it above the citations made
+  the reader pass a provenance sentence before reaching the sources.
+- **`displayNum` badge suppressed** (LANG, EPI, …) — but only when
+  `isNetworkInfo`. `/brain/compare` still renders 1/2/3/4 and CEN/DMN/SN, where
+  the abbreviations disambiguate three stacked view groups.
+- **Sources are now full citations**, resolved per network from `net.paperIds`
+  against the papers registry: authors, year, title, italic venue, and a `doi`
+  link. Rendered as a numbered list, replacing the compressed `net.source`
+  string. `net.source` is still carried by the loader and used for the chip
+  tooltip.
+
+The card is now heading, tag line, two paragraphs, citations. Nothing else.
+
+## Update (2026-08-05f) — panel copy rewritten for a general reader
+
+The panels had drifted into methods-section prose: paper names in almost every
+sentence, four or five paragraphs per network, and a card that needed scrolling
+before the reader learned what the network was for. Rewritten so each network
+answers one question — **what does this do?** — in at most two short paragraphs,
+in plain language, with no citations in the running text.
+
+- Anatomy in `whatLightsUp` is now described in body terms ("a long stretch
+  above and behind the ear") rather than by gyrus name.
+- Citations moved entirely to a **SOURCES** list under each card, rendered from
+  the view config's `source` string.
+- The `checkable` localiser line is **no longer rendered**. It answered "how
+  cleanly is this defined?", a methods question, and competed with the one the
+  panel exists to answer. The field is retained in the content file rather than
+  deleted, so it can come back behind a toggle if a scientist-facing mode is
+  ever wanted.
+- Overlap copy rewritten the same way — same claims, no paper names.
+
+The evidence dot and its label stay. They are a badge rather than prose, and
+they carry the provenance work rather than describing the science.
+
+Nothing about the underlying claims changed in this pass; the corrections from
+updates (d) and (e) are all still stated, just in fewer words and without the
+citation scaffolding. If a claim needs a source to be intelligible, that is a
+signal the sentence is making a methods point and should probably be cut.
+
+## Update (2026-08-05e) — full texts read; one file was the wrong paper
+
+Four PDFs were supplied to clear the `PRIMARY-PARTIAL` tags. Three checked out.
+
+**`belin 2000 - auditory cortex.pdf` is not Belin et al. 2000.** It is a Zatorre
+& Belin book chapter, "Auditory cortex processing streams: where are they and
+what do they do?", pp. 277-290, which cites the Nature paper separately in its
+own reference list. The PDF has no title page, so volume, publisher and year
+could not be established (internal citations to *J Neurosci* vol 24 put it at
+2004 or later). It is registered as `zatorre-belin-chapter` with an explicit
+`caution` field and **must not be cited in writing until the container is
+identified**. `belin-2000` stays `PRIMARY-PARTIAL` — abstract only. Always check
+the first page against the filename; the filename is not evidence.
+
+**Sammler 2015 and Seeley 2007 upgraded to `PRIMARY-FULL`**, and both changed
+the figure:
+
+- Sammler's Table 1 supplied real MNI peaks, and revealed a node the prosody
+  network was missing entirely: **right premotor cortex** (MNI 45, 5, 40, BA6,
+  the "larynx representation"). Inhibiting it with rTMS degraded prosody
+  categorisation, making it one of the few nodes here implicated *causally*.
+  Added as `cn.PMC-R` (`rh.caudalmiddlefrontal`), which clears `cn.M1-R` by
+  0.232 against a 0.20 radius sum — it passes the separation rule that killed
+  MD's opercular IFG. Sammler does **not** implicate Heschl's gyrus; `cn.HG-R`
+  is held by Fedorenko 2024 and by Zatorre & Belin's right-biased spectral
+  sensitivity instead.
+- Seeley confirmed the "dorsal anterior cingulate and orbital frontoinsular
+  cortices" wording verbatim, so that label was right. But it also showed the
+  three-sphere drawing **understates the network**: the paper's own Discussion
+  says most of its nodes are subcortical (extended amygdala, ventral
+  striatopallidum, dorsomedial thalamus, hypothalamus, periaqueductal grey,
+  substantia nigra), none of which a cortical surface can show. The salience
+  panel now says so outright rather than implying three regions are the network.
+
+Published MNI peaks from both papers are recorded as `mniPeak` /
+`mniPeakSource` on the relevant parcels, each labelled with exactly which
+cluster it came from. They remain reference metadata and never drive placement.
+
+**Kanwisher 1997 upgraded to `PRIMARY-FULL`, and three of the four claims sourced
+to it were wrong.** This is the clearest evidence yet that verifying a citation
+and verifying a claim are different jobs — the citation had been confirmed two
+passes earlier, and the prose was still inaccurate.
+
+- "Responds about twice as strongly to faces" — wrong in the paper's own
+  numbers. Its five specificity tests give ratios of 2.8x (objects), 3.2x
+  (scrambled faces), 4.0x and 4.5x (hands), and 6.6x (houses). Corrected to
+  "three to six times". The paper also reports these for the FFA generally, not
+  for right FFA specifically.
+- "Among the most reproducible contrasts in the field" — a field-wide
+  superlative the paper never attempts. Replaced with what it does show: high
+  test-retest reliability within a subject across six months.
+- **`cn.OFA-R` dropped.** Kanwisher never mentions an occipital face area; the
+  OFA-as-early-stage model is later work (Gauthier 2000, Pitcher/Duchaine). The
+  parcel is now referenced by no view, like `cn.EntC-*` and `cn.sgACC`.
+- Left-FFA laterality claim survived and gained numbers: right fusiform response
+  in every right-handed subject who showed the effect, left in only 5 of 10, at
+  half the volume.
+- The STS node is weaker than the figure implied — 7 of 15 subjects, and the
+  paper explicitly flags its selectivity as needing replication. The panel's
+  localiser line now says so.
+
+**Kanwisher reports Talairach, not MNI.** New registry fields `talairachPeak` /
+`talairachPeakSource`, deliberately separate from `mniPeak` — the two spaces
+differ by more than a centimetre in places. A test forbids storing one in the
+other's field or carrying both on a parcel.
+
+**Belin 2000 arrived separately and corrected a claim the abstract had let
+stand.** The abstract says voice-selective regions are found "bilaterally" and
+stops there, so the panel had asserted that the rightward asymmetry lived in
+the prosody streams and *not* in voice selectivity. The full text says
+otherwise: voice selectivity was stronger on the right in experiments 1 and 2,
+but not in experiment 3, and the authors conclude voice perception "might be
+less clearly lateralized than in the case of speech perception." The panel now
+carries that hedge instead of a clean bilateral claim. Belin also reports three
+voice-selective clusters running front to back along the STS, the middle one
+near the anterior extension of Heschl's gyrus, and cites Kanwisher directly
+when proposing voice areas as the auditory counterpart of face areas — so that
+link between the two chips is the authors' own, not an editorial flourish.
+
+Belin's Table 1 is Talairach and was **not** added to the parcels: `cn.STS-R`
+and `cn.STG-R` already carry Sammler's MNI peaks, and the coordinate-space test
+forbids one parcel holding both spaces. Belin's cluster structure lives in prose
+instead. That test is doing its job; don't relax it to fit a second citation in.
+
+**Craig 2009 read in full and folded into `salience`**, which it had no place in
+before — it was left over from the dropped emotion network and cited by nothing.
+It earns a place for three reasons: it gives a mechanism for why anterior insula
+and anterior cingulate pair up at all (complementary limbic sensory and motor
+regions, standing to each other as somatosensory does to motor cortex); it
+independently corroborates the "mostly subcortical" caveat by describing the
+salience network as including amygdala and hypothalamus; and it corroborates the
+"don't treat the anterior insula as one node" caution from a peer-reviewed source
+rather than only from the Parvizi preprint, noting that location within the AIC
+tracks which body part is involved. Read as the author manuscript, not the typeset
+NRN version — flagged in its registry entry, so page-level citation needs checking.
+
+Tier movement: `salience`, `prosody` and `episodic` are now `read` alongside
+`language` and `md`. `face` stays `partial` (unread Deen 2015, Jouravlev 2019),
+`tom` stays `partial` (unread Dufour 2013), `motor` stays `partial` (unread
+Pritchett 2018). No `PRIMARY-PARTIAL` entries remain in this view — every paper it cites has
+now been read in full or is a `SECONDARY-ONLY` reference-list harvest.
+
+## Update (2026-08-05d) — source verification pass; emotion network dropped
+
+Every citation that had been recalled from model background knowledge was checked
+against the publisher or PubMed record. **All six matched exactly** — authors,
+title, venue, volume, pages and DOI. That is the less important half: verifying a
+citation proves the paper exists, not that it supports the claim hung on it. Two
+claims did not survive that second test.
+
+- **`emotion` network removed.** Its citations verified, but nothing tested the
+  amygdala + anterior insula + vmPFC + subgenual ACC grouping as a unit. Chiong
+  2013 shows those regions co-degenerating in frontotemporal dementia, which is
+  tissue loss in disease rather than a circuit in health, and no source consulted
+  mentions subgenual ACC at all. The **amygdala moved to `episodic`**, where
+  Phelps & LeDoux 2005 (read in full) does support it — its "Emotional Modulation
+  of Memory" section is about amygdala modulation of hippocampal consolidation.
+- **`episodic` corrected.** Rugg & Vilberg 2013 and Andrews-Hanna 2014 (both read
+  in full, both already in the vault) put neither entorhinal cortex nor precuneus
+  in this network — entorhinal is tied to *familiarity* rather than recollection,
+  and Andrews-Hanna treats PCC as a cross-subsystem hub with precuneus merely
+  adjacent. Both papers include angular gyrus and vmPFC, which were missing.
+  Dropping entorhinal and adding those two makes the angular gyrus shared between
+  language and episodic memory — a real three-way crowding with ToM's TPJ nearby.
+
+**The evidence tier is now computed, not declared.** `weakestEvidence()` in
+`view-loader.js` derives it from the `access` tags of the papers each network
+lists in `paperIds`, and takes the **weakest** link. The old hand-declared field
+had exactly the hole this closes: `face` showed a mid tier while citing an
+`UNVERIFIED` Kanwisher. Do not reintroduce a declared `evidence` — a test asserts
+none exists. Tier names changed (`cited` → `partial`) and an untagged or unknown
+paper counts as `background`, so a missing tag can never inflate a badge.
+
+Access tags now include **`PRIMARY-PARTIAL`**: citation confirmed against the
+publisher record and abstract read, full text paywalled. Belin 2000, Sammler
+2015, Kanwisher 1997, Craig 2009 and Seeley 2007 sit there. No network is at
+`background` any more, which was the point of the pass.
+
+Substantive corrections the sources forced: Belin says voice-selective cortex is
+**bilateral** (the rightward asymmetry Sammler found is in the prosody *streams*,
+not voice selectivity), and frames voice areas as the auditory counterpart of the
+face areas. Sammler's dual right-hemisphere streams justify the existing prosody
+parcels almost exactly, and add a motor link — inhibiting right premotor cortex
+degrades prosody judgements. Seeley's own abstract does say "dorsal anterior
+cingulate," so that label was right. Parvizi 2026 is cited only as a caution: an
+unreviewed preprint that splits the anterior insula into two functionally
+distinct zones and prefers "action mode network" to "salience network."
+
+`cn.EntC-L`, `cn.EntC-R` and `cn.sgACC` are now referenced by no view. Kept in
+the registry — the geometry is derived and correct, only the grouping was
+unsupported.
+
+Still outstanding: full texts for the five `PRIMARY-PARTIAL` papers, and
+`Saxe2003_TheoryOfMindTPJ.pdf` sits unread in the vault (reading it would not
+change ToM's tier, which is held at `partial` by the unread Dufour 2013).
+
+## Update (2026-08-05c) — `network-info` layout
+
+`BrainViz3D` gained a `layout` prop: `'glossary'` (default, unchanged) or
+`'network-info'`. `/brain/networks` uses the new one; its title is now
+"The neural architecture of language".
+
+In `network-info` the two side columns swap jobs. Left becomes the network
+selector — chips stacked vertically under a NETWORKS heading, with Compare /
+All / Reset in their own row beneath a rule. Right becomes a prose panel that
+explains whichever networks are lit: name, tag line, what it does, where it
+lights up, the localiser line, then evidence tier and sources. In compare mode
+the cards stack in `networkOrder` and the panel appends a **Where they meet**
+box carrying `content.overlap(active)` — so lighting two chips explains both
+systems and their shared territory. The sourcing legend box is gone; each card
+now carries its own evidence dot and label, which is what replaced it.
+
+The region glossary and its lookahead search are not rendered in this layout,
+so leader lines don't draw here either. Three guards make that safe rather than
+crashy, and they matter if you add another layout:
+
+- the glossary build loops over `glossaryRoot ? GROUP_ORDER : []`
+- the search listeners are wrapped in `if (searchInput && searchList)` — every
+  search call site is inside a listener, so guarding attachment is sufficient
+- aux buttons go to `[data-bind="chip-actions"]` when present, else trail the
+  chips as before
+
+Per-paper views (`/brain/papers/<slug>`) are explicitly excluded
+(`isNetworkInfo = !isPaperView && layout === 'network-info'`) and keep the
+glossary, search, and their own drawer. Verified unchanged after this work.
+
+## Update (2026-08-05b) — Fedorenko 2024 pass; Multiple Demand added
+
+Adding Fedorenko, Piantadosi & Gibson 2024 (*Nature* 630:575–586,
+`10.1038/s41586-024-07522-w`, peer-reviewed, read in full) changed four things.
+
+- **The view's thesis is now sourced.** The paper's line is that tasks which
+  don't recruit the language network engage areas non-overlapping with it that
+  nonetheless "sometimes lie in close proximity." Proximity without overlap is
+  what the figure draws, so subtitle and language panel now say that outright.
+- **Box 2 grounds the two weakest parcels.** It separates the high-level
+  language network from Broca's *articulatory planning* area, Wernicke's
+  *speech perception* area, sensorimotor cortex and primary auditory cortex —
+  the last two engaged during speech "but not selectively," and all four
+  sensitive to surface form rather than meaning. `cn.artic-L` and `cn.HG-R`
+  previously leaned on Pritchett 2018 and an `UNVERIFIED` Belin 2000; both now
+  cite Box 2, and their notes say why they sit on this figure at all.
+- **Ninth network: Multiple Demand** (`md`, `read` tier, 6 own parcels + shared
+  `cn.SMA` and `cn.dACC`). It is the system Kean 2026 found does the inductive
+  and matrix reasoning, and the one most often conflated with language.
+- **Episodic copy softened.** The paper calls the default network's function
+  debated (episodic projection vs. spatial cognition); the panel now says the
+  chip follows one reading rather than stating it flat.
+
+**Why MD has only three parcel pairs.** Mineroff 2018 lists nine AAL masks per
+hemisphere. MD's opercular IFG, precentral and insular nodes were deliberately
+dropped: derived from DK they land inside labels already claimed by the
+language, motor and salience networks — MD IFGop came out **0.07** from
+`cn.IFG-L`, well inside both radii. Two spheres closer than the sum of their
+radii read as one blob, which asserts the opposite of the figure's thesis. The
+MD/language dissociation is functional and interleaved at a finer scale than
+any DK-derived figure can resolve; that is precisely why group-averaged data
+conflates them. `separates the MD network from its language neighbours by more
+than a radius` in the test file enforces this — it caught `cn.MD-InfPar` merging
+with the ToM TPJ (0.171 apart, 0.22 radii sum) and forced a tighter slice.
+**Apply that check before adding any parcel near an existing one.**
+
+Palette was rebuilt for nine networks: the core triad now matches Fedorenko's
+own Fig 1b (language red, MD blue, ToM green), motor took the freed violet, and
+episodic went desaturated sepia — nine saturated hues do not separate on a dark
+background under additive blending.
+
+## Update (2026-08-05a) — `cortical-networks` view; mesh-derived centroids
+
+New route `/brain/networks` (`BrainViz3D` + `data/views/cortical-networks.json`)
+maps eight systems — language, Theory of Mind, prosody, face/gesture, motor,
+salience, episodic memory, emotional circuits — built around Kean 2026's claim
+that formal reasoning runs outside the language network. 42 new `cn.*` parcels
+(48 after the Fedorenko 2024 pass above).
+
+**Three things here are different from every earlier view, and they matter:**
+
+1. **Centroids are derived from the mesh, not hand-tuned.** Every `cn.*` parcel
+   is the vertex centroid of a declared subset of the fsaverage DK pial labels
+   already sitting in `public/brain-mesh/pial-dk-lo/`, computed by
+   `scripts/derive-parcel-centroids.mjs`. The spec supports slicing a label
+   along a RAS axis by extent fraction (posterior 25% of superior+middle
+   temporal, and so on), so sub-gyral fROIs get real positions. Each parcel
+   carries a `derivation` string recording exactly how it was obtained.
+   New provenance values: `dk-derived` and `dk-anchored`.
+
+2. **Do not project MNI coordinates onto this mesh.** The OBJ vertices are in
+   FreeSurfer tkrRAS, not MNI. Landmark checks put the z offset near +16mm but
+   the y offset is inconsistent across the brain, so there is no clean affine
+   without the real fsaverage `c_ras`. Projecting published peaks misplaces
+   regions by a centimetre or more. Fedorenko 2010's Table 1 peaks are stored
+   as `mniPeak` / `mniPeakSource` reference metadata for the glossary and never
+   drive placement. Hippocampus and amygdala have no DK surface label at all,
+   so they are `dk-anchored`: a neighbouring label's centroid plus a declared
+   offset, flagged approximate in provenance, derivation, note and UI.
+
+3. **Networks declare an `evidence` tier.** `read` | `cited` | `background`,
+   surfaced as a shape-coded dot on each chip plus a key in the rightcol. This
+   exists because the source situation is uneven and would otherwise be
+   invisible: Kean 2026 only studies language, MD, and a deduction-sensitive
+   region. Prosody, salience and emotion are **not** discussed by any paper on
+   disk, Fedorenko 2024 included — they are background knowledge with nominal
+   citations, tagged `UNVERIFIED` in `papers.json`. `language`, `md` and `tom`
+   are `read`.
+   Papers now carry an `access` field (`PRIMARY-FULL` / `SECONDARY-ONLY` /
+   `UNVERIFIED`) per the Source Transparency Protocol.
+
+Anti-drift: `test/brain-viz/cortical-networks.test.js` re-runs the derivation
+script and fails if any committed centroid disagrees, and asserts ~20 relative
+anatomical facts (amygdala anterior to hippocampus, M1 anterior to S1, insula
+deeper than the STG above it, every lateralised parcel in its own hemisphere).
+Re-run the script after editing any spec and paste the numbers back.
+
+Shared plumbing touched: `view-loader` now passes `displayNum`, `source` and
+`evidence` through — **`displayNum` was already read by both shells but never
+supplied, so every chip badge on `/brain/compare` had been rendering empty**;
+that page now shows its 1/2/3/4, CEN/DMN/SN and VWFA badges. `parcel-registry`
+passes through `derivation`, `mniPeak`, `mniPeakSource`. Both shells gained the
+`cingulate-anterior` and `subcortical` glossary groups.
+
+Known rough edge: with all eight networks active the additive blending
+saturates to white where many overlap (temporo-parietal junction especially).
+The √N tapering in `emissive.js` was tuned for three networks. Left alone
+rather than retuned, since it would change every existing view.
+
+Caveat on copy: all `note` / `layCue` strings on `cn.*` parcels and all of
+`data/content/cortical-networks.json` were drafted by Claude and are unreviewed.
+
 ## Update (2026-06-14) — glossary groups collapse by default
 
 The left glossary column listed all 26 parcels with every anatomical group

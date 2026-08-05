@@ -1,0 +1,205 @@
+{
+  "_comment_": "Eight cortical systems, drawn around one claim from Fedorenko 2024: the tasks that don't recruit the language network engage areas that are non-overlapping with it while sometimes lying in close proximity to it. Proximity without overlap is what this figure is for. Kean 2026 shows formal reasoning running outside the language network; Paunov 2019/2022 and Mineroff 2018 show the same for Theory of Mind and the multiple-demand system. The rest are the neighbours language is most often confused with.",
+  "_comment_evidence_": "Each network lists `paperIds`; `evidence` is COMPUTED from those papers' access tags in view-loader.js and takes the WEAKEST link, not the best. Do not hand-declare `evidence` here — an earlier version did, and a network could then show a strong tier while quietly citing an unverified paper. PRIMARY-FULL everywhere -> 'read'; any PRIMARY-PARTIAL or SECONDARY-ONLY -> 'partial'; any UNVERIFIED -> 'background'.",
+  "slug": "cortical-networks",
+  "name": "Cortical Networks",
+  "subtitle": "Close to the language network, and not part of it — eight systems",
+  "papers": [
+    "fedorenko-2010",
+    "mineroff-2018",
+    "fedorenko-2024",
+    "kean-2026",
+    "saxe-2003",
+    "dufour-2013",
+    "paunov-2019",
+    "paunov-2022",
+    "sammler-2015",
+    "belin-2000",
+    "zatorre-belin-chapter",
+    "kanwisher-1997",
+    "deen-2015",
+    "jouravlev-2019",
+    "pritchett-2018",
+    "seeley-2007",
+    "chiong-2013",
+    "craig-2009",
+    "parvizi-2026",
+    "rugg-2013",
+    "andrews-hanna-2014",
+    "phelps-2005"
+  ],
+  "networks": {
+    "language": {
+      "displayNum": "LANG",
+      "label": "Language network",
+      "color": "#E5453A",
+      "source": "Fedorenko 2010 · Mineroff 2018 · Fedorenko 2024",
+      "parcels": [
+        "cn.IFGorb-L",
+        "cn.IFG-L",
+        "cn.MFG-L",
+        "cn.AntTemp-L",
+        "cn.MidPostTemp-L",
+        "cn.PostTemp-L",
+        "cn.AngG-L",
+        "cn.IFG-R",
+        "cn.PostTemp-R"
+      ],
+      "paperIds": [
+        "fedorenko-2010",
+        "mineroff-2018",
+        "fedorenko-2024",
+        "kean-2026"
+      ]
+    },
+    "md": {
+      "displayNum": "MD",
+      "label": "Multiple Demand",
+      "color": "#3B8ED8",
+      "source": "Mineroff 2018 · Fedorenko 2024 · Kean 2026",
+      "parcels": [
+        "cn.MD-MFG-L",
+        "cn.MD-MFG-R",
+        "cn.MD-SupPar-L",
+        "cn.MD-SupPar-R",
+        "cn.MD-InfPar-L",
+        "cn.MD-InfPar-R",
+        "cn.SMA",
+        "cn.dACC"
+      ],
+      "paperIds": [
+        "mineroff-2018",
+        "fedorenko-2024",
+        "kean-2026"
+      ]
+    },
+    "tom": {
+      "displayNum": "ToM",
+      "label": "Theory of Mind",
+      "color": "#5FBF52",
+      "source": "Saxe 2003 · Dufour 2013 · Paunov 2019/2022",
+      "parcels": [
+        "cn.TPJ-L",
+        "cn.TPJ-R",
+        "cn.dMPFC-L",
+        "cn.dMPFC-R",
+        "cn.vMPFC",
+        "cn.PC-L",
+        "cn.PC-R"
+      ],
+      "paperIds": [
+        "saxe-2003",
+        "dufour-2013",
+        "paunov-2019",
+        "paunov-2022"
+      ]
+    },
+    "prosody": {
+      "displayNum": "PROS",
+      "label": "Prosody",
+      "color": "#E8892B",
+      "source": "Sammler 2015 · Belin 2000 · Fedorenko 2024",
+      "parcels": [
+        "cn.HG-R",
+        "cn.STG-R",
+        "cn.STS-R",
+        "cn.IFG-R",
+        "cn.PMC-R"
+      ],
+      "paperIds": [
+        "sammler-2015",
+        "belin-2000",
+        "zatorre-belin-chapter",
+        "fedorenko-2024"
+      ]
+    },
+    "face": {
+      "displayNum": "FACE",
+      "label": "Face & gesture",
+      "color": "#2FB9A8",
+      "source": "Kanwisher 1997 · Deen 2015 · Jouravlev 2019",
+      "parcels": [
+        "cn.FFA-L",
+        "cn.FFA-R",
+        "cn.pSTS-L",
+        "cn.pSTS-R"
+      ],
+      "paperIds": [
+        "kanwisher-1997",
+        "deen-2015",
+        "jouravlev-2019"
+      ]
+    },
+    "motor": {
+      "displayNum": "MOT",
+      "label": "Motor systems",
+      "color": "#9B6BD6",
+      "source": "Pritchett 2018 · Fedorenko 2024 (Box 2)",
+      "parcels": [
+        "cn.M1-L",
+        "cn.M1-R",
+        "cn.S1-L",
+        "cn.SMA",
+        "cn.artic-L"
+      ],
+      "paperIds": [
+        "pritchett-2018",
+        "fedorenko-2024"
+      ]
+    },
+    "salience": {
+      "displayNum": "SAL",
+      "label": "Salience network",
+      "color": "#D9B733",
+      "source": "Seeley 2007 · Chiong 2013 · Craig 2009",
+      "parcels": [
+        "cn.AI-L",
+        "cn.AI-R",
+        "cn.dACC"
+      ],
+      "paperIds": [
+        "seeley-2007",
+        "chiong-2013",
+        "craig-2009",
+        "parvizi-2026"
+      ]
+    },
+    "episodic": {
+      "displayNum": "EPI",
+      "label": "Episodic memory",
+      "color": "#C9A882",
+      "source": "Rugg & Vilberg 2013 · Andrews-Hanna 2014 · Phelps & LeDoux 2005",
+      "parcels": [
+        "cn.Hipp-L",
+        "cn.Hipp-R",
+        "cn.PHC-L",
+        "cn.PHC-R",
+        "cn.RSC",
+        "cn.PC-L",
+        "cn.PC-R",
+        "cn.AngG-L",
+        "cn.vMPFC",
+        "cn.Amyg-L",
+        "cn.Amyg-R"
+      ],
+      "paperIds": [
+        "rugg-2013",
+        "andrews-hanna-2014",
+        "phelps-2005"
+      ]
+    }
+  },
+  "networkOrder": [
+    "language",
+    "md",
+    "tom",
+    "prosody",
+    "face",
+    "motor",
+    "salience",
+    "episodic"
+  ],
+  "uiMode": "chips-with-compare",
+  "defaultNetwork": "language",
+  "_comment_dropped_emotion_": "An `emotion` network (amygdala + anterior insula + vmPFC + subgenual ACC) was removed on 2026-08-05. Its citations all verified, but no source tested the four-region grouping as a unit: Chiong 2013 shows those regions co-degenerating in frontotemporal dementia, which is tissue loss in disease rather than a circuit in health, and nothing consulted mentions subgenual ACC at all. The amygdala moved to `episodic`, where Phelps & LeDoux 2005 does support it. cn.sgACC is now unreferenced by any view."
+}

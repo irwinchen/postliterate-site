@@ -47,6 +47,20 @@ export function loadParcelRegistry(raw) {
       ...(def.group !== undefined ? { group: def.group } : {}),
       ...(def.sourceMesh !== undefined ? { sourceMesh: def.sourceMesh } : {}),
       ...(def.note !== undefined ? { note: def.note } : {}),
+      // How the centroid was arrived at, verbatim from
+      // scripts/derive-parcel-centroids.mjs. Surfaced in the glossary so a
+      // reader can tell a mesh-derived position from an eyeballed one.
+      ...(def.derivation !== undefined ? { derivation: def.derivation } : {}),
+      // Published MNI peak for the corresponding fROI, where one exists. This
+      // is reference metadata only — it never drives placement, because the
+      // mesh is in FreeSurfer tkrRAS rather than MNI.
+      ...(def.mniPeak !== undefined ? { mniPeak: [...def.mniPeak] } : {}),
+      ...(def.mniPeakSource !== undefined ? { mniPeakSource: def.mniPeakSource } : {}),
+      // Kept separate from mniPeak on purpose: Talairach and MNI differ by
+      // more than a centimetre in places, and silently mixing them would be
+      // exactly the kind of error this metadata exists to prevent.
+      ...(def.talairachPeak !== undefined ? { talairachPeak: [...def.talairachPeak] } : {}),
+      ...(def.talairachPeakSource !== undefined ? { talairachPeakSource: def.talairachPeakSource } : {}),
     };
   }
 

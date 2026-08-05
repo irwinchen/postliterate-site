@@ -92,16 +92,19 @@ if (!Array.isArray(viewConfigs) || viewConfigs.length === 0) {
     'parietal-medial':      'Parietal-medial',
     'temporal':             'Temporal',
     'temporal-ventral':     'Temporal-ventral',
+    'cingulate-anterior':   'Cingulate-anterior',
     'cingulate-posterior':  'Cingulate-posterior',
     'occipital':            'Occipital',
+    'subcortical':          'Subcortical',
     'insula':               'Insula',
     'other':                'Other',
   };
   const GROUP_ORDER = [
     'frontal', 'frontal-medial', 'sensorimotor',
     'parietal', 'parietal-medial',
-    'temporal', 'temporal-ventral', 'cingulate-posterior',
-    'occipital', 'insula', 'other',
+    'temporal', 'temporal-ventral',
+    'cingulate-anterior', 'cingulate-posterior',
+    'occipital', 'insula', 'subcortical', 'other',
   ];
 
   const root = document.querySelector('[data-component="brain-compare-3d"]');

@@ -13,7 +13,8 @@
     "year": 2022,
     "title": "Differential tracking of linguistic vs. mental state content in naturalistic stimuli by language and Theory of Mind networks",
     "venue": "Neurobiology of Language",
-    "doi": "10.1162/nol_a_00071"
+    "doi": "10.1162/nol_a_00071",
+    "access": "PRIMARY-FULL"
   },
   "lipkin-2022": {
     "authors": "Lipkin et al.",
@@ -27,7 +28,8 @@
     "year": 2010,
     "title": "New method for fMRI investigations of language: defining ROIs functionally in individual subjects",
     "venue": "Journal of Neurophysiology",
-    "doi": "10.1152/jn.00032.2010"
+    "doi": "10.1152/jn.00032.2010",
+    "access": "PRIMARY-FULL"
   },
   "yeo-2011": {
     "authors": "Yeo et al.",
@@ -41,7 +43,8 @@
     "year": 2003,
     "title": "People thinking about thinking people: the role of the temporo-parietal junction in 'theory of mind'",
     "venue": "NeuroImage",
-    "doi": "10.1016/s1053-8119(03)00230-1"
+    "doi": "10.1016/s1053-8119(03)00230-1",
+    "access": "SECONDARY-ONLY"
   },
   "fox-2005": {
     "authors": "Fox et al.",
@@ -69,7 +72,8 @@
     "year": 2013,
     "title": "The salience network causally influences default mode network activity during moral reasoning",
     "venue": "Brain",
-    "doi": "10.1093/brain/awt066"
+    "doi": "10.1093/brain/awt066",
+    "access": "PRIMARY-FULL"
   },
   "menon-2011": {
     "authors": "Menon",
@@ -83,7 +87,8 @@
     "year": 2007,
     "title": "Dissociable intrinsic connectivity networks for salience processing and executive control",
     "venue": "Journal of Neuroscience",
-    "doi": "10.1523/JNEUROSCI.5587-06.2007"
+    "doi": "10.1523/JNEUROSCI.5587-06.2007",
+    "access": "PRIMARY-FULL"
   },
   "cohen-2002": {
     "authors": "Cohen et al.",
@@ -98,5 +103,184 @@
     "title": "The neural code for written words: a proposal",
     "venue": "Trends in Cognitive Sciences",
     "doi": "10.1016/j.tics.2005.05.004"
+  },
+
+  "_comment_access_tags_": "Entries below carry an `access` field per the Source Transparency Protocol (vault CLAUDE.md). PRIMARY-FULL = the PDF was read end to end in the session that added the citation. SECONDARY-ONLY = the citation was harvested from a reference list in a paper that WAS read, and the source itself has not been opened. The cortical-networks view surfaces this distinction per network so the figure never implies more grounding than it has. Entries above this comment predate the convention and are untagged.",
+
+  "kean-2026": {
+    "authors": "Kean et al.",
+    "year": 2026,
+    "title": "Evidence from formal logical reasoning reveals that the language of thought is not natural language",
+    "venue": "bioRxiv (preprint, not peer reviewed)",
+    "doi": "10.1101/2025.07.26.666979",
+    "access": "PRIMARY-FULL"
+  },
+  "fedorenko-2024": {
+    "authors": "Fedorenko, Piantadosi & Gibson",
+    "year": 2024,
+    "title": "Language is primarily a tool for communication rather than thought",
+    "venue": "Nature",
+    "doi": "10.1038/s41586-024-07522-w",
+    "access": "PRIMARY-FULL"
+  },
+  "paunov-2019": {
+    "authors": "Paunov, Blank & Fedorenko",
+    "year": 2019,
+    "title": "Functionally distinct language and Theory of Mind networks are synchronized at rest and during language comprehension",
+    "venue": "Journal of Neurophysiology",
+    "doi": "10.1152/jn.00619.2018",
+    "access": "PRIMARY-FULL"
+  },
+  "mineroff-2018": {
+    "authors": "Mineroff, Blank, Mahowald & Fedorenko",
+    "year": 2018,
+    "title": "A robust dissociation among the language, multiple demand, and default mode networks",
+    "venue": "Neuropsychologia",
+    "doi": "10.1016/j.neuropsychologia.2018.09.011",
+    "access": "PRIMARY-FULL"
+  },
+
+  "dufour-2013": {
+    "authors": "Dufour et al.",
+    "year": 2013,
+    "title": "Similar brain activation during false belief tasks in a large sample of adults with and without autism",
+    "venue": "PLoS ONE",
+    "doi": "10.1371/journal.pone.0075468",
+    "access": "SECONDARY-ONLY",
+    "citedBy": "paunov-2019"
+  },
+  "deen-2015": {
+    "authors": "Deen, Koldewyn, Kanwisher & Saxe",
+    "year": 2015,
+    "title": "Functional organization of social perception and cognition in the superior temporal sulcus",
+    "venue": "Cerebral Cortex",
+    "doi": "10.1093/cercor/bhv111",
+    "access": "SECONDARY-ONLY",
+    "citedBy": "kean-2026"
+  },
+  "pritchett-2018": {
+    "authors": "Pritchett et al.",
+    "year": 2018,
+    "title": "High-level language processing regions are not engaged in action observation or imitation",
+    "venue": "Journal of Neurophysiology",
+    "doi": "10.1152/jn.00222.2018",
+    "access": "SECONDARY-ONLY",
+    "citedBy": "kean-2026"
+  },
+  "jouravlev-2019": {
+    "authors": "Jouravlev et al.",
+    "year": 2019,
+    "title": "Speech-accompanying gestures are not processed by the language-processing mechanisms",
+    "venue": "Neuropsychologia",
+    "doi": "10.1016/j.neuropsychologia.2019.107132",
+    "access": "SECONDARY-ONLY",
+    "citedBy": "kean-2026"
+  },
+  "shain-2023": {
+    "authors": "Shain, Paunov, Chen, Lipkin & Fedorenko",
+    "year": 2023,
+    "title": "No evidence of theory of mind reasoning in the human language network",
+    "venue": "Cerebral Cortex",
+    "doi": "10.1093/cercor/bhac505",
+    "access": "SECONDARY-ONLY",
+    "citedBy": "kean-2026"
+  },
+  "buckner-2019": {
+    "authors": "Buckner & DiNicola",
+    "year": 2019,
+    "title": "The brain's default network: updated anatomy, physiology and evolving insights",
+    "venue": "Nature Reviews Neuroscience",
+    "doi": "10.1038/s41583-019-0212-7",
+    "access": "SECONDARY-ONLY",
+    "citedBy": "kean-2026"
+  },
+  "hassabis-2007": {
+    "authors": "Hassabis & Maguire",
+    "year": 2007,
+    "title": "Deconstructing episodic memory with construction",
+    "venue": "Trends in Cognitive Sciences",
+    "doi": "10.1016/j.tics.2007.05.001",
+    "access": "SECONDARY-ONLY",
+    "citedBy": "kean-2026"
+  },
+
+  "zatorre-belin-chapter": {
+    "authors": "Zatorre & Belin",
+    "year": null,
+    "title": "Auditory cortex processing streams: where are they and what do they do?",
+    "venue": "Book chapter, pp. 277-290 — volume and publisher not established",
+    "doi": null,
+    "access": "PRIMARY-FULL",
+    "caution": "Citation INCOMPLETE. Supplied as 'belin 2000 - auditory cortex.pdf' but it is not Belin et al. 2000 Nature — it cites that paper separately in its own reference list. The PDF starts at p.277 with no title page, so volume, publisher and year could not be established; internal citations to J Neurosci vol 24 put it at 2004 or later. Do not cite in writing until the container is identified."
+  },
+
+  "rugg-2013": {
+    "authors": "Rugg & Vilberg",
+    "year": 2013,
+    "title": "Brain networks underlying episodic memory retrieval",
+    "venue": "Current Opinion in Neurobiology",
+    "doi": "10.1016/j.conb.2012.11.005",
+    "access": "PRIMARY-FULL"
+  },
+  "andrews-hanna-2014": {
+    "authors": "Andrews-Hanna, Smallwood & Spreng",
+    "year": 2014,
+    "title": "The default network and self-generated thought: component processes, dynamic control, and clinical relevance",
+    "venue": "Annals of the New York Academy of Sciences",
+    "doi": "10.1111/nyas.12360",
+    "access": "PRIMARY-FULL"
+  },
+  "parvizi-2026": {
+    "authors": "Parvizi et al.",
+    "year": 2026,
+    "title": "Functional architecture of the human insula revealed by causal intracranial mapping",
+    "venue": "Research Square (preprint, not peer reviewed)",
+    "doi": "10.21203/rs.3.rs-8912902/v1",
+    "access": "PRIMARY-FULL",
+    "caution": "Unreviewed preprint. Splits the anterior insula into two functionally distinct zones and prefers 'action mode network' to 'salience network'. Cited here as a caveat against treating the anterior insula as one node, not as support for the salience grouping."
+  },
+
+  "_comment_verified_2026_08_05_": "The five entries below were originally added from model background knowledge with recalled citations. On 2026-08-05 every one was checked against the publisher or PubMed record: authors, title, venue, volume, pages and DOI all matched. Belin, Sammler, Kanwisher, Craig and Seeley are PRIMARY-PARTIAL — citation confirmed and abstract read, full text paywalled. Phelps & LeDoux was then supplied as a PDF and read in full. Verifying a citation is not the same as verifying the claim hung on it: the emotion network these partly supported was dropped because no source tested its grouping.",
+
+  "belin-2000": {
+    "authors": "Belin, Zatorre, Lafaille, Ahad & Pike",
+    "year": 2000,
+    "title": "Voice-selective areas in human auditory cortex",
+    "venue": "Nature",
+    "doi": "10.1038/35002078",
+    "access": "PRIMARY-FULL"
+  },
+  "sammler-2015": {
+    "authors": "Sammler, Grosbras, Anwander, Bestelmeyer & Belin",
+    "year": 2015,
+    "title": "Dorsal and ventral pathways for prosody",
+    "venue": "Current Biology",
+    "doi": "10.1016/j.cub.2015.10.009",
+    "access": "PRIMARY-FULL"
+  },
+  "kanwisher-1997": {
+    "authors": "Kanwisher, McDermott & Chun",
+    "year": 1997,
+    "title": "The fusiform face area: a module in human extrastriate cortex specialized for face perception",
+    "venue": "Journal of Neuroscience",
+    "doi": "10.1523/JNEUROSCI.17-11-04302.1997",
+    "access": "PRIMARY-FULL"
+  },
+  "craig-2009": {
+    "authors": "Craig",
+    "year": 2009,
+    "title": "How do you feel — now? The anterior insula and human awareness",
+    "venue": "Nature Reviews Neuroscience",
+    "doi": "10.1038/nrn2555",
+    "access": "PRIMARY-FULL",
+    "note": "Read as the author manuscript rather than the typeset journal version — same text, no NRN pagination, so page-level citation should be checked against the published article."
+  },
+  "phelps-2005": {
+    "authors": "Phelps & LeDoux",
+    "year": 2005,
+    "title": "Contributions of the amygdala to emotion processing: from animal models to human behavior",
+    "venue": "Neuron",
+    "doi": "10.1016/j.neuron.2005.09.025",
+    "access": "PRIMARY-FULL"
   }
 }

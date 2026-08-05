@@ -12,6 +12,31 @@
 
 import { hexToRgb } from './emissive.js';
 
+// How well-grounded a network's definition is. Derived from the access tags of
+// the papers it cites, never declared by hand — a hand-declared tier drifts,
+// and the failure is silent: a network shows a strong badge while quietly
+// citing something nobody read. Takes the WEAKEST link, so one unverified
+// source drags the whole network down. That is the intended behaviour.
+const ACCESS_TIER = {
+  'PRIMARY-FULL': 'read',
+  'PRIMARY-PARTIAL': 'partial',
+  'SECONDARY-ONLY': 'partial',
+  'UNVERIFIED': 'background',
+};
+const TIER_RANK = { read: 3, partial: 2, background: 1 };
+
+export function weakestEvidence(paperIds, papersRaw) {
+  if (!Array.isArray(paperIds) || paperIds.length === 0) return undefined;
+  let worst = 'read';
+  for (const id of paperIds) {
+    // An untagged or unknown paper is treated as the weakest possible tier
+    // rather than skipped, so a missing tag can never inflate the badge.
+    const tier = ACCESS_TIER[papersRaw?.[id]?.access] ?? 'background';
+    if (TIER_RANK[tier] < TIER_RANK[worst]) worst = tier;
+  }
+  return worst;
+}
+
 function validateViewConfig(cfg) {
   if (!cfg || typeof cfg !== 'object') {
     throw new Error('loadView: viewConfig must be an object');
@@ -34,6 +59,7 @@ export function loadView({ viewConfig, registry, papersRaw }) {
 
   for (const [netId, netDef] of Object.entries(viewConfig.networks)) {
     const rgb = hexToRgb(netDef.color);
+    const evidence = weakestEvidence(netDef.paperIds, papersRaw) ?? netDef.evidence;
     const parcelIds = Array.isArray(netDef.parcels) ? [...netDef.parcels] : [];
     for (const pid of parcelIds) {
       if (!registry.byId(pid)) {
@@ -50,6 +76,14 @@ export function loadView({ viewConfig, registry, papersRaw }) {
       color: netDef.color,
       rgb,
       parcelIds,
+      // Both shells render `net.displayNum` on the chip; without this it was
+      // always undefined and the chip badge silently rendered empty.
+      ...(netDef.displayNum !== undefined ? { displayNum: netDef.displayNum } : {}),
+      ...(netDef.source !== undefined ? { source: netDef.source } : {}),
+      ...(Array.isArray(netDef.paperIds) ? { paperIds: [...netDef.paperIds] } : {}),
+      // Computed from paperIds when present; a hand-declared `evidence` is only
+      // honoured as a fallback for views that don't list their citations.
+      ...(evidence !== undefined ? { evidence } : {}),
     };
     networkRgb[netId] = rgb;
   }

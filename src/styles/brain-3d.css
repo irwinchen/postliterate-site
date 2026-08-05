@@ -274,6 +274,171 @@
   letter-spacing: 0.14em;
   opacity: 0.65;
 }
+/* Evidence tier — how well sourced a network's definition is. Shape-coded as
+   well as opacity-coded so it survives greyscale and doesn't rely on colour
+   against eight different chip backgrounds. */
+.brain-3d__evidence-dot {
+  inline-size: 0.5rem;
+  block-size: 0.5rem;
+  border-radius: 50%;
+  border: 1px solid currentColor;
+  flex: none;
+  margin-inline-start: 0.1rem;
+
+  &[data-evidence="read"] { background: currentColor; }
+  /* Half-filled: citation verified, full text not read. */
+  &[data-evidence="partial"] {
+    background: linear-gradient(to right, currentColor 50%, transparent 50%);
+  }
+  &[data-evidence="background"] { background: transparent; }
+}
+
+/* === network-info layout ===
+   Left column becomes the network selector, right column explains whichever
+   networks are lit. Wider right column than the glossary layout, since it now
+   carries prose rather than a chip stack. */
+.brain-3d[data-layout="network-info"] {
+  grid-template-columns: 230px 1fr 360px;
+  grid-template-areas:
+    "header header header"
+    "netcol center rightcol";
+}
+
+.brain-3d__netcol {
+  grid-area: netcol;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+  padding: 1.25rem 0.75rem 1.25rem 1.25rem;
+  display: grid;
+  align-content: start;
+  gap: 0.75rem;
+}
+.brain-3d__netcol-title {
+  margin: 0;
+  font-size: 0.58rem;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--muted);
+}
+.brain-3d__chips--stacked {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.3rem;
+}
+.brain-3d__chip-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-block-start: 0.35rem;
+  padding-block-start: 0.75rem;
+  border-block-start: 1px solid var(--border);
+}
+
+.brain-3d__rightcol--info {
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+  align-content: start;
+}
+.brain-3d__netinfo {
+  display: grid;
+  gap: 1.1rem;
+}
+.brain-3d__netinfo-empty {
+  margin: 0;
+  font-size: 0.75rem;
+  color: var(--muted);
+  text-wrap: pretty;
+}
+
+.brain-3d__netinfo-card {
+  --card-color: var(--fg);
+  display: grid;
+  gap: 0.5rem;
+  padding-inline-start: 0.7rem;
+  border-inline-start: 3px solid var(--card-color);
+}
+.brain-3d__netinfo-head {
+  display: grid;
+  gap: 0.2rem;
+}
+.brain-3d__netinfo-name {
+  margin: 0;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--fg);
+  display: flex;
+  align-items: baseline;
+  gap: 0.4rem;
+  text-wrap: balance;
+}
+.brain-3d__netinfo-num {
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  color: var(--card-color);
+}
+.brain-3d__netinfo-tag {
+  margin: 0;
+  font-family: 'Literata', Georgia, serif;
+  font-style: italic;
+  font-size: 0.78rem;
+  line-height: 1.4;
+  color: var(--card-color);
+  text-wrap: pretty;
+}
+.brain-3d__netinfo-para {
+  margin: 0;
+  font-size: 0.74rem;
+  line-height: 1.55;
+  color: var(--fg);
+  opacity: 0.88;
+  text-wrap: pretty;
+}
+.brain-3d__netinfo-para--dim {
+  opacity: 0.62;
+}
+.brain-3d__netinfo-label {
+  margin: 0.15rem 0 0;
+  font-size: 0.56rem;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--muted);
+}
+.brain-3d__netinfo-foot {
+  margin-block-start: 0.3rem;
+  padding-block-start: 0.6rem;
+  border-block-start: 1px solid var(--border);
+}
+.brain-3d__netinfo-cites {
+  margin: 0.3rem 0 0;
+  padding-inline-start: 1.1rem;
+  display: grid;
+  gap: 0.35rem;
+  font-size: 0.62rem;
+  line-height: 1.45;
+  color: var(--muted);
+
+  & li { text-wrap: pretty; }
+}
+.brain-3d__netinfo-cite-authors { color: var(--fg); opacity: 0.75; }
+.brain-3d__netinfo-cite-venue { font-style: italic; }
+.brain-3d__netinfo-cite-doi {
+  color: var(--card-color);
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+
+  &:hover { text-decoration-thickness: 2px; }
+}
+.brain-3d__netinfo-overlap {
+  display: grid;
+  gap: 0.35rem;
+  padding: 0.75rem;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.03);
+}
+
 .brain-3d__chip--aux {
   border-inline-start-width: 1px;
   --chip-color: var(--border);
