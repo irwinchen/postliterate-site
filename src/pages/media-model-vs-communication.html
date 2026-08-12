@@ -177,6 +177,11 @@
     animation:pulseDot 3.4s ease-in-out infinite;
     animation-delay:.5s;
   }
+  /* Generic human figure, drawn here rather than imported: the page ships no
+     external assets, and a hand-drawn glyph avoids inheriting an icon set's
+     licence. `currentColor` lets each instance take its own person's colour. */
+  .fig-body{fill:var(--panel);stroke:currentColor;stroke-width:1.7}
+  .fig-arm{fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round}
   .chan line{stroke:#b9b1a1;stroke-width:1.1}
   .chan-lbl text{
     font-family:'Sono',monospace;
@@ -221,11 +226,23 @@
   .guide-supp{stroke:#cfc8b8;stroke-width:1.2;fill:none;stroke-dasharray:3 5;opacity:.75}
 
   /* ---- Animations: synthetic interlocutor (Model 4) ---- */
-  .consc-user{transform-origin:270px 140px;animation:breatheA 4.2s ease-in-out infinite}
+  .consc-user{transform-origin:72px 150px;animation:breatheA 4.2s ease-in-out infinite}
   .model-shape{fill:#fbeae9;stroke:var(--red);stroke-width:2;animation:algoPulse 2.6s ease-in-out infinite}
-  .dot-um{fill:var(--blue);offset-path:path('M 342 140 L 710 140');animation:pulseDot 2.8s ease-in-out infinite}
-  .dot-mu{fill:var(--red);offset-path:path('M 710 140 L 342 140');animation:pulseDot 2.8s ease-in-out infinite;animation-delay:1.4s}
   .token{font-family:'Sono',monospace;font-weight:500;font-size:12px;fill:var(--muted)}
+
+  /* ---- Model 4: context in, next-word odds out ---- */
+  .ctx-box{fill:none;stroke:#ddd6c6;stroke-width:1.2;stroke-dasharray:4 4}
+  .ctx-chip{fill:#f1ece0;stroke:#ddd6c6;stroke-width:1}
+  .ctx-chip-live{fill:#fbeae9;stroke:var(--red);stroke-width:1.3}
+  .ctx-who{font-family:'Sono',monospace;font-size:7.5px;letter-spacing:.12em;fill:#a39a88}
+  .ctx-txt{font-family:'Sono',monospace;font-size:10px;fill:#3a352e}
+  .bar-track{fill:#efe9da}
+  .bar{fill:#c9c2b3}
+  .bar-top{fill:var(--red)}
+  .cand{font-family:'Sono',monospace;font-size:10.5px;fill:var(--muted)}
+  .cand-top{fill:var(--red);font-weight:500}
+  .prob{font-family:'Sono',monospace;font-size:9px;fill:#a39a88}
+  .loop{stroke:var(--red);stroke-width:1.2;fill:none;stroke-dasharray:4 4;opacity:.8}
 
   /* ---- Comparison strip ---- */
   .compare{margin-top:8px}
@@ -299,6 +316,20 @@
 <body>
 <div class="wrap">
 
+  <!-- Shared figure definition. Kept in its own zero-size SVG so both Model 2
+       and Model 4 can reference it; origin sits at roughly the sternum. -->
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+    <defs>
+      <!-- Head plus shoulders, wider than tall through the body. Separate arm
+           strokes were tried and read as insect legs at this size; the plain
+           two-part glyph is unambiguous. -->
+      <g id="fig">
+        <circle class="fig-body" cx="0" cy="-32" r="15"/>
+        <path class="fig-body" d="M -26 28 C -26 -6 -14 -16 0 -16 C 14 -16 26 -6 26 28 Z"/>
+      </g>
+    </defs>
+  </svg>
+
   <p class="kicker">After Walter Ong · Orality and Literacy</p>
   <h1>Before you say anything, you have already pictured their face.</h1>
 
@@ -370,26 +401,24 @@
             <!-- shared situation -->
             <ellipse class="meet meet-anim" cx="290" cy="140" rx="66" ry="80"/>
 
-            <!-- person A. Torso is a closed bust rather than an open arc: an open
-                 arc under a circle reads as a frowning face. -->
+            <!-- person A. Each figure is turned slightly toward the other, which is
+                 most of what makes a pair read as being in conversation. -->
             <g class="consc-a">
               <circle cx="150" cy="140" r="72" fill="none" stroke="#3B6DB4" stroke-width="1.6"/>
-              <circle cx="150" cy="100" r="17" fill="#eef2f8" stroke="#3B6DB4" stroke-width="1.5"/>
-              <path d="M 116 188 C 116 146 184 146 184 188 Z" fill="#eef2f8" stroke="#3B6DB4" stroke-width="1.5"/>
+              <g style="color:#3B6DB4" transform="translate(150,150)"><use href="#fig"/></g>
               <!-- A's working picture of B: one faculty among several, and it leans
                    toward the person it is a picture of. -->
-              <circle cx="186" cy="86" r="13" fill="var(--panel)" stroke="#549E44" stroke-width="1.2" stroke-dasharray="3 3.5"/>
-              <text x="186" y="89" text-anchor="middle" font-family="Sono,monospace" font-size="8" fill="#6e675c">B′</text>
-              <text class="lbl-node" x="150" y="206" text-anchor="middle" fill="#3B6DB4">A</text>
+              <circle cx="192" cy="88" r="13" fill="var(--panel)" stroke="#549E44" stroke-width="1.2" stroke-dasharray="3 3.5"/>
+              <text x="192" y="91" text-anchor="middle" font-family="Sono,monospace" font-size="8" fill="#6e675c">B′</text>
+              <text class="lbl-node" x="150" y="208" text-anchor="middle" fill="#3B6DB4">A</text>
             </g>
 
             <!-- person B -->
             <g class="consc-b">
               <circle cx="430" cy="140" r="72" fill="none" stroke="#549E44" stroke-width="1.6"/>
-              <circle cx="430" cy="100" r="17" fill="#eef5ec" stroke="#549E44" stroke-width="1.5"/>
-              <path d="M 396 188 C 396 146 464 146 464 188 Z" fill="#eef5ec" stroke="#549E44" stroke-width="1.5"/>
-              <circle cx="394" cy="86" r="13" fill="var(--panel)" stroke="#3B6DB4" stroke-width="1.2" stroke-dasharray="3 3.5"/>
-              <text x="394" y="89" text-anchor="middle" font-family="Sono,monospace" font-size="8" fill="#6e675c">A′</text>
+              <g style="color:#549E44" transform="translate(430,150)"><use href="#fig"/></g>
+              <circle cx="388" cy="88" r="13" fill="var(--panel)" stroke="#3B6DB4" stroke-width="1.2" stroke-dasharray="3 3.5"/>
+              <text x="388" y="91" text-anchor="middle" font-family="Sono,monospace" font-size="8" fill="#6e675c">A′</text>
               <text class="lbl-node" x="430" y="206" text-anchor="middle" fill="#549E44">B</text>
             </g>
 
@@ -526,47 +555,99 @@
         <div class="panel-head">
           <span class="panel-num">MODEL 4</span>
           <h2 class="panel-title">The Synthetic Interlocutor</h2>
-          <p class="panel-sub">prompt → predict → perform</p>
+          <p class="panel-sub">the whole conversation in → odds on every next word → pick one → again</p>
         </div>
         <div class="stage">
-          <svg viewBox="0 0 1080 280" role="img" aria-label="A user faces an optimizing model placed in the position of an interlocutor. The exchange looks reciprocal like a real meeting, but the other node is a non-person holding a model of the user predicted from tokens rather than a genuine interior, and there is no second person beyond it.">
-            <!-- guide line (the dyad) -->
-            <line class="guide" x1="342" y1="140" x2="710" y2="140"/>
-
-            <!-- user: a consciousness (organic) -->
+          <svg viewBox="0 0 1080 330" role="img" aria-label="A person types into a chat. The entire conversation so far is fed to the model on every single step. The model returns a probability for each possible next word; the highest is picked and appended to the reply, and the whole conversation goes back in for the next word. There is no second person beyond the model.">
+            <!-- the person -->
             <g class="consc-user">
-              <circle cx="270" cy="140" r="72" fill="none" stroke="#3B6DB4" stroke-width="1.6"/>
-              <text class="lbl-node" x="270" y="92" text-anchor="middle" fill="#3B6DB4">USER</text>
-              <circle cx="270" cy="156" r="26" fill="none" stroke="#E53E33" stroke-width="1.3" stroke-dasharray="3 4"/>
-              <text x="270" y="153" text-anchor="middle" font-family="Sono,monospace" font-size="9" letter-spacing=".04em" fill="#6e675c">SOMEONE?</text>
-              <text x="270" y="168" text-anchor="middle" font-family="Sono,monospace" font-size="7.5" letter-spacing=".07em" fill="#a39a88">MODEL OF THE OTHER</text>
+              <circle cx="72" cy="150" r="52" fill="none" stroke="#3B6DB4" stroke-width="1.6"/>
+              <g style="color:#3B6DB4" transform="translate(72,158) scale(.86)"><use href="#fig"/></g>
+            </g>
+            <text class="lbl-sm" x="72" y="228" text-anchor="middle">YOU</text>
+
+            <!-- you type -->
+            <line class="guide" x1="128" y1="150" x2="172" y2="150"/>
+            <polygon points="178,150 168,144 168,156" fill="#c9c2b3"/>
+
+            <!-- the conversation so far: every turn, still there -->
+            <rect class="ctx-box" x="186" y="34" width="238" height="196" rx="3"/>
+            <text class="ctx-who" x="186" y="26">THE CONVERSATION SO FAR</text>
+            <g>
+              <rect class="ctx-chip" x="196" y="46" width="218" height="30" rx="2"/>
+              <text class="ctx-who" x="206" y="59">YOU</text>
+              <text class="ctx-txt" x="206" y="70">i can't sleep</text>
+
+              <rect class="ctx-chip" x="196" y="84" width="218" height="30" rx="2"/>
+              <text class="ctx-who" x="206" y="97">IT</text>
+              <text class="ctx-txt" x="206" y="108">how long has that been going on?</text>
+
+              <rect class="ctx-chip" x="196" y="122" width="218" height="30" rx="2"/>
+              <text class="ctx-who" x="206" y="135">YOU</text>
+              <text class="ctx-txt" x="206" y="146">a few weeks now</text>
+
+              <!-- the reply being built, one word at a time -->
+              <rect class="ctx-chip-live" x="196" y="160" width="218" height="30" rx="2"/>
+              <text class="ctx-who" x="206" y="173">IT</text>
+              <text id="reply-line" class="ctx-txt" x="206" y="184" fill="#b0322a">▌</text>
             </g>
 
-            <!-- the model: an optimizer in the interlocutor slot (mechanical) -->
-            <polygon class="model-shape" points="710,140 755,82 865,82 910,140 865,198 755,198"/>
-            <text x="810" y="112" text-anchor="middle" font-family="Outfit,sans-serif" font-weight="600" font-size="13" fill="#E53E33">THE MODEL</text>
-            <circle cx="810" cy="156" r="26" fill="none" stroke="#3B6DB4" stroke-width="1.2" stroke-dasharray="3 4"/>
-            <text x="810" y="153" text-anchor="middle" font-family="Sono,monospace" font-size="9" letter-spacing=".04em" fill="#6e675c">YOU′</text>
-            <text x="810" y="168" text-anchor="middle" font-family="Sono,monospace" font-size="7.5" letter-spacing=".07em" fill="#a39a88">PREDICTED FROM TOKENS</text>
-            <text id="token-readout" class="token" x="810" y="226" text-anchor="middle">next ▸ you</text>
+            <!-- all of it goes in, every time -->
+            <line class="guide" x1="430" y1="150" x2="486" y2="150"/>
+            <polygon points="492,150 482,144 482,156" fill="#c9c2b3"/>
+            <text class="ctx-who" x="461" y="140" text-anchor="middle">ALL OF IT</text>
 
-            <!-- no one beyond: a terminus, not a channel -->
-            <circle class="ghost" cx="1010" cy="140" r="22"/>
-            <text x="1010" y="178" text-anchor="middle" font-family="Sono,monospace" font-size="8.5" letter-spacing=".07em" fill="#a39a88">NO ONE</text>
-            <text x="1010" y="190" text-anchor="middle" font-family="Sono,monospace" font-size="8.5" letter-spacing=".07em" fill="#a39a88">BEYOND</text>
+            <!-- the model -->
+            <polygon class="model-shape" points="500,150 536,96 626,96 662,150 626,204 536,204"/>
+            <text x="581" y="146" text-anchor="middle" font-family="Outfit,sans-serif" font-weight="600" font-size="13" fill="#E53E33">THE MODEL</text>
+            <text x="581" y="164" text-anchor="middle" font-family="Sono,monospace" font-size="7.5" letter-spacing=".07em" fill="#a39a88">NO MEMORY BETWEEN CALLS</text>
 
-            <!-- asymmetry labels -->
-            <text class="lbl-sm" x="526" y="118" text-anchor="middle">REACHES OUT</text>
-            <text x="526" y="178" text-anchor="middle" font-family="Sono,monospace" font-size="10.5" letter-spacing=".06em" fill="#b06a63">PERFORMS</text>
+            <!-- out comes a distribution, not an answer -->
+            <line class="guide" x1="668" y1="150" x2="706" y2="150"/>
+            <polygon points="712,150 702,144 702,156" fill="#c9c2b3"/>
 
-            <!-- reciprocal dots: looks like Model 2 -->
-            <circle class="dot-um" r="5"/>
-            <circle class="dot-mu" r="5"/>
+            <text class="ctx-who" x="722" y="60">ODDS ON THE NEXT WORD</text>
+            <g id="dist">
+              <text class="cand cand-top" id="cand0" x="800" y="84" text-anchor="end">that</text>
+              <rect class="bar-track" x="810" y="75" width="140" height="11"/>
+              <rect class="bar bar-top" id="bar0" x="810" y="75" width="57" height="11"/>
+              <text class="prob" id="prob0" x="958" y="84">.41</text>
+
+              <text class="cand" id="cand1" x="800" y="118" text-anchor="end">it</text>
+              <rect class="bar-track" x="810" y="109" width="140" height="11"/>
+              <rect class="bar" id="bar1" x="810" y="109" width="31" height="11"/>
+              <text class="prob" id="prob1" x="958" y="118">.22</text>
+
+              <text class="cand" id="cand2" x="800" y="152" text-anchor="end">i</text>
+              <rect class="bar-track" x="810" y="143" width="140" height="11"/>
+              <rect class="bar" id="bar2" x="810" y="143" width="20" height="11"/>
+              <text class="prob" id="prob2" x="958" y="152">.14</text>
+
+              <text class="cand" id="cand3" x="800" y="186" text-anchor="end">you</text>
+              <rect class="bar-track" x="810" y="177" width="140" height="11"/>
+              <rect class="bar" id="bar3" x="810" y="177" width="10" height="11"/>
+              <text class="prob" id="prob3" x="958" y="186">.07</text>
+            </g>
+
+            <!-- pick the top one, append it, and start the whole thing again -->
+            <path class="loop" d="M 880 200 L 880 268 L 305 268 L 305 200"/>
+            <polygon points="305,194 299,206 311,206" fill="#E53E33" opacity=".8"/>
+            <text class="ctx-who" x="592" y="282" text-anchor="middle" fill="#b06a63">PICK ONE · APPEND IT · READ IT ALL AGAIN</text>
+
+            <!-- And no second party behind any of it. This sits under the model
+                 rather than out to the right: with the distribution in between,
+                 a terminus on the far edge stops reading as "beyond the model"
+                 and just floats. -->
+            <line class="guide" x1="581" y1="206" x2="581" y2="222" stroke-dasharray="3 4"/>
+            <circle class="ghost" cx="581" cy="238" r="14"/>
+            <text x="605" y="236" font-family="Sono,monospace" font-size="8.5" letter-spacing=".07em" fill="#a39a88">AND NOBODY</text>
+            <text x="605" y="248" font-family="Sono,monospace" font-size="8.5" letter-spacing=".07em" fill="#a39a88">BEHIND IT</text>
           </svg>
         </div>
         <div class="panel-foot">
           <p>This one has the shape of a conversation. Two parties, words both ways, the rhythm of talk, the distinct feeling of being followed. It's three in the morning and something is listening.</p>
-          <p>But the thing in the other chair is the ranking machine from the previous panel, moved out of the wire and into the seat where the person sits. You reach toward a someone, the dashed circle on the left. What answers is a system choosing, one word at a time, which word should plausibly come next. It holds a sketch of you assembled from what you typed a moment ago, and behind the sketch there's nobody home. So you do what you did with the feed: you learn what phrasing gets a good answer, and you write toward that. You're modeling the machine again.</p>
+          <p>Watch what's actually happening in the diagram. The whole conversation, every line of it, gets handed over again from the top. Out of that comes a ranked list of words that could plausibly come next, each with a number attached. One gets picked. It's stuck on the end of the reply, and then the entire conversation, now one word longer, goes straight back in for the next one. Nothing carries over between those passes except the text itself.</p>
+          <p>So the sentence that arrives was never composed. It accumulated, a word at a time, each one chosen because it scored well against everything said so far. The warmth in it is real in the sense that it came out of an enormous amount of human writing, and it was assembled by a process with no view about you and nowhere to keep one. You end up doing what you did with the feed: learning what phrasing gets a good answer, and writing toward that. You're modeling the machine again.</p>
         </div>
       </div>
     </div>
@@ -604,14 +685,34 @@
       el.textContent = n.toLocaleString('en-US');
     }, 650);
   }
-  var tok = document.getElementById('token-readout');
-  if(tok){
-    var fragments = ['you','feel','—','I','hear','that','tell','me','more','.','it','sounds','like','so','what','do','think','?'];
-    var i = 0;
-    setInterval(function(){
-      i = (i + 1) % fragments.length;
-      tok.textContent = 'next ▸ ' + fragments[i];
-    }, 520);
+  // Model 4. Each step is one pass: the whole conversation goes in, a
+  // distribution over next words comes out, the top one is appended, and the
+  // conversation (now one word longer) goes back in. Bar widths are the
+  // probabilities to scale against a 140px track.
+  var reply = document.getElementById('reply-line');
+  if(reply){
+    var steps = [
+      [['that',.41],['it',.22],['i',.14],['you',.07]],
+      [['sounds',.47],['must',.18],['seems',.15],['feels',.09]],
+      [['really',.33],['very',.24],['pretty',.18],['so',.11]],
+      [['exhausting',.36],['hard',.28],['rough',.17],['draining',.09]]
+    ];
+    var TRACK = 140, step = 0, built = [];
+    function paint(){
+      var s = steps[step];
+      for(var r = 0; r < 4; r++){
+        var word = s[r][0], p = s[r][1];
+        document.getElementById('cand' + r).textContent = word;
+        document.getElementById('prob' + r).textContent = p.toFixed(2).slice(1);
+        document.getElementById('bar' + r).setAttribute('width', Math.max(4, p * TRACK).toFixed(1));
+      }
+      built.push(s[0][0]);
+      reply.textContent = built.join(' ') + ' ▌';
+      step += 1;
+      if(step >= steps.length){ step = 0; built = []; }
+    }
+    paint();
+    setInterval(paint, 1500);
   }
 })();
 </script>
