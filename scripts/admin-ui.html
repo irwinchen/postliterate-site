@@ -4918,8 +4918,9 @@
             ". Read those against the PDF before quoting."
         );
       }
-      if (s.ocr) flags.push(`${s.ocr} page(s) had no text layer and were transcribed by OCR.`);
+      if (s.ocr) flags.push(`${s.ocr} page(s) had no reliable text layer and were transcribed from the page image.`);
       if (s.ocr_failed) flags.push(`${s.ocr_failed} page(s) could not be transcribed.`);
+      if (s.api_errors) flags.push(`${s.api_errors} page(s) hit API errors and kept the mechanical extraction — check the OpenRouter key and credit, then reconvert.`);
 
       const el = this.$("result");
       el.dataset.state = "ok";
