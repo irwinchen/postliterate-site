@@ -79,9 +79,23 @@ const DEFAULT_BASE_URL = 'https://postliterate.org';
 const FIGURE_SOURCES = {
   'literacy-level-mapping': ['public/images/figures/pisa-level-mapping.svg'],
   'literacy-isotype': ['public/images/figures/pisa-isotype.svg'],
+  // The three brain figures share a renderer and a parcel registry, so they
+  // deliberately overlap on `src/components/brain-3d` and `src/lib/brain-viz`:
+  // a change to either genuinely changes all three drawings. What is NOT shared
+  // is the page and the view/content config, so each is scoped to its own —
+  // editing one view's copy no longer re-captures the other two.
   'brain-visualiser': [
-    'src/pages/brain.astro',
-    'src/pages/brain',
+    'src/pages/brain/compare.astro',
+    'src/components/brain-3d',
+    'src/lib/brain-viz',
+  ],
+  'brain-networks': [
+    'src/pages/brain/networks.astro',
+    'src/components/brain-3d',
+    'src/lib/brain-viz',
+  ],
+  'brain-paper-view': [
+    'src/pages/brain/papers',
     'src/components/brain-3d',
     'src/lib/brain-viz',
   ],
@@ -107,10 +121,18 @@ const FIGURE_SOURCES = {
     'src/pages/first-smartphone-isotype.astro',
     'src/components/first-smartphone',
   ],
+  'first-smartphone': [
+    'src/pages/first-smartphone.astro',
+    'src/components/first-smartphone',
+  ],
   'scribner-cole-vai-study': [
     'src/pages/scribner-cole-vai-study_4.html',
     'public/images/vai',
   ],
+  // Promoted from outputs/ on 2026-08-12. The filename is kept as-is because
+  // the page's own footer prints that slug; renaming the route would make the
+  // footer lie. Same reason /scribner-cole-vai-study_4 kept its suffix.
+  'media-vs-meeting': ['src/pages/media-model-vs-communication.html'],
   // `virgil` has no source mapping — it falls back to its registry images,
   // which are currently missing, so it is reported as such.
 };
@@ -126,7 +148,11 @@ const CAPTURE_CONFIG = {
   corpus: { settle: 5000 },
   timeline: { settle: 2500 },
   tokens: { settle: 3500 },
+  // The brain figures load 70 mesh OBJs over the network before anything is
+  // drawn, so they need the longest settle on the board.
   'brain-visualiser': { settle: 5000 },
+  'brain-networks': { settle: 6000 },
+  'brain-paper-view': { settle: 6000 },
 };
 
 // ---------------------------------------------------------------------------

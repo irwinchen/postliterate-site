@@ -19,10 +19,27 @@
   },
   {
     "id": "brain-visualiser",
-    "title": "Brain Visualiser",
-    "page": "/brain",
+    "title": "Brain Visualiser — Cross-Paper Compare",
+    "page": "/brain/compare",
     "images": [
       { "file": "brain-3d.png" }
+    ]
+  },
+  {
+    "id": "brain-networks",
+    "title": "Cortical Networks — The Neural Architecture of Language",
+    "page": "/brain/networks",
+    "images": [
+      { "file": "brain-networks.png" }
+    ]
+  },
+  {
+    "id": "brain-paper-view",
+    "title": "Paper View — Blank et al. 2026",
+    "credit": "Blank et al., Frontiers in Human Neuroscience",
+    "page": "/brain/papers/blank-2026-2",
+    "images": [
+      { "file": "brain-paper-view.png" }
     ]
   },
   {
@@ -100,7 +117,9 @@
   },
   {
     "id": "media-vs-meeting",
-    "title": "Media Model vs The Meeting",
+    "title": "The Media Model and the Meeting",
+    "credit": "after Walter J. Ong, Orality and Literacy",
+    "page": "/media-model-vs-communication",
     "images": [
       { "file": "media-v-intersubjective.png" }
     ]
@@ -159,6 +178,14 @@
     "page": "/first-smartphone-isotype",
     "images": [
       { "file": "first-smartphone-isotype.png" }
+    ]
+  },
+  {
+    "id": "first-smartphone",
+    "title": "When Children Get Their First Smartphone — By Age",
+    "page": "/first-smartphone",
+    "images": [
+      { "file": "first-smartphone.png" }
     ]
   },
   {
