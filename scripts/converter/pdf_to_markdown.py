@@ -55,6 +55,7 @@ import re
 import statistics
 import sys
 import time
+import zlib
 from collections import Counter, defaultdict
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass, field
@@ -1620,8 +1621,12 @@ def call_openrouter(
     system: str,
     user_text: str,
     image_png: bytes,
+    temperature: Optional[float] = None,
 ) -> Tuple[Optional[str], Dict[str, int]]:
-    """Return (text, usage). usage is empty when the call failed."""
+    """Return (text, usage). usage is empty when the call failed.
+
+    temperature overrides cfg.temperature for this one call — used by the
+    OCR retry, where a nonzero temperature helps escape repetition loops."""
     if requests is None:
         raise RuntimeError("requests is not installed: pip3 install requests --break-system-packages")
     if not cfg.api_key:
@@ -1630,7 +1635,7 @@ def call_openrouter(
     b64 = base64.b64encode(image_png).decode("ascii")
     payload = {
         "model": model,
-        "temperature": cfg.temperature,
+        "temperature": cfg.temperature if temperature is None else temperature,
         "messages": [
             {"role": "system", "content": system},
             {
@@ -1696,8 +1701,45 @@ def strip_fences(text: str) -> str:
     return t.strip()
 
 
+def looks_degenerate(text: str) -> bool:
+    """Detect repetition collapse in model output.
+
+    Long vision-model generations at temperature 0 can fall into a token
+    loop mid-page and emit tens of thousands of characters of the same few
+    tokens before recovering. Such output compresses absurdly well and is
+    dominated by a single word; readable prose compresses to ~0.4-0.5 of
+    its size and no word exceeds ~10% of the text."""
+    if len(text) < 2000:
+        return False
+    raw = text.encode("utf-8")
+    if len(zlib.compress(raw, 6)) / len(raw) < 0.10:
+        return True
+    words = [w for w in text.split() if any(c.isalnum() for c in w)]
+    if len(words) > 60:
+        top = Counter(words).most_common(1)[0][1]
+        if top > 0.30 * len(words):
+            return True
+    return False
+
+
+def transcription_is_sane(out: str, draft: str) -> bool:
+    """Gate a whole-page OCR transcription before it replaces the draft."""
+    if not out or len(out) < 20:
+        return False
+    if looks_degenerate(out):
+        return False
+    # A transcription of the same page should not dwarf the mechanical
+    # extraction. The 2.5x headroom covers footnote expansion and tables;
+    # a degeneration loop overshoots it several times over.
+    if draft and len(draft) > 800 and len(out) > 2.5 * len(draft):
+        return False
+    return True
+
+
 def verification_is_safe(original: str, revised: str, image_lines: Sequence[str]) -> bool:
     if not revised:
+        return False
+    if looks_degenerate(revised):
         return False
     low = revised.lower()
     for bad in ("i cannot", "i'm unable", "as an ai", "sorry, i can", "no text is visible"):
@@ -1733,13 +1775,30 @@ def verify_page(
             f"Transcribe this page. Use the footnote key prefix `p{result.label}-` "
             f"for any footnotes, for example `[^p{result.label}-1]`."
         )
-        out, usage = call_openrouter(cfg, cfg.ocr_model, OCR_SYSTEM, user, png)
-        if out is None:
-            return result.index, None, "api-error", usage
-        out = strip_fences(out)
-        if not out or len(out) < 20:
-            return result.index, None, "ocr-failed", usage
-        return result.index, out, "ocr", usage
+        # Two attempts: the retry runs at nonzero temperature, which is
+        # usually enough to escape a repetition loop the first attempt fell
+        # into. If neither attempt is sane, keep the mechanical draft.
+        total_usage: Dict[str, int] = {}
+        api_failures = 0
+        for attempt in range(2):
+            out, usage = call_openrouter(
+                cfg,
+                cfg.ocr_model,
+                OCR_SYSTEM,
+                user,
+                png,
+                temperature=None if attempt == 0 else max(cfg.temperature, 0.5),
+            )
+            for key, value in usage.items():
+                total_usage[key] = total_usage.get(key, 0) + value
+            if out is None:
+                api_failures += 1
+                continue
+            out = strip_fences(out)
+            if transcription_is_sane(out, draft):
+                return result.index, out, "ocr", total_usage
+        status = "api-error" if api_failures == 2 else "ocr-failed"
+        return result.index, None, status, total_usage
 
     if not cfg.verify:
         return result.index, None, "skipped", {}
