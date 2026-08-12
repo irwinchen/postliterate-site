@@ -52,6 +52,16 @@
     margin:0 0 28px;
     max-width:18ch;
   }
+  .lede{
+    font-family:var(--serif);
+    font-size:1.12rem;
+    line-height:1.62;
+    color:#3a352e;
+    max-width:62ch;
+    margin:0 0 26px;
+  }
+  .lede p{margin:0 0 14px}
+  .lede p:last-child{margin-bottom:0}
   .epigraph{
     border-left:2px solid var(--red);
     padding:4px 0 4px 22px;
@@ -280,11 +290,21 @@
 <div class="wrap">
 
   <p class="kicker">After Walter Ong · Orality and Literacy</p>
-  <h1>The conduit moves a signal. Communication is a meeting.</h1>
+  <h1>Before you say anything, you have already pictured their face.</h1>
+
+  <div class="lede">
+    <p>You have to tell a friend something she won't want to hear. Before a word leaves your mouth you've run the whole thing in advance: how she'll take it, which opening is gentler, how much she already suspects, how long she'll stay angry. Then you start, and you watch her face, and halfway through a sentence you change course because of what you saw there. All that adjusting is where the message actually gets made.</p>
+    <p>Now picture dropping a letter in a mailbox. The letter doesn't care who reads it. Nothing about the person at the other end reaches back and alters a word.</p>
+    <p>Both of these get called communication. Walter Ong, a Jesuit priest who spent his life on what writing did to human thought, argued they're not the same act at all, and that we'd quietly let the mailbox become our picture of the other one.</p>
+  </div>
 
   <div class="epigraph">
     <p>"Communication is intersubjective. The media model is not. There is no adequate model in the physical universe for this operation of consciousness, which is distinctively human and which signals the capacity of human beings to form true communities wherein person shares with person interiorly, intersubjectively."</p>
     <cite>— Walter J. Ong, Orality and Literacy (1982)</cite>
+  </div>
+
+  <div class="lede" style="margin-top:22px">
+    <p>Ong's word for it is <span class="em">intersubjective</span>, which sounds forbidding and means something you do a hundred times a day: two people each holding a live picture of the other, each adjusting to it, neither picture ever finished. Nothing in physics works this way. You can describe a radio that way, and the description will be wrong in the one respect that matters.</p>
   </div>
 
   <hr class="rule">
@@ -322,7 +342,7 @@
           </svg>
         </div>
         <div class="panel-foot">
-          <p>The message is the same object at both ends. Nothing on the receiving side is anticipated, modeled, or changed. Transport, not contact — one direction, sealed packets, an audience that only receives.</p>
+          <p>The postal service. A thought gets packed into words, the words travel, someone at the far end opens the box, and the thought comes back out. What arrives is what was sent. The sender never has to picture the reader, and the reader's existence changes nothing about what went into the box. This is the picture most of us carry around without noticing, and it's the one sitting inside the word "message."</p>
         </div>
       </div>
     </div>
@@ -333,7 +353,7 @@
         <div class="panel-head">
           <span class="panel-num">MODEL 2</span>
           <h2 class="panel-title">The Meeting</h2>
-          <p class="panel-sub">each consciousness holds a model of the other</p>
+          <p class="panel-sub">each person holds a picture of the other</p>
         </div>
         <div class="stage">
           <svg viewBox="0 0 580 220" role="img" aria-label="Two consciousnesses, each containing a model of the other, exchange signals in both directions and are mutually changed.">
@@ -362,7 +382,7 @@
           </svg>
         </div>
         <div class="panel-foot">
-          <p>Each side carries a working model of the other — B′ inside A, A′ inside B — and adjusts to it before a word is spoken. The exchange runs both ways at once. Both are at stake; both are changed. The overlap is not a channel but a meeting.</p>
+          <p>Here both people are doing what the mailbox never does. Each carries a rough working picture of the other and keeps consulting it. She flinches at pity, so you drop the sympathetic voice before you use it. She knows you understate bad news, so she reads your calm as worse than it sounds. Each of you is adjusting to a picture of someone who is, right then, adjusting to a picture of you. That's what the overlap in the middle is. Both of you walk away slightly different from how you arrived.</p>
         </div>
       </div>
     </div>
@@ -372,20 +392,20 @@
   <!-- ============ COMPARISON ============ -->
   <div class="compare">
     <div class="crow">
-      <div class="cell l"><span class="tag">Media Model</span>One direction, sender to receiver.</div>
-      <div class="cell r"><span class="tag">The Meeting</span>Reciprocal — each anticipates the other.</div>
+      <div class="cell l"><span class="tag">Media Model</span>It goes one way.</div>
+      <div class="cell r"><span class="tag">The Meeting</span>Both people are reading each other at once.</div>
     </div>
     <div class="crow">
-      <div class="cell l"><span class="tag">Media Model</span>The message is carried intact.</div>
-      <div class="cell r"><span class="tag">The Meeting</span>Meaning is formed between two interiors.</div>
+      <div class="cell l"><span class="tag">Media Model</span>What arrives is what was sent.</div>
+      <div class="cell r"><span class="tag">The Meeting</span>The meaning gets built in the space between them.</div>
     </div>
     <div class="crow">
-      <div class="cell l"><span class="tag">Media Model</span>The receiver is unchanged machinery.</div>
-      <div class="cell r"><span class="tag">The Meeting</span>Both parties are altered by the exchange.</div>
+      <div class="cell l"><span class="tag">Media Model</span>The receiver is equipment. It doesn't change.</div>
+      <div class="cell r"><span class="tag">The Meeting</span>Both people come out of it altered.</div>
     </div>
     <div class="crow">
-      <div class="cell l"><span class="tag">Media Model</span>No model of the other is required.</div>
-      <div class="cell r"><span class="tag">The Meeting</span>Holding a model of the other is the whole act.</div>
+      <div class="cell l"><span class="tag">Media Model</span>You never have to imagine the other person.</div>
+      <div class="cell r"><span class="tag">The Meeting</span>Imagining the other person is the entire job.</div>
     </div>
   </div>
 
@@ -456,7 +476,8 @@
           </svg>
         </div>
         <div class="panel-foot">
-          <p>It looks more like a meeting — many to many, everyone a sender, return signals everywhere. But the return is not to a particular other you have modeled; it is to no one and everyone at once. You can't hold a million interiors, so instead you model the platform's response — what gets reach. The channel is no longer a neutral wire. It selects, ranks, amplifies, and just as decisively suppresses — what it withholds shapes the exchange as much as what it sends — and the loop closes at the metric, not at a person who has read you and been changed. A conduit, but with a will.</p>
+          <p>At a glance this is the second picture, scaled up. Everyone can post, and signals fly in every direction. But when you write for a feed, whose face are you picturing? You can't hold a million of them, so you stop trying, and you start picturing the thing that decides who sees you. You learn what it rewards, and you write toward that.</p>
+          <p>The wire has also stopped being a wire. It ranks what you wrote and decides who gets it, and what it quietly declines to deliver shapes the conversation as much as what it passes along. The loop closes on a number rather than on a person who read you and was changed by it. A conduit with opinions.</p>
         </div>
       </div>
     </div>
@@ -511,7 +532,8 @@
           </svg>
         </div>
         <div class="panel-foot">
-          <p>At a glance this is Model 2 — a dyad, signals both ways, the rhythm of dialogue. But the other node is the red optimizer from Model 3, moved out of the channel and into the interlocutor slot: the thing you take yourself to be speaking to. The user reaches out to a someone (the dashed circle on the left); the model returns a performance built by predicting the next token, holding not an interior but a YOU′ assembled from your input. As in Model 3, you end up modeling the system's response — what yields a good answer — rather than a person. And there is no second person beyond it. The form is Model 2; the mechanism is Model 1.</p>
+          <p>This one has the shape of a conversation. Two parties, words both ways, the rhythm of talk, the distinct feeling of being followed. It's three in the morning and something is listening.</p>
+          <p>But the thing in the other chair is the ranking machine from the previous panel, moved out of the wire and into the seat where the person sits. You reach toward a someone, the dashed circle on the left. What answers is a system choosing, one word at a time, which word should plausibly come next. It holds a sketch of you assembled from what you typed a moment ago, and behind the sketch there's nobody home. So you do what you did with the feed: you learn what phrasing gets a good answer, and you write toward that. You're modeling the machine again.</p>
         </div>
       </div>
     </div>
@@ -520,10 +542,10 @@
   <!-- ============ CLOSING BAND: THE CHATBOT ============ -->
   <div class="band">
     <p class="kicker">The thread through four models</p>
-    <h2>It is the conduit perfected — running Model 1 while performing Model 2.</h2>
-    <p>A language model takes an input string and returns an output string by prediction. Structurally it is the left panel, the most literal instance of the thing Ong set his definition against. It does not hold an interior that holds a model of yours; the reciprocity is lopsided.</p>
-    <p>Notice the symmetry with Model 3. Social media seats a non-person in the <span class="em">channel</span> — the thing you speak through. The chatbot seats one in the <span class="em">interlocutor</span> slot — the thing you take yourself to be speaking to. Different seat, same intrusion: a genuine other recedes, and an optimizing system takes its place in the structure of the exchange.</p>
-    <p>What is new is that this conduit produces every outward sign of the right panel. It performs subjecthood well enough that the distinction now has to be <span class="em">argued</span> rather than assumed. Ong's line is not falsified. It is staged — pulled apart into the appearance of meeting and the substance of it, with the first running at full power and the second left in question.</p>
+    <h2>A mailbox that learned to act like a friend.</h2>
+    <p>Take the interface away and a language model does what the first panel does. Text goes in, text comes out, picked by prediction. It's the postal service with an extremely good guess about what you were hoping to receive. It doesn't hold a picture of you the way your friend does, and there's no second party whose face you're reading.</p>
+    <p>Notice how neatly the last two panels rhyme. Social media put a machine in the <span class="em">channel</span>, the thing you speak through. The chatbot puts one in the <span class="em">chair</span>, the thing you take yourself to be speaking to. Different seat, same result: a real other person slides out of the picture, and a system optimizing for something takes their place in the shape of the exchange.</p>
+    <p>What's genuinely new is that this version throws off every outward sign of the real thing. It performs its way through a conversation well enough that the difference now has to be argued instead of simply felt. That's the part worth sitting with. Ong's distinction hasn't been disproved. It's been pulled in two, with the appearance of meeting running at full power and the substance of it left an open question.</p>
   </div>
 
   <footer>media-model-vs-communication · for the After the Book project</footer>
