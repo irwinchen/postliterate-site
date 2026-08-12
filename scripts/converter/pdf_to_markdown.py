@@ -292,8 +292,16 @@ class PageResult:
     image_paths: List[str] = field(default_factory=list)
 
 
-def collect_lines(page: "pymupdf.Page") -> Tuple[List[Line], List[Dict[str, Any]]]:
-    """Return text lines plus raw image blocks for one page."""
+def collect_lines(
+    page: "pymupdf.Page",
+) -> Tuple[List[Line], List[Dict[str, Any]], bool, Optional[float]]:
+    """Return text lines, raw image blocks, whether the text layer was a
+    shattered OCR overlay that had to be reassembled (see
+    consolidate_fragments), and the column split that reassembly used.
+
+    The split is threaded through to process_page because it is far more
+    reliable when measured on hundreds of raw fragments than when re-derived
+    from the ~hundred merged lines."""
     data = page.get_text("dict")
     lines: List[Line] = []
     image_blocks: List[Dict[str, Any]] = []
@@ -330,7 +338,8 @@ def collect_lines(page: "pymupdf.Page") -> Tuple[List[Line], List[Dict[str, Any]
                 )
             )
     lines.sort(key=lambda ln: (round(ln.bbox[1], 1), ln.bbox[0]))
-    return lines, image_blocks
+    merged, frag_split = consolidate_fragments(lines, tuple(page.rect))
+    return merged, image_blocks, merged is not lines, frag_split
 
 
 def chrome_candidates(
@@ -553,6 +562,160 @@ def column_of(bbox: Sequence[float], split: Optional[float]) -> int:
         return 0
     centre = (bbox[0] + bbox[2]) / 2
     return 0 if centre < split else 1
+
+
+def robust_column_split(
+    lines: Sequence[Line], rect: Sequence[float]
+) -> Optional[float]:
+    """Column split for shattered OCR layers, tolerant of centred chrome.
+
+    detect_column_split infers the gutter from the extreme edges of left- and
+    right-centred lines, which one centred watermark or download stamp
+    crossing the gutter destroys (and chrome removal happens later). Instead,
+    scan candidate x positions across the middle of the page and pick the
+    band that the fewest body fragments cross, allowing a couple of
+    outliers. Guard against false gutters in single-column word-soup by
+    requiring the band's neighbourhood to be densely crossed — a real gutter
+    is a clear slot between two dense columns.
+    """
+    body = [ln for ln in lines if len(ln.text.strip()) > 12]
+    if len(body) < 16:
+        return None
+    width = rect[2] - rect[0]
+    if width <= 0:
+        return None
+
+    def crossings(x: float) -> int:
+        return sum(1 for ln in body if ln.bbox[0] < x < ln.bbox[2])
+
+    step = width / 240
+    candidates = []
+    x = rect[0] + width * 0.32
+    stop = rect[0] + width * 0.68
+    while x <= stop:
+        candidates.append((crossings(x), x))
+        x += step
+    min_cross = min(c for c, _ in candidates)
+    if min_cross > max(2, int(0.02 * len(body))):
+        return None
+    clear_xs = [x for c, x in candidates if c == min_cross]
+    split = statistics.median(clear_xs)
+
+    # A genuine gutter sits between two dense columns; word-soup on a
+    # single-column page is sparse everywhere and fails this check. Contrast
+    # is relative to the band's own crossing count — full-width chrome (the
+    # JSTOR download stamp) inflates every candidate equally.
+    need = max(4, int(2.5 * (min_cross + 1)))
+    if crossings(split - width * 0.06) < need or crossings(split + width * 0.06) < need:
+        return None
+    left = sum(1 for ln in body if (ln.bbox[0] + ln.bbox[2]) / 2 < split)
+    right = len(body) - left
+    if left < max(4, len(body) * 0.15) or right < max(4, len(body) * 0.15):
+        return None
+    return split
+
+
+def consolidate_fragments(
+    lines: List[Line], rect: Sequence[float]
+) -> Tuple[List[Line], Optional[float]]:
+    """Rebuild visual lines from a shattered OCR text layer.
+
+    Scanned PDFs with an OCR overlay (JSTOR offprints and the like) expose
+    word-sized fragments whose y coordinates jitter by a few points. Sorting
+    those by (y, x) shuffles words within a visual line, which scrambles every
+    stage downstream. Cluster fragments into rows by vertical overlap, then
+    merge each row back into visual lines — per column side when a column
+    split is detectable, whole-row for display type and for fragments that
+    physically cross the split. Born-digital pages, whose lines arrive whole,
+    fail the fragmentation gate and are returned untouched (same list object,
+    so callers can detect that nothing happened by identity).
+    """
+    if len(lines) < 8:
+        return lines, None
+    stripped = [len(ln.text.strip()) for ln in lines]
+    med_len = statistics.median(stripped)
+    frag_share = sum(1 for n in stripped if n < 14) / len(lines)
+    if med_len >= 18 or frag_share < 0.5:
+        return lines, None
+
+    med_size = statistics.median(ln.size for ln in lines)
+    body_frags = [ln for ln in lines if ln.size <= med_size * 1.35]
+    split = detect_column_split(body_frags, rect)
+    if split is None:
+        split = robust_column_split(body_frags, rect)
+
+    # Greedy row clustering: fragments join the current row when their
+    # vertical extent overlaps the row's running mean extent by at least 45%
+    # of the smaller height. Input is sorted by vertical centre, so only the
+    # most recent row needs checking.
+    rows: List[Dict[str, Any]] = []
+    for ln in sorted(lines, key=lambda l: ((l.bbox[1] + l.bbox[3]) / 2, l.bbox[0])):
+        y0, y1 = ln.bbox[1], ln.bbox[3]
+        h = max(1.0, y1 - y0)
+        row = rows[-1] if rows else None
+        if row is not None:
+            row_h = max(1.0, row["y1"] - row["y0"])
+            overlap = min(row["y1"], y1) - max(row["y0"], y0)
+            if overlap >= 0.45 * min(h, row_h):
+                row["items"].append(ln)
+                n = len(row["items"])
+                row["y0"] += (y0 - row["y0"]) / n
+                row["y1"] += (y1 - row["y1"]) / n
+                continue
+        rows.append({"y0": y0, "y1": y1, "items": [ln]})
+
+    def merge_run(run: List[Line]) -> Line:
+        run = sorted(run, key=lambda l: l.bbox[0])
+        if len(run) == 1:
+            return run[0]
+        text = clean_text(" ".join(ln.text.strip() for ln in run))
+        bbox = (
+            min(l.bbox[0] for l in run),
+            min(l.bbox[1] for l in run),
+            max(l.bbox[2] for l in run),
+            max(l.bbox[3] for l in run),
+        )
+        weights = [(l.size, max(1, len(l.text))) for l in run]
+        total = sum(w for _, w in weights)
+        size = sum(sz * w for sz, w in weights) / total
+        bold = sum(len(l.text) for l in run if l.bold) > total / 2
+        italic = sum(len(l.text) for l in run if l.italic) > total / 2
+        spans = [s for l in run for s in l.spans]
+        return Line(
+            text=text,
+            bbox=bbox,
+            size=round(size, 2),
+            bold=bold,
+            italic=italic,
+            block_no=run[0].block_no,
+            spans=spans,
+        )
+
+    out: List[Line] = []
+    for row in rows:
+        items = sorted(row["items"], key=lambda l: l.bbox[0])
+        display = statistics.median(l.size for l in items) > med_size * 1.35
+        crosses = split is not None and any(
+            l.bbox[0] < split < l.bbox[2] for l in items
+        )
+        if split is None or display or crosses:
+            runs = [items]
+        else:
+            left = [l for l in items if (l.bbox[0] + l.bbox[2]) / 2 < split]
+            right = [l for l in items if (l.bbox[0] + l.bbox[2]) / 2 >= split]
+            runs = [run for run in (left, right) if run]
+        for run in runs:
+            merged_line = merge_run(run)
+            # Scan OCR guesses type size and bold per word and gets both
+            # wrong constantly, which would make random body lines register
+            # as headings. Body rows get the page's median size and lose the
+            # bold flag; display rows (real titles and subheads) keep their
+            # measured values.
+            if not display:
+                merged_line.size = round(med_size, 2)
+                merged_line.bold = False
+            out.append(merged_line)
+    return out, split
 
 
 # --------------------------------------------------------------------------
@@ -1318,6 +1481,8 @@ def process_page(
     fig_dir: str,
     rel_dir: str,
     cfg: Config,
+    fragmented: bool = False,
+    preset_split: Optional[float] = None,
 ) -> PageResult:
     page = doc[page_index]
     rect = tuple(page.rect)
@@ -1346,7 +1511,16 @@ def process_page(
             )
         attach_captions(figures, lines, available)
 
-    split = detect_column_split([lines[i] for i in available], rect)
+    # Prefer the split measured on raw OCR fragments during consolidation —
+    # hundreds of samples beat the ~hundred merged lines available here.
+    avail_lines = [lines[i] for i in available]
+    split = preset_split
+    if split is None:
+        split = detect_column_split(avail_lines, rect)
+    if split is None:
+        # Edge-based detection dies on one centred stamp or watermark
+        # crossing the gutter; the crossing-count scan tolerates those.
+        split = robust_column_split(avail_lines, rect)
 
     units = build_page_units(
         lines, available, body, scale, split, page_label, footnote_keys, cfg
@@ -1381,7 +1555,12 @@ def process_page(
     units.sort(key=lambda u: (u.column, round(u.bbox[1], 1), u.bbox[0]))
 
     char_count = sum(len(u.text) for u in units)
-    needs_ocr = char_count < 60
+    # A page needs the model to read the image when there is (almost) no text
+    # layer at all, or when the layer was a shattered scan-OCR overlay: the
+    # reassembled fragments are readable but word order and spacing inside
+    # them are only as good as the scan's own OCR, so a fresh transcription
+    # from the page image beats verifying against them.
+    needs_ocr = char_count < 60 or fragmented
 
     return PageResult(
         index=page_index,
@@ -1555,7 +1734,9 @@ def verify_page(
             f"for any footnotes, for example `[^p{result.label}-1]`."
         )
         out, usage = call_openrouter(cfg, cfg.ocr_model, OCR_SYSTEM, user, png)
-        out = strip_fences(out or "")
+        if out is None:
+            return result.index, None, "api-error", usage
+        out = strip_fences(out)
         if not out or len(out) < 20:
             return result.index, None, "ocr-failed", usage
         return result.index, out, "ocr", usage
@@ -1571,7 +1752,12 @@ def verify_page(
         "Return the corrected Markdown for this page only."
     )
     out, usage = call_openrouter(cfg, cfg.verify_model, VERIFY_SYSTEM, user, png)
-    out = strip_fences(out or "")
+    if out is None:
+        # The call itself failed (auth, credit, network, provider outage).
+        # Report that as its own status — calling it "rejected" would blame
+        # the model for output it never produced.
+        return result.index, None, "api-error", usage
+    out = strip_fences(out)
     if verification_is_safe(draft, out, image_lines):
         return result.index, out, "verified", usage
     return result.index, None, "rejected", usage
@@ -1745,6 +1931,7 @@ def build_frontmatter(
         f"pages_verified: {statuses.get('verified', 0)}",
         f"pages_ocr: {statuses.get('ocr', 0)}",
         f"pages_rejected: {statuses.get('rejected', 0)}",
+        f"pages_api_errors: {statuses.get('api-error', 0)}",
         "status: unverified-by-human",
         "---",
         "",
@@ -1826,10 +2013,14 @@ def convert_pdf(
 
     page_lines: Dict[int, List[Line]] = {}
     page_rects: Dict[int, Tuple[float, float, float, float]] = {}
+    page_fragmented: Dict[int, bool] = {}
+    page_splits: Dict[int, Optional[float]] = {}
     for idx in sorted(analysis_indices):
-        lines, _ = collect_lines(doc[idx])
+        lines, _, fragmented, frag_split = collect_lines(doc[idx])
         page_lines[idx] = lines
         page_rects[idx] = tuple(doc[idx].rect)
+        page_fragmented[idx] = fragmented
+        page_splits[idx] = frag_split
 
     chrome, labels = detect_chrome(page_lines, page_rects)
     body = body_font_size(page_lines)
@@ -1853,6 +2044,8 @@ def convert_pdf(
                 fig_dir,
                 rel_dir,
                 cfg,
+                fragmented=page_fragmented.get(idx, False),
+                preset_split=page_splits.get(idx),
             )
         )
         emit("extract", done=position, total=len(indices), label=label)
@@ -1866,7 +2059,7 @@ def convert_pdf(
     rejected_indices: set = set()
     ocr_pages = [r for r in results if r.needs_ocr]
     if ocr_pages and cfg.ocr_mode == "off":
-        log(cfg, f"  {len(ocr_pages)} pages have no text layer and OCR is off")
+        log(cfg, f"  {len(ocr_pages)} pages have no reliable text layer and OCR is off")
 
     needs_model = []
     for result in results:
@@ -1890,7 +2083,7 @@ def convert_pdf(
             for fut in as_completed(futures):
                 idx, revised, status, usage = fut.result()
                 statuses[status] += 1
-                if status in ("rejected", "ocr-failed"):
+                if status in ("rejected", "ocr-failed", "api-error"):
                     rejected_indices.add(idx)
                 for key, value in usage.items():
                     totals_usage[key] = totals_usage.get(key, 0) + value
@@ -1916,6 +2109,8 @@ def convert_pdf(
             raise Cancelled()
         if statuses.get("rejected"):
             log(cfg, f"  {statuses['rejected']} page(s) rejected, heuristic output kept")
+        if statuses.get("api-error"):
+            log(cfg, f"  {statuses['api-error']} page(s) hit API errors, heuristic output kept")
     elif needs_model and not cfg.api_key:
         log(cfg, "  OPENROUTER_API_KEY not set: skipping the model pass")
         emit("verify-skipped", reason="no api key")
@@ -1965,6 +2160,7 @@ def convert_pdf(
         "rejected": statuses.get("rejected", 0),
         "ocr": statuses.get("ocr", 0),
         "ocr_failed": statuses.get("ocr-failed", 0),
+        "api_errors": statuses.get("api-error", 0),
         "rejected_pages": [
             r.label for r in results if r.index in rejected_indices
         ],

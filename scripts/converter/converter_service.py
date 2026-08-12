@@ -201,9 +201,17 @@ def build_source_note(
             f"extraction: {', '.join(summary.get('rejected_pages', [])) or 'see conversion'}"
         )
     if summary.get("ocr"):
-        flags.append(f"{summary['ocr']} page(s) had no text layer and were transcribed by OCR")
+        flags.append(
+            f"{summary['ocr']} page(s) had no reliable text layer and were "
+            f"transcribed from the page image"
+        )
     if summary.get("ocr_failed"):
         flags.append(f"{summary['ocr_failed']} page(s) could not be transcribed at all")
+    if summary.get("api_errors"):
+        flags.append(
+            f"{summary['api_errors']} page(s) hit API errors and kept the "
+            f"heuristic extraction — check the OpenRouter key/credit and reconvert"
+        )
     flag_block = "\n".join(f"- {f}" for f in flags) if flags else "- None"
 
     return f"""---
