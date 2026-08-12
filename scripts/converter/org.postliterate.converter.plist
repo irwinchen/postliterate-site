@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
+  "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>org.postliterate.converter</string>
+
+  <key>ProgramArguments</key>
+  <array>
+    <string>/Users/irwinchen/Documents/postliterate-site/scripts/converter/run.sh</string>
+  </array>
+
+  <key>WorkingDirectory</key>
+  <string>/Users/irwinchen/Documents/postliterate-site/scripts/converter</string>
+
+  <key>RunAtLoad</key>
+  <true/>
+
+  <key>KeepAlive</key>
+  <true/>
+
+  <key>StandardOutPath</key>
+  <string>/Users/irwinchen/Library/Logs/postliterate-converter.log</string>
+
+  <key>StandardErrorPath</key>
+  <string>/Users/irwinchen/Library/Logs/postliterate-converter.error.log</string>
+</dict>
+</plist>
