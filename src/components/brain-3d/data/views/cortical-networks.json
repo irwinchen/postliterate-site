@@ -18,6 +18,13 @@
     "zatorre-belin-chapter",
     "norman-haignere-2015",
     "chen-2023",
+    "wolf-2018",
+    "dehaene-2014",
+    "reich-2011",
+    "dehaene-lambertz-2018",
+    "tamir-2016",
+    "simony-2016",
+    "yao-2011",
     "kanwisher-1997",
     "deen-2015",
     "jouravlev-2019",
@@ -192,6 +199,79 @@
         "phelps-2005"
       ]
     },
+    "reading": {
+      "displayNum": "VWFA",
+      "label": "Reading (VWFA)",
+      "color": "#E8C547",
+      "source": "Reich 2011 · Dehaene 2014 · Dehaene-Lambertz 2018",
+      "parcels": [
+        "cn.VWFA-L"
+      ],
+      "paperIds": [
+        "reich-2011",
+        "dehaene-2014",
+        "dehaene-lambertz-2018"
+      ]
+    },
+    "deepreading": {
+      "_comment_": "An OVERLAY, not a network. It owns no parcels and no colour of its own — see the overlay handling in view-loader.js. Wolf 2018 is explicit that the deep-reading processes 'are not meant as an exclusive list, nor do they appear in the brain in any single sequence or configuration', so drawing this as a tenth system with its own hue would assert the dedicated circuit the whole figure exists to deny. Each borrowed parcel lights in its home network's colour instead.",
+      "_comment_omissions_": "Three deliberate exclusions, all of which would be easy to add and all of which would be worse. (1) cn.FFA-L is absent: Dehaene 2014 has literacy pushing face responses OUT of the left fusiform, so the FFA is what reading displaces rather than what it recruits. It belongs in the overlap copy, not the parcel list. (2) The salience network is absent even though Wolf's empathy section names insula and cingulate — she is glossing Tania Singer, which nobody here has read, so drawing that leg would let a trade-book paraphrase set the anatomy. (3) MD contributes only its two frontal nodes: Wolf names left and right prefrontal cortex for hypothesis generation and evaluation, and says nothing about the parietal MD nodes.",
+      "displayNum": "DEEP",
+      "label": "Deep reading",
+      "color": "#8A8580",
+      "overlay": true,
+      "source": "Wolf 2018 · Dehaene 2014 · Reich 2011 · Tamir 2016 · Simony 2016 · Yao 2011",
+      "parcelsByNetwork": {
+        "reading": [
+          "cn.VWFA-L"
+        ],
+        "language": [
+          "cn.IFGorb-L",
+          "cn.IFG-L",
+          "cn.MFG-L",
+          "cn.AntTemp-L",
+          "cn.MidPostTemp-L",
+          "cn.PostTemp-L",
+          "cn.AngG-L"
+        ],
+        "tom": [
+          "cn.TPJ-L",
+          "cn.TPJ-R",
+          "cn.dMPFC-L",
+          "cn.dMPFC-R",
+          "cn.mMPFC"
+        ],
+        "episodic": [
+          "cn.Hipp-L",
+          "cn.Hipp-R",
+          "cn.PHC-L",
+          "cn.PHC-R",
+          "cn.RSC",
+          "cn.vMPFC",
+          "cn.PC-L",
+          "cn.PC-R"
+        ],
+        "md": [
+          "cn.MD-MFG-L",
+          "cn.MD-MFG-R"
+        ],
+        "prosody": [
+          "cn.STS-R",
+          "cn.STG-R"
+        ],
+        "motor": [
+          "cn.M1-L"
+        ]
+      },
+      "paperIds": [
+        "wolf-2018",
+        "dehaene-2014",
+        "reich-2011",
+        "tamir-2016",
+        "simony-2016",
+        "yao-2011"
+      ]
+    },
     "music": {
       "displayNum": "MUS",
       "label": "Music",
@@ -209,6 +289,8 @@
     }
   },
   "networkOrder": [
+    "deepreading",
+    "reading",
     "language",
     "md",
     "tom",

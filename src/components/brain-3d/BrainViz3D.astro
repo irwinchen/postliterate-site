@@ -340,6 +340,9 @@ const hasPaperContent = Boolean(
       const btn = document.createElement('button');
       btn.className = 'brain-3d__chip';
       btn.dataset.network = id;
+      // An overlay owns no tissue, so it must not look like one more network
+      // sitting alongside the others. CSS gives it a dashed outline.
+      if (net.overlay) btn.dataset.overlay = 'true';
       btn.innerHTML = inner;
       btn.style.setProperty('--chip-color', net.color);
       btn.style.setProperty('--chip-text-color', pickContrastText(net.color));
@@ -651,7 +654,14 @@ const hasPaperContent = Boolean(
   // === Renderer + leader-line overlay ===
   let renderer;
   if (window.WebGLRenderingContext) {
-    renderer = createBrainRenderer({ canvas, view, viewState });
+    // Chips speak in network ids; the renderer needs overlay ids expanded into
+    // the per-home-network channels that carry the borrowed colours. For a view
+    // with no overlays expandActive is the identity, so this is a no-op there.
+    const rendererState = {
+      activeNetworks: () => view.expandActive(viewState.activeNetworks()),
+      subscribe: viewState.subscribe,
+    };
+    renderer = createBrainRenderer({ canvas, view, viewState: rendererState });
     renderer.onAfterRender(drawLeaderLines);
   } else {
     canvas.replaceWith(Object.assign(document.createElement('p'), {

@@ -268,6 +268,20 @@
   color: var(--chip-text-color, white);
   border-color: var(--chip-color);
 }
+/* An overlay chip lights parcels that belong to other networks, in those
+   networks' colours. It has no colour of its own to fill with, so it reads as
+   an outline instead — the visual claim being "this is a way of using the
+   others", not "this is one more of them". */
+.brain-3d__chip[data-overlay] {
+  border-style: dashed;
+  border-inline-start-style: solid;
+}
+.brain-3d__chip[data-overlay].is-active {
+  background: transparent;
+  color: var(--fg);
+  border-color: var(--chip-color);
+  box-shadow: inset 0 0 0 1px var(--chip-color);
+}
 .brain-3d__chip-num {
   font-weight: 600;
   font-size: 0.6rem;

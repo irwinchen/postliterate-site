@@ -28,6 +28,15 @@ const resolved = loadView({ viewConfig, registry, papersRaw });
 
 const cnIds = Object.keys(parcelsRaw).filter((id) => id.startsWith('cn.'));
 
+// An overlay contributes a synthetic membership per home network
+// (`deepreading::tom`) so borrowed parcels glow in the colour they already had.
+// Tests about which real networks a parcel belongs to must ignore those.
+const isChannel = (id) => id.includes('::');
+const homeNetworks = (parcel) => parcel.networks.filter((n) => !isChannel(n));
+const overlayIds = Object.entries(viewConfig.networks)
+  .filter(([, def]) => def.overlay)
+  .map(([id]) => id);
+
 describe('derived centroids stay in sync with the mesh', () => {
   it('every cn.* centroid matches scripts/derive-parcel-centroids.mjs', () => {
     const out = execFileSync(
@@ -221,17 +230,17 @@ describe('parcels land where the anatomy says they should', () => {
 });
 
 describe('cortical-networks view resolves', () => {
-  it('loads all eight networks in declared order', () => {
+  it('loads all ten networks plus the overlay in declared order', () => {
     expect(resolved.networkOrder).toEqual([
-      'language', 'md', 'tom', 'prosody', 'music', 'face',
-      'motor', 'salience', 'episodic',
+      'deepreading', 'reading', 'language', 'md', 'tom', 'prosody', 'music',
+      'face', 'motor', 'salience', 'episodic',
     ]);
   });
 
   it('resolves every parcel reference and every paper reference', () => {
     // loadView throws on an unknown parcel or paper, so reaching here is most
     // of the assertion; this pins the counts so a silent drop is caught too.
-    expect(Object.keys(resolved.parcels)).toHaveLength(50);
+    expect(Object.keys(resolved.parcels)).toHaveLength(51);
     expect(resolved.papers).toHaveLength(viewConfig.papers.length);
   });
 
@@ -262,7 +271,7 @@ describe('cortical-networks view resolves', () => {
       'cn.dACC': ['md', 'salience'],
     };
     for (const [pid, nets] of Object.entries(shared)) {
-      expect(resolved.parcels[pid].networks, pid).toEqual(nets);
+      expect(homeNetworks(resolved.parcels[pid]), pid).toEqual(nets);
     }
   });
 
@@ -316,15 +325,31 @@ describe('provenance claims stay honest', () => {
     expect([...cited].sort()).toEqual([...viewConfig.papers].sort());
   });
 
+  // Sources that were read cover to cover but are deliberately NOT tagged
+  // PRIMARY-FULL, because the tag records what kind of source something is and
+  // not whether anyone opened it. Keep this list tiny and always say why.
+  const READ_BUT_NOT_PRIMARY = {
+    'wolf-2018': 'Trade book. Letters Two and Three read in full; it is the source for the deep-reading construct and reports no imaging of its own, so its neural claims are second-hand by construction. Retagging it PRIMARY-FULL to make this test pass would be a lie about the evidence, and would silently promote the overlay from partial to read.',
+  };
+
   it('cites nothing that has not been read in full', () => {
     // Reached 2026-08-05 after every cited paper was obtained and read. This
     // guards the property rather than assuming it: adding a citation that is
     // abstract-only or reference-list-only will fail here, which is the moment
     // to either read it or accept the network dropping to 'partial'.
     const unread = viewConfig.papers.filter(
-      (id) => papersRaw[id]?.access !== 'PRIMARY-FULL',
+      (id) => papersRaw[id]?.access !== 'PRIMARY-FULL' && !READ_BUT_NOT_PRIMARY[id],
     );
     expect(unread, `not read in full: ${unread.join(', ')}`).toEqual([]);
+  });
+
+  it('documents every citation that is exempt from the read-in-full rule', () => {
+    // The exemption list may not rot into a place to hide unread sources.
+    for (const [id, why] of Object.entries(READ_BUT_NOT_PRIMARY)) {
+      expect(viewConfig.papers, `${id} is exempted but not cited`).toContain(id);
+      expect(why.length, `${id} needs a real reason`).toBeGreaterThan(80);
+      expect(papersRaw[id].note, `${id} must carry its scope limits`).toBeTruthy();
+    }
   });
 
   it('keeps the tiers honest about what was actually read', () => {
@@ -334,7 +359,13 @@ describe('provenance claims stay honest', () => {
     // Nothing may sit at 'background' — that tier means an unverified source,
     // and the whole point of the verification pass was to clear it.
     expect(Object.entries(tiers).filter(([, t]) => t === 'background')).toEqual([]);
-    expect(Object.values(tiers).every((t) => t === 'read'), JSON.stringify(tiers)).toBe(true);
+    // Every network is at 'read'. The deep-reading overlay is not, and must not
+    // be: it cites Wolf, whose account of the anatomy is a synthesis of other
+    // people's imaging. A capacity nobody has localised should not wear the
+    // same badge as one measured with a localiser contrast.
+    const notRead = Object.entries(tiers).filter(([, t]) => t !== 'read').map(([id]) => id);
+    expect(notRead, JSON.stringify(tiers)).toEqual(['deepreading']);
+    expect(tiers.deepreading).toBe('partial');
   });
 
   it('gives every network panel copy', () => {
@@ -364,14 +395,95 @@ describe('provenance claims stay honest', () => {
     // never renders unexplained.
     const sharing = new Set();
     for (const p of Object.values(resolved.parcels)) {
-      for (let i = 0; i < p.networks.length; i++) {
-        for (let j = i + 1; j < p.networks.length; j++) {
-          sharing.add([p.networks[i], p.networks[j]].sort().join('+'));
+      // Real memberships only. A borrowed parcel trivially "shares" itself with
+      // the overlay channel that borrowed it, which is plumbing, not an overlap.
+      const nets = homeNetworks(p);
+      for (let i = 0; i < nets.length; i++) {
+        for (let j = i + 1; j < nets.length; j++) {
+          sharing.add([nets[i], nets[j]].sort().join('+'));
         }
       }
     }
     for (const key of sharing) {
       expect(content.overlap(key.split('+')), `missing overlap copy for ${key}`).toBeTruthy();
     }
+  });
+
+  it('explains the overlay against every network it borrows from', () => {
+    // Lighting the overlay next to one of its donors is the main way a reader
+    // will use this chip, so each of those pairs needs copy.
+    const content = createViewContent(contentConfig);
+    for (const overlayId of overlayIds) {
+      for (const homeId of resolved.networks[overlayId].borrowsFrom) {
+        expect(
+          content.overlap([overlayId, homeId]),
+          `missing overlap copy for ${overlayId} + ${homeId}`,
+        ).toBeTruthy();
+      }
+    }
+  });
+});
+
+describe('the deep-reading overlay borrows rather than owns', () => {
+  const overlay = resolved.networks.deepreading;
+
+  it('is marked as an overlay and declares no parcels of its own', () => {
+    expect(overlay.overlay).toBe(true);
+    expect(viewConfig.networks.deepreading.parcels).toBeUndefined();
+  });
+
+  it('owns no parcel that is not already a member of a real network', () => {
+    // The claim the whole chip makes. If this ever fails, the overlay has
+    // acquired tissue of its own and stopped being an overlay.
+    for (const pid of overlay.parcelIds) {
+      expect(homeNetworks(resolved.parcels[pid]).length, `${pid} has no home network`)
+        .toBeGreaterThan(0);
+    }
+  });
+
+  it('never gets a colour of its own in the renderer palette', () => {
+    // The chip carries a neutral hex for its own styling, but no parcel may
+    // ever be painted with it — borrowed regions keep their home colour.
+    const colors = resolved.networkColors();
+    expect(colors.deepreading).toBeUndefined();
+    for (const homeId of overlay.borrowsFrom) {
+      expect(colors[`deepreading::${homeId}`]).toEqual(resolved.networks[homeId].rgb);
+    }
+  });
+
+  it('expands to its channels for the renderer and leaves other ids alone', () => {
+    const expanded = resolved.expandActive(['deepreading', 'music']);
+    expect(expanded).toContain('music');
+    expect(expanded).not.toContain('deepreading');
+    for (const homeId of overlay.borrowsFrom) {
+      expect(expanded).toContain(`deepreading::${homeId}`);
+    }
+    expect(resolved.expandActive(['language', 'tom'])).toEqual(['language', 'tom']);
+  });
+
+  it('leaves the fusiform face area unlit', () => {
+    // Deliberate: literacy pushes face responses OUT of the left fusiform
+    // (Dehaene 2014), so the FFA is what reading displaces, not what it
+    // recruits. Adding it here would invert the finding.
+    expect(overlay.parcelIds).not.toContain('cn.FFA-L');
+    expect(overlay.parcelIds).toContain('cn.VWFA-L');
+  });
+
+  it('keeps the word form area clear of its fusiform neighbour', () => {
+    const d = Math.hypot(
+      ...parcelsRaw['cn.VWFA-L'].centroid.map((v, i) => v - parcelsRaw['cn.FFA-L'].centroid[i]),
+    );
+    const need = parcelsRaw['cn.VWFA-L'].radius + parcelsRaw['cn.FFA-L'].radius;
+    expect(d, `VWFA/FFA separation ${d.toFixed(3)} vs ${need}`).toBeGreaterThan(need);
+  });
+
+  it('places the word form area posterior, lateral and superior to the FFA', () => {
+    // All three relations are reported in the literature the parcel cites;
+    // a future retune of the fusiform slices must not quietly break them.
+    const v = parcelsRaw['cn.VWFA-L'].centroid;
+    const f = parcelsRaw['cn.FFA-L'].centroid;
+    expect(v[2], 'VWFA posterior to FFA').toBeLessThan(f[2]);
+    expect(v[0], 'VWFA lateral to FFA').toBeLessThan(f[0]);
+    expect(v[1], 'VWFA superior to FFA').toBeGreaterThan(f[1]);
   });
 });

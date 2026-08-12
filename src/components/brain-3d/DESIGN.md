@@ -5,6 +5,88 @@ neuro-anatomical figures for the *After the Book* project. Written so a fresh
 Claude session can resume the work without re-deriving architecture decisions
 from scratch. Mirrors the convention used by `scripts/dashboard/DESIGN.md`.
 
+## Update (2026-08-11) — Deep Reading as an overlay; VWFA joins the figure
+
+Two additions, one of which is a new *kind* of thing on this figure.
+
+**`reading` (VWFA) is an ordinary tenth network.** One parcel, `cn.VWFA-L`,
+derived as the posterior quarter × lateral half of `lh.fusiform` — the
+occipitotemporal sulcus rather than the fusiform crown, which is where Reich
+2011 puts it. Derived that way it reproduces all three relations to `cn.FFA-L`
+that the literature reports (posterior, lateral, slightly superior) and clears
+it by 0.203 against a 0.13 radius sum. A test pins all three relations plus the
+separation, because a future retune of the fusiform slices would otherwise
+break them silently.
+
+Reich reports **Talairach** (−42, −57, −6); Dehaene-Lambertz 2018 reports MNI
+for the same region. Only the Talairach pair is stored, per the one-space-per-parcel
+rule that Belin already forced.
+
+**`deepreading` is an overlay, which is new machinery.** It owns no parcels and
+no colour. Wolf 2018 is explicit that the deep-reading processes "are not meant
+as an exclusive list, nor do they appear in the brain in any single sequence or
+configuration", so drawing this as an eleventh hue would assert precisely the
+dedicated circuit the figure exists to deny.
+
+The renderer computes glow by intersecting a parcel's memberships with the
+active set, so an overlay could not simply be one more id — every borrowed
+parcel would turn one new colour. Instead each overlay resolves into one
+synthetic channel per home network (`deepreading::tom`), coloured like that
+home network. Chips still toggle the single overlay id; `expandActive()` maps
+it to its channels on the way to the renderer. **The renderer and `emissive.js`
+were not touched.** `BrainViz3D` wraps the view-state in a four-line adapter;
+for a view with no overlays `expandActive` is the identity.
+
+Guardrails in `view-loader`: an overlay may not declare `parcels`, and every
+parcel it borrows must *already* be a member of the network it borrows from.
+Without that second check an overlay could quietly assert the hippocampus is a
+language region.
+
+**Three deliberate omissions, all of which would be easy to add and all of
+which would be worse:**
+
+- **`cn.FFA-L` is unlit.** Dehaene 2014 has literacy pushing face responses
+  *out* of the left fusiform and into the right FFA — words and faces competing
+  for territory. The FFA is what reading displaces, not what it recruits.
+  Adding it would invert the finding. A test asserts its absence.
+- **Salience is undrawn.** Wolf's empathy section names insula and cingulate,
+  but she is glossing Tania Singer, unread here. Drawing that leg would let a
+  trade-book paraphrase set the anatomy. Most likely thing to add next.
+- **MD contributes only its two frontal nodes.** Wolf names left and right
+  prefrontal cortex for generating and evaluating interpretations; she says
+  nothing about the parietal MD nodes.
+
+**The overlay sits at `partial`, and must.** It cites `wolf-2018`, tagged
+`SECONDARY-ONLY` because it is a trade book that reports no imaging of its own.
+This broke `cites nothing that has not been read in full`, which conflated two
+axes: whether a source was opened, and what kind of source it is. Wolf was read
+in full. The fix is a one-entry `READ_BUT_NOT_PRIMARY` exemption carrying its
+reason, plus a second test that the exemption stays documented and cited — not
+a retag, which would have silently promoted the overlay to `read`.
+`keeps the tiers honest` now asserts the not-read set is exactly `['deepreading']`.
+
+**Sources read in full for this pass:** Wolf 2018 (Letters Two and Three),
+Dehaene 2014, Reich 2011, Dehaene-Lambertz 2018, Tamir 2016, Simony 2016,
+Yao 2011. Scope limits worth carrying: Simony's stimulus was a **spoken** story,
+not text; Tamir's dmPFC effect for *abstract* content was about twice its social
+effect and its mediation rests on n=26; Yao's inner-voice result is 16 subjects
+and only for quoted speech.
+
+**Naming trap.** `simony-2016` (Nature Communications, DMN reconfiguration) is
+*not* the pre-existing `hasson-2016` (a TiCS review). Uri Hasson is senior
+author on both and the vault filenames use his name for both. Do not merge them.
+Unrelated, and untouched: the existing `hasson-2016` entry carries year 2016
+against a DOI that resolves to the 2015 TiCS article — worth checking when the
+`/brain/compare` papers finally get assessed.
+
+**Partly verified (updated 2026-08-12).** The figure screenshot pipeline
+captured `/brain/networks` cleanly, which confirms the chip: **Deep reading**
+renders at the top of the network column with the dashed outline and a
+half-filled evidence dot (`partial`), above **Reading (VWFA)** with a filled
+dot. The capture is of the default state (Language active), so what remains
+unconfirmed is the **active** overlay — whether the borrowed parcels light in
+their home colours across the mesh. Click the chip to check that.
+
 ## Update (2026-08-05j) — every cited source read in full
 
 Pritchett arrived and the Zatorre & Belin container was identified, closing the

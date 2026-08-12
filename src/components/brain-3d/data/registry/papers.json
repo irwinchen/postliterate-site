@@ -1,5 +1,69 @@
 {
   "_comment_": "Citation source-of-truth. Per-paper entries used in disclaimers and source panels.",
+  "_comment_deep_reading_": "The seven entries below were added for the `reading` network and the `deepreading` overlay, and all were read in full first. Two naming traps to avoid: (1) `simony-2016` is the Nature Communications paper on DMN reconfiguration during narrative; the pre-existing `hasson-2016` is a different paper, a Trends in Cognitive Sciences review, and Uri Hasson is senior author on both. Do not merge them. (2) `wolf-2018` is a trade book, so it is tagged SECONDARY-ONLY on purpose — it synthesises other people's imaging rather than reporting any, and citing it drags the overlay's computed tier to `partial`. That is the correct outcome and should not be papered over by retagging.",
+  "wolf-2018": {
+    "authors": "Wolf",
+    "year": 2018,
+    "title": "Reader, Come Home: The Reading Brain in a Digital World",
+    "venue": "Harper",
+    "isbn": "9780062388780",
+    "access": "SECONDARY-ONLY",
+    "note": "Letters Two and Three read in full. Source of the term 'deep reading' as used here and of its three-family taxonomy: evocative (imagery, empathy and perspective-taking, background knowledge), analytical (analogy and inference, critical analysis) and generative (insight). Wolf states outright that these 'are not meant as an exclusive list, nor do they appear in the brain in any single sequence or configuration' — the sentence this overlay is built on. A trade book reporting no imaging of its own: its neural claims are glosses of other people's work, several at popular-science remove (mirror neurons; a Psychological Bulletin review whose conclusion she quotes as 'creativity is everywhere'). Treat as the source for the construct, never for the anatomy. It also misattributes the Konrath empathy meta-analysis to Stanford."
+  },
+  "dehaene-2014": {
+    "authors": "Dehaene",
+    "year": 2014,
+    "title": "Reading in the Brain Revised and Extended: Response to Comments",
+    "venue": "Mind & Language",
+    "doi": "10.1111/mila.12053",
+    "access": "PRIMARY-FULL",
+    "note": "Source for the cortical-competition claim: as literacy rises, responses to faces fall in the left hemisphere and rise in the right FFA, so words and faces compete for territory in the left occipitotemporal sulcus. Dehaene goes further and suggests part or all of the right-lateralisation of face recognition is itself a consequence of literacy, since most fMRI studies scan highly literate graduate students. Also the source for the VWFA's connectivity constraint (its fibres preferentially target left superior temporal and inferior frontal language areas) and for a left premotor contribution to reading handwritten script."
+  },
+  "reich-2011": {
+    "authors": "Reich, Szwed, Cohen & Amedi",
+    "year": 2011,
+    "title": "A ventral visual stream reading center independent of visual experience",
+    "venue": "Current Biology",
+    "doi": "10.1016/j.cub.2011.01.040",
+    "access": "PRIMARY-FULL",
+    "note": "Eight congenitally blind subjects reading Braille peaked in the VWFA, within 1-2 functional voxels of the canonical sighted location, and stayed left-lateralised whichever hand they read with. Braille words beat a verb-generation control in the same region, so the response is reading-specific rather than general language. The authors propose 'metamodal word form area' as the better name. Reports Talairach, not MNI: sighted (-42, -57, -6), blind (-38, -60, -8)."
+  },
+  "dehaene-lambertz-2018": {
+    "authors": "Dehaene-Lambertz, Monzalvo & Dehaene",
+    "year": 2018,
+    "title": "The emergence of the visual word form: Longitudinal evolution of category-specific ventral visual areas during reading acquisition",
+    "venue": "PLOS Biology",
+    "doi": "10.1371/journal.pbio.2004103",
+    "access": "PRIMARY-FULL",
+    "note": "Ten children scanned across seven sessions through their first year of reading. Word-evoked activation rose across sessions in left fusiform (MNI -42 -50 -22) among other sites, and 8 of 10 showed a VWFA cluster once reading was established. Independently reproduces the face-displacement result longitudinally: as reading speed rose, responses to faces increased in the *right* fusiform. Reports MNI; the parcel stores Reich's Talairach instead, since one parcel may not hold both spaces."
+  },
+  "tamir-2016": {
+    "authors": "Tamir, Bricker, Dodell-Feder & Mitchell",
+    "year": 2016,
+    "title": "Reading fiction and reading minds: the role of simulation in the default network",
+    "venue": "Social Cognitive and Affective Neuroscience",
+    "doi": "10.1093/scan/nsv114",
+    "access": "PRIMARY-FULL",
+    "note": "Splits literary reading across two default-network subsystems: the medial temporal lobe subsystem tracked how vividly a passage described a scene, the dorsomedial prefrontal subsystem tracked whether it described people and minds. The core subsystem tracked neither. Two things the headline glosses: the dmPFC subsystem responded more strongly to abstract than to vivid passages, and that effect (d=1.07) was about twice the size of the social effect (d=0.57). The authors' own limitations: n=26, so the brain-behaviour and mediation estimates 'may be overestimates of the true population effect', the design is cross-sectional and cannot establish causal direction, and a reverse model in which theory of mind drives fiction reading remains viable."
+  },
+  "simony-2016": {
+    "authors": "Simony, Honey, Chen, Lositsky, Yeshurun, Wiesel & Hasson",
+    "year": 2016,
+    "title": "Dynamic reconfiguration of the default mode network during narrative comprehension",
+    "venue": "Nature Communications",
+    "doi": "10.1038/ncomms12141",
+    "access": "PRIMARY-FULL",
+    "note": "Default-network coupling tracked narrative coherence: absent at rest and under word-scrambling, present under paragraph-scrambling and the intact story. Coupling was history-dependent in the default network but not in auditory cortex, and its strength per story segment predicted later recall of that segment (r=0.6, q(FWER)<0.02). Scope limit that matters for a reading figure: the stimulus was a spoken story, not text. n=18 for the imaging, a separate n=30 for the memory test."
+  },
+  "yao-2011": {
+    "authors": "Yao, Belin & Scheepers",
+    "year": 2011,
+    "title": "Silent reading of direct versus indirect speech activates voice-selective areas in the auditory cortex",
+    "venue": "Journal of Cognitive Neuroscience",
+    "doi": "10.1162/jocn_a_00022",
+    "access": "PRIMARY-FULL",
+    "note": "The inner voice, measured. Silent reading of direct speech ('Mary said: I am hungry') drove voice-selective right auditory cortex harder than meaning-equivalent indirect speech, in two clusters along posterior and middle right STS, with the regions defined per subject by a Belin 2000 voice localiser. Not a difficulty effect: reading time per word and comprehension accuracy did not differ. Clearly right-lateralised, which the authors contrast with earlier imagery studies that found bilateral or left-dominant patterns and attribute to their task requiring no metacognitive judgement. 16 of 26 subjects survived exclusion."
+  },
   "parsons-2001": {
     "authors": "Parsons & Osherson",
     "year": 2001,

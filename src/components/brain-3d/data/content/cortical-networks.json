@@ -157,6 +157,50 @@
         "Phelps & LeDoux 2005"
       ]
     },
+    "reading": {
+      "tag": "The one patch of cortex reading takes for itself",
+      "whatItDoes": [
+        "Recognises written words. It responds to letter strings within about a fifth of a second, across fonts, across cases, across positions in the visual field, and it does this in every writing system anyone has tested. How strongly it responds tracks how well a person reads: it is nearly silent in adults who never learned, and it grows through a child's first year of instruction.",
+        "It is barely visual, despite the name. People blind from birth reading Braille with their fingers peak in the same spot, within a couple of millimetres of where sighted readers do, and they stay left-sided whichever hand they read with. What defines the region seems to be the job rather than the sense that feeds it.",
+        "Reading is about five thousand years old and Braille under two hundred, which is nowhere near enough time to evolve a region for either. So this tissue was doing something else first, and the something else was recognising objects and faces."
+      ],
+      "whatLightsUp": [
+        "A small patch on the underside of the brain, left side, toward the back, on the outer bank of a fold that runs front to back."
+      ],
+      "checkable": {
+        "symbol": "✓",
+        "text": "Yes — words versus other visual categories, reproducible to within a couple of voxels across individuals and even across blindness."
+      },
+      "sources": [
+        "Reich 2011",
+        "Dehaene 2014",
+        "Dehaene-Lambertz 2018"
+      ]
+    },
+    "deepreading": {
+      "tag": "Borrowed everything, owns nothing",
+      "whatItDoes": [
+        "This chip is not a network. Nothing lights here that does not already belong to something else on this figure, which is the point of drawing it. Deep reading is a way of using systems that were built for other jobs, and each region below glows in the colour of the network it actually belongs to.",
+        "The term is Maryanne Wolf's, and she groups the processes three ways. Evocative: seeing what the sentence describes, taking a character's side, bringing what you already know to what you are being told. Analytical: reasoning by analogy, drawing inferences, judging whether the author has earned the conclusion. Generative: the thought you have that the text did not contain.",
+        "The word-recognition end of this is understood in detail. The rest is assembled from studies of narrative comprehension, which is the nearest thing anyone has scanned. Nobody has put a reader in a scanner and measured deep reading against shallow reading, so treat the lit regions as the systems a careful reader is known to recruit rather than as a circuit anyone has isolated.",
+        "The practical claim Wolf makes from this is that a capacity built out of borrowed parts is a capacity that has to be assembled in each person, over years, and can fail to be. Nothing here is protected the way speech is."
+      ],
+      "whatLightsUp": [
+        "Almost everywhere, which is the honest answer. Word recognition on the left underside, language down the left flank, the mentalising regions on both sides above and behind the ears and along the midline, the memory structures deep in the middle, two frontal patches for the hard analytical work, and the right-hand voice regions that supply the inner voice."
+      ],
+      "checkable": {
+        "symbol": "○",
+        "text": "No. There is no deep-reading localiser and no contrast that isolates it. Every constituent is checkable on its own; the assembly is an argument, not a measurement."
+      },
+      "sources": [
+        "Wolf 2018",
+        "Dehaene 2014",
+        "Reich 2011",
+        "Tamir 2016",
+        "Simony 2016",
+        "Yao 2011"
+      ]
+    },
     "music": {
       "tag": "Tunes, and only tunes",
       "whatItDoes": [
@@ -173,6 +217,18 @@
     }
   },
   "overlaps": {
+    "face+reading": "The most consequential neighbouring pair on this figure. Both sit in the left fusiform, and they appear to be fighting over it. As literacy goes up, responses to faces go down in the left hemisphere and up in the right — measured in adults ranging from illiterate to expert, and watched happening in children across their first year of reading. Learning to read evicts something. The stronger version of the claim is that face recognition is right-sided partly because the people in brain scanners are almost all highly literate graduates; in adults who never learned to read, faces are handled far more evenly across the two sides.",
+    "language+reading": "Not the same system, and joined on purpose. The fibres leaving the word-recognition patch preferentially target left temporal and left frontal language cortex rather than the neighbouring visual regions they sit closer to. That connectivity is the leading explanation for why this particular patch gets used for reading in every culture: it is the piece of visual cortex best wired to reach the parts of the brain that handle meaning.",
+    "music+reading": "An accidental meeting with a real finding behind it. The left patch drawn here for music sits on the same shelf of the temporal lobe that becomes measurably more responsive to heard speech once a person learns to read — a change found in adults who became literate late as well as in children. Literacy alters how the brain represents speech sounds, not only how it handles letters.",
+    "deepreading+reading": "Where deep reading starts, and the only part of it with a dedicated address. Everything downstream of this patch is borrowed.",
+    "deepreading+language": "The most heavily trafficked leg. Recognising the words is not reading them: the word-form patch hands off to left frontal and left temporal cortex for vocabulary, structure and meaning. This is also the part of deep reading that has to become effortless before anything else can happen, since the slower processes only get the attention that decoding does not consume.",
+    "deepreading+tom": "Following a character. When people read passages containing other people and their mental states, the mentalising subsystem of the default network responds more strongly than it does to passages without them, and how strongly it responds tracks how much fiction the reader reports having read. Two honest complications. The same subsystem responded harder to abstract passages than to vivid ones, by about twice the margin — so this is not purely a social effect. And the direction is unsettled: the design cannot rule out that being good at reading minds is what makes people read novels.",
+    "deepreading+episodic": "Holding the world of the book. The memory structures deep in the temporal lobe respond to how vividly a passage describes a scene, independent of whether anyone is in it. The midline regions do something slower: across a spoken story, their coupling builds only when the narrative is coherent, disappears when the words are shuffled, and depends on what came before rather than on the sentence at hand. How strongly they coupled during a stretch of story predicted how well listeners recalled that stretch afterwards. That work used a story people heard rather than read, which is the nearest available measurement and not the same thing.",
+    "deepreading+md": "The analytical half. Wolf's account has left prefrontal cortex generating one interpretation after another while right prefrontal cortex judges whether each is worth keeping, which is roughly the scientific method run on a paragraph. The regions she names belong to the multiple-demand system, the one that responds to difficulty of any kind. Only its two frontal nodes are lit here, because those are the ones her account actually names.",
+    "deepreading+prosody": "The inner voice, and it is measurable. Silent reading of quoted speech — Mary said: I am hungry — drives the voice-selective regions of right auditory cortex harder than the same content reported indirectly. Not a difficulty effect: reading speed per word and comprehension were the same either way. Punctuation summons a voice.",
+    "deepreading+motor": "The weakest leg drawn here, and worth saying so. Two separate claims sit behind it. Reading about movement engages motor cortex, which Wolf reports at second hand from popular accounts rather than from work anyone here has read. And recognising handwritten script recruits left premotor cortex in French and Chinese readers alike, which is well sourced but concerns how the letters were formed rather than what the passage means. This drawing cannot separate premotor from primary motor cortex, so read the lit region as a stretch rather than a site.",
+    "deepreading+face": "What deep reading costs. The face area is deliberately unlit: as literacy rises, the left fusiform gives up face responses rather than gaining them. Reading is the clearest case anyone has of a cultural invention taking cortex away from the function it evolved for.",
+    "deepreading+salience": "Nothing shared, and the gap is deliberate. Wolf's account of empathy in reading names the insula and the cingulate cortex, which is where this network sits. She is summarising someone else's imaging, and that work has not been read here, so the leg is left undrawn rather than sourced to a paraphrase in a trade book. It is the most likely thing to add next.",
     "language+md": "The contrast this whole figure exists to show. Both sit in the frontal lobe, close enough that averaging across people smears them into one system, which is how reasoning came to be thought of as a form of inner speech. Watch the two frontal clusters: one sits above and ahead of the other, near but separate.",
     "language+tom": "Neighbours that work in step. Through a story these two stay synchronised without merging. Along the fold above the ear, roughly a third of the tissue that responds to language also responds to mental-state content, which makes this the blurriest border on the figure.",
     "language+prosody": "They share a patch of right frontal cortex. The division is roughly which words were said against how they were said.",

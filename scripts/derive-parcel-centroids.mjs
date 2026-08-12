@@ -106,7 +106,25 @@ const SPECS = {
   'cn.PP-R':          { labels: ['rh.superiortemporal'], slices: [{ axis: 'y', from: 0.6, to: 1.0 }, { axis: 'z', from: 0.55, to: 1.0 }, { axis: 'x', from: 0.0, to: 0.55 }] },
   'cn.PT-L':          { labels: ['lh.superiortemporal'], slices: [{ axis: 'y', from: 0.15, to: 0.5 }, { axis: 'z', from: 0.6, to: 1.0 }, { axis: 'x', from: 0.35, to: 1.0 }] },
 
+  // === Reading: visual word form area =====================================
+  // Reich 2011 gives the canonical sighted VWFA peak as Talairach (-42, -57, -6)
+  // and locates it in the occipitotemporal sulcus — the lateral bank of the
+  // fusiform, not its crown. Hence the lateral x slice on top of a posterior y
+  // slice. The three relations this must reproduce, all from the literature:
+  // the VWFA sits posterior to the FFA, lateral to it, and slightly superior.
+  // Derived here it does all three (FFA-L is at [-0.429, -0.321, -0.411]).
+  //
+  // Placement is from the mesh, as everywhere else in this file — the Talairach
+  // peak is recorded on the parcel as reference metadata and does not drive it.
+  // Dehaene-Lambertz 2018 reports MNI for the same region; the two spaces are
+  // kept apart, so only the Talairach pair is stored. See DESIGN.md.
+  'cn.VWFA-L':        { labels: ['lh.fusiform'], slices: [{ axis: 'y', from: 0.0, to: 0.25 }, { axis: 'x', from: 0.0, to: 0.5 }] },
+
   // === Face / gesture perception ==========================================
+  // Note the neighbour above. Dehaene 2014 argues these two compete for the
+  // same cortical territory: as literacy increases, face responses fall in the
+  // left hemisphere and rise in the right FFA. Keeping VWFA and FFA-L as
+  // separate, clearly-separated spheres is the point, not an accident.
   'cn.FFA-L':         { labels: ['lh.fusiform'], slices: [{ axis: 'y', from: 0.25, to: 0.55 }] },
   'cn.FFA-R':         { labels: ['rh.fusiform'], slices: [{ axis: 'y', from: 0.25, to: 0.55 }] },
   'cn.pSTS-L':        { labels: ['lh.bankssts', 'lh.superiortemporal'], slices: [{ axis: 'y', from: 0.0, to: 0.3 }] },

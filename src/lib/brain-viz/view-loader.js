@@ -37,6 +37,19 @@ export function weakestEvidence(paperIds, papersRaw) {
   return worst;
 }
 
+// Overlay networks own no tissue. They name parcels that already belong to
+// other networks and light them in those networks' own colours, which is the
+// only honest way to draw a capacity that has no cortex of its own.
+//
+// The renderer computes a parcel's glow by intersecting its network memberships
+// with the active set, so an overlay cannot simply be one more id — that would
+// paint every borrowed parcel a single new colour and assert exactly the
+// dedicated system the overlay exists to deny. Instead each overlay resolves
+// into one synthetic channel per home network (`deepreading::tom`), coloured
+// like the home network. Chips still toggle the single overlay id;
+// `expandActive` maps it to its channels on the way to the renderer.
+export const overlayChannel = (overlayId, homeId) => `${overlayId}::${homeId}`;
+
 function validateViewConfig(cfg) {
   if (!cfg || typeof cfg !== 'object') {
     throw new Error('loadView: viewConfig must be an object');
@@ -57,7 +70,13 @@ export function loadView({ viewConfig, registry, papersRaw }) {
   const networkRgb = {};
   const parcelMembership = new Map(); // parcelId -> Set<networkId>
 
-  for (const [netId, netDef] of Object.entries(viewConfig.networks)) {
+  // Two passes: ordinary networks first, so an overlay can be checked against
+  // the memberships they establish rather than inventing its own.
+  const entries = Object.entries(viewConfig.networks);
+  const plain = entries.filter(([, def]) => !def.overlay);
+  const overlays = entries.filter(([, def]) => def.overlay);
+
+  for (const [netId, netDef] of plain) {
     const rgb = hexToRgb(netDef.color);
     const evidence = weakestEvidence(netDef.paperIds, papersRaw) ?? netDef.evidence;
     const parcelIds = Array.isArray(netDef.parcels) ? [...netDef.parcels] : [];
@@ -86,6 +105,66 @@ export function loadView({ viewConfig, registry, papersRaw }) {
       ...(evidence !== undefined ? { evidence } : {}),
     };
     networkRgb[netId] = rgb;
+  }
+
+  // --- Overlays: borrow parcels from the networks resolved above.
+  const overlayChannels = {}; // overlayId -> [channelId, …]
+  for (const [netId, netDef] of overlays) {
+    if (Array.isArray(netDef.parcels)) {
+      throw new Error(
+        `View "${viewConfig.slug}" overlay "${netId}" must use parcelsByNetwork, not parcels — an overlay owns no parcels of its own`,
+      );
+    }
+    const byNetwork = netDef.parcelsByNetwork;
+    if (!byNetwork || typeof byNetwork !== 'object') {
+      throw new Error(
+        `View "${viewConfig.slug}" overlay "${netId}" requires parcelsByNetwork`,
+      );
+    }
+    const channels = [];
+    const parcelIds = [];
+    for (const [homeId, pids] of Object.entries(byNetwork)) {
+      const home = networks[homeId];
+      if (!home) {
+        throw new Error(
+          `View "${viewConfig.slug}" overlay "${netId}" borrows from unknown network "${homeId}"`,
+        );
+      }
+      const channel = overlayChannel(netId, homeId);
+      for (const pid of pids) {
+        // The borrowed parcel must already be a member of the network it is
+        // borrowed from. Without this an overlay could quietly assert that,
+        // say, the hippocampus is a language region.
+        if (!home.parcelIds.includes(pid)) {
+          throw new Error(
+            `View "${viewConfig.slug}" overlay "${netId}" borrows "${pid}" from "${homeId}", which does not contain it`,
+          );
+        }
+        parcelMembership.get(pid).add(channel);
+        parcelIds.push(pid);
+      }
+      networkRgb[channel] = home.rgb;
+      channels.push(channel);
+    }
+    overlayChannels[netId] = channels;
+    networks[netId] = {
+      id: netId,
+      label: netDef.label,
+      // Carried for the chip and card accent only. It never reaches
+      // networkRgb, so no parcel can ever be painted with it.
+      color: netDef.color,
+      rgb: hexToRgb(netDef.color),
+      overlay: true,
+      borrowsFrom: Object.keys(byNetwork),
+      parcelIds,
+      ...(netDef.displayNum !== undefined ? { displayNum: netDef.displayNum } : {}),
+      ...(netDef.source !== undefined ? { source: netDef.source } : {}),
+      ...(Array.isArray(netDef.paperIds) ? { paperIds: [...netDef.paperIds] } : {}),
+      ...(() => {
+        const ev = weakestEvidence(netDef.paperIds, papersRaw) ?? netDef.evidence;
+        return ev !== undefined ? { evidence: ev } : {};
+      })(),
+    };
   }
 
   const networkOrder = Array.isArray(viewConfig.networkOrder)
@@ -145,5 +224,16 @@ export function loadView({ viewConfig, registry, papersRaw }) {
       allHandTuned,
     },
     networkColors: () => ({ ...networkRgb }),
+    // Chips toggle overlay ids; the renderer needs the channels those stand
+    // for. Non-overlay ids pass through untouched, so a view with no overlays
+    // gets back exactly what it handed in.
+    expandActive(activeIds) {
+      const out = [];
+      for (const id of activeIds) {
+        if (overlayChannels[id]) out.push(...overlayChannels[id]);
+        else out.push(id);
+      }
+      return out;
+    },
   };
 }
