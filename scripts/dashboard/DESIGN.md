@@ -94,6 +94,22 @@ Editing happens on the MacBook clone. Push to GitHub. Mini pulls within 30 min (
 - Phase 9 — End-to-end verification on Mini. Mostly done as we've verified along the way.
 - Today panel — daily/weekly writing plan. **Done (2026-06-03).** `scripts/dashboard/sources/book-plan.mjs` reads the hand-editable `scripts/dashboard/book-plan.json` (repo-local config, no vault dependency) and computes today's phase from the local date — `preflight` (before `start_date`), `draft` (Mon–Thu), `review` (Fri), `weekend`, or `wrapup` (past the last week). Returns `{ phase, today, blocks, week, next_week, weeks }`; the active week is the last one whose `start` ≤ today (weekends stay attached to the week that just ran). Wired into `refresh.mjs` as `snapshot.book_plan`. UI: new "Today" section, first in `admin-ui.html` (above Cover) + nav link, rendered by `renderToday()` — block cards (color-coded write/read/admin via `.today-block--*`), a this-week write/read strip, collapsible guardrails + full schedule table (active week highlighted). New `.today-*` CSS block. Plan is edited directly in `book-plan.json` (`start_date` must be a Monday). Drives the *After the Book* agent-sample push: draft Ch.2 → Ch.4 → Ch.5 → Intro → proposal over 10 weeks, with a parallel weakest-research-first reading track.
 
+- PDF converter section (2026-08-12). The Brain Paper Visualizer **UI section** was
+  replaced by a PDF → Markdown converter section (`#converter-section`, `.pdfc-*` CSS
+  block, `PdfConverterSection` class in the JS). Only the UI was swapped: the
+  `/api/papers*` routes and `scripts/papers/extract.mjs` remain in `admin.mjs`
+  (reachable by hand), and the published `/brain/papers/<slug>` views are static data
+  under `src/` and unaffected. The converter itself is a separate Python service at
+  `scripts/converter/` (FastAPI, loopback-only on :8787) that converts a dropped PDF
+  to vault Markdown with per-page vision verification (OpenRouter), files the PDF
+  under `01_Sources/PDFs/`, writes a draft source note to `01_Sources/Articles/_drafts/`,
+  and appends to the reading queue — writes whitelisted to `01_Sources/` only.
+  `admin.mjs` stream-proxies `/api/converter/*` → `127.0.0.1:8787/*` (multipart up,
+  SSE down, no buffering) so a browser on the MacBook reaches it through
+  `mediaserver.local:4322` while the service stays bound to loopback. Install and
+  launchd setup: `scripts/converter/README.md`; runs as `org.postliterate.converter`;
+  its `.venv`/`.env` are machine-local and gitignored.
+
 ## Operational gotchas (learned the hard way)
 
 These bit us during build-out; future sessions should know them up front.

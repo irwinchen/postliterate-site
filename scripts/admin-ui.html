@@ -1755,131 +1755,164 @@
       opacity: 0.6;
     }
 
-    /* ── Papers (per-paper brain viz) ─────────── */
-    .papers-intro {
-      max-inline-size: 60ch;
-      color: var(--muted);
-      margin-block-end: 1rem;
-    }
-    .papers-upload {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.75rem;
-      align-items: center;
-      margin-block-end: 1.25rem;
-    }
-    .papers-file {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.5rem;
-      padding: 0.5rem 0.9rem;
-      border: 1px dashed var(--border-subtle);
-      cursor: pointer;
-      background: var(--hover-bg-soft);
-      font-family: 'Sono', monospace;
-      font-size: 0.85rem;
-    }
-    .papers-file input[type="file"] {
-      position: absolute;
-      width: 1px;
-      height: 1px;
-      opacity: 0;
-      pointer-events: none;
-    }
-    .papers-file:focus-within {
-      outline: 2px solid var(--accent);
-      outline-offset: 2px;
-    }
-    .papers-h3 {
+    /* ── PDF to Markdown (converter → vault) ─── */
+    .pdfc {
       font-family: 'Outfit', system-ui, sans-serif;
-      font-size: 1rem;
-      font-weight: 700;
-      margin-block: 1rem 0.5rem;
     }
-    .papers-stats {
-      font-family: 'Sono', monospace;
-      font-size: 0.8rem;
+    .pdfc-eyebrow {
+      font-size: 0.75rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
       color: var(--muted);
       margin-block-end: 0.5rem;
     }
-    .papers-textarea {
-      width: 100%;
-      box-sizing: border-box;
-      font-family: 'Sono', monospace;
-      font-size: 0.78rem;
+    .pdfc-lede {
+      max-inline-size: 54ch;
+      color: var(--muted);
       line-height: 1.5;
-      background: var(--hover-bg-soft);
-      color: var(--fg);
-      border: 1px solid var(--border-subtle);
-      padding: 0.75rem;
-      resize: vertical;
+      margin-block-end: 0.75rem;
     }
-    .papers-save-row {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.75rem;
-      align-items: center;
-      margin-block: 0.75rem;
-    }
-    .papers-slug-label {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.4rem;
-      font-family: 'Outfit', system-ui, sans-serif;
-      font-size: 0.85rem;
-    }
-    .papers-slug-label code {
+    .pdfc-status {
       font-family: 'Sono', monospace;
       font-size: 0.85rem;
       color: var(--muted);
+      margin-block-end: 1.5rem;
     }
-    .papers-slug {
+    .pdfc-status[data-state="up"] { color: var(--green); }
+    .pdfc-status[data-state="down"] { color: var(--accent); }
+    .pdfc-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 280px;
+      gap: 2rem;
+      align-items: start;
+    }
+    @media (max-width: 860px) {
+      .pdfc-grid { grid-template-columns: minmax(0, 1fr); }
+    }
+    .pdfc-drop {
+      border: 2px dashed var(--border-subtle);
+      background: var(--hover-bg-soft);
+      padding: 3rem 1.5rem;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color 0.12s, background 0.12s;
+    }
+    .pdfc-drop:hover, .pdfc-drop:focus-visible { border-color: var(--accent); outline: none; }
+    .pdfc-drop[data-active="true"] { border-color: var(--accent); background: var(--hover-bg-strong); }
+    .pdfc-drop[data-busy="true"] { opacity: 0.5; pointer-events: none; }
+    .pdfc-drop-title { font-size: 1.1rem; font-weight: 600; margin-block-end: 0.25rem; }
+    .pdfc-drop-hint { font-size: 0.85rem; color: var(--muted); }
+    .pdfc-drop-file {
       font-family: 'Sono', monospace;
+      font-size: 0.8rem;
+      margin-block-start: 0.75rem;
+      color: var(--blue);
+    }
+    .pdfc-progress { margin-block-start: 1.5rem; }
+    .pdfc-progress-row {
+      display: flex;
+      justify-content: space-between;
       font-size: 0.85rem;
-      padding: 0.35rem 0.55rem;
-      background: var(--bg);
-      color: var(--fg);
-      border: 1px solid var(--border-subtle);
-      min-inline-size: 16ch;
+      margin-block-end: 0.5rem;
     }
-    .papers-slug:invalid {
-      border-color: var(--accent);
-    }
-    .papers-list {
-      display: grid;
-      gap: 0.5rem;
-    }
-    .papers-list-item {
-      display: grid;
-      grid-template-columns: 1fr auto;
-      gap: 0.5rem 1rem;
-      padding: 0.75rem 1rem;
-      border: 1px solid var(--border-subtle);
-      align-items: center;
-    }
-    .papers-list-title {
-      font-family: 'Literata', Georgia, serif;
-      font-weight: 600;
-      font-size: 0.95rem;
-    }
-    .papers-list-meta {
-      font-family: 'Sono', monospace;
+    .pdfc-progress-meta {
+      display: flex;
+      justify-content: space-between;
       font-size: 0.75rem;
       color: var(--muted);
-    }
-    .papers-list-actions {
-      display: inline-flex;
-      gap: 0.4rem;
-    }
-    .papers-list-badge {
-      display: inline-block;
+      margin-block-start: 0.5rem;
       font-family: 'Sono', monospace;
-      font-size: 0.7rem;
-      padding: 0.05rem 0.35rem;
-      margin-inline-start: 0.25rem;
-      border: 1px solid var(--border-subtle);
+    }
+    .pdfc-bar { height: 6px; background: var(--border-subtle); }
+    .pdfc-bar-fill { height: 100%; width: 0; background: var(--accent); transition: width 0.2s; }
+    .pdfc-cancel {
+      background: none;
+      border: none;
+      color: var(--accent);
+      cursor: pointer;
+      font: inherit;
+      padding: 0;
+      text-decoration: underline;
+    }
+    .pdfc-log {
+      margin-block-start: 1rem;
+      max-block-size: 180px;
+      overflow-y: auto;
+      background: var(--hover-bg-soft);
+      border-block-start: 3px solid var(--border-subtle);
+      padding: 0.75rem;
+      font-family: 'Sono', monospace;
+      font-size: 0.72rem;
+      line-height: 1.6;
       color: var(--muted);
-      vertical-align: 0.05em;
+    }
+    .pdfc-result {
+      margin-block-start: 1.5rem;
+      border-block-start: 4px solid var(--green);
+      background: var(--hover-bg-soft);
+      padding: 1.25rem;
+    }
+    .pdfc-result[data-state="failed"] { border-block-start-color: var(--accent); }
+    .pdfc-result h3 {
+      margin-block-end: 0.75rem;
+      font-size: 1.05rem;
+      font-family: 'Literata', Georgia, serif;
+    }
+    .pdfc-stats { display: flex; flex-wrap: wrap; gap: 1.5rem; margin-block-end: 1rem; }
+    .pdfc-stat b { display: block; font-size: 1.4rem; font-weight: 600; line-height: 1; }
+    .pdfc-stat span {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+    }
+    .pdfc-stat[data-warn="true"] b { color: var(--accent); }
+    .pdfc-paths { font-family: 'Sono', monospace; font-size: 0.75rem; line-height: 1.9; }
+    .pdfc-paths div { display: flex; gap: 0.75rem; }
+    .pdfc-paths dt { color: var(--muted); min-inline-size: 5.5rem; }
+    .pdfc-flag {
+      margin-block-start: 1rem;
+      border-block-start: 3px solid var(--accent);
+      background: var(--hover-bg-soft);
+      padding: 0.75rem;
+      font-size: 0.85rem;
+    }
+    .pdfc-side h3 {
+      font-size: 0.75rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-block-end: 1rem;
+      padding-block-end: 0.5rem;
+      border-block-end: 1px solid var(--border-subtle);
+    }
+    .pdfc-field { display: block; margin-block-end: 1rem; }
+    .pdfc-field > span { display: block; font-size: 0.8rem; margin-block-end: 0.25rem; }
+    .pdfc-field input, .pdfc-field select {
+      width: 100%;
+      padding: 0.45rem 0.5rem;
+      border: 1px solid var(--border-subtle);
+      background: var(--bg);
+      font: inherit;
+      font-size: 0.85rem;
+      color: var(--fg);
+    }
+    .pdfc-field input:focus, .pdfc-field select:focus { outline: 2px solid var(--accent); outline-offset: -2px; }
+    .pdfc-field small {
+      display: block;
+      font-size: 0.7rem;
+      color: var(--muted);
+      margin-block-start: 0.25rem;
+      line-height: 1.4;
+    }
+    .pdfc-checks { font-size: 0.85rem; margin-block-end: 1rem; }
+    .pdfc-checks label { display: block; margin-block-end: 0.4rem; }
+    .pdfc-note {
+      font-size: 0.75rem;
+      color: var(--muted);
+      line-height: 1.5;
+      border-block-start: 3px solid var(--border-subtle);
+      padding-block-start: 0.6rem;
     }
 
     /* ── Responsive ──────────────────────────── */
@@ -2288,7 +2321,7 @@
   <a href="#vault-watch-section">Vault Watch</a>
   <a href="#recent-work-section">Recent Work</a>
   <a href="#posts-section">Posts</a>
-  <a href="#papers-section">Brain Paper Visualizer</a>
+  <a href="#converter-section">PDF to Markdown</a>
   <a href="#pipeline-section">Pipeline</a>
   <a href="#opportunities-section">Opportunities</a>
   <a href="#analytics-section">Analytics</a>
@@ -2398,47 +2431,97 @@
     </div>
   </section>
 
-  <!-- ── Brain Paper Visualizer (per-paper brain viz) ──────────── -->
-  <section class="dashboard-section" id="papers-section">
-    <button class="section-toggle" onclick="toggleSection('papers-section')">
-      <h2 class="section-heading">Brain Paper Visualizer</h2>
+  <!-- ── PDF to Markdown (converter → vault source intake) ─────── -->
+  <section class="dashboard-section" id="converter-section">
+    <button class="section-toggle" onclick="toggleSection('converter-section')">
+      <h2 class="section-heading">PDF to Markdown</h2>
       <i data-lucide="chevron-down"></i>
     </button>
-    <div class="section-body" id="papers-body">
-      <p class="papers-intro">
-        Upload a neuroscience paper PDF to generate a per-paper view of the brain visualizer.
-        Claude reads the paper and picks regions from the master parcel registry; anything off-registry is dropped.
-        Author-only — the API key lives in the admin server env, not the browser.
-      </p>
+    <div class="section-body" id="converter-body">
+      <div class="pdfc" data-service="/api/converter">
+        <p class="pdfc-eyebrow">1 &middot; Source intake</p>
+        <p class="pdfc-lede">
+          Drop a PDF. It is converted page by page, verified against the page image
+          by a vision model, then filed in the vault with a draft source note.
+        </p>
+        <p class="pdfc-status" data-role="service-status">Checking the converter service&hellip;</p>
 
-      <div class="papers-upload">
-        <label class="papers-file">
-          <input type="file" id="papersFile" accept="application/pdf">
-          <span id="papersFileLabel">Choose a PDF…</span>
-        </label>
-        <button class="btn btn-accent" id="papersExtractBtn" disabled>
-          <i data-lucide="sparkles"></i> Extract
-        </button>
-      </div>
+        <div class="pdfc-grid">
+          <div>
+            <div class="pdfc-drop" data-role="drop" tabindex="0" role="button"
+                 aria-label="Choose a PDF to convert">
+              <p class="pdfc-drop-title">Drop a PDF here</p>
+              <p class="pdfc-drop-hint">or click to choose a file</p>
+              <p class="pdfc-drop-file" data-role="filename"></p>
+              <input type="file" accept="application/pdf,.pdf" data-role="file" hidden />
+            </div>
 
-      <div id="papersPreview" hidden>
-        <h3 class="papers-h3">Draft view config</h3>
-        <p class="papers-stats" id="papersStats"></p>
-        <textarea id="papersDraftJson" class="papers-textarea" rows="22" spellcheck="false" aria-label="Draft view config (editable)"></textarea>
-        <div class="papers-save-row">
-          <label class="papers-slug-label">
-            Route slug:
-            <code>/brain/papers/</code>
-            <input type="text" id="papersSlug" class="papers-slug" pattern="[a-z0-9][a-z0-9-]*" required>
-          </label>
-          <button class="btn btn-accent" id="papersSaveBtn">
-            <i data-lucide="save"></i> Save &amp; publish view
-          </button>
+            <div class="pdfc-progress" data-role="progress" hidden>
+              <div class="pdfc-progress-row">
+                <span data-role="stage-label">Waiting</span>
+                <span data-role="counter"></span>
+              </div>
+              <div class="pdfc-bar"><div class="pdfc-bar-fill" data-role="bar"></div></div>
+              <div class="pdfc-progress-meta">
+                <span data-role="cost">&mdash;</span>
+                <button type="button" class="pdfc-cancel" data-role="cancel">Cancel</button>
+              </div>
+            </div>
+
+            <div class="pdfc-log" data-role="log" hidden></div>
+
+            <div class="pdfc-result" data-role="result" hidden></div>
+          </div>
+
+          <aside class="pdfc-side">
+            <h3>Options</h3>
+
+            <label class="pdfc-field">
+              <span>Pages</span>
+              <input type="text" data-role="pages" placeholder="all" />
+              <small>Blank for the whole document. Or 1-20, or 4,9,15-18.</small>
+            </label>
+
+            <label class="pdfc-field">
+              <span>Page numbers</span>
+              <select data-role="page-markers">
+                <option value="comment">Hidden comment</option>
+                <option value="visible">Visible in text</option>
+                <option value="none">Omit</option>
+              </select>
+            </label>
+
+            <label class="pdfc-field">
+              <span>Footnotes</span>
+              <select data-role="footnotes">
+                <option value="end">Collected at the end</option>
+                <option value="page">Under each page</option>
+              </select>
+            </label>
+
+            <label class="pdfc-field">
+              <span>Model</span>
+              <input type="text" data-role="model" placeholder="service default" />
+              <small>An OpenRouter id. Blank uses the service default.</small>
+            </label>
+
+            <label class="pdfc-field">
+              <span>Parallel requests</span>
+              <input type="number" data-role="workers" value="4" min="1" max="12" />
+            </label>
+
+            <div class="pdfc-checks">
+              <label><input type="checkbox" data-role="figures" checked /> Extract figures</label>
+              <label><input type="checkbox" data-role="tables" checked /> Detect tables</label>
+            </div>
+
+            <p class="pdfc-note">
+              Verification runs on every page and costs money. A long book is a real
+              bill, so anything over 50 pages asks first.
+            </p>
+          </aside>
         </div>
       </div>
-
-      <h3 class="papers-h3">Uploaded papers</h3>
-      <div id="papersList"><div class="loading">Loading…</div></div>
     </div>
   </section>
 
@@ -4592,207 +4675,314 @@
       : (btn.dataset.hide || 'Hide commits');
   }
 
-  // ── Papers (per-paper brain viz) ────────────
-  let papersSelectedFile = null;
-  let papersSelectedBase64 = null;
+  // ── PDF to Markdown (converter → vault) ─────
+  // One instance per .pdfc root. All service traffic goes through the admin
+  // server's /api/converter stream-proxy (data-service on the root element),
+  // so this works from any machine's browser while the Python service stays
+  // bound to loopback on the Mini.
+  class PdfConverterSection {
+    constructor(root) {
+      this.root = root;
+      this.service = root.dataset.service.replace(/\/$/, "");
+      this.file = null;
+      this.jobId = null;
+      this.source = null;
 
-  function fileToBase64(file) {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => {
-        // result is "data:application/pdf;base64,XXX" — strip the prefix
-        const idx = reader.result.indexOf(',');
-        resolve(idx >= 0 ? reader.result.slice(idx + 1) : reader.result);
+      this.$ = (role) => root.querySelector(`[data-role="${role}"]`);
+      this.bindDropZone();
+      this.bindCancel();
+      this.checkHealth();
+    }
+
+    // ---- service health -------------------------------------------------
+
+    async checkHealth() {
+      const el = this.$("service-status");
+      try {
+        const res = await fetch(`${this.service}/health`, { cache: "no-store" });
+        if (!res.ok) throw new Error(String(res.status));
+        const data = await res.json();
+        if (!data.api_key_present) {
+          el.dataset.state = "down";
+          el.textContent =
+            "Service is up, but OPENROUTER_API_KEY is not set. Conversions will be refused.";
+          return;
+        }
+        if (!data.vault_present) {
+          el.dataset.state = "down";
+          el.textContent = `Service is up, but the vault was not found at ${data.vault}`;
+          return;
+        }
+        el.dataset.state = "up";
+        el.textContent = `Service up. Output goes to ${data.converted_dir}. Model: ${data.default_model}`;
+      } catch (err) {
+        el.dataset.state = "down";
+        el.textContent =
+          "Converter service is not responding. Start it on the Mini: scripts/converter/run.sh";
+      }
+    }
+
+    // ---- file selection -------------------------------------------------
+
+    bindDropZone() {
+      const drop = this.$("drop");
+      const input = this.$("file");
+
+      drop.addEventListener("click", () => input.click());
+      drop.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          input.click();
+        }
+      });
+
+      ["dragenter", "dragover"].forEach((type) =>
+        drop.addEventListener(type, (e) => {
+          e.preventDefault();
+          drop.dataset.active = "true";
+        })
+      );
+      ["dragleave", "drop"].forEach((type) =>
+        drop.addEventListener(type, (e) => {
+          e.preventDefault();
+          drop.dataset.active = "false";
+        })
+      );
+
+      drop.addEventListener("drop", (e) => {
+        const file = e.dataTransfer?.files?.[0];
+        if (file) this.accept(file);
+      });
+      input.addEventListener("change", () => {
+        if (input.files?.[0]) this.accept(input.files[0]);
+      });
+    }
+
+    accept(file) {
+      if (!file.name.toLowerCase().endsWith(".pdf")) {
+        this.showError("That is not a PDF.");
+        return;
+      }
+      this.file = file;
+      const mb = (file.size / 1024 / 1024).toFixed(1);
+      this.$("filename").textContent = `${file.name} — ${mb} MB`;
+      this.start();
+    }
+
+    // ---- running a job --------------------------------------------------
+
+    collectOptions() {
+      return {
+        pages: this.$("pages").value.trim(),
+        page_markers: this.$("page-markers").value,
+        footnotes: this.$("footnotes").value,
+        model: this.$("model").value.trim(),
+        workers: this.$("workers").value || "4",
+        figures: this.$("figures").checked ? "true" : "false",
+        tables: this.$("tables").checked ? "true" : "false",
+        dpi: "200",
       };
-      reader.onerror = () => reject(reader.error);
-      reader.readAsDataURL(file);
-    });
-  }
-
-  function papersOnFileChange(ev) {
-    const file = ev.target.files?.[0];
-    if (!file) {
-      papersSelectedFile = null;
-      papersSelectedBase64 = null;
-      document.getElementById('papersFileLabel').textContent = 'Choose a PDF…';
-      document.getElementById('papersExtractBtn').disabled = true;
-      return;
     }
-    papersSelectedFile = file;
-    papersSelectedBase64 = null;
-    document.getElementById('papersFileLabel').textContent = file.name;
-    document.getElementById('papersExtractBtn').disabled = false;
-    document.getElementById('papersPreview').hidden = true;
-  }
 
-  async function papersExtract() {
-    if (!papersSelectedFile) return;
-    const btn = document.getElementById('papersExtractBtn');
-    btn.disabled = true;
-    setStatus('Extracting paper… (this can take 30–60s for a large PDF)');
-    try {
-      if (!papersSelectedBase64) {
-        papersSelectedBase64 = await fileToBase64(papersSelectedFile);
+    async start() {
+      const spec = this.$("pages").value.trim();
+      const roughPages = Math.round(this.file.size / 90000);
+      if (!spec && roughPages > 50) {
+        const go = confirm(
+          `This looks like roughly ${roughPages} pages. Verification runs on every ` +
+            `page and is billed per page. Convert the whole thing?`
+        );
+        if (!go) return;
       }
-      const res = await fetch(API + '/api/papers/extract', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          filename: papersSelectedFile.name,
-          pdfBase64: papersSelectedBase64,
-        }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || res.statusText);
 
-      document.getElementById('papersDraftJson').value = JSON.stringify(data.viewConfig, null, 2);
-      document.getElementById('papersSlug').value = data.viewConfig.slug || '';
-      const numNetworks = data.viewConfig.networks ? Object.keys(data.viewConfig.networks).length : 0;
-      const sectionBits = data.sectionCount
-        ? ` · ${data.sectionCount} section(s), ${data.paragraphCount} paragraph(s)`
-        : ' · no paragraph context extracted';
-      document.getElementById('papersStats').textContent =
-        `${numNetworks} network(s) · ${data.matchedParcelCount} of ${data.registryParcelCount} registry parcels referenced${sectionBits} · paper: ${data.paper.title || '(untitled)'}`;
-      document.getElementById('papersPreview').hidden = false;
-      document.getElementById('papersPreview').dataset.paper = JSON.stringify(data.paper);
-      document.getElementById('papersPreview').dataset.paperContent = JSON.stringify(data.paperContent ?? null);
-      setStatus('Extracted. Edit the JSON below if needed, then Save.', 'success');
-    } catch (err) {
-      setStatus('Extract failed: ' + err.message, 'error');
-    } finally {
-      btn.disabled = !papersSelectedFile;
-    }
-  }
+      this.resetUi();
+      this.$("drop").dataset.busy = "true";
+      this.$("progress").hidden = false;
+      this.$("log").hidden = false;
 
-  async function papersSave() {
-    const slug = document.getElementById('papersSlug').value.trim();
-    if (!/^[a-z0-9][a-z0-9-]{0,79}$/.test(slug)) {
-      setStatus('Slug must be lowercase letters, digits, and dashes (start with letter or digit).', 'error');
-      return;
-    }
-    if (!papersSelectedBase64) {
-      setStatus('PDF not in memory — re-select the file.', 'error');
-      return;
-    }
-    let viewConfig;
-    try {
-      viewConfig = JSON.parse(document.getElementById('papersDraftJson').value);
-    } catch (err) {
-      setStatus('Draft JSON is not valid: ' + err.message, 'error');
-      return;
-    }
-    const preview = document.getElementById('papersPreview');
-    const paper = JSON.parse(preview.dataset.paper || '{}');
-    paper.id = slug;
-    const paperContent = preview.dataset.paperContent
-      ? JSON.parse(preview.dataset.paperContent)
-      : null;
+      const body = new FormData();
+      body.append("file", this.file);
+      Object.entries(this.collectOptions()).forEach(([k, v]) => body.append(k, v));
 
-    const btn = document.getElementById('papersSaveBtn');
-    btn.disabled = true;
-    setStatus('Saving…');
-    try {
-      const res = await fetch(API + '/api/papers/save', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ slug, pdfBase64: papersSelectedBase64, paper, viewConfig, paperContent }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || res.statusText);
-      setStatus(`Saved → ${data.viewUrl}`, 'success');
-      document.getElementById('papersPreview').hidden = true;
-      fetchPapers();
-    } catch (err) {
-      setStatus('Save failed: ' + err.message, 'error');
-    } finally {
-      btn.disabled = false;
-    }
-  }
-
-  function renderPapersList(entries) {
-    const listEl = document.getElementById('papersList');
-    while (listEl.firstChild) listEl.removeChild(listEl.firstChild);
-    if (entries.length === 0) {
-      const p = document.createElement('p');
-      p.className = 'empty-state';
-      p.textContent = 'No uploaded papers yet.';
-      listEl.appendChild(p);
-      return;
-    }
-    const wrap = document.createElement('div');
-    wrap.className = 'papers-list';
-    for (const p of entries) {
-      const item = document.createElement('div');
-      item.className = 'papers-list-item';
-
-      const left = document.createElement('div');
-      const title = document.createElement('div');
-      title.className = 'papers-list-title';
-      title.textContent = p.title || '(untitled)';
-      if (p.hasParagraphs) {
-        const badge = document.createElement('span');
-        badge.className = 'papers-list-badge';
-        badge.textContent = '¶';
-        badge.title = 'Paragraph context extracted';
-        title.appendChild(document.createTextNode(' '));
-        title.appendChild(badge);
+      try {
+        const res = await fetch(`${this.service}/convert`, { method: "POST", body });
+        if (!res.ok) {
+          const detail = await res.json().catch(() => ({}));
+          throw new Error(detail.detail || `Service returned ${res.status}`);
+        }
+        const data = await res.json();
+        this.jobId = data.job_id;
+        this.listen(data.job_id);
+      } catch (err) {
+        this.showError(err.message);
+        this.$("drop").dataset.busy = "false";
       }
-      const meta = document.createElement('div');
-      meta.className = 'papers-list-meta';
-      const metaParts = [p.authors, p.year, p.venue].filter(Boolean);
-      meta.textContent = metaParts.join(' · ');
-      left.appendChild(title);
-      left.appendChild(meta);
-
-      const actions = document.createElement('div');
-      actions.className = 'papers-list-actions';
-      const viewLink = document.createElement('a');
-      viewLink.className = 'btn';
-      viewLink.href = p.viewUrl;
-      viewLink.target = '_blank';
-      viewLink.rel = 'noopener';
-      const viewIcon = document.createElement('i');
-      viewIcon.setAttribute('data-lucide', 'external-link');
-      viewLink.append(viewIcon, ' Open view');
-
-      const pdfLink = document.createElement('a');
-      pdfLink.className = 'btn';
-      pdfLink.href = p.pdfUrl;
-      pdfLink.target = '_blank';
-      pdfLink.rel = 'noopener';
-      const pdfIcon = document.createElement('i');
-      pdfIcon.setAttribute('data-lucide', 'file-text');
-      pdfLink.append(pdfIcon, ' PDF');
-
-      actions.appendChild(viewLink);
-      actions.appendChild(pdfLink);
-
-      item.appendChild(left);
-      item.appendChild(actions);
-      wrap.appendChild(item);
     }
-    listEl.appendChild(wrap);
-    lucide.createIcons();
+
+    listen(jobId) {
+      this.source = new EventSource(`${this.service}/jobs/${jobId}/events`);
+      this.source.onmessage = (e) => {
+        let payload;
+        try {
+          payload = JSON.parse(e.data);
+        } catch {
+          return;
+        }
+        if (payload.stage === "_close") {
+          this.source.close();
+          this.source = null;
+          this.$("drop").dataset.busy = "false";
+          return;
+        }
+        this.handle(payload);
+      };
+      this.source.onerror = () => {
+        if (this.source) {
+          this.source.close();
+          this.source = null;
+        }
+        this.$("drop").dataset.busy = "false";
+      };
+    }
+
+    handle(ev) {
+      const stageLabels = {
+        open: "Reading the PDF",
+        analysed: "Analysing layout",
+        extract: "Extracting pages",
+        verify: "Verifying against page images",
+        "verify-skipped": "Verification skipped",
+        metadata: "Reading the title page",
+        filed: "Filing the PDF",
+        complete: "Done",
+        failed: "Failed",
+        cancelled: "Cancelled",
+      };
+
+      const label = stageLabels[ev.stage] || ev.stage;
+      this.$("stage-label").textContent = label;
+
+      if (typeof ev.done === "number" && typeof ev.total === "number" && ev.total > 0) {
+        const base = ev.stage === "verify" ? 40 : 0;
+        const span = ev.stage === "verify" ? 55 : 40;
+        this.$("bar").style.width = `${base + (ev.done / ev.total) * span}%`;
+        this.$("counter").textContent = `${ev.done} / ${ev.total}`;
+      }
+
+      if (typeof ev.cost_micros === "number" && ev.cost_micros > 0) {
+        this.$("cost").textContent = `$${(ev.cost_micros / 1e6).toFixed(4)} · ${(
+          ev.tokens || 0
+        ).toLocaleString()} tokens`;
+      }
+
+      if (ev.stage === "analysed") {
+        this.log(`Body type ${ev.body_size}pt; heading sizes ${(ev.heading_sizes || []).join(", ") || "none"}`);
+      }
+      if (ev.stage === "open") {
+        this.log(`${ev.pages_total} pages in the file, ${ev.pages_selected} selected`);
+      }
+      if (ev.stage === "verify" && ev.status === "rejected") {
+        this.log("A page failed verification; the mechanical extraction was kept.");
+      }
+      if (ev.stage === "filed") {
+        this.log(`Filed as ${ev.pdf}`);
+      }
+
+      if (ev.stage === "complete") {
+        this.$("bar").style.width = "100%";
+        this.finish(ev);
+      }
+      if (ev.stage === "failed") {
+        this.showError(ev.error || "Conversion failed.");
+      }
+      if (ev.stage === "cancelled") {
+        this.$("stage-label").textContent = "Cancelled";
+        this.$("bar").style.width = "0";
+      }
+    }
+
+    async finish() {
+      const res = await fetch(`${this.service}/jobs/${this.jobId}`);
+      const job = await res.json();
+      const s = job.result?.summary || {};
+      const meta = job.result?.metadata || {};
+
+      const stat = (value, label, warn = false) =>
+        `<div class="pdfc-stat" data-warn="${warn}"><b>${value}</b><span>${label}</span></div>`;
+
+      const flags = [];
+      if (s.rejected) {
+        flags.push(
+          `${s.rejected} page(s) failed verification and kept the mechanical extraction` +
+            (s.rejected_pages?.length ? `: ${s.rejected_pages.join(", ")}` : "") +
+            ". Read those against the PDF before quoting."
+        );
+      }
+      if (s.ocr) flags.push(`${s.ocr} page(s) had no text layer and were transcribed by OCR.`);
+      if (s.ocr_failed) flags.push(`${s.ocr_failed} page(s) could not be transcribed.`);
+
+      const el = this.$("result");
+      el.dataset.state = "ok";
+      el.hidden = false;
+      el.innerHTML = `
+        <h3>${this.escape(meta.title || job.filename)}</h3>
+        <div class="pdfc-stats">
+          ${stat(s.pages_converted ?? 0, "pages")}
+          ${stat(s.figures ?? 0, "figures")}
+          ${stat(s.footnotes ?? 0, "footnotes")}
+          ${stat(s.verified ?? 0, "verified")}
+          ${stat(s.rejected ?? 0, "rejected", (s.rejected ?? 0) > 0)}
+          ${stat("$" + ((s.cost_micros || 0) / 1e6).toFixed(4), "cost")}
+        </div>
+        <dl class="pdfc-paths">
+          <div><dt>Markdown</dt><dd>${this.escape(job.result?.markdown_path || "")}</dd></div>
+          <div><dt>Source note</dt><dd>${this.escape(job.result?.note_path || "")}</dd></div>
+          <div><dt>PDF</dt><dd>${this.escape(job.result?.pdf_path || "")}</dd></div>
+        </dl>
+        ${flags.length ? `<div class="pdfc-flag"><strong>Needs a human eye.</strong> ${flags.map((f) => this.escape(f)).join(" ")}</div>` : ""}
+      `;
+    }
+
+    // ---- helpers --------------------------------------------------------
+
+    bindCancel() {
+      this.$("cancel").addEventListener("click", async () => {
+        if (!this.jobId) return;
+        await fetch(`${this.service}/jobs/${this.jobId}/cancel`, { method: "POST" });
+        this.log("Cancel requested. Pages already in flight will finish.");
+      });
+    }
+
+    resetUi() {
+      this.$("result").hidden = true;
+      this.$("log").innerHTML = "";
+      this.$("bar").style.width = "0";
+      this.$("counter").textContent = "";
+      this.$("cost").textContent = "—";
+    }
+
+    log(message) {
+      const line = document.createElement("div");
+      line.textContent = message;
+      this.$("log").appendChild(line);
+      this.$("log").scrollTop = this.$("log").scrollHeight;
+    }
+
+    showError(message) {
+      const el = this.$("result");
+      el.dataset.state = "failed";
+      el.hidden = false;
+      el.innerHTML = `<h3>Conversion failed</h3><p>${this.escape(message)}</p>`;
+    }
+
+    escape(value) {
+      const div = document.createElement("div");
+      div.textContent = String(value ?? "");
+      return div.innerHTML;
+    }
   }
 
-  async function fetchPapers() {
-    const listEl = document.getElementById('papersList');
-    try {
-      const res = await fetch(API + '/api/papers');
-      const data = await res.json();
-      renderPapersList(data.papers || []);
-    } catch (err) {
-      while (listEl.firstChild) listEl.removeChild(listEl.firstChild);
-      const p = document.createElement('p');
-      p.className = 'empty-state';
-      p.textContent = 'Failed to load: ' + err.message;
-      listEl.appendChild(p);
-    }
-  }
-
-  document.getElementById('papersFile').addEventListener('change', papersOnFileChange);
-  document.getElementById('papersExtractBtn').addEventListener('click', papersExtract);
-  document.getElementById('papersSaveBtn').addEventListener('click', papersSave);
+  document.querySelectorAll(".pdfc").forEach((el) => new PdfConverterSection(el));
 
   // ── Init ────────────────────────────────────
   lucide.createIcons();
@@ -4801,7 +4991,6 @@
   fetchDevStatus();
   fetchProjectStatus();
   fetchDashboard();
-  fetchPapers();
   applyMobileMode();
   pollTimer = setInterval(() => {
     fetchPosts();

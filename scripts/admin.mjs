@@ -10,7 +10,7 @@
  * Zero new dependencies — Node built-ins only.
  */
 
-import { createServer } from 'node:http';
+import { createServer, request as httpRequest } from 'node:http';
 import { createServer as createNetServer } from 'node:net';
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'node:fs';
 import { join, resolve, sep } from 'node:path';
@@ -123,6 +123,46 @@ let adminStartedDevServer = false;
 function json(res, data, status = 200) {
   res.writeHead(status, { 'Content-Type': 'application/json' });
   res.end(JSON.stringify(data));
+}
+
+// ── PDF converter proxy ──────────────────────────────────────────────
+// The converter (scripts/converter/converter_service.py) binds loopback-only
+// on the machine running this admin server. A browser viewing the dashboard
+// from another machine can't reach that 127.0.0.1:8787 itself, so every
+// converter call goes through here: /api/converter/<rest> → localhost:<port>/<rest>.
+// Both directions stream — multipart uploads up, SSE progress events down —
+// so nothing is buffered and EventSource keepalives pass through live.
+const CONVERTER_PORT = Number(process.env.CONVERTER_PORT || 8787);
+
+function proxyToConverter(req, res, targetPath) {
+  const upstream = httpRequest(
+    {
+      host: '127.0.0.1',
+      port: CONVERTER_PORT,
+      path: targetPath,
+      method: req.method,
+      headers: { ...req.headers, host: `127.0.0.1:${CONVERTER_PORT}` },
+    },
+    (up) => {
+      res.writeHead(up.statusCode || 502, up.headers);
+      up.pipe(res);
+    }
+  );
+  upstream.on('error', () => {
+    if (!res.headersSent) {
+      json(
+        res,
+        { detail: `converter service is not running on 127.0.0.1:${CONVERTER_PORT} — start it with scripts/converter/run.sh` },
+        502
+      );
+    } else {
+      res.end();
+    }
+  });
+  // Tab closed or EventSource dropped: stop the upstream request too, so the
+  // service isn't left streaming to nobody. Harmless after a normal finish.
+  res.on('close', () => upstream.destroy());
+  req.pipe(upstream);
 }
 
 function readBody(req) {
@@ -625,6 +665,15 @@ async function handleRequest(req, res) {
       } finally {
         refreshInFlight = null;
       }
+      return;
+    }
+
+    // /api/converter/* — stream-proxy to the local PDF converter service.
+    // No READ_ONLY gate: conversion writes to the vault via the service's
+    // own whitelist (01_Sources only), same trust level as the reading-queue
+    // and todo write-backs above.
+    if (path.startsWith('/api/converter/')) {
+      proxyToConverter(req, res, path.slice('/api/converter'.length) + url.search);
       return;
     }
 
