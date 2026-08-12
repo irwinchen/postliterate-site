@@ -54,18 +54,24 @@ function isTrivialSession(session) {
 }
 
 // Project prefixes the dashboard cares about. Worktrees match by prefix.
-// VAULT_PATH overrides the second entry if set. The third entry is the
-// Mini's vault location (different parent dir than the MacBook's).
-const SITE_REPO = '/Users/irwinchen/Documents/postliterate-site';
+// The repo lives at ~/code/postliterate-site (kept out of iCloud-synced
+// ~/Documents on purpose); the old Documents path stays listed so history
+// entries recorded before the move still match. VAULT_PATH overrides the
+// vault entry if set. The last entry is the Mini's vault location
+// (different parent dir than the MacBook's).
+const SITE_REPOS = [
+  '/Users/irwinchen/code/postliterate-site',
+  '/Users/irwinchen/Documents/postliterate-site', // pre-move history entries
+];
 const VAULT_DEFAULT = process.env.VAULT_PATH || join(homedir(), 'vaults/PostLiterate');
 const RELEVANT_PROJECT_PREFIXES = [
-  SITE_REPO,
+  ...SITE_REPOS,
   VAULT_DEFAULT,
   join(homedir(), 'Documents/Postliterate'), // Mini's local vault path
 ];
 
 function projectLabel(projectPath) {
-  if (projectPath.startsWith(SITE_REPO)) return 'site';
+  if (SITE_REPOS.some((p) => projectPath.startsWith(p))) return 'site';
   if (projectPath.startsWith(VAULT_DEFAULT)) return 'vault';
   if (projectPath.startsWith(join(homedir(), 'Documents/Postliterate'))) return 'vault';
   return 'other';

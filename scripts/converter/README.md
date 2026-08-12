@@ -17,7 +17,7 @@ by `install.sh` stay local to the Mini and are gitignored.
 ## 1. Install the service (on the Mini)
 
 ```bash
-cd ~/Documents/postliterate-site/scripts/converter
+cd ~/code/postliterate-site/scripts/converter
 ./install.sh
 ```
 
@@ -127,7 +127,7 @@ card and in the source note.
 The converter still works on its own, without the service:
 
 ```bash
-cd ~/Documents/postliterate-site/scripts/converter
+cd ~/code/postliterate-site/scripts/converter
 ./.venv/bin/python pdf_to_markdown.py paper.pdf -o out.md --verify
 ./.venv/bin/python pdf_to_markdown.py PDFs/ --out-dir Converted/ --verify --workers 6
 ./.venv/bin/python pdf_to_markdown.py book.pdf --pages 40-72 --page-markers visible
