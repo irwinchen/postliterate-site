@@ -125,6 +125,7 @@
   .panel-foot{
     padding:8px 26px 24px;
   }
+  .panel-foot p + p{margin-top:12px}
   .panel-foot p{
     font-family:var(--serif);
     font-size:.96rem;
@@ -163,16 +164,25 @@
     90%{opacity:1}
     100%{offset-distance:100%;opacity:0}
   }
+  /* Both dots run the full span with no delay between them: in a meeting the
+     traffic is simultaneous rather than alternating turns. */
   .dot-ab{
     fill:var(--red);
-    offset-path:path('M 196 140 L 384 140');
-    animation:pulseDot 2.8s ease-in-out infinite;
+    offset-path:path('M 214 111 L 366 111');
+    animation:pulseDot 3.4s ease-in-out infinite;
   }
   .dot-ba{
     fill:var(--red);
-    offset-path:path('M 384 140 L 196 140');
-    animation:pulseDot 2.8s ease-in-out infinite;
-    animation-delay:1.4s;
+    offset-path:path('M 366 171 L 214 171');
+    animation:pulseDot 3.4s ease-in-out infinite;
+    animation-delay:.5s;
+  }
+  .chan line{stroke:#b9b1a1;stroke-width:1.1}
+  .chan-lbl text{
+    font-family:'Sono',monospace;
+    font-size:8px;
+    letter-spacing:.13em;
+    fill:#8a8272;
   }
   .meet{fill:var(--red);opacity:.07}
   @keyframes meetPulse{0%,100%{opacity:.05}50%{opacity:.13}}
@@ -353,36 +363,59 @@
         <div class="panel-head">
           <span class="panel-num">MODEL 2</span>
           <h2 class="panel-title">The Meeting</h2>
-          <p class="panel-sub">each person holds a picture of the other</p>
+          <p class="panel-sub">two bodies in the same room, on every channel at once</p>
         </div>
         <div class="stage">
-          <svg viewBox="0 0 580 220" role="img" aria-label="Two consciousnesses, each containing a model of the other, exchange signals in both directions and are mutually changed.">
-            <!-- shared zone -->
-            <ellipse class="meet meet-anim" cx="290" cy="140" rx="62" ry="78"/>
-            <!-- consciousness A -->
+          <svg viewBox="0 0 580 220" role="img" aria-label="Two people facing each other in a shared situation, connected by four simultaneous channels — voice, face, gesture and touch. Each carries a working picture of the other, drawn small inside the head.">
+            <!-- shared situation -->
+            <ellipse class="meet meet-anim" cx="290" cy="140" rx="66" ry="80"/>
+
+            <!-- person A. Torso is a closed bust rather than an open arc: an open
+                 arc under a circle reads as a frowning face. -->
             <g class="consc-a">
-              <circle cx="150" cy="140" r="74" fill="none" stroke="#3B6DB4" stroke-width="1.6"/>
-              <text class="lbl-node" x="150" y="92" text-anchor="middle" fill="#3B6DB4">A</text>
-              <!-- A's model of B -->
-              <circle cx="150" cy="156" r="26" fill="none" stroke="#549E44" stroke-width="1.3" stroke-dasharray="3 4"/>
-              <text x="150" y="160" text-anchor="middle" font-family="Sono,monospace" font-size="9.5" letter-spacing=".04em" fill="#6e675c">B′</text>
+              <circle cx="150" cy="140" r="72" fill="none" stroke="#3B6DB4" stroke-width="1.6"/>
+              <circle cx="150" cy="100" r="17" fill="#eef2f8" stroke="#3B6DB4" stroke-width="1.5"/>
+              <path d="M 116 188 C 116 146 184 146 184 188 Z" fill="#eef2f8" stroke="#3B6DB4" stroke-width="1.5"/>
+              <!-- A's working picture of B: one faculty among several, and it leans
+                   toward the person it is a picture of. -->
+              <circle cx="186" cy="86" r="13" fill="var(--panel)" stroke="#549E44" stroke-width="1.2" stroke-dasharray="3 3.5"/>
+              <text x="186" y="89" text-anchor="middle" font-family="Sono,monospace" font-size="8" fill="#6e675c">B′</text>
+              <text class="lbl-node" x="150" y="206" text-anchor="middle" fill="#3B6DB4">A</text>
             </g>
-            <!-- consciousness B -->
+
+            <!-- person B -->
             <g class="consc-b">
-              <circle cx="430" cy="140" r="74" fill="none" stroke="#549E44" stroke-width="1.6"/>
-              <text class="lbl-node" x="430" y="92" text-anchor="middle" fill="#549E44">B</text>
-              <!-- B's model of A -->
-              <circle cx="430" cy="156" r="26" fill="none" stroke="#3B6DB4" stroke-width="1.3" stroke-dasharray="3 4"/>
-              <text x="430" y="160" text-anchor="middle" font-family="Sono,monospace" font-size="9.5" letter-spacing=".04em" fill="#6e675c">A′</text>
+              <circle cx="430" cy="140" r="72" fill="none" stroke="#549E44" stroke-width="1.6"/>
+              <circle cx="430" cy="100" r="17" fill="#eef5ec" stroke="#549E44" stroke-width="1.5"/>
+              <path d="M 396 188 C 396 146 464 146 464 188 Z" fill="#eef5ec" stroke="#549E44" stroke-width="1.5"/>
+              <circle cx="394" cy="86" r="13" fill="var(--panel)" stroke="#3B6DB4" stroke-width="1.2" stroke-dasharray="3 3.5"/>
+              <text x="394" y="89" text-anchor="middle" font-family="Sono,monospace" font-size="8" fill="#6e675c">A′</text>
+              <text class="lbl-node" x="430" y="206" text-anchor="middle" fill="#549E44">B</text>
             </g>
-            <!-- reciprocal signal dots -->
+
+            <!-- four channels running at once -->
+            <g class="chan">
+              <line x1="222" y1="96"  x2="256" y2="96"/>  <line x1="324" y1="96"  x2="358" y2="96"/>
+              <line x1="222" y1="126" x2="256" y2="126"/> <line x1="324" y1="126" x2="358" y2="126"/>
+              <line x1="222" y1="156" x2="256" y2="156"/> <line x1="324" y1="156" x2="358" y2="156"/>
+              <line x1="222" y1="186" x2="256" y2="186"/> <line x1="324" y1="186" x2="358" y2="186"/>
+            </g>
+            <g class="chan-lbl">
+              <text x="290" y="99"  text-anchor="middle">VOICE</text>
+              <text x="290" y="129" text-anchor="middle">FACE</text>
+              <text x="290" y="159" text-anchor="middle">GESTURE</text>
+              <text x="290" y="189" text-anchor="middle">TOUCH</text>
+            </g>
+
+            <!-- traffic runs both ways at once, not in turns -->
             <circle class="dot-ab" r="5"/>
             <circle class="dot-ba" r="5"/>
-            <text class="lbl-sm" x="290" y="234" text-anchor="middle" dy="-8">SHARED INTERIOR</text>
+            <text class="lbl-sm" x="290" y="234" text-anchor="middle" dy="-8">SHARED SITUATION</text>
           </svg>
         </div>
         <div class="panel-foot">
-          <p>Here both people are doing what the mailbox never does. Each carries a rough working picture of the other and keeps consulting it. She flinches at pity, so you drop the sympathetic voice before you use it. She knows you understate bad news, so she reads your calm as worse than it sounds. Each of you is adjusting to a picture of someone who is, right then, adjusting to a picture of you. That's what the overlap in the middle is. Both of you walk away slightly different from how you arrived.</p>
+          <p>Here both people are doing what the mailbox never does. She flinches at pity, so you drop the sympathetic voice before you use it. She hears you understating it and reads your calm as worse than it sounds. Each of you is adjusting to someone who is, right then, adjusting to you.</p>
+          <p>Notice how little of that is words. It's running on voice and face and posture and the distance between two chairs, all at once, most of it below the level you'd call deciding. The small dashed circle is real, and it's one part of the machinery rather than the whole of it. What's doing the work is two bodies in a room, and both of them leave slightly different from how they arrived.</p>
         </div>
       </div>
     </div>
@@ -404,8 +437,8 @@
       <div class="cell r"><span class="tag">The Meeting</span>Both people come out of it altered.</div>
     </div>
     <div class="crow">
-      <div class="cell l"><span class="tag">Media Model</span>You never have to imagine the other person.</div>
-      <div class="cell r"><span class="tag">The Meeting</span>Imagining the other person is the entire job.</div>
+      <div class="cell l"><span class="tag">Media Model</span>One channel, and words are all that ride on it.</div>
+      <div class="cell r"><span class="tag">The Meeting</span>Voice, face, posture, distance, touch, running together.</div>
     </div>
   </div>
 
@@ -539,11 +572,21 @@
     </div>
   </div>
 
+  <!-- ============ THE OBJECTION (Finnegan) ============ -->
+  <hr class="rule">
+  <p class="kicker">The objection</p>
+  <div class="lede">
+    <p>Ruth Finnegan, an anthropologist who has spent sixty years on how people actually communicate, would accept the left panel's demolition and then turn on the right one. Her charge is that models like this defeat the postal service and quietly rebuild it one floor up. You have replaced a message travelling between two heads with a picture travelling between two heads, and the heads are still where all the action is.</p>
+    <p>Her word for what that leaves out, borrowed from Brenda Farnell's work on dance, is that such accounts stop at the neck. Her own book is organised as the rebuttal: separate chapters for sound, touch, smell, the moving body, the space people keep between each other. Speech is one channel among many, and often not the decisive one.</p>
+    <p>She'd press on the epigraph too. Ong calls this capacity distinctively human; Finnegan doesn't accept the fence. Birds flock without any signal you can point to, choirs stay together past what the conductor is doing, hunting partners read each other for hours without speaking. And she'd be wary of the last two panels for a different reason: she declines to call new media a technological revolution, on the grounds that it hands the explanation to the tools and takes it away from the people using them. Her flattest observation is the hardest one here. Writing has changed enormously over the past century. Talking, between people who are in the same room, has barely changed at all.</p>
+    <p>Some of that is answered above. The four channels in the second panel are there because of her. Some of it isn't answered, and shouldn't be papered over: if she's right that speech and writing and gesture grew up alongside each other rather than in sequence, then a good deal of what gets built on top of the orality-to-literacy story needs rebuilding too.</p>
+  </div>
+
   <!-- ============ CLOSING BAND: THE CHATBOT ============ -->
   <div class="band">
     <p class="kicker">The thread through four models</p>
     <h2>A mailbox that learned to act like a friend.</h2>
-    <p>Take the interface away and a language model does what the first panel does. Text goes in, text comes out, picked by prediction. It's the postal service with an extremely good guess about what you were hoping to receive. It doesn't hold a picture of you the way your friend does, and there's no second party whose face you're reading.</p>
+    <p>Take the interface away and a language model does what the first panel does. Text goes in, text comes out, picked by prediction. It's the postal service with an extremely good guess about what you were hoping to receive. And it all arrives down one channel. No voice with anything at stake in it, no face doing something its owner didn't authorise, no pause that means something, nobody in the room. What the second panel has and this doesn't is less a matter of what's held in the head than of who is present.</p>
     <p>Notice how neatly the last two panels rhyme. Social media put a machine in the <span class="em">channel</span>, the thing you speak through. The chatbot puts one in the <span class="em">chair</span>, the thing you take yourself to be speaking to. Different seat, same result: a real other person slides out of the picture, and a system optimizing for something takes their place in the shape of the exchange.</p>
     <p>What's genuinely new is that this version throws off every outward sign of the real thing. It performs its way through a conversation well enough that the difference now has to be argued instead of simply felt. That's the part worth sitting with. Ong's distinction hasn't been disproved. It's been pulled in two, with the appearance of meeting running at full power and the substance of it left an open question.</p>
   </div>
