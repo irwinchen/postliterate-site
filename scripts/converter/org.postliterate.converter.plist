@@ -8,11 +8,11 @@
 
   <key>ProgramArguments</key>
   <array>
-    <string>/Users/irwinchen/Documents/postliterate-site/scripts/converter/run.sh</string>
+    <string>/Users/irwinchen/code/postliterate-site/scripts/converter/run.sh</string>
   </array>
 
   <key>WorkingDirectory</key>
-  <string>/Users/irwinchen/Documents/postliterate-site/scripts/converter</string>
+  <string>/Users/irwinchen/code/postliterate-site/scripts/converter</string>
 
   <key>RunAtLoad</key>
   <true/>

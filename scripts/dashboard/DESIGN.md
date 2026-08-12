@@ -19,7 +19,7 @@ A web dashboard for the *After the Book* project. Twice-daily auto-refresh
 
 **Hosting:** Mac Mini M4 (`mediaserver.local:4322`). Always on, vault is synced there. Reachable from MacBook over LAN today; Tailscale later if/when remote access matters.
 
-**Repo location on Mini:** `~/Documents/postliterate-site`. The Mini is an **appliance**: it pulls, serves the dashboard, and runs Ollama summaries, but never edits or commits. The `org.postliterate.git-pull` launchd timer fast-forwards it from `origin/main` every 30 minutes (on by default); `deploy/mini/git-pull.sh` forces an immediate sync. All editing happens on the MacBook. GitHub `origin/main` is canonical. See the **Two-Machine Workflow** section in the repo-root `CLAUDE.md` — that is the single source of truth for this; this is a pointer. (History: 2026-05-09 the Mini was briefly used as a primary dev host; that was reverted 2026-05-19 because dual-machine editing kept causing git divergence.)
+**Repo location on Mini:** `~/code/postliterate-site` (kept out of the iCloud-synced `~/Documents` on purpose — see the iCloud gotcha below; docs that say `~/Documents/postliterate-site` predate the move). The Mini is an **appliance**: it pulls, serves the dashboard, and runs Ollama summaries, but never edits or commits. The `org.postliterate.git-pull` launchd timer fast-forwards it from `origin/main` every 30 minutes (on by default); `deploy/mini/git-pull.sh` forces an immediate sync. All editing happens on the MacBook. GitHub `origin/main` is canonical. See the **Two-Machine Workflow** section in the repo-root `CLAUDE.md` — that is the single source of truth for this; this is a pointer. (History: 2026-05-09 the Mini was briefly used as a primary dev host; that was reverted 2026-05-19 because dual-machine editing kept causing git divergence.)
 
 **Service:** existing `scripts/admin.mjs` extended with new routes. Runs under launchd as `org.postliterate.dashboard`. Logs at `~/Library/Logs/postliterate-mini/`.
 
@@ -55,7 +55,7 @@ scripts/
 deploy/mini/                         # done in Step 0
 ```
 
-Editing happens on the MacBook clone. Push to GitHub. Mini pulls within 30 min (or run `~/Documents/postliterate-site/deploy/mini/git-pull.sh` to force).
+Editing happens on the MacBook clone. Push to GitHub. Mini pulls within 30 min (or run `~/code/postliterate-site/deploy/mini/git-pull.sh` to force).
 
 ## Conventions
 
