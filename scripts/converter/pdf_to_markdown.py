@@ -200,7 +200,9 @@ def is_page_number(text: str) -> bool:
         return False
     if t.isdigit() and len(t) <= 5:
         return True
-    if ROMAN_RE.match(t) and len(t) <= 7:
+    # Single-letter roman numerals only count in lowercase: a bare capital
+    # "I" in the footer zone is almost always the pronoun, not page one.
+    if ROMAN_RE.match(t) and len(t) <= 7 and (len(t) >= 2 or t.islower()):
         return True
     m = re.match(r"^(?:page|p\.?)\s*(\d{1,5})$", t, re.IGNORECASE)
     return bool(m)
@@ -210,7 +212,7 @@ def extract_page_number(text: str) -> Optional[str]:
     t = text.strip().strip(".—–-[]() ")
     if t.isdigit():
         return t
-    if ROMAN_RE.match(t):
+    if ROMAN_RE.match(t) and (len(t) >= 2 or t.islower()):
         return t.lower()
     m = re.match(r"^(?:page|p\.?)\s*(\d{1,5})$", t, re.IGNORECASE)
     if m:
@@ -467,6 +469,16 @@ def interpolate_labels(labels: Dict[int, Optional[str]]) -> Dict[int, Optional[s
     side does. If the neighbours are numeric and consecutive, the gap is
     arithmetic and can be filled without guessing.
     """
+    # Real roman-numbered front matter comes in runs (i, ii, iii...). A lone
+    # roman label in a document with no other roman labels is OCR noise — a
+    # speck read as the letter "i" is enough to produce one.
+    roman_pages = [
+        i for i, v in labels.items()
+        if isinstance(v, str) and v and not v.isdigit()
+    ]
+    if len(roman_pages) == 1:
+        labels[roman_pages[0]] = None
+
     indices = sorted(labels)
     numeric = {
         i: int(labels[i])
@@ -1601,7 +1613,7 @@ Rules, all mandatory:
 2. Transcribe every word you can read, in natural reading order. Multi-column pages run column by column.
 3. Do not summarise, do not paraphrase, do not correct the author's spelling.
 4. Use `#` through `####` for headings that match the visual hierarchy.
-5. Omit running heads, running feet and bare page numbers.
+5. Omit running heads, running feet, bare page numbers, and library or archive download stamps and watermarks (for example JSTOR's "This content downloaded from..." and "All use subject to..." lines).
 6. Footnotes at the foot of the page become Markdown footnote definitions using the key prefix given in the user message, for example `[^p12-3]: note text`. Put the matching `[^p12-3]` reference at the exact point in the body text where the superscript marker appears.
 7. Render tables as Markdown tables, equations as `$$...$$` or `$...$`.
 8. If a word is illegible, write `[illegible]`. Never guess."""
@@ -1884,6 +1896,24 @@ def render_footnote_block(footnotes: Sequence[Tuple[str, str]]) -> str:
     return "\n\n".join(f"[^{key}]: {text}" for key, text in footnotes if text)
 
 
+# Library/archive download stamps that model transcriptions faithfully read
+# off the page image. The mechanical path drops these via repeat-based chrome
+# detection; this filter covers the model paths (and is harmless elsewhere).
+STAMP_RE = re.compile(
+    r"^\s*(?:"
+    r"this content downloaded from\b"
+    r"|all use subject to\b.{0,80}(?:terms|conditions)"
+    r"|downloaded from https?://\S+ on\b"
+    r")",
+    re.IGNORECASE,
+)
+
+
+def strip_stamp_lines(text: str) -> str:
+    kept = [ln for ln in text.splitlines() if not STAMP_RE.match(ln)]
+    return "\n".join(kept)
+
+
 def assemble_document(
     results: Sequence[PageResult],
     page_markdown: Dict[int, str],
@@ -1894,7 +1924,7 @@ def assemble_document(
     pending_open = False
 
     for result in results:
-        body = page_markdown.get(result.index, "").strip()
+        body = strip_stamp_lines(page_markdown.get(result.index, "")).strip()
         marker = page_marker(result.label, cfg.page_markers)
 
         if cfg.footnote_placement == "page" and result.footnotes:
