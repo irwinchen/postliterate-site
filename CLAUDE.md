@@ -52,6 +52,20 @@ GitHub `origin/main` is the single source of truth. This section is authoritativ
   touch code on the Mini, treat it as an exception: commit and push from there, then
   immediately go back to the MacBook-only rule.
 
+Both machines check the repo out at `~/code/postliterate-site`. Keep it out of
+`~/Documents`, which symlinks into iCloud Drive. iCloud forks every file the
+publisher writes, so publishing from there left stray `post 2.mdx` copies in
+`src/content/blog/`. One built into a real page locally; another surfaced in the
+dashboard as a phantom "synced" row with its own publish button. iCloud also left
+stale `.git/index.lock` files that block git for days. The MacBook moved out on
+2026-09-15; the Mini moved earlier.
+
+`publishPost` and `unpublishPost` refuse to run on any host in `APPLIANCE_HOSTS`
+(`scripts/blog-lib.mjs`) and name the machine to publish from instead. They check
+before writing or deleting anything, so a publish attempted on the Mini no longer
+leaves a half-applied change behind. `ALLOW_PUBLISH=1` overrides it for the
+exception above.
+
 Why this is strict: when both machines committed, their heads diverged and the Mini's
 auto-pull silently stalled on a dirty working tree (the dashboard rewrites cache files).
 Keeping all writes on one machine removes the whole class of problem. Dashboard refresh
