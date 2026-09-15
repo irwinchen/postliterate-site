@@ -557,14 +557,41 @@ export function publishPost(slug) {
 
   // Git add, commit, push
   const commitMsg = isRepublish ? `republish: ${slug}` : `publish: ${slug}`;
+  const paths = [dest, historyPath, ...copiedImages];
+  const pathArgs = paths.map((p) => `"${p}"`).join(' ');
   try {
-    const imageArgs = copiedImages.map((p) => `"${p}"`).join(' ');
-    execSync(`git add "${dest}" "${historyPath}"${imageArgs ? ' ' + imageArgs : ''}`, { cwd: ROOT, stdio: 'pipe' });
+    execSync(`git add ${pathArgs}`, { cwd: ROOT, stdio: 'pipe' });
+
+    // An empty diff means the vault source already matches what is published
+    let staged = true;
+    try {
+      execSync(`git diff --cached --quiet -- ${pathArgs}`, { cwd: ROOT, stdio: 'pipe' });
+      staged = false;
+    } catch { /* non-zero exit means there are staged changes */ }
+
+    if (!staged) {
+      return {
+        slug,
+        published: false,
+        unchanged: true,
+        error: `Nothing to publish — ${slug} is already live with this exact content. Edit ${join(VAULT_DIR, `${slug}.md`)} and try again.`,
+      };
+    }
+
     execSync(`git commit -m "${commitMsg}"`, { cwd: ROOT, stdio: 'pipe' });
     execSync(`git push origin main`, { cwd: ROOT, stdio: 'pipe' });
     return { slug, published: true };
   } catch (err) {
-    return { slug, published: false, error: 'Git operation failed. File has been copied but not committed.' };
+    const detail = (err.stderr?.toString() || err.stdout?.toString() || err.message || '')
+      .trim()
+      .split('\n')
+      .slice(0, 4)
+      .join(' ');
+    return {
+      slug,
+      published: false,
+      error: `Git operation failed. File has been copied but not committed.${detail ? ` git said: ${detail}` : ''}`,
+    };
   }
 }
 
