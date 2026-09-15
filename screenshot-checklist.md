@@ -19,7 +19,7 @@ treemap — regenerate them after replacing any screenshot so they stay in sync.
 After replacing files, regenerate thumbs:
 
 ```bash
-cd /Users/irwinchen/Documents/postliterate-site
+cd /Users/irwinchen/code/postliterate-site
 python3 -c "
 from PIL import Image
 import os
