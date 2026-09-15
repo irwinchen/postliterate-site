@@ -11,6 +11,7 @@ import { join } from 'node:path';
 import { execSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { createHash } from 'node:crypto';
+import { hostname } from 'node:os';
 
 const __dirname = fileURLToPath(new URL('.', import.meta.url));
 export const ROOT = join(__dirname, '..');
@@ -22,6 +23,25 @@ export const SYNC_MARKER = '{/* synced-draft */}';
 export const PID_FILE = join(ROOT, '.dev-server.pid');
 export const HISTORY_DIR = join(ROOT, 'src/data/history');
 export const DATA_PATH = join(ROOT, 'public/admin/project-status/data.json');
+
+/**
+ * Machines that mirror the site but never write to origin/main.
+ * See CLAUDE.md "Two-Machine Workflow".
+ */
+const APPLIANCE_HOSTS = ['mediaserver'];
+
+/**
+ * Why publishing is refused on this machine, or null when it is allowed.
+ * The appliance serves the dashboard from a mirror with a routinely dirty tree,
+ * so git fails there — after the post has already been written or deleted.
+ * Set ALLOW_PUBLISH=1 to override for a deliberate exception.
+ */
+export function applianceBlockReason(host = hostname()) {
+  if (process.env.ALLOW_PUBLISH === '1') return null;
+  const name = String(host).replace(/\.local$/i, '').toLowerCase();
+  if (!APPLIANCE_HOSTS.includes(name)) return null;
+  return `Refusing to publish from "${name}" — this machine mirrors the site and never commits (CLAUDE.md, "Two-Machine Workflow"). Publish from the MacBook dashboard at http://localhost:4322/ instead, or set ALLOW_PUBLISH=1 to override.`;
+}
 
 /** Escape a string for use inside an HTML/JSX attribute (double-quoted). */
 const escapeAttr = (t) => t.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
@@ -368,6 +388,11 @@ export function deletePost(slug) {
  * Returns { slug, unpublished: true } on success, or { slug, unpublished: false, error } on failure.
  */
 export function unpublishPost(slug) {
+  const blocked = applianceBlockReason();
+  if (blocked) {
+    return { slug, unpublished: false, blocked: true, error: blocked };
+  }
+
   const dest = join(CONTENT_DIR, `${slug}.mdx`);
 
   if (!existsSync(dest)) {
@@ -490,6 +515,11 @@ export function computeWordDiff(oldText, newText) {
  * Returns { slug, published: true } on success, or { slug, published: false, error } on failure.
  */
 export function publishPost(slug) {
+  const blocked = applianceBlockReason();
+  if (blocked) {
+    return { slug, published: false, blocked: true, error: blocked };
+  }
+
   const vault = getVaultPosts().find((p) => p.slug === slug);
   if (!vault) {
     return { slug, published: false, error: `Post not found in vault: ${slug}` };
